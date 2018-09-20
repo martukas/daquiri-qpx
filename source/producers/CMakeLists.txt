@@ -18,6 +18,7 @@ add_subdirectory(DetectorIndex)
 add_subdirectory(DummyDevice)
 add_subdirectory(MockProducer)
 add_subdirectory(ESSStream)
+add_subdirectory(Pixie4)
 
 add_library(
   ${this_target} STATIC
@@ -36,6 +37,7 @@ target_link_libraries(
   PUBLIC ${PROJECT_NAME}_core
   PRIVATE ${LibRDKafka_LIBRARIES}
   PRIVATE ${LibRDKafka_C_LIBRARIES}
+  PRIVATE pixie4
 )
 
 #enable_coverage(${this_target})
