@@ -42,6 +42,7 @@ public:
   void die() override;
 
   OscilData oscilloscope() override;
+  StreamManifest stream_manifest() const override;
 
   bool daq_start(SpillQueue out_queue) override;
   bool daq_stop() override;
@@ -63,13 +64,13 @@ protected:
   run_setup;
 
   // Threads
-  std::atomic<bool> running_;
-  std::atomic<bool> terminating_;
-  std::thread* runner_ {nullptr};
-  std::thread* parser_ {nullptr};
+  std::atomic<bool> running_{false};
+  std::atomic<bool> terminating_{false};
+  std::thread runner_;
+  std::thread parser_;
   SpillQueue raw_queue_ {nullptr};
-  static void worker_parse(RunSetup setup, SpillQueue in_queue, SpillQueue out_queue);
-  static void worker_run_dbl(Pixie4* callback, SpillQueue spill_queue);
+  void worker_parse(SpillQueue in_queue, SpillQueue out_queue);
+  void worker_run_dbl(SpillQueue spill_queue);
 
   // Helpers for daq
 //  void fill_stats(std::map<int16_t, StatsUpdate>&, uint8_t module);

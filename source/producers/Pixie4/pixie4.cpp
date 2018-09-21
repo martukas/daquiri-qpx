@@ -46,16 +46,10 @@ Pixie4::Pixie4()
 Pixie4::~Pixie4()
 {
   daq_stop();
-  if (runner_ != nullptr)
-  {
-    runner_->detach();
-    delete runner_;
-  }
-  if (parser_ != nullptr)
-  {
-    parser_->detach();
-    delete parser_;
-  }
+  if (runner_.joinable())
+    runner_.join();
+  if (parser_.joinable())
+    parser_.join();
   if (raw_queue_ != nullptr)
   {
     raw_queue_->stop();
@@ -63,22 +57,36 @@ Pixie4::~Pixie4()
   }
 }
 
+StreamManifest Pixie4::stream_manifest() const
+{
+  StreamManifest ret;
+  // \todo make this work
+//  for (auto& s : streams_)
+//  {
+//    if (!s.parser)
+//      continue;
+//    for (auto m : s.parser->stream_manifest())
+//      ret[m.first] = m.second;
+//  }
+  return ret;
+}
+
 bool Pixie4::daq_start(SpillQueue out_queue)
 {
-  if (running_.load())
+  if (running_.load() || parser_.joinable() || runner_.joinable())
     return false;
 
   terminating_.store(false);
 
-  for (size_t i=0; i < run_setup.indices.size(); i++)
+  for (size_t i = 0; i < run_setup.indices.size(); i++)
   {
     PixieAPI.clear_EM(i);
     // double-buffered:
-    PixieAPI.set_mod(i, "DBLBUFCSR",   1);
+    PixieAPI.set_mod(i, "DBLBUFCSR", 1);
     PixieAPI.set_mod(i, "MODULE_CSRA", 0);
   }
 
-  for (size_t i=0; i < run_setup.indices.size(); ++i)
+  for (size_t i = 0; i < run_setup.indices.size(); ++i)
   {
     PixieAPI.set_mod(i, "RUN_TYPE", run_setup.type);
     PixieAPI.set_mod(i, "MAX_EVENTS", 0);
@@ -88,13 +96,9 @@ bool Pixie4::daq_start(SpillQueue out_queue)
 
   raw_queue_ = new SpillMultiqueue(false, 100); // \todo params?
 
-  if (parser_ != nullptr)
-    delete parser_;
-  parser_ = new std::thread(&worker_parse, run_setup, raw_queue_, out_queue);
+  parser_ = std::thread(&Pixie4::worker_parse, this, raw_queue_, out_queue);
 
-  if (runner_ != nullptr)
-    delete runner_;
-  runner_ = new std::thread(&worker_run_dbl, this, raw_queue_);
+  runner_ = std::thread(&Pixie4::worker_run_dbl, this, raw_queue_);
 
   return true;
 }
@@ -106,12 +110,8 @@ bool Pixie4::daq_stop()
 
   terminating_.store(true);
 
-  if ((runner_ != nullptr) && runner_->joinable())
-  {
-    runner_->join();
-    delete runner_;
-    runner_ = nullptr;
-  }
+  if (runner_.joinable())
+    runner_.join();
 
   Timer::wait_ms(500);
   while (raw_queue_->size() > 0)
@@ -120,11 +120,9 @@ bool Pixie4::daq_stop()
   raw_queue_->stop();
   Timer::wait_ms(500);
 
-  if ((parser_ != nullptr) && parser_->joinable()) {
-    parser_->join();
-    delete parser_;
-    parser_ = nullptr;
-  }
+  if (parser_.joinable())
+    parser_.join();
+
   delete raw_queue_;
   raw_queue_ = nullptr;
 
@@ -183,7 +181,8 @@ Setting Pixie4::settings() const
   if (set.id() != plugin_name())
     return set;
 
-  for (auto &q : set.branches) {
+  for (auto& q : set.branches)
+  {
     if (set.metadata().type() == SettingType::command)
     {
       if (status_ & ProducerStatus::booted)
@@ -201,9 +200,9 @@ Setting Pixie4::settings() const
   }
 }
 
-void Pixie4::read_run_settings(Setting &set) const
+void Pixie4::read_run_settings(Setting& set) const
 {
-  for (auto &k : set.branches)
+  for (auto& k : set.branches)
   {
     if (k.id() == "Pixie4/Run type")
       k.set_int(run_setup.type);
@@ -212,9 +211,9 @@ void Pixie4::read_run_settings(Setting &set) const
   }
 }
 
-void Pixie4::read_files(Setting &set) const
+void Pixie4::read_files(Setting& set) const
 {
-  for (auto &k : set.branches)
+  for (auto& k : set.branches)
   {
     if (status_ & ProducerStatus::booted)
       k.metadata().set_flag("readonly");
@@ -223,14 +222,14 @@ void Pixie4::read_files(Setting &set) const
     if (k.id() == "Pixie4/Files/XIA_path")
       k.set_text(XIA_file_directory_);
     else if ((k.metadata().type() == SettingType::text) &&
-             (k.metadata().get_num("address", 0) > 0) && (k.metadata().get_num("address", 9) < 8))
+        (k.metadata().get_num("address", 0) > 0) && (k.metadata().get_num("address", 9) < 8))
       k.set_text(boot_files_[k.metadata().get_num("address", 0) - 1]);
   }
 }
 
-void Pixie4::read_system(Setting &set) const
+void Pixie4::read_system(Setting& set) const
 {
-  for (auto &k : set.branches)
+  for (auto& k : set.branches)
   {
     if (!(status_ & ProducerStatus::booted) &&
         setting_definitions_.count(k.id()) &&
@@ -246,7 +245,7 @@ void Pixie4::read_system(Setting &set) const
   }
 }
 
-void Pixie4::read_module(Setting &set) const
+void Pixie4::read_module(Setting& set) const
 {
   int16_t modnum = set.metadata().get_num("address", -1);
   if (!PixieAPI.module_valid(modnum))
@@ -255,7 +254,7 @@ void Pixie4::read_module(Setting &set) const
     return;
   }
   int filterrange = PixieAPI.get_mod(modnum, "FILTER_RANGE");
-  for (auto &p : set.branches)
+  for (auto& p : set.branches)
   {
     if (p.metadata().type() == SettingType::stem)
       read_channel(p, modnum, filterrange);
@@ -264,7 +263,7 @@ void Pixie4::read_module(Setting &set) const
   }
 }
 
-void Pixie4::read_channel(Setting &set, uint16_t modnum, int filterrange) const
+void Pixie4::read_channel(Setting& set, uint16_t modnum, int filterrange) const
 {
   int16_t channum = set.metadata().get_num("address", -1);
   if (!PixieAPI.channel_valid(channum))
@@ -272,7 +271,7 @@ void Pixie4::read_channel(Setting &set, uint16_t modnum, int filterrange) const
     WARN("<Pixie4> channel address out of bounds, ignoring branch {}", channum);
     return;
   }
-  for (auto &o : set.branches)
+  for (auto& o : set.branches)
   {
     set_value(o, PixieAPI.get_chan(modnum, channum, o.metadata().get_num("address", -1)));
     if (o.metadata().get_string("name", "") == "ENERGY_RISETIME")
@@ -281,7 +280,7 @@ void Pixie4::read_channel(Setting &set, uint16_t modnum, int filterrange) const
       o.metadata().set_val("minimum", 2 * o.metadata().step<double>());
       o.metadata().set_val("maximum", 124 * o.metadata().step<double>());
     }
-    else if (o.metadata().get_string("name","") == "ENERGY_FLATTOP")
+    else if (o.metadata().get_string("name", "") == "ENERGY_FLATTOP")
     {
       o.metadata().set_val("step", static_cast<double>(pow(2, filterrange)) / 75.0);
       o.metadata().set_val("minimum", 3 * o.metadata().step<double>());
@@ -290,12 +289,11 @@ void Pixie4::read_channel(Setting &set, uint16_t modnum, int filterrange) const
   }
 }
 
-
-void Pixie4::rebuild_structure(Setting &set)
+void Pixie4::rebuild_structure(Setting& set)
 {
   auto maxmod = set.find(Setting("Pixie4/System/MAX_NUMBER_MODULES"), Match::id);
   maxmod.set_int(std::min(std::max(int(maxmod.get_int()), 1),
-                              int(Pixie4Wrapper::hard_max_modules())));
+                          int(Pixie4Wrapper::hard_max_modules())));
   set.set(maxmod, Match::id);
 
   auto oslots = set.find_all(Setting("Pixie4/System/SLOT_WAVE"), Match::id);
@@ -303,11 +301,11 @@ void Pixie4::rebuild_structure(Setting &set)
 
   all_slots.resize(maxmod.get_int(), get_rich_setting("Pixie4/System/SLOT_WAVE"));
 
-  for (size_t i=0;i < all_slots.size(); ++i)
+  for (size_t i = 0; i < all_slots.size(); ++i)
     all_slots[i].metadata().set_val("address", SLOT_WAVE_OFFSET + i);
 
   set.erase(Setting("Pixie4/System/SLOT_WAVE"), Match::id);
-  for (auto &q : all_slots)
+  for (auto& q : all_slots)
     set.branches.add_a(q);
 
   auto totmod = set.find(Setting("Pixie4/System/NUMBER_MODULES"), Match::id);
@@ -325,7 +323,7 @@ void Pixie4::rebuild_structure(Setting &set)
   old_modules.resize(totmod.get_int(), default_module());
 
   set.erase(Setting("Pixie4/System/module"), Match::id);
-  for (auto &q : old_modules)
+  for (auto& q : old_modules)
     set.branches.add_a(q);
 
   PixieAPI.set_num_modules(totmod.get_int());
@@ -336,7 +334,7 @@ Setting Pixie4::default_module() const
 {
   auto chan = get_rich_setting("Pixie4/System/module/channel");
   auto mod = get_rich_setting("Pixie4/System/module");
-  for (int j=0; j < NUMBER_OF_CHANNELS; ++j)
+  for (int j = 0; j < NUMBER_OF_CHANNELS; ++j)
   {
     chan.metadata().set_val("address", j);
     mod.branches.add_a(chan);
@@ -344,17 +342,17 @@ Setting Pixie4::default_module() const
   return mod;
 }
 
-void Pixie4::reindex_modules(Setting &set)
+void Pixie4::reindex_modules(Setting& set)
 {
   int module_address = 0;
-  for (auto &m : set.branches)
+  for (auto& m : set.branches)
   {
     if (m.id() != "Pixie4/System/module")
       continue;
 
     std::set<int32_t> new_set;
     int channel_address = 0;
-    for (auto &c : m.branches)
+    for (auto& c : m.branches)
     {
       if (c.id() != "Pixie4/System/module/channel")
         continue;
@@ -393,7 +391,7 @@ bool Pixie4::change_XIA_path(const std::string& xia_path)
     return false;
 
   boost::filesystem::path path(xia_path);
-  for (auto &f : boot_files_)
+  for (auto& f : boot_files_)
   {
     boost::filesystem::path full_path = path / boost::filesystem::path(f).filename();
     f = full_path.string();
@@ -405,13 +403,13 @@ bool Pixie4::change_XIA_path(const std::string& xia_path)
 void Pixie4::settings(const Setting& setting)
 {
   Setting set = setting;
-  
+
   if (set.id() != plugin_name())
     return;
 
   set.enrich(setting_definitions_);
 
-  for (auto &q : set.branches)
+  for (auto& q : set.branches)
   {
     if ((q.metadata().type() == SettingType::command) && (q.get_int() == 1))
     {
@@ -427,9 +425,9 @@ void Pixie4::settings(const Setting& setting)
   }
 }
 
-void Pixie4::write_run_settings(Setting &set)
+void Pixie4::write_run_settings(Setting& set)
 {
-  for (auto &k : set.branches)
+  for (auto& k : set.branches)
   {
     if (k.id() == "Pixie4/Run settings/Run type")
       run_setup.type = k.get_int();
@@ -438,26 +436,26 @@ void Pixie4::write_run_settings(Setting &set)
   }
 }
 
-void Pixie4::write_files(Setting &set)
+void Pixie4::write_files(Setting& set)
 {
-  for (auto &k : set.branches)
+  for (auto& k : set.branches)
   {
     if ((k.id() == "Pixie4/Files/XIA_path") && change_XIA_path(k.get_text()))
       break;
     else if ((k.metadata().type() == SettingType::text) &&
-             (k.metadata().get_num("address", 0) > 0) && (k.metadata().get_num("address", 9) < 8))
+        (k.metadata().get_num("address", 0) > 0) && (k.metadata().get_num("address", 9) < 8))
       boot_files_[k.metadata().get_num("address", 0) - 1] = k.get_text();
   }
 }
 
-void Pixie4::write_system(Setting &set)
+void Pixie4::write_system(Setting& set)
 {
   if (!(status_ & ProducerStatus::booted))
     rebuild_structure(set);
 
   reindex_modules(set);
 
-  for (auto &k : set.branches)
+  for (auto& k : set.branches)
   {
     if (k.metadata().type() == SettingType::stem)
       write_module(k);
@@ -467,13 +465,13 @@ void Pixie4::write_system(Setting &set)
   }
 }
 
-void Pixie4::write_module(Setting &set)
+void Pixie4::write_module(Setting& set)
 {
   int16_t modnum = set.metadata().get_num("address", -1);
   if (!PixieAPI.module_valid(modnum))
     return;
 
-  for (auto &p : set.branches)
+  for (auto& p : set.branches)
   {
     if (p.metadata().type() != SettingType::stem)
       p.set_indices(set.indices());
@@ -486,8 +484,7 @@ void Pixie4::write_module(Setting &set)
   }
 }
 
-
-void Pixie4::write_channel(Setting &set, uint16_t modnum)
+void Pixie4::write_channel(Setting& set, uint16_t modnum)
 {
   int16_t channum = set.metadata().get_num("address", -1);
   if (!Pixie4Wrapper::channel_valid(channum))
@@ -498,7 +495,7 @@ void Pixie4::write_channel(Setting &set, uint16_t modnum)
     det = *set.indices().begin();
   run_setup.indices[modnum][channum] = det;
 
-  for (auto &o : set.branches)
+  for (auto& o : set.branches)
   {
     o.set_indices({det});
 
@@ -513,13 +510,13 @@ void Pixie4::boot()
   if (!(status_ & ProducerStatus::can_boot))
   {
     WARN("<Pixie4> Cannot boot Pixie-4. Failed flag check (can_boot == 0)");
-    return false;
+    return;
   }
 
   status_ = ProducerStatus::loaded | ProducerStatus::can_boot;
 
   bool valid_files = true;
-  for (int i=0; i < 7; i++)
+  for (int i = 0; i < 7; i++)
     if (!boost::filesystem::exists(boot_files_[i]))
     {
       ERR("<Pixie4> Boot file {} not found", boot_files_[i]);
@@ -529,22 +526,20 @@ void Pixie4::boot()
   if (!valid_files)
   {
     ERR("<Pixie4> Problem with boot files. Boot aborting.");
-    return false;
+    return;
   }
 
   if (!PixieAPI.boot(boot_files_))
-    return false;
+    return;
 
   status_ = ProducerStatus::loaded | ProducerStatus::booted
       | ProducerStatus::can_run | ProducerStatus::can_oscil;
-  return true;
 }
 
 void Pixie4::die()
 {
   daq_stop();
   status_ = ProducerStatus::loaded | ProducerStatus::can_boot;
-  return true;
 }
 
 OscilData Pixie4::oscilloscope()
@@ -553,14 +548,14 @@ OscilData Pixie4::oscilloscope()
 
   uint32_t* oscil_data;
 
-  for (size_t m=0; m < run_setup.indices.size(); ++m)
+  for (size_t m = 0; m < run_setup.indices.size(); ++m)
   {
     if ((oscil_data = PixieAPI.control_collect_ADC(m)) != nullptr)
     {
       for (size_t i = 0; i < run_setup.indices[m].size(); i++)
       {
-        std::vector<uint16_t> trace = std::vector<uint16_t>(oscil_data + (i*Pixie4Wrapper::max_buf_len),
-                                                            oscil_data + ((i+1)*Pixie4Wrapper::max_buf_len));
+        std::vector<uint16_t> trace = std::vector<uint16_t>(oscil_data + (i * Pixie4Wrapper::max_buf_len),
+                                                            oscil_data + ((i + 1) * Pixie4Wrapper::max_buf_len));
         if ((i < run_setup.indices[m].size()) &&
             (run_setup.indices[m][i] >= 0))
         {
@@ -592,9 +587,9 @@ double Pixie4::get_value(const Setting& s)
   if (s.metadata().type() == SettingType::floating)
     return s.get_number();
   else if ((s.metadata().type() == SettingType::integer)
-           || (s.metadata().type() == SettingType::boolean)
-           || (s.metadata().type() == SettingType::menu)
-           || (s.metadata().type() == SettingType::binary))
+      || (s.metadata().type() == SettingType::boolean)
+      || (s.metadata().type() == SettingType::menu)
+      || (s.metadata().type() == SettingType::binary))
     return s.get_int();
 }
 
@@ -603,9 +598,9 @@ void Pixie4::set_value(Setting& s, double val)
   if (s.metadata().type() == SettingType::floating)
     s.set_number(val);
   else if ((s.metadata().type() == SettingType::integer)
-           || (s.metadata().type() == SettingType::boolean)
-           || (s.metadata().type() == SettingType::menu)
-           || (s.metadata().type() == SettingType::binary))
+      || (s.metadata().type() == SettingType::boolean)
+      || (s.metadata().type() == SettingType::menu)
+      || (s.metadata().type() == SettingType::binary))
     s.set_int(val);
 }
 
@@ -615,19 +610,19 @@ void Pixie4::set_value(Setting& s, double val)
 //////////////////////////////
 //////////////////////////////
 
-void Pixie4::worker_run_dbl(Pixie4* callback, SpillQueue spill_queue)
+void Pixie4::worker_run_dbl(SpillQueue spill_queue)
 {
   std::string stream_id_ = "dummy_id";
-  
-  auto pixie = callback->PixieAPI;
-  auto setup = callback->run_setup;
+
+  auto pixie = PixieAPI;
+  auto setup = run_setup;
   SpillPtr fetched_spill = std::make_shared<Spill>(stream_id_, Spill::Type::start);
 
   //Start run;
-  callback->running_.store(true);
-  if(!pixie.start_run(setup.type))
+  running_.store(true);
+  if (!pixie.start_run(setup.type))
   {
-    callback->running_.store(false);
+    running_.store(false);
     return;
   }
 
@@ -655,7 +650,7 @@ void Pixie4::worker_run_dbl(Pixie4* callback, SpillQueue spill_queue)
       triggered_modules = pixie.get_triggered_modules();
       if (triggered_modules.empty())
         Timer::wait_ms(setup.run_poll_interval_ms);
-      timeout = callback->terminating_.load();
+      timeout = terminating_.load();
     };
 
     //get time ASAP after trigger
@@ -674,7 +669,7 @@ void Pixie4::worker_run_dbl(Pixie4* callback, SpillQueue spill_queue)
 
     //Read events, push spills
     bool success = false;
-    for (auto &q : triggered_modules)
+    for (auto& q : triggered_modules)
     {
       fetched_spill = std::make_shared<Spill>(stream_id_, Spill::Type::running);
       fetched_spill->raw.resize(Pixie4Wrapper::list_mem_len_bytes, 0); // buffer resolution multiply
@@ -707,27 +702,21 @@ void Pixie4::worker_run_dbl(Pixie4* callback, SpillQueue spill_queue)
 //    q.second.stats_type = StatsUpdate::Type::stop;
 //  }
   spill_queue->enqueue(fetched_spill);
-  callback->running_.store(false);
+  running_.store(false);
 }
 
-
-
-void Pixie4::worker_parse (RunSetup setup,
-                           SpillQueue in_queue,
-                           SpillQueue out_queue)
+void Pixie4::worker_parse(SpillQueue in_queue, SpillQueue out_queue)
 {
   std::string stream_id_ = "dummy_id";
 
   SpillPtr spill = std::make_shared<Spill>(stream_id_, Spill::Type::running);
 
-  auto run_setup = setup;
-
   uint64_t all_hits = 0, cycles = 0;
-//  Timer parse_timer;
+  double total_us{0};
 
   while ((spill = in_queue->dequeue()) != NULL)
   {
-//    parse_timer.resume();
+    Timer parse_timer(true);
 
     if (spill->raw.size() > 0)
     {
@@ -737,12 +726,12 @@ void Pixie4::worker_parse (RunSetup setup,
 
       while (true)
       {
-        uint16_t buf_ndata  = buff16[idx++];
+        uint16_t buf_ndata = buff16[idx++];
         uint32_t buf_end = idx + buf_ndata - 1;
 
-        if (   (buf_ndata == 0)
-               || (buf_ndata > Pixie4Wrapper::max_buf_len)
-               || (buf_end   > Pixie4Wrapper::list_mem_len16))
+        if ((buf_ndata == 0)
+            || (buf_ndata > Pixie4Wrapper::max_buf_len)
+            || (buf_end > Pixie4Wrapper::list_mem_len16))
           break;
 
         uint16_t buf_module = buff16[idx++];
@@ -755,14 +744,14 @@ void Pixie4::worker_parse (RunSetup setup,
 
         while ((task_a == 0x0100) && (idx < buf_end))
         {
-          std::bitset<16> pattern (buff16[idx++]);
+          std::bitset<16> pattern(buff16[idx++]);
 
           uint16_t evt_time_hi = buff16[idx++];
           uint16_t evt_time_lo = buff16[idx++];
 
           std::multimap<uint64_t, Event> ordered;
 
-          for (size_t i=0; i < NUMBER_OF_CHANNELS; i++)
+          for (size_t i = 0; i < NUMBER_OF_CHANNELS; i++)
           {
             if (!pattern[i])
               continue;
@@ -780,47 +769,47 @@ void Pixie4::worker_parse (RunSetup setup,
             uint64_t mi = evt_time_hi;
             uint64_t lo = evt_time_lo;
             uint16_t chan_trig_time = lo;
-            uint16_t chan_time_hi   = hi;
+            uint16_t chan_time_hi = hi;
 
             one_hit.set_value(1, pattern[4]); //Front panel input value
 
             if (task_b == 0x0000)
             {
-              uint16_t trace_len  = buff16[idx++] - 9;
+              uint16_t trace_len = buff16[idx++] - 9;
               one_hit.set_value(0, buff16[idx++]); //energy
               one_hit.set_value(2, buff16[idx++]); //XIA_PSA
               one_hit.set_value(3, buff16[idx++]); //user_PSA
               idx += 3;
-              hi                  = buff16[idx++]; //not always?
+              hi = buff16[idx++]; //not always?
               //one_hit.trace(0) = std::vector<uint16_t>(buff16 + idx, buff16 + idx + trace_len);
               idx += trace_len;
             }
             else if (task_b == 0x0001)
             {
               idx++;
-              chan_trig_time      = buff16[idx++];
+              chan_trig_time = buff16[idx++];
               one_hit.set_value(0, buff16[idx++]); //energy
               one_hit.set_value(2, buff16[idx++]); //XIA_PSA
               one_hit.set_value(3, buff16[idx++]); //user_PSA
               idx += 3;
-              hi                  = buff16[idx++];
+              hi = buff16[idx++];
             }
             else if (task_b == 0x0002)
             {
-              chan_trig_time      = buff16[idx++];
+              chan_trig_time = buff16[idx++];
               one_hit.set_value(0, buff16[idx++]); //energy
               one_hit.set_value(2, buff16[idx++]); //XIA_PSA
               one_hit.set_value(3, buff16[idx++]); //user_PSA
             }
             else if (task_b == 0x0003)
             {
-              chan_trig_time      = buff16[idx++];
+              chan_trig_time = buff16[idx++];
               one_hit.set_value(0, buff16[idx++]); //energy
             }
             else
               ERR("<Pixie4::parser> Parsed event type invalid");
 
-            if (!pattern[i+8])
+            if (!pattern[i + 8])
               one_hit.set_value(0, 0); //energy invalid or approximate
 
             //Corrections for overflow, page 30 in Pixie-4 user manual
@@ -839,7 +828,7 @@ void Pixie4::worker_parse (RunSetup setup,
               ordered.emplace(one_hit.timestamp(), one_hit);
           }
 
-          for (auto &q : ordered)
+          for (auto& q : ordered)
           {
             spill->events.last() = q.second;
             spill->events++;
@@ -853,12 +842,12 @@ void Pixie4::worker_parse (RunSetup setup,
     spill->raw.clear();
     spill->events.finalize();
     out_queue->enqueue(spill);
-//    parse_timer.stop();
+    total_us += parse_timer.us();
   }
 
-//  if (cycles == 0)
+  if (cycles == 0)
     DBG("<Pixie4::parser> Buffer queue closed without events");
-//  else
-//    DBG("<Pixie4::parser> Parsed {} hits, with avg time/spill: {} us",
-//        all_hits, parse_timer.us()/cycles);
+  else
+    DBG("<Pixie4::parser> Parsed {} hits, with avg time/spill: {} us",
+        all_hits, total_us / cycles);
 }

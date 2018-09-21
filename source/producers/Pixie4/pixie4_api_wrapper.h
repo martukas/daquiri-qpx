@@ -25,9 +25,9 @@
 struct Pixie4Wrapper
 {
   static constexpr uint32_t max_buf_len {8192}; //get from module?
-  static constexpr uint32_t list_mem_len32 {16 * 8192};
-  static constexpr uint32_t list_mem_len16 {2 * 16 * 8192};
-  static constexpr uint32_t list_mem_len_bytes {4 * 16 * 8192};
+  static constexpr uint32_t list_mem_len32 {16 * max_buf_len};
+  static constexpr uint32_t list_mem_len16 {2 * list_mem_len32};
+  static constexpr uint32_t list_mem_len_bytes {4 * list_mem_len32};
 
   Pixie4Wrapper();
 
