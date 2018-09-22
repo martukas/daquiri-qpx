@@ -9,6 +9,7 @@ set(SOURCES
   ${dir}/dataspace.cpp
   ${dir}/detector.cpp
   ${dir}/engine.cpp
+  ${dir}/importer_factory.cpp
   ${dir}/producer.cpp
   ${dir}/producer_factory.cpp
   ${dir}/project.cpp
@@ -22,6 +23,7 @@ set(HEADERS
   ${dir}/dataspace.h
   ${dir}/detector.h
   ${dir}/engine.h
+  ${dir}/importer_factory.h
   ${dir}/producer.h
   ${dir}/producer_factory.h
   ${dir}/project.h
