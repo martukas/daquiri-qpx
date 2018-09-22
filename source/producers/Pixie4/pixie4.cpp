@@ -1007,12 +1007,11 @@ bool Pixie4::change_XIA_path(const std::string& xia_path)
 
 void Pixie4::settings(const Setting& setting)
 {
-  Setting set = setting;
-
-  if (set.id() != plugin_name())
+  if (setting.id() != plugin_name())
     return;
 
-  set.enrich(setting_definitions_);
+  std::string r{plugin_name() + "/"};
+  auto set = enrich_and_toggle_presets(setting);
 
   for (auto& q : set.branches)
   {
@@ -1021,34 +1020,38 @@ void Pixie4::settings(const Setting& setting)
       q.set_int(0);
       execute_command(q.id());
     }
-    else if (q.id() == "Pixie4/Run settings")
+    else if (q.id() == r + "Run settings")
       write_run_settings(q);
-    else if ((q.id() == "Pixie4/Files") && !(status_ & ProducerStatus::booted))
+    else if ((q.id() == r + "Files") && !(status_ & ProducerStatus::booted))
       write_files(q);
-    else if (q.id() == "Pixie4/System")
+    else if (q.id() == r + "System")
       write_system(q);
   }
 }
 
 void Pixie4::write_run_settings(Setting& set)
 {
+  std::string r{plugin_name() + "/Run settings/"};
+
   for (auto& k : set.branches)
   {
-    if (k.id() == "Pixie4/Run settings/Run type")
+    if (k.id() == r + "Run type")
       run_setup.type = k.get_int();
-    else if (k.id() == "Pixie4/Run settings/Poll interval")
+    else if (k.id() == r + "Poll interval")
       run_setup.run_poll_interval_ms = k.get_int();
   }
 }
 
 void Pixie4::write_files(Setting& set)
 {
+  std::string r{plugin_name() + "/Files/"};
   for (auto& k : set.branches)
   {
-    if ((k.id() == "Pixie4/Files/XIA_path") && change_XIA_path(k.get_text()))
+    if ((k.id() == r + "XIA_path") && change_XIA_path(k.get_text()))
       break;
     else if ((k.metadata().type() == SettingType::text) &&
-        (k.metadata().get_num("address", 0) > 0) && (k.metadata().get_num("address", 9) < 8))
+        (k.metadata().get_num("address", 0) > 0) &&
+        (k.metadata().get_num("address", 8) < 8))
       boot_files_[k.metadata().get_num("address", 0) - 1] = k.get_text();
   }
 }
