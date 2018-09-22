@@ -48,7 +48,112 @@ SettingMeta Pixie4::px_setting(uint32_t address, std::string id_prefix, std::str
 Pixie4::Pixie4()
 {
   std::string r{plugin_name() + "/"};
+
+  SettingMeta root(plugin_name(), SettingType::stem);
+  root.set_flag("saveworthy");
+  root.set_enums(0, {r + "Measure baselines",
+                     r + "Adjust offsets",
+                     r + "Compute Tau",
+                     r + "Compute BLCUT",
+                     r + "Run settings",
+                     r + "Files",
+                     r + "System"});
+  add_definition(root);
+  add_definition(px_setting(0, r, "Measure baselines", SettingType::command));
+  add_definition(px_setting(0, r, "Adjust offsets", SettingType::command));
+  add_definition(px_setting(0, r, "Compute BLCUT", SettingType::command));
+  add_definition(px_setting(0, r, "Compute Tau", SettingType::command));
+
+
+  SettingMeta run_settings(r + "Run settings", SettingType::stem, "Run settings");
+  run_settings.set_flag("saveworthy");
+  run_settings.set_enums(0, {
+    r + "Run settings/Run type",
+    r + "Run settings/Poll interval"
+  });
+  add_definition(run_settings);
+
+  SettingMeta run_type(r + "Run settings/Run type", SettingType::menu, "Run type");
+  run_settings.set_enum(256, "Traces");
+  run_settings.set_enum(257, "Full");
+  run_settings.set_enum(258, "PSA only");
+  run_settings.set_enum(259, "Compressed");
+  add_definition(run_type);
+
+  SettingMeta poll_interval(r + "Run settings/Poll interval", SettingType::integer, "Poll interval");
+  poll_interval.set_bounds(5, 50, 5000);
+  poll_interval.set_val("units", "ms");
+  add_definition(poll_interval);
+
+
+  SettingMeta files(r + "Files", SettingType::stem, "Files");
+  files.set_flag("saveworthy");
+  files.set_enums(0, {
+      r + "Files/XIA_path",
+      r + "Files/Fippi",
+      r + "Files/SysPixie",
+      r + "Files/PixieBin",
+      r + "Files/PxiBin",
+      r + "Files/SetFile",
+      r + "Files/PxiVar",
+      r + "Files/PxiLst",
+  });
+  add_definition(files);
+
+  SettingMeta xia_path(r + "Files/XIA_path", SettingType::text, "XIA_path");
+  xia_path.set_flag("directory");
+  add_definition(xia_path);
+
+  SettingMeta Fippi(r + "Files/Fippi", SettingType::text, "Fippi");
+  Fippi.set_flag("file");
+  Fippi.set_val("wildcards", "Fippi binary (FippiP500.bin)");
+  add_definition(Fippi);
+
+  SettingMeta PixieBin(r + "Files/PixieBin", SettingType::text, "PixieBin");
+  PixieBin.set_flag("file");
+  PixieBin.set_val("wildcards", "Pixie binary (pixie.bin)");
+  add_definition(PixieBin);
+
+  SettingMeta PxiBin(r + "Files/PxiBin", SettingType::text, "PxiBin");
+  PxiBin.set_flag("file");
+  PxiBin.set_val("wildcards", "PXI code binary (PXIcode.bin)");
+  add_definition(PixieBin);
+
+  SettingMeta PxiLst(r + "Files/PxiLst", SettingType::text, "PxiLst");
+  PxiLst.set_flag("file");
+  PxiLst.set_val("wildcards", "Pxi list file (PXIcode.lst)");
+  add_definition(PxiLst);
+
+  SettingMeta PxiVar(r + "Files/PxiVar", SettingType::text, "PxiVar");
+  PxiVar.set_flag("file");
+  PxiVar.set_val("wildcards", "Pxi variable file (PXIcode.var)");
+  add_definition(PxiVar);
+
+  SettingMeta SetFile(r + "Files/PxiVar", SettingType::text, "SetFile");
+  SetFile.set_flag("file");
+  SetFile.set_val("wildcards", "Pixie settings file (*.set)");
+  add_definition(SetFile);
+
+  SettingMeta SysPixie(r + "Files/SysPixie", SettingType::text, "SysPixie");
+  SysPixie.set_flag("file");
+  SysPixie.set_val("wildcards", "Syspixie binary (syspixie*.bin)");
+  add_definition(SysPixie);
+
   std::string rs{r + "System/"};
+
+  SettingMeta system(plugin_name() + "/System", SettingType::stem, "System");
+  system.set_flag("saveworthy");
+  system.set_enums(0, {rs + "NUMBER_MODULES",
+                       rs + "OFFLINE_ANALYSIS",
+                       rs + "AUTO_PROCESSLMDATA",
+                       rs + "MAX_NUMBER_MODULES",
+                       rs + "C_LIBRARY_RELEASE",
+                       rs + "C_LIBRARY_BUILD",
+                       rs + "KEEP_CW",
+                       rs + "SLOT_WAVE",
+                       rs + "module"});
+  add_definition(system);
+
   std::string rm{rs + "module/"};
   std::string rc{rm + "channel/"};
 
@@ -266,7 +371,6 @@ Pixie4::Pixie4()
   XDT.set_val("units", "μs");
   add_definition(XDT);
 
-  int32_t i{0};
   SettingMeta MODULE_CHANNEL(rm + "channel", SettingType::stem);
   MODULE_CHANNEL.set_flag("saveworthy");
   MODULE_CHANNEL.set_enums(0, {rc + "CHANNEL_CSRA",
@@ -471,6 +575,72 @@ Pixie4::Pixie4()
   XET_DELAY.set_bounds(0, 65535);
   XET_DELAY.set_val("description", "delay for generated event trigger from front panel to backplane");
   add_definition(XET_DELAY);
+
+  SettingMeta MODULE(rs + "module", SettingType::stem);
+  MODULE.set_flag("saveworthy");
+  MODULE.set_enums(0, {rm + "MODULE_NUMBER",
+                       rm + "MODULE_CSRA",
+                       rm + "MODULE_CSRB",
+                       rm + "MODULE_FORMAT",
+                       rm + "MAX_EVENTS",
+                       rm + "COINCIDENCE_PATTERN",
+                       rm + "ACTUAL_COINCIDENCE_WAIT",
+                       rm + "MIN_COINCIDENCE_WAIT",
+                       rm + "SYNCH_WAIT",
+                       rm + "IN_SYNCH",
+                       rm + "RUN_TYPE",
+                       rm + "FILTER_RANGE",
+                       rm + "MODULEPATTERN",
+                       rm + "NNSHAREPATTERN",
+                       rm + "DBLBUFCSR",
+                       rm + "MODULE_CSRC",
+                       rm + "BUFFER_HEAD_LENGTH",
+                       rm + "EVENT_HEAD_LENGTH",
+                       rm + "CHANNEL_HEAD_LENGTH",
+                       rm + "OUTPUT_BUFFER_LENGTH",
+                       rm + "NUMBER_EVENTS",
+                       rm + "RUN_TIME",
+                       rm + "EVENT_RATE",
+                       rm + "TOTAL_TIME",
+                       rm + "BOARD_VERSION",
+                       rm + "SERIAL_NUMBER",
+                       rm + "DSP_RELEASE",
+                       rm + "DSP_BUILD",
+                       rm + "FIPPI_ID",
+                       rm + "SYSTEM_ID",
+                       rm + "XET_DELAY",
+                       rm + "PDM_MASKA",
+                       rm + "PDM_MASKB",
+                       rm + "PDM_MASKC",
+                       rm + "channel"});
+  add_definition(MODULE);
+
+  auto AUTO_PROCESSLMDATA = px_setting(2, rs, "AUTO_PROCESSLMDATA", SettingType::boolean, true);
+  add_definition(AUTO_PROCESSLMDATA);
+
+  auto C_LIBRARY_BUILD = px_setting(5, rs, "C_LIBRARY_BUILD", SettingType::floating, true);
+  add_definition(C_LIBRARY_BUILD);
+
+  auto C_LIBRARY_RELEASE = px_setting(4, rs, "C_LIBRARY_RELEASE", SettingType::floating, true);
+  add_definition(C_LIBRARY_RELEASE);
+
+  auto KEEP_CW = px_setting(6, rs, "KEEP_CW", SettingType::boolean);
+  add_definition(KEEP_CW);
+
+  auto MAX_NUMBER_MODULES = px_setting(3, rs, "MAX_NUMBER_MODULES", SettingType::integer);
+  MAX_NUMBER_MODULES.set_bounds(1, 56);
+  add_definition(MAX_NUMBER_MODULES);
+
+  auto NUMBER_MODULES = px_setting(0, rs, "NUMBER_MODULES", SettingType::integer, true);
+  add_definition(NUMBER_MODULES);
+
+  auto OFFLINE_ANALYSIS = px_setting(1, rs, "OFFLINE_ANALYSIS", SettingType::boolean, true);
+  add_definition(OFFLINE_ANALYSIS);
+
+  auto SLOT_WAVE = px_setting(0, rs, "SLOT_WAVE", SettingType::integer);
+  SLOT_WAVE.set_bounds(0, 7);
+  add_definition(SLOT_WAVE);
+
 
 //  root.set_flag("producer");
 
