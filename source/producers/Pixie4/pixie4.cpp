@@ -35,484 +35,442 @@ void Pixie4::RunSetup::set_num_modules(uint16_t nmod)
       i.resize(NUMBER_OF_CHANNELS, -1);
 }
 
+SettingMeta Pixie4::px_setting(uint32_t address, std::string id_prefix, std::string name,
+                              SettingType t, bool readonly)
+{
+  SettingMeta ret(id_prefix + name, t, name);
+  ret.set_val("address", address);
+  if (readonly)
+    ret.set_flag("readonly");
+  return ret;
+}
+
 Pixie4::Pixie4()
 {
   std::string r{plugin_name() + "/"};
-  std::string rm{r + "module/"};
+  std::string rs{r + "System/"};
+  std::string rm{rs + "module/"};
   std::string rc{rm + "channel/"};
 
-  SettingMeta BASELINE_PERCENT(rc + "BASELINE_PERCENT", SettingType::floating, "BASELINE_PERCENT");
-  BASELINE_PERCENT.set_val("address", 18);
-  BASELINE_PERCENT.set_val("min", 0);
-  BASELINE_PERCENT.set_val("max", 100);
-  BASELINE_PERCENT.set_val("step", 1);
+  auto BASELINE_PERCENT = px_setting(18, rc, "BASELINE_PERCENT", SettingType::floating);
+  BASELINE_PERCENT.set_bounds(0.0, 100.0);
   add_definition(BASELINE_PERCENT);
 
-  SettingMeta BINFACTOR(rc + "BINFACTOR", SettingType::integer, "BINFACTOR");
-  BINFACTOR.set_val("address", 14);
-  BINFACTOR.set_val("min", 0);
-  BINFACTOR.set_val("max", 65535);
-  BINFACTOR.set_val("step", 1);
+  auto BINFACTOR = px_setting(14, rc, "BINFACTOR", SettingType::integer);
+  BINFACTOR.set_bounds(0, 65535);
   BINFACTOR.set_val("description", "downshift before binning (Pixie4 MCA)");
   add_definition(BINFACTOR);
 
-  SettingMeta BLAVG(rc + "BLAVG", SettingType::floating, "BLAVG");
-  BLAVG.set_val("address", 25);
-  BLAVG.set_flag("readonly");
+  auto BLAVG = px_setting(25, rc, "BLAVG", SettingType::floating, true);
   add_definition(BLAVG);
 
-  SettingMeta BLCUT(rc + "BLCUT", SettingType::integer, "BLCUT");
-  BLCUT.set_val("address", 16);
-  BLCUT.set_val("min", 0);
-  BLCUT.set_val("max", 32767);
-  BLCUT.set_val("step", 1);
+  auto BLCUT = px_setting(16, rc, "BLCUT", SettingType::integer);
+  BLCUT.set_bounds(0, 32767);
   add_definition(BLCUT);
 
-  SettingMeta CFD_THRESHOLD(rc + "CFD_THRESHOLD", SettingType::floating, "CFD_THRESHOLD");
-  CFD_THRESHOLD.set_val("address", 19);
-  CFD_THRESHOLD.set_val("min", 0);
-  CFD_THRESHOLD.set_val("max", 65535);
-  CFD_THRESHOLD.set_val("step", 1);
+  auto CFD_THRESHOLD = px_setting(19, rc, "CFD_THRESHOLD", SettingType::floating);
+  CFD_THRESHOLD.set_bounds(0, 65535);
   add_definition(CFD_THRESHOLD);
 
-  SettingMeta CHANNEL_CSRA(rc + "CHANNEL_CSRA", SettingType::binary, "CHANNEL_CSRA");
-  CHANNEL_CSRA.set_val("address", 0);
+  auto CHANNEL_CSRA = px_setting(0, rc, "CHANNEL_CSRA", SettingType::binary);
   CHANNEL_CSRA.set_val("bits", 16);
   CHANNEL_CSRA.set_enum(0, "Respond to group triggers only");
-  CHANNEL_CSRA.set_enum(2, "Good channel (contribute to list mode)");
-  CHANNEL_CSRA.set_enum(3, "Read always (contribute to list mode even without hit)");
-  CHANNEL_CSRA.set_enum(4, "Enable trigger (event trigger)");
-  CHANNEL_CSRA.set_enum(5, "Trigger on positive slope, else on negative");
-  CHANNEL_CSRA.set_enum(6, "GFLT (Veto) required");
-  CHANNEL_CSRA.set_enum(7, "Histogram energies to on-board MCA");
-  CHANNEL_CSRA.set_enum(9, "Allow negative number for pulse height");
-  CHANNEL_CSRA.set_enum(10, "Compute constant fraction timing (PSA)");
-  CHANNEL_CSRA.set_enum(12, "GATE required (Pixie4 only)");
-  CHANNEL_CSRA.set_enum(13, "Local trigger to latch time stamp, else distributed group trigger");
-  CHANNEL_CSRA.set_enum(14, "Estimate energy when not hit (with read always)");
+  CHANNEL_CSRA.set_enums(2, {"Good channel (contribute to list mode)",
+                             "Read always (contribute to list mode even without hit)",
+                             "Enable trigger (event trigger)",
+                             "Trigger on positive slope, else on negative",
+                             "GFLT (Veto) required",
+                             "Histogram energies to on-board MCA"});
+  CHANNEL_CSRA.set_enums(9, {"Allow negative number for pulse height",
+                             "Compute constant fraction timing (PSA)"});
+  CHANNEL_CSRA.set_enums(12, {"GATE required (Pixie4 only)",
+                              "Local trigger to latch time stamp, else distributed group trigger",
+                              "Estimate energy when not hit (with read always)"});
   add_definition(CHANNEL_CSRA);
 
-  SettingMeta CHANNEL_CSRB(rc + "CHANNEL_CSRB", SettingType::binary, "CHANNEL_CSRB");
-  CHANNEL_CSRB.set_val("address", 1);
+  auto CHANNEL_CSRB = px_setting(1, rc, "CHANNEL_CSRB", SettingType::binary);
   CHANNEL_CSRB.set_val("bits", 16);
   CHANNEL_CSRB.set_enum(0, "Call user written DSP code");
   CHANNEL_CSRB.set_enum(1, "Overwrite channel header (except Ndata, TrigTime, Energy) with URETVAL");
   add_definition(CHANNEL_CSRB);
 
-  SettingMeta CHANNEL_CSRC(rc + "CHANNEL_CSRC", SettingType::binary, "CHANNEL_CSRC");
-  CHANNEL_CSRC.set_val("address", 21);
+  auto CHANNEL_CSRC = px_setting(21, rc, "CHANNEL_CSRC", SettingType::binary);
   CHANNEL_CSRC.set_val("bits", 16);
-  CHANNEL_CSRC.set_enum(0, "GFLT acceptance polarity");
-  CHANNEL_CSRC.set_enum(1, "GATE acceptance polarity");
-  CHANNEL_CSRC.set_enum(2, "Use GFLT for GATE");
-  CHANNEL_CSRC.set_enum(3, "Disable pileup inspection");
-  CHANNEL_CSRC.set_enum(4, "Disable out-of-range rejection");
-  CHANNEL_CSRC.set_enum(5, "Invert piuleup inspection");
-  CHANNEL_CSRC.set_enum(6, "Pause pileup inspection (426 ns)");
-  CHANNEL_CSRC.set_enum(7, "Gate edge polarity inverted");
-  CHANNEL_CSRC.set_enum(8, "Gate statistics (live only if GATE or VETO)");
-  CHANNEL_CSRC.set_enum(9, "Invert GDT for GATE or VETO presence");
-  CHANNEL_CSRC.set_enum(10, "No gate pulse (pattern only reports status of gate)");
-  CHANNEL_CSRC.set_enum(11, "4x traces - each waveform sample is avg of 4 ADC samples");
-  CHANNEL_CSRC.set_enum(12, "Veto out-of-range (to backplane)");
+  CHANNEL_CSRC.set_enums(0, {"GFLT acceptance polarity",
+                             "GATE acceptance polarity",
+                             "Use GFLT for GATE",
+                             "Disable pileup inspection",
+                             "Disable out-of-range rejection",
+                             "Invert piuleup inspection",
+                             "Pause pileup inspection (426 ns)",
+                             "Gate edge polarity inverted",
+                             "Gate statistics (live only if GATE or VETO)",
+                             "Invert GDT for GATE or VETO presence",
+                             "No gate pulse (pattern only reports status of gate)",
+                             "4x traces - each waveform sample is avg of 4 ADC samples",
+                             "Veto out-of-range (to backplane)"});
   add_definition(CHANNEL_CSRC);
 
-  SettingMeta COINC_DELAY(rc + "COINC_DELAY", SettingType::floating, "COINC_DELAY");
-  COINC_DELAY.set_val("address", 24);
-  COINC_DELAY.set_val("min", 0);
-  COINC_DELAY.set_val("max", 65535);
-  COINC_DELAY.set_val("step", 0.013333);
+  auto COINC_DELAY = px_setting(24, rc, "COINC_DELAY", SettingType::floating);
+  COINC_DELAY.set_bounds(0.0, 0.013333, 65535.0);
   COINC_DELAY.set_val("units", "μs");
   add_definition(COINC_DELAY);
 
-  SettingMeta CURRENT_ICR(rc + "CURRENT_ICR", SettingType::floating, "CURRENT_ICR");
-  CURRENT_ICR.set_val("address", 36);
-  CURRENT_ICR.set_flag("readonly");
+  auto CURRENT_ICR = px_setting(36, rc, "CURRENT_ICR", SettingType::floating, true);
   CURRENT_ICR.set_val("units", "count/s");
   add_definition(CURRENT_ICR);
 
-  SettingMeta CURRENT_OORF(rc + "CURRENT_OORF", SettingType::floating, "CURRENT_OORF");
-  CURRENT_OORF.set_val("address", 37);
-  CURRENT_OORF.set_flag("readonly");
+  auto CURRENT_OORF = px_setting(37, rc, "CURRENT_OORF", SettingType::floating, true);
   CURRENT_OORF.set_val("units", "%");
   add_definition(CURRENT_OORF);
 
-  SettingMeta EMIN(rc + "EMIN", SettingType::integer, "EMIN");
-  EMIN.set_val("address", 13);
-  EMIN.set_val("min", 0);
-  EMIN.set_val("max", 65535);
-  EMIN.set_val("step", 1);
+  auto EMIN = px_setting(13, rc, "EMIN", SettingType::integer);
+  EMIN.set_bounds(0, 65535);
   EMIN.set_val("description", "subtracted from computed energy in list mode");
   add_definition(EMIN);
 
-  SettingMeta ENERGY_FLATTOP(rc + "ENERGY_FLATTOP", SettingType::floating, "ENERGY_FLATTOP");
-  ENERGY_FLATTOP.set_val("address", 3);
-  ENERGY_FLATTOP.set_val("min", 0);
-  ENERGY_FLATTOP.set_val("max", 500);
-  ENERGY_FLATTOP.set_val("step", 0.05);
+  auto ENERGY_FLATTOP = px_setting(3, rc, "ENERGY_FLATTOP", SettingType::floating);
+  ENERGY_FLATTOP.set_bounds(0.0, 0.05, 500.0);
   ENERGY_FLATTOP.set_val("units", "μs");
   ENERGY_FLATTOP.set_flag("optimize");
   add_definition(ENERGY_FLATTOP);
 
-  SettingMeta ENERGY_RISETIME(rc + "ENERGY_RISETIME", SettingType::floating, "ENERGY_RISETIME");
-  ENERGY_RISETIME.set_val("address", 2);
-  ENERGY_RISETIME.set_val("min", 0);
-  ENERGY_RISETIME.set_val("max", 500);
-  ENERGY_RISETIME.set_val("step", 0.05);
+  auto ENERGY_RISETIME = px_setting(2, rc, "ENERGY_RISETIME", SettingType::floating);
+  ENERGY_RISETIME.set_bounds(0.0, 0.05, 500.0);
   ENERGY_RISETIME.set_val("units", "μs");
   ENERGY_RISETIME.set_flag("optimize");
   add_definition(ENERGY_RISETIME);
 
-  SettingMeta FAST_PEAKS(rc + "FAST_PEAKS", SettingType::floating, "FAST_PEAKS");
-  FAST_PEAKS.set_val("address", 28);
-  FAST_PEAKS.set_flag("readonly");
+  auto FAST_PEAKS = px_setting(28, rc, "FAST_PEAKS", SettingType::floating, true);
   add_definition(FAST_PEAKS);
 
-  SettingMeta FTDT(rc + "FTDT", SettingType::floating, "FTDT");
-  FTDT.set_val("address", 33);
+  auto FTDT = px_setting(33, rc, "FTDT", SettingType::floating, true);
   FTDT.set_val("units", "s");
-  FTDT.set_flag("readonly");
   add_definition(FTDT);
 
-  SettingMeta GATE_COUNTS(rc + "GATE_COUNTS", SettingType::floating, "GATE_COUNTS");
-  GATE_COUNTS.set_val("address", 32);
-  GATE_COUNTS.set_flag("readonly");
+  auto GATE_COUNTS = px_setting(32, rc, "GATE_COUNTS", SettingType::floating, true);
   add_definition(GATE_COUNTS);
 
-  SettingMeta GATE_DELAY(rc + "GATE_DELAY", SettingType::floating, "GATE_DELAY");
-  GATE_DELAY.set_val("address", 23);
-  GATE_DELAY.set_val("min", 0.013333);
-  GATE_DELAY.set_val("max", 3.4);
-  GATE_DELAY.set_val("step", 0.013333);
+  auto GATE_DELAY = px_setting(23, rc, "GATE_DELAY", SettingType::floating);
+  GATE_DELAY.set_bounds(0.013333, 0.013333, 3.4);
   GATE_DELAY.set_val("units", "μs");
   add_definition(GATE_DELAY);
 
-  SettingMeta GATE_RATE(rc + "GATE_RATE", SettingType::floating, "GATE_RATE");
-  GATE_RATE.set_val("address", 31);
-  GATE_RATE.set_flag("readonly");
+  auto GATE_RATE = px_setting(31, rc, "GATE_RATE", SettingType::floating, true);
   GATE_RATE.set_val("units", "counts/s");
   add_definition(GATE_RATE);
 
-  SettingMeta GATE_WINDOW(rc + "GATE_WINDOW", SettingType::floating, "GATE_WINDOW");
-  GATE_WINDOW.set_val("address", 22);
-  GATE_WINDOW.set_val("min", 0.013333);
-  GATE_WINDOW.set_val("max", 3.4);
-  GATE_WINDOW.set_val("step", 0.013333);
+  auto GATE_WINDOW = px_setting(22, rc, "GATE_WINDOW", SettingType::floating);
+  GATE_WINDOW.set_bounds(0.013333, 0.013333, 3.4);
   GATE_WINDOW.set_val("units", "μs");
   add_definition(GATE_WINDOW);
 
-  SettingMeta GDT(rc + "GDT", SettingType::floating, "GDT");
-  GDT.set_val("address", 35);
-  GDT.set_flag("readonly");
+  auto GDT = px_setting(35, rc, "GDT", SettingType::floating, true);
   GDT.set_val("units", "s");
   add_definition(GDT);
 
-  SettingMeta INPUT_COUNT_RATE(rc + "INPUT_COUNT_RATE", SettingType::floating, "INPUT_COUNT_RATE");
-  INPUT_COUNT_RATE.set_val("address", 27);
-  INPUT_COUNT_RATE.set_flag("readonly");
+  auto INPUT_COUNT_RATE = px_setting(27, rc, "INPUT_COUNT_RATE", SettingType::floating, true);
   INPUT_COUNT_RATE.set_val("units", "counts/s");
   add_definition(INPUT_COUNT_RATE);
 
-  SettingMeta INTEGRATOR(rc + "INTEGRATOR", SettingType::menu, "INTEGRATOR");
-  INTEGRATOR.set_enum(0, "trapezoidal");
-  INTEGRATOR.set_enum(1, "gap sum");
-  INTEGRATOR.set_enum(2, "step");
-  INTEGRATOR.set_enum(3, "2x gap");
-  INTEGRATOR.set_enum(4, "4x gap");
-  INTEGRATOR.set_enum(5, "8x gap");
+  auto INTEGRATOR = px_setting(20, rc, "INTEGRATOR", SettingType::menu);
+  INTEGRATOR.set_enums(0, {"trapezoidal", "gap sum", "step", "2x gap", "4x gap", "8x gap"});
   add_definition(INTEGRATOR);
 
-  SettingMeta LIVE_TIME(rc + "LIVE_TIME", SettingType::floating, "LIVE_TIME");
-  LIVE_TIME.set_val("address", 26);
-  LIVE_TIME.set_flag("readonly");
+  auto LIVE_TIME = px_setting(26, rc, "LIVE_TIME", SettingType::floating, true);
   LIVE_TIME.set_val("units", "s");
   add_definition(LIVE_TIME);
 
-  SettingMeta NOUT(rc + "NOUT", SettingType::floating, "NOUT");
-  NOUT.set_val("address", 30);
-  NOUT.set_flag("readonly");
+  auto NOUT = px_setting(30, rc, "NOUT", SettingType::floating, true);
   add_definition(NOUT);
 
-  SettingMeta OUTPUT_COUNT_RATE(rc + "OUTPUT_COUNT_RATE", SettingType::floating, "OUTPUT_COUNT_RATE");
-  OUTPUT_COUNT_RATE.set_val("address", 29);
-  OUTPUT_COUNT_RATE.set_flag("readonly");
+  auto OUTPUT_COUNT_RATE = px_setting(29, rc, "OUTPUT_COUNT_RATE", SettingType::floating, true);
   OUTPUT_COUNT_RATE.set_val("units", "counts/s");
   add_definition(OUTPUT_COUNT_RATE);
 
-  SettingMeta PSA_END(rc + "PSA_END", SettingType::floating, "PSA_END");
-  PSA_END.set_val("address", 12);
-  PSA_END.set_val("min", 0);
-  PSA_END.set_val("max", 13.1936);
-  PSA_END.set_val("step", 0.013333);
+  auto PSA_END = px_setting(12, rc, "PSA_END", SettingType::floating);
+  PSA_END.set_bounds(0.0, 0.013333, 13.1936);
   PSA_END.set_val("units", "μs");
   add_definition(PSA_END);
 
-  SettingMeta PSA_START(rc + "PSA_START", SettingType::floating, "PSA_START");
-  PSA_START.set_val("address", 11);
-  PSA_START.set_val("min", 0);
-  PSA_START.set_val("max", 13.1936);
-  PSA_START.set_val("step", 0.013333);
+  auto PSA_START = px_setting(11, rc, "PSA_START", SettingType::floating);
+  PSA_START.set_bounds(0.0, 0.013333, 13.1936);
   PSA_START.set_val("units", "μs");
   add_definition(PSA_START);
 
-  SettingMeta PSM_GAIN_AVG(rc + "PSM_GAIN_AVG", SettingType::floating, "PSM_GAIN_AVG");
-  PSM_GAIN_AVG.set_val("address", 38);
-  PSM_GAIN_AVG.set_flag("readonly");
+  auto PSM_GAIN_AVG = px_setting(38, rc, "PSM_GAIN_AVG", SettingType::floating, true);
   add_definition(PSM_GAIN_AVG);
 
-  SettingMeta PSM_GAIN_AVG_LEN(rc + "PSM_GAIN_AVG_LEN", SettingType::floating, "PSM_GAIN_AVG_LEN");
-  PSM_GAIN_AVG_LEN.set_val("address", 39);
-  PSM_GAIN_AVG_LEN.set_flag("readonly");
+  auto PSM_GAIN_AVG_LEN = px_setting(39, rc, "PSM_GAIN_AVG_LEN", SettingType::floating, true);
   add_definition(PSM_GAIN_AVG_LEN);
 
   // is this correct?
-  SettingMeta PSM_GAIN_CORR(rc + "PSM_GAIN_CORR", SettingType::floating, "PSM_GAIN_CORR");
-  PSM_GAIN_CORR.set_val("address", 42);
-  PSM_GAIN_CORR.set_val("min", 0);
-  PSM_GAIN_CORR.set_val("max", 1);
-  PSM_GAIN_CORR.set_val("step", 0.1);
+  auto PSM_GAIN_CORR = px_setting(42, rc, "PSM_GAIN_CORR", SettingType::floating);
+  PSM_GAIN_CORR.set_bounds(0.0, 0.1, 1.0);
   add_definition(PSM_GAIN_CORR);
 
-  SettingMeta PSM_TEMP_AVG(rc + "PSM_TEMP_AVG", SettingType::floating, "PSM_TEMP_AVG");
-  PSM_TEMP_AVG.set_val("address", 40);
-  PSM_TEMP_AVG.set_flag("readonly");
+  auto PSM_TEMP_AVG = px_setting(40, rc, "PSM_TEMP_AVG", SettingType::floating, true);
   PSM_TEMP_AVG.set_val("units", "°C");
   add_definition(PSM_TEMP_AVG);
 
-  SettingMeta PSM_TEMP_AVG_LEN(rc + "PSM_TEMP_AVG_LEN", SettingType::floating, "PSM_TEMP_AVG_LEN");
-  PSM_TEMP_AVG_LEN.set_val("address", 41);
-  PSM_TEMP_AVG_LEN.set_val("min", 0);
-  PSM_TEMP_AVG_LEN.set_val("max", 1);
-  PSM_TEMP_AVG_LEN.set_val("step", 0.1);
+  auto PSM_TEMP_AVG_LEN = px_setting(41, rc, "PSM_TEMP_AVG_LEN", SettingType::floating);
+  PSM_TEMP_AVG_LEN.set_bounds(0.0, 0.1, 1.0);
   add_definition(PSM_TEMP_AVG_LEN);
 
-  SettingMeta SFDT(rc + "SFDT", SettingType::floating, "SFDT");
-  SFDT.set_val("address", 34);
-  SFDT.set_flag("readonly");
+  auto SFDT = px_setting(34, rc, "SFDT", SettingType::floating, true);
   SFDT.set_val("units", "s");
   add_definition(SFDT);
 
-  SettingMeta TAU(rc + "TAU", SettingType::floating, "TAU");
-  TAU.set_val("address", 15);
-  TAU.set_val("min", 0); // "1.5e-05"
-  TAU.set_val("max", 65535);
-  TAU.set_val("step", 1);
+  auto TAU = px_setting(15, rc, "TAU", SettingType::floating);
+  TAU.set_bounds(0.0, 1.0, 65535.0); // min=1.5e-05
   TAU.set_val("units", "μs");
   add_definition(TAU);
 
-  SettingMeta TRACE_DELAY(rc + "TRACE_DELAY", SettingType::floating, "TRACE_DELAY");
-  TRACE_DELAY.set_val("address", 10);
-  TRACE_DELAY.set_val("min", 0);
-  TRACE_DELAY.set_val("max", 13.1936);
-  TRACE_DELAY.set_val("step", 0.013333);
+  auto TRACE_DELAY = px_setting(10, rc, "TRACE_DELAY", SettingType::floating);
+  TRACE_DELAY.set_bounds(0.0, 0.013333, 13.1936);
   TRACE_DELAY.set_val("units", "μs");
   add_definition(TRACE_DELAY);
 
-  SettingMeta TRACE_LENGTH(rc + "TRACE_LENGTH", SettingType::floating, "TRACE_LENGTH");
-  TRACE_LENGTH.set_val("address", 9);
-  TRACE_LENGTH.set_val("min", 0);
-  TRACE_LENGTH.set_val("max", 13.1936);
-  TRACE_LENGTH.set_val("step", 0.013333);
+  auto TRACE_LENGTH = px_setting(9, rc, "TRACE_LENGTH", SettingType::floating);
+  TRACE_LENGTH.set_bounds(0.0, 0.013333, 13.1936);
   TRACE_LENGTH.set_val("units", "μs");
   add_definition(TRACE_LENGTH);
 
-  SettingMeta TRIGGER_FLATTOP(rc + "TRIGGER_FLATTOP", SettingType::floating, "TRIGGER_FLATTOP");
-  TRIGGER_FLATTOP.set_val("address", 5);
-  TRIGGER_FLATTOP.set_val("min", 0);
-  TRIGGER_FLATTOP.set_val("max", 500);
-  TRIGGER_FLATTOP.set_val("step", 0.05);
+  auto TRIGGER_FLATTOP = px_setting(5, rc, "TRIGGER_FLATTOP", SettingType::floating);
+  TRIGGER_FLATTOP.set_bounds(0.0, 0.05, 500.0);
   TRIGGER_FLATTOP.set_val("units", "μs");
   add_definition(TRIGGER_FLATTOP);
 
-  SettingMeta TRIGGER_RISETIME(rc + "TRIGGER_RISETIME", SettingType::floating, "TRIGGER_RISETIME");
-  TRIGGER_RISETIME.set_val("address", 4);
-  TRIGGER_RISETIME.set_val("min", 0);
-  TRIGGER_RISETIME.set_val("max", 500);
-  TRIGGER_RISETIME.set_val("step", 0.05);
+  auto TRIGGER_RISETIME = px_setting(4, rc, "TRIGGER_RISETIME", SettingType::floating);
+  TRIGGER_RISETIME.set_bounds(0.0, 0.05, 500.0);
   TRIGGER_RISETIME.set_val("units", "μs");
   add_definition(TRIGGER_RISETIME);
 
-  SettingMeta TRIGGER_THRESHOLD(rc + "TRIGGER_THRESHOLD", SettingType::integer, "TRIGGER_THRESHOLD");
-  TRIGGER_THRESHOLD.set_val("address", 6);
-  TRIGGER_THRESHOLD.set_val("min", 0);
-  TRIGGER_THRESHOLD.set_val("max", 4095);
-  TRIGGER_THRESHOLD.set_val("step", 1);
+  auto TRIGGER_THRESHOLD = px_setting(6, rc, "TRIGGER_THRESHOLD", SettingType::floating);
+  TRIGGER_THRESHOLD.set_bounds(0, 1, 4095);
   add_definition(TRIGGER_THRESHOLD);
 
-  SettingMeta VGAIN(rc + "VGAIN", SettingType::floating, "VGAIN");
-  VGAIN.set_val("address", 7);
-  VGAIN.set_val("min", 0);
-  VGAIN.set_val("max", 65535);
-  VGAIN.set_val("step", 0.000076);
+  auto VGAIN = px_setting(7, rc, "VGAIN", SettingType::floating);
+  VGAIN.set_bounds(0.0, 0.000076, 65535.0);
   VGAIN.set_val("units", "V/V");
   VGAIN.set_flag("gain");
   add_definition(VGAIN);
 
-  SettingMeta VOFFSET(rc + "VOFFSET", SettingType::floating, "VOFFSET");
-  VOFFSET.set_val("address", 8);
-  VOFFSET.set_val("min", -2.5);
-  VOFFSET.set_val("max", 2.5);
-  VOFFSET.set_val("step", 0.000076);
+  auto VOFFSET = px_setting(8, rc, "VOFFSET", SettingType::floating);
+  VOFFSET.set_bounds(-2.5, 0.000076, 2.5);
   VOFFSET.set_val("units", "V");
   add_definition(VOFFSET);
 
-  SettingMeta XDT(rc + "XDT", SettingType::floating, "XDT");
-  XDT.set_val("address", 17);
-  XDT.set_val("min", 0.053333);
-  XDT.set_val("max", 873.77333);
-  XDT.set_val("step", 0.013333);
+  auto XDT = px_setting(17, rc, "XDT", SettingType::floating);
+  XDT.set_bounds(0.053333, 0.013333, 873.77333);
   XDT.set_val("units", "μs");
   add_definition(XDT);
 
   int32_t i{0};
-  SettingMeta MODULE_CHANNEL(r + "module/channel", SettingType::stem);
+  SettingMeta MODULE_CHANNEL(rm + "channel", SettingType::stem);
   MODULE_CHANNEL.set_flag("saveworthy");
-  MODULE_CHANNEL.set_enum(0, rc + "CHANNEL_CSRA");
-  MODULE_CHANNEL.set_enum(1, rc + "CHANNEL_CSRB");
-  MODULE_CHANNEL.set_enum(2, rc + "ENERGY_RISETIME");
-  MODULE_CHANNEL.set_enum(3, rc + "ENERGY_FLATTOP");
-  MODULE_CHANNEL.set_enum(4, rc + "TRIGGER_RISETIME");
-  MODULE_CHANNEL.set_enum(5, rc + "TRIGGER_FLATTOP");
-  MODULE_CHANNEL.set_enum(6, rc + "TRIGGER_THRESHOLD");
-  MODULE_CHANNEL.set_enum(7, rc + "VGAIN");
-  MODULE_CHANNEL.set_enum(8, rc + "VOFFSET");
-  MODULE_CHANNEL.set_enum(9, rc + "TRACE_LENGTH");
-  MODULE_CHANNEL.set_enum(10, rc + "TRACE_DELAY");
-  MODULE_CHANNEL.set_enum(11, rc + "PSA_START");
-  MODULE_CHANNEL.set_enum(12, rc + "PSA_END");
-  MODULE_CHANNEL.set_enum(13, rc + "EMIN");
-  MODULE_CHANNEL.set_enum(14, rc + "BINFACTOR");
-  MODULE_CHANNEL.set_enum(15, rc + "TAU");
-  MODULE_CHANNEL.set_enum(16, rc + "BLCUT");
-  MODULE_CHANNEL.set_enum(17, rc + "XDT");
-  MODULE_CHANNEL.set_enum(18, rc + "BASELINE_PERCENT");
-  MODULE_CHANNEL.set_enum(19, rc + "CFD_THRESHOLD");
-  MODULE_CHANNEL.set_enum(20, rc + "INTEGRATOR");
-  MODULE_CHANNEL.set_enum(21, rc + "CHANNEL_CSRC");
-  MODULE_CHANNEL.set_enum(22, rc + "GATE_WINDOW");
-  MODULE_CHANNEL.set_enum(23, rc + "GATE_DELAY");
-  MODULE_CHANNEL.set_enum(24, rc + "COINC_DELAY");
-  MODULE_CHANNEL.set_enum(25, rc + "BLAVG");
-  MODULE_CHANNEL.set_enum(26, rc + "LIVE_TIME");
-  MODULE_CHANNEL.set_enum(27, rc + "INPUT_COUNT_RATE");
-  MODULE_CHANNEL.set_enum(28, rc + "FAST_PEAKS");
-  MODULE_CHANNEL.set_enum(29, rc + "OUTPUT_COUNT_RATE");
-  MODULE_CHANNEL.set_enum(30, rc + "NOUT");
-  MODULE_CHANNEL.set_enum(31, rc + "GATE_RATE");
-  MODULE_CHANNEL.set_enum(32, rc + "GATE_COUNTS");
-  MODULE_CHANNEL.set_enum(33, rc + "FTDT");
-  MODULE_CHANNEL.set_enum(34, rc + "SFDT");
-  MODULE_CHANNEL.set_enum(35, rc + "GDT");
-  MODULE_CHANNEL.set_enum(36, rc + "CURRENT_ICR");
-  MODULE_CHANNEL.set_enum(37, rc + "CURRENT_OORF");
-  MODULE_CHANNEL.set_enum(38, rc + "PSM_GAIN_AVG");
-  MODULE_CHANNEL.set_enum(39, rc + "PSM_GAIN_AVG_LEN");
-  MODULE_CHANNEL.set_enum(40, rc + "PSM_TEMP_AVG");
-  MODULE_CHANNEL.set_enum(41, rc + "PSM_TEMP_AVG_LEN");
-  MODULE_CHANNEL.set_enum(42, rc + "PSM_GAIN_CORR");
+  MODULE_CHANNEL.set_enums(0, {rc + "CHANNEL_CSRA",
+                               rc + "CHANNEL_CSRB",
+                               rc + "ENERGY_RISETIME",
+                               rc + "ENERGY_FLATTOP",
+                               rc + "TRIGGER_RISETIME",
+                               rc + "TRIGGER_FLATTOP",
+                               rc + "TRIGGER_THRESHOLD",
+                               rc + "VGAIN",
+                               rc + "VOFFSET",
+                               rc + "TRACE_LENGTH",
+                               rc + "TRACE_DELAY",
+                               rc + "PSA_START",
+                               rc + "PSA_END",
+                               rc + "EMIN",
+                               rc + "BINFACTOR",
+                               rc + "TAU",
+                               rc + "BLCUT",
+                               rc + "XDT",
+                               rc + "BASELINE_PERCENT",
+                               rc + "CFD_THRESHOLD",
+                               rc + "INTEGRATOR",
+                               rc + "CHANNEL_CSRC",
+                               rc + "GATE_WINDOW",
+                               rc + "GATE_DELAY",
+                               rc + "COINC_DELAY",
+                               rc + "BLAVG",
+                               rc + "LIVE_TIME",
+                               rc + "INPUT_COUNT_RATE",
+                               rc + "FAST_PEAKS",
+                               rc + "OUTPUT_COUNT_RATE",
+                               rc + "NOUT",
+                               rc + "GATE_RATE",
+                               rc + "GATE_COUNTS",
+                               rc + "FTDT",
+                               rc + "SFDT",
+                               rc + "GDT",
+                               rc + "CURRENT_ICR",
+                               rc + "CURRENT_OORF",
+                               rc + "PSM_GAIN_AVG",
+                               rc + "PSM_GAIN_AVG_LEN",
+                               rc + "PSM_TEMP_AVG",
+                               rc + "PSM_TEMP_AVG_LEN",
+                               rc + "PSM_GAIN_CORR"});
   add_definition(MODULE_CHANNEL);
 
-  SettingMeta ACTUAL_COINCIDENCE_WAIT(rm + "ACTUAL_COINCIDENCE_WAIT", SettingType::floating, "ACTUAL_COINCIDENCE_WAIT");
-  ACTUAL_COINCIDENCE_WAIT.set_val("address", 6);
-  ACTUAL_COINCIDENCE_WAIT.set_val("min", 13.333333);
-  ACTUAL_COINCIDENCE_WAIT.set_val("max", 87374663.6448);
-  ACTUAL_COINCIDENCE_WAIT.set_val("step", 13.333333);
+  auto ACTUAL_COINCIDENCE_WAIT = px_setting(6, rm, "ACTUAL_COINCIDENCE_WAIT", SettingType::floating);
+  ACTUAL_COINCIDENCE_WAIT.set_bounds(13.333333, 13.333333, 87374663.6448);
   ACTUAL_COINCIDENCE_WAIT.set_val("units", "ns");
   add_definition(ACTUAL_COINCIDENCE_WAIT);
 
+  auto BOARD_VERSION = px_setting(24, rm, "BOARD_VERSION", SettingType::floating, true);
+  add_definition(BOARD_VERSION);
 
-  /*
-      <SettingMeta id="Pixie4/System/module/BOARD_VERSION" type="floating" name="BOARD_VERSION" address="24" writable="false" step="0" minimum="0" maximum="0" />
+  auto BUFFER_HEAD_LENGTH = px_setting(16, rm, "BUFFER_HEAD_LENGTH", SettingType::integer, true);
+  add_definition(BUFFER_HEAD_LENGTH);
 
-          <SettingMeta id="Pixie4/System/module/BUFFER_HEAD_LENGTH" type="integer" name="BUFFER_HEAD_LENGTH" address="16" writable="false" step="0" minimum="0" maximum="0" />
-      <SettingMeta id="Pixie4/System/module/CHANNEL_HEAD_LENGTH" type="integer" name="CHANNEL_HEAD_LENGTH" address="18" writable="false" step="0" minimum="0" maximum="0" />
-      <SettingMeta id="Pixie4/System/module/COINCIDENCE_PATTERN" type="binary" name="COINCIDENCE_PATTERN" address="5" writable="true" word_size="16">
-      <flag bit="0" description="oooo" />
-      <flag bit="1" description="ooo+" />
-      <flag bit="2" description="oo+o" />
-      <flag bit="3" description="oo++" />
-      <flag bit="4" description="o+oo" />
-      <flag bit="5" description="o+o+" />
-      <flag bit="6" description="o++o" />
-      <flag bit="7" description="o+++" />
-      <flag bit="8" description="+ooo" />
-      <flag bit="9" description="+oo+" />
-      <flag bit="10" description="+o+o" />
-      <flag bit="11" description="+o++" />
-      <flag bit="12" description="++oo" />
-      <flag bit="13" description="++o+" />
-      <flag bit="14" description="+++o" />
-      <flag bit="15" description="++++" />
-      </SettingMeta>
-      <SettingMeta id="Pixie4/System/module/DBLBUFCSR" type="binary" name="DBLBUFCSR" address="14" writable="true" word_size="16">
-      <flag bit="0" description="Enable double buffer mode" />
-      <flag bit="1" description="Host has read buffer" />
-      <flag bit="3" description="Host should read first block, else should read second block" />
-      </SettingMeta>
-      <SettingMeta id="Pixie4/System/module/DSP_BUILD" type="floating" name="DSP_BUILD" address="27" writable="false" step="0" minimum="0" maximum="0" />
-      <SettingMeta id="Pixie4/System/module/DSP_RELEASE" type="floating" name="DSP_RELEASE" address="26" writable="false" step="0" minimum="0" maximum="0" />
-      <SettingMeta id="Pixie4/System/module/EVENT_HEAD_LENGTH" type="integer" name="EVENT_HEAD_LENGTH" address="17" writable="false" step="0" minimum="0" maximum="0" />
-      <SettingMeta id="Pixie4/System/module/EVENT_RATE" type="floating" name="EVENT_RATE" address="22" writable="false" step="0" minimum="0" maximum="0" unit="cps" />
-      <SettingMeta id="Pixie4/System/module/FILTER_RANGE" type="int_menu" name="FILTER_RANGE" address="11" writable="true">
-      <menu_item item_value="1" item_text="2 bits" />
-      <menu_item item_value="2" item_text="4 bits" />
-      <menu_item item_value="3" item_text="8 bits" />
-      <menu_item item_value="4" item_text="16 bits" />
-      <menu_item item_value="5" item_text="32 bits" />
-      <menu_item item_value="6" item_text="64 bits" />
-      </SettingMeta>
-      <SettingMeta id="Pixie4/System/module/FIPPI_ID" type="floating" name="FIPPI_ID" address="28" writable="false" step="0" minimum="0" maximum="0" />
-      <SettingMeta id="Pixie4/System/module/IN_SYNCH" type="boolean" name="IN_SYNCH" address="9" writable="true" description="modules synchronized; clear to have system reset clocks at start of daq" />
-      <SettingMeta id="Pixie4/System/module/MAX_EVENTS" type="integer" name="MAX_EVENTS" address="4" writable="true" step="1" minimum="0" maximum="100" />
-      <SettingMeta id="Pixie4/System/module/MIN_COINCIDENCE_WAIT" type="integer" name="MIN_COINCIDENCE_WAIT" address="7" writable="false" step="0" minimum="0" maximum="0" unit="ticks" />
-      <SettingMeta id="Pixie4/System/module/MODULEPATTERN" type="binary" name="MODULEPATTERN" address="12" writable="true" word_size="16">
-      <flag bit="4" description="Gate event acceptance on FRONT panel input" />
-      <flag bit="5" description="Gate event acceptance on LOCAL coincidence test" />
-      <flag bit="6" description="Gate event acceptance on backplane STATUS line" />
-      <flag bit="7" description="Gate event acceptance on GLOBAL coincidence test" />
-      </SettingMeta>
-      <SettingMeta id="Pixie4/System/module/MODULE_CSRA" type="binary" name="MODULE_CSRA" address="1" writable="true" word_size="16">
-      <flag bit="1" description="acquire 32 buffers and write to EM, else only one at a time" />
-      <flag bit="2" description="backpane trigger distribution: see manual..." />
-      <flag bit="3" description="Pixie native MCA: bin sums to addback spectrum" />
-      <flag bit="4" description="Pixie native MCA: individual spectra only singles" />
-      <flag bit="5" description="front panel DSP-OUT distributed as veto signal to backplane" />
-      <flag bit="6" description="chan3 hit status contributes to backplane STATUS" />
-      <flag bit="7" description="polarity of front panel pulse counter" />
-      <flag bit="9" description="write NNSHAREPATTERN to left neighbor (should be PDM) during ControlTask5" />
-      <flag bit="10" description="Pixie-500 only: time stamps as 2ns, else 13.3ns" />
-      <flag bit="12" description="drive low TOKEN backplane if local coincidence fails" />
-      <flag bit="13" description="send hit patten to slot2 using PXI STAR trigger for each event" />
-      <flag bit="14" description="front panel DSP-OUT as input to STATUS on backplane (wire-OR)" />
-      <flag bit="15" description="backpane trigger distribution: see manual..." />
-      </SettingMeta>
-      <SettingMeta id="Pixie4/System/module/MODULE_CSRB" type="binary" name="MODULE_CSRB" address="2" writable="true" word_size="16">
-      <flag bit="0" description="Execute user code routines programmed by user dsp" />
-      </SettingMeta>
-      <SettingMeta id="Pixie4/System/module/MODULE_CSRC" type="binary" name="MODULE_CSRC" address="15" writable="true" word_size="16" />
-      <SettingMeta id="Pixie4/System/module/MODULE_FORMAT" type="binary" name="MODULE_FORMAT" address="3" writable="false" word_size="16" description="not used" />
-      <SettingMeta id="Pixie4/System/module/MODULE_NUMBER" type="integer" name="MODULE_NUMBER" address="0" writable="false" step="0" minimum="0" maximum="0" />
-      <SettingMeta id="Pixie4/System/module/NNSHAREPATTERN" type="integer" name="NNSHAREPATTERN" address="13" writable="true" step="1" minimum="0" maximum="65535" description="User-defined control word for PXI-PDM" />
-      <SettingMeta id="Pixie4/System/module/NUMBER_EVENTS" type="integer" name="NUMBER_EVENTS" address="20" writable="false" step="0" minimum="0" maximum="0" />
-      <SettingMeta id="Pixie4/System/module/OUTPUT_BUFFER_LENGTH" type="integer" name="OUTPUT_BUFFER_LENGTH" address="19" writable="false" step="0" minimum="0" maximum="0" />
-      <SettingMeta id="Pixie4/System/module/PDM_MASKA" type="integer" name="PDM_MASKA" address="31" writable="true" step="1" minimum="0" maximum="65535" />
-      <SettingMeta id="Pixie4/System/module/PDM_MASKB" type="integer" name="PDM_MASKB" address="32" writable="true" step="1" minimum="0" maximum="65535" />
-      <SettingMeta id="Pixie4/System/module/PDM_MASKC" type="integer" name="PDM_MASKC" address="33" writable="true" step="1" minimum="0" maximum="65535" />
-      <SettingMeta id="Pixie4/System/module/RUN_TIME" type="floating" name="RUN_TIME" address="21" writable="false" step="0" minimum="0" maximum="0" unit="s" />
-      <SettingMeta id="Pixie4/System/module/RUN_TYPE" type="int_menu" name="RUN_TYPE" address="10" writable="true">
-      <menu_item item_value="0" item_text="Slow control run" />
-      <menu_item item_value="256" item_text="Traces" />
-      <menu_item item_value="257" item_text="Full" />
-      <menu_item item_value="258" item_text="PSA only" />
-      <menu_item item_value="259" item_text="Compressed" />
-      <menu_item item_value="769" item_text="Pixie MCA" />
-      </SettingMeta>
-      <SettingMeta id="Pixie4/System/module/SERIAL_NUMBER" type="floating" name="SERIAL_NUMBER" address="25" writable="false" step="0" minimum="0" maximum="0" />
-      <SettingMeta id="Pixie4/System/module/SYNCH_WAIT" type="boolean" name="SYNCH_WAIT" address="8" writable="true" description="wait for all modules ready before starting daq" />
-      <SettingMeta id="Pixie4/System/module/SYSTEM_ID" type="floating" name="SYSTEM_ID" address="29" writable="false" step="0" minimum="0" maximum="0" />
-      <SettingMeta id="Pixie4/System/module/TOTAL_TIME" type="floating" name="TOTAL_TIME" address="23" writable="false" step="0" minimum="0" maximum="0" unit="s" />
-      <SettingMeta id="Pixie4/System/module/XET_DELAY" type="integer" name="XET_DELAY" address="30" writable="true" step="1" minimum="0" maximum="65535" description="delay for generated event trigger from front panel to backplane" />
-*/
+  auto CHANNEL_HEAD_LENGTH = px_setting(18, rm, "CHANNEL_HEAD_LENGTH", SettingType::integer, true);
+  add_definition(CHANNEL_HEAD_LENGTH);
+
+  auto COINCIDENCE_PATTERN = px_setting(5, rm, "COINCIDENCE_PATTERN", SettingType::binary);
+  COINCIDENCE_PATTERN.set_val("bits", 16);
+  COINCIDENCE_PATTERN.set_enums(0, {"oooo", "ooo+", "oo+o", "oo++",
+                                    "o+oo", "o+o+", "o++o", "o+++",
+                                    "+ooo", "+oo+", "+o+o", "+o++",
+                                    "++oo", "++o+", "+++o", "++++"});
+  add_definition(COINCIDENCE_PATTERN);
+
+  auto DBLBUFCSR = px_setting(14, rm, "DBLBUFCSR", SettingType::binary);
+  DBLBUFCSR.set_val("bits", 16);
+  DBLBUFCSR.set_enum(0, "Enable double buffer mode");
+  DBLBUFCSR.set_enum(1, "Host has read buffer");
+  DBLBUFCSR.set_enum(3, "Host should read first block, else should read second block");
+  add_definition(DBLBUFCSR);
+
+  auto DSP_BUILD = px_setting(27, rm, "DSP_BUILD", SettingType::floating, true);
+  add_definition(DSP_BUILD);
+
+  auto DSP_RELEASE = px_setting(26, rm, "DSP_RELEASE", SettingType::floating, true);
+  add_definition(DSP_RELEASE);
+
+  auto EVENT_HEAD_LENGTH = px_setting(17, rm, "EVENT_HEAD_LENGTH", SettingType::integer, true);
+  add_definition(EVENT_HEAD_LENGTH);
+
+  auto EVENT_RATE = px_setting(22, rm, "EVENT_RATE", SettingType::floating, true);
+  EVENT_RATE.set_val("units", "counts/s");
+  add_definition(EVENT_RATE);
+
+  auto FILTER_RANGE = px_setting(11, rm, "FILTER_RANGE", SettingType::menu);
+  FILTER_RANGE.set_enums(1, {"2 bits", "4 bits", "8 bits", "16 bits", "32 bits", "64 bits"});
+  add_definition(FILTER_RANGE);
+
+  auto FIPPI_ID = px_setting(28, rm, "FIPPI_ID", SettingType::floating, true);
+  add_definition(FIPPI_ID);
+
+  auto IN_SYNCH = px_setting(9, rm, "IN_SYNCH", SettingType::boolean);
+  IN_SYNCH.set_val("description", "modules synchronized; clear to have system reset clocks at start of daq");
+  add_definition(IN_SYNCH);
+
+  auto MAX_EVENTS = px_setting(4, rm, "MAX_EVENTS", SettingType::integer);
+  MAX_EVENTS.set_bounds(0, 100);
+  add_definition(MAX_EVENTS);
+
+  auto MIN_COINCIDENCE_WAIT = px_setting(7, rm, "MIN_COINCIDENCE_WAIT", SettingType::integer, true);
+  MIN_COINCIDENCE_WAIT.set_val("units", "ticks");
+  add_definition(MIN_COINCIDENCE_WAIT);
+
+  auto MODULEPATTERN = px_setting(12, rm, "MODULEPATTERN", SettingType::binary);
+  MODULEPATTERN.set_val("bits", 16);
+  MODULEPATTERN.set_enums(4, {"Gate event acceptance on FRONT panel input",
+                              "Gate event acceptance on LOCAL coincidence test",
+                              "Gate event acceptance on backplane STATUS line",
+                              "Gate event acceptance on GLOBAL coincidence test"});
+  add_definition(MODULEPATTERN);
+
+  auto MODULE_CSRA = px_setting(1, rm, "MODULE_CSRA", SettingType::binary);
+  MODULE_CSRA.set_val("bits", 16);
+  MODULE_CSRA.set_enums(1, {"acquire 32 buffers and write to EM, else only one at a time",
+                            "backpane trigger distribution: see manual...",
+                            "Pixie native MCA: bin sums to addback spectrum",
+                            "Pixie native MCA: individual spectra only singles",
+                            "front panel DSP-OUT distributed as veto signal to backplane",
+                            "chan3 hit status contributes to backplane STATUS",
+                            "polarity of front panel pulse counter"});
+  MODULE_CSRA.set_enums(9, {"write NNSHAREPATTERN to left neighbor (should be PDM) during ControlTask5",
+                            "Pixie-500 only: time stamps as 2ns, else 13.3ns"});
+  MODULE_CSRA.set_enums(12, {"drive low TOKEN backplane if local coincidence fails",
+                             "send hit patten to slot2 using PXI STAR trigger for each event",
+                             "front panel DSP-OUT as input to STATUS on backplane (wire-OR)",
+                             "backpane trigger distribution: see manual..."});
+  add_definition(MODULE_CSRA);
+
+  auto MODULE_CSRB = px_setting(2, rm, "MODULE_CSRB", SettingType::binary);
+  MODULE_CSRB.set_val("bits", 16);
+  MODULE_CSRB.set_enums(0, {"Execute user code routines programmed by user dsp"});
+  add_definition(MODULE_CSRB);
+
+  auto MODULE_CSRC = px_setting(15, rm, "MODULE_CSRC", SettingType::binary);
+  MODULE_CSRC.set_val("bits", 16);
+  add_definition(MODULE_CSRC);
+
+  auto MODULE_FORMAT = px_setting(3, rm, "MODULE_FORMAT", SettingType::binary, true);
+  MODULE_FORMAT.set_val("bits", 16);
+  MODULE_FORMAT.set_val("description", "not used");
+  add_definition(MODULE_FORMAT);
+
+  auto MODULE_NUMBER = px_setting(0, rm, "MODULE_NUMBER", SettingType::integer, true);
+  add_definition(MODULE_NUMBER);
+
+  auto NNSHAREPATTERN = px_setting(13, rm, "NNSHAREPATTERN", SettingType::integer);
+  NNSHAREPATTERN.set_bounds(0, 65535);
+  NNSHAREPATTERN.set_val("description", "User-defined control word for PXI-PDM");
+  add_definition(NNSHAREPATTERN);
+
+  auto NUMBER_EVENTS = px_setting(20, rm, "NUMBER_EVENTS", SettingType::integer, true);
+  add_definition(NUMBER_EVENTS);
+
+  auto OUTPUT_BUFFER_LENGTH = px_setting(19, rm, "OUTPUT_BUFFER_LENGTH", SettingType::integer, true);
+  add_definition(OUTPUT_BUFFER_LENGTH);
+
+  auto PDM_MASKA = px_setting(31, rm, "PDM_MASKA", SettingType::integer);
+  PDM_MASKA.set_bounds(0, 65535);
+  add_definition(PDM_MASKA);
+
+  auto PDM_MASKB = px_setting(32, rm, "PDM_MASKB", SettingType::integer);
+  PDM_MASKB.set_bounds(0, 65535);
+  add_definition(PDM_MASKB);
+
+  auto PDM_MASKC = px_setting(33, rm, "PDM_MASKC", SettingType::integer);
+  PDM_MASKB.set_bounds(0, 65535);
+  add_definition(PDM_MASKC);
+
+  auto RUN_TIME = px_setting(21, rm, "RUN_TIME", SettingType::floating, true);
+  RUN_TIME.set_val("units", "s");
+  add_definition(RUN_TIME);
+
+  auto RUN_TYPE = px_setting(10, rm, "RUN_TYPE", SettingType::menu);
+  RUN_TYPE.set_enum(0, "Slow control run");
+  RUN_TYPE.set_enum(256, "Traces");
+  RUN_TYPE.set_enum(257, "Full");
+  RUN_TYPE.set_enum(258, "PSA only");
+  RUN_TYPE.set_enum(259, "Compressed");
+  RUN_TYPE.set_enum(769, "Pixie MCA");
+  add_definition(RUN_TYPE);
+
+  auto SERIAL_NUMBER = px_setting(25, rm, "SERIAL_NUMBER", SettingType::floating, true);
+  add_definition(SERIAL_NUMBER);
+
+  auto SYNCH_WAIT = px_setting(8, rm, "SYNCH_WAIT", SettingType::boolean);
+  SYNCH_WAIT.set_val("description", "wait for all modules ready before starting daq");
+  add_definition(SYNCH_WAIT);
+
+  auto SYSTEM_ID = px_setting(29, rm, "SYSTEM_ID", SettingType::floating, true);
+  add_definition(SYSTEM_ID);
+
+  auto TOTAL_TIME = px_setting(23, rm, "TOTAL_TIME", SettingType::floating, true);
+  TOTAL_TIME.set_val("units", "s");
+  add_definition(TOTAL_TIME);
+
+  auto XET_DELAY = px_setting(30, rm, "XET_DELAY", SettingType::integer);
+  XET_DELAY.set_bounds(0, 65535);
+  XET_DELAY.set_val("description", "delay for generated event trigger from front panel to backplane");
+  add_definition(XET_DELAY);
 
 //  root.set_flag("producer");
 

@@ -100,6 +100,9 @@ protected:
   static double get_value(const Setting& s);
   static void set_value(Setting& s, double val);
 
+  static SettingMeta px_setting(uint32_t address, std::string id_prefix, std::string name,
+                                SettingType t, bool readonly = false);
+
 
 private:
   //no copying
