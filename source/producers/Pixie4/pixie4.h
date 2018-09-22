@@ -37,6 +37,7 @@ public:
 
   void settings(const Setting &set) override;
   Setting settings() const override;
+
   void get_all_settings() override;
   void boot() override;
   void die() override;
