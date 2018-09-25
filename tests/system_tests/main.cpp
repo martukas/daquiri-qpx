@@ -5,9 +5,11 @@
 
 #include <consumers/consumers_autoreg.h>
 #include <producers/producers_autoreg.h>
+#include <importers/importers_autoreg.h>
 
 #include <core/producer_factory.h>
 #include <core/consumer_factory.h>
+#include <core/importer_factory.h>
 
 #include <core/util/timer.h>
 
@@ -27,6 +29,8 @@ void add_tof1d(ProjectPtr);
 void add_time_domain(ProjectPtr);
 void add_stats_scalar(ProjectPtr);
 void add_time_delta1d(ProjectPtr);
+
+void import_TKA(ProjectPtr);
 
 Setting get_profile()
 {
@@ -62,6 +66,9 @@ ProjectPtr get_project()
   add_tof1d(project);
   add_time_domain(project);
   add_time_delta1d(project);
+
+//  import_TKA(project);
+
   return project;
 }
 
@@ -72,6 +79,7 @@ int main(int argc, char** argv)
 
   producers_autoreg();
   consumers_autoreg();
+  importers_autoreg();
 
   int duration = 1;
   std::string durstr;
@@ -309,4 +317,11 @@ void add_stats_scalar(ProjectPtr project)
   scal->set_attribute(Setting::text("stream_id", "exy"));
   scal->set_attribute(Setting::text("what_stats", "native_time"));
   project->add_consumer(scal);
+}
+
+void import_TKA(ProjectPtr proj)
+{
+  auto i = ImporterFactory::singleton().attempt_import("/home/martin/dev/qpx-gamma/data/data/examples/formats/prompt1.tka");
+  if (i.size())
+    i[0]->import("/home/martin/dev/qpx-gamma/data/data/examples/formats/prompt1.tka", proj);
 }

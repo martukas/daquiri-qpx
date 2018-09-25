@@ -1,25 +1,11 @@
 #pragma once
 
-#include <core/project.h>
+#include <core/importer.h>
 #include <core/util/unique_mangle.h>
 #include <unordered_set>
 
 namespace DAQuiri
 {
-
-class Importer
-{
- public:
-  Importer() {}
-  virtual ~Importer() {}
-
-  virtual std::string ext() const = 0;
-  virtual std::string description() const = 0;
-  virtual bool validate(const boost::filesystem::path& path) const = 0;
-  virtual void import(const boost::filesystem::path& path, ProjectPtr project) const = 0;
-};
-
-using ImporterPtr = std::shared_ptr<Importer>;
 
 class ImporterFactory
 {

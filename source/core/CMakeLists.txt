@@ -23,6 +23,7 @@ set(HEADERS
   ${dir}/dataspace.h
   ${dir}/detector.h
   ${dir}/engine.h
+  ${dir}/importer.h
   ${dir}/importer_factory.h
   ${dir}/producer.h
   ${dir}/producer_factory.h

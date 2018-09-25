@@ -14,7 +14,7 @@ class Importer1 : public DAQuiri::Importer {
   std::string ext() const override { return "ext1"; }
   std::string description() const override { return "descr1"; }
   bool validate(const boost::filesystem::path& path) const override { return true; }
-  void import(const boost::filesystem::path& path, DAQuiri::ProjectPtr project) const override {}
+  void import(const boost::filesystem::path& path, DAQuiri::ProjectPtr project) override {}
 };
 
 class Importer2a : public DAQuiri::Importer {
@@ -25,7 +25,7 @@ class Importer2a : public DAQuiri::Importer {
   std::string ext() const override { return "ext2"; }
   std::string description() const override { return "descr2"; }
   bool validate(const boost::filesystem::path& path) const override { return !path.empty(); }
-  void import(const boost::filesystem::path& path, DAQuiri::ProjectPtr project) const override {}
+  void import(const boost::filesystem::path& path, DAQuiri::ProjectPtr project) override {}
 };
 
 class Importer2b : public DAQuiri::Importer {
@@ -36,7 +36,7 @@ class Importer2b : public DAQuiri::Importer {
   std::string ext() const override { return "ext2"; }
   std::string description() const override { return "descr3"; }
   bool validate(const boost::filesystem::path& path) const override { return path.empty(); }
-  void import(const boost::filesystem::path& path, DAQuiri::ProjectPtr project) const override {}
+  void import(const boost::filesystem::path& path, DAQuiri::ProjectPtr project) override {}
 };
 
 TEST_F(ImporterFactory, Singleton)

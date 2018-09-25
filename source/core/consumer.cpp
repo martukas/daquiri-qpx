@@ -3,6 +3,7 @@
 #include <core/util/custom_logger.h>
 #include <core/util/timer.h>
 #include <core/util/h5json.h>
+#include "importer.h"
 
 namespace DAQuiri {
 
@@ -145,6 +146,19 @@ DataspacePtr Consumer::data() const
   if (!data_)
     return nullptr;
   return DataspacePtr(data_->clone());
+}
+
+void Consumer::import(const Importer& i)
+{
+  UNIQUE_LOCK_EVENTUALLY_ST
+  this->data_->clear();
+  for (auto& q : i.entry_list)
+  {
+    this->data_->add(q);
+  }
+
+  this->_recalc_axes();
+  this->_flush();
 }
 
 std::string Consumer::type() const
