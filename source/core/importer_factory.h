@@ -37,6 +37,8 @@ class ImporterFactory
   std::vector<std::string> descriptions() const;
   std::vector<ImporterPtr> attempt_import(const boost::filesystem::path& path) const;
 
+  void clear();
+
  private:
   std::multimap<std::string, std::function<Importer*(void)>> constructors_;
 

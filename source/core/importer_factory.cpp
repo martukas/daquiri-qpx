@@ -43,10 +43,18 @@ std::vector<ImporterPtr> ImporterFactory::attempt_import(const boost::filesystem
   for (auto &q : constructors_)
   {
     auto i = ImporterPtr(q.second());
-    if (i->validate(path))
+    if (("." + i->ext()) != path.extension())
+      continue;
+    auto path2 = path.stem();
+    if (i->validate(path2))
       ret.push_back(i);
   }
   return ret;
+}
+
+void ImporterFactory::clear()
+{
+  constructors_.clear();
 }
 
 }

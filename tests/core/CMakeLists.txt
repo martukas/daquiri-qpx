@@ -14,6 +14,7 @@ set(SOURCES
   ${dir}/consumer_factory.cpp
   ${dir}/producer.cpp
   ${dir}/producer_factory.cpp
+  ${dir}/importer_factory.cpp
   ${dir}/project.cpp
   ${dir}/engine.cpp
   )
