@@ -19,13 +19,13 @@ install:
 # Install conan
 - sudo pip2 install conan
 # Automatic detection of your arch, compiler, etc.
+- conan profile new --detect default
 - conan profile update settings.compiler.libcxx=libstdc++11 default  
 #- conan user
 - conan remote add conancommunity https://api.bintray.com/conan/conan-community/conan
 - conan remote add conan-transit https://api.bintray.com/conan/conan/conan-transit
 - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 - conan remote add ess-dmsc https://api.bintray.com/conan/ess-dmsc/conan
-- conan profile new --detect default
 #TODO: only ubuntu
 
 # Build steps
