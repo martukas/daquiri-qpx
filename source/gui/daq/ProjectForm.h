@@ -60,6 +60,7 @@ class ProjectForm : public QWidget
     void projectSaveAs();
     void projectSaveSplit();
     void projectOpen();
+    void import();
 
     void on_doubleSpinMinPause_editingFinished();
 
@@ -89,4 +90,6 @@ class ProjectForm : public QWidget
     void saveSettings();
 
     QString get_label() const;
+
+    QString importstr;
 };

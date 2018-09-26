@@ -5,11 +5,13 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 set(SOURCES
   ${dir}/importers_autoreg.cpp
   ${dir}/ImporterTKA.cpp
+  ${dir}/string_to_chans.cpp
   )
 
 set(HEADERS
   ${dir}/importers_autoreg.h
   ${dir}/ImporterTKA.h
+  ${dir}/string_to_chans.h
   )
 
 set(${this_target}_headers ${HEADERS})

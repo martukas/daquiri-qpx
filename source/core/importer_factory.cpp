@@ -31,8 +31,8 @@ std::vector<std::string> ImporterFactory::descriptions() const
   std::vector<std::string> ret;
   for (auto &q : constructors_)
   {
-    // \ todo add ext wildcard
-    ret.push_back(ImporterPtr(q.second())->description());
+    ImporterPtr imp(q.second());
+    ret.push_back(imp->description() + " (*." + imp->ext() + ")" );
   }
   return ret;
 }

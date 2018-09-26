@@ -61,17 +61,17 @@ TEST_F(ImporterFactory, registered)
   DAQUIRI_REGISTER_IMPORTER(Importer1);
   EXPECT_EQ(cf.extensions().size(), 1);
   EXPECT_TRUE(cf.extensions().count("ext1"));
-  EXPECT_EQ(cf.descriptions()[0], "descr1");
+  EXPECT_EQ(cf.descriptions()[0], "descr1 (*.ext1)");
 
   DAQUIRI_REGISTER_IMPORTER(Importer2a);
   EXPECT_EQ(cf.extensions().size(), 2);
   EXPECT_TRUE(cf.extensions().count("ext2"));
-  EXPECT_EQ(cf.descriptions()[1], "descr2");
+  EXPECT_EQ(cf.descriptions()[1], "descr2 (*.ext2)");
 
   DAQUIRI_REGISTER_IMPORTER(Importer2b);
   EXPECT_EQ(cf.extensions().size(), 2);
   EXPECT_TRUE(cf.extensions().count("ext2"));
-  EXPECT_EQ(cf.descriptions()[2], "descr3");
+  EXPECT_EQ(cf.descriptions()[2], "descr3 (*.ext2)");
 }
 
 TEST_F(ImporterFactory, importer_filtering)

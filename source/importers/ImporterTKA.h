@@ -12,10 +12,5 @@ class ImporterTKA : public DAQuiri::Importer
   std::string description() const override { return "The glorious TKA format"; }
   bool validate(const boost::filesystem::path& path) const override;
   void import(const boost::filesystem::path& path, DAQuiri::ProjectPtr project) override;
-
-  bool channels_from_string(DAQuiri::Consumer& consumer,
-      std::istream& data_stream,
-      bool compression);
-
 };
 

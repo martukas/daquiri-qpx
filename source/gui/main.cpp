@@ -1,6 +1,7 @@
 #include "daquiri.h"
 #include <consumers/consumers_autoreg.h>
 #include <producers/producers_autoreg.h>
+#include <importers/importers_autoreg.h>
 #include <QApplication>
 #include <QCommandLineParser>
 #include "Profiles.h"
@@ -46,6 +47,7 @@ int main(int argc, char *argv[])
 
     producers_autoreg();
     consumers_autoreg();
+    importers_autoreg();
 
     daquiri w(0, opennew, startnew);
     w.show();

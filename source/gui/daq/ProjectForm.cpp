@@ -1,4 +1,5 @@
 #include <core/consumer_factory.h>
+#include <core/importer_factory.h>
 #include "ProjectForm.h"
 #include "ui_ProjectForm.h"
 #include "ConsumerTemplatesForm.h"
@@ -36,12 +37,20 @@ ProjectForm::ProjectForm(ThreadRunner& thread,
   //connect with runner
   connect(&runner_thread_, SIGNAL(runComplete()), this, SLOT(run_completed()));
 
+  std::vector<std::string> spectypes = ImporterFactory::singleton().descriptions();
+  QStringList filetypes;
+  for (auto s : spectypes)
+    filetypes.push_back(QS(s));
+  importstr = catFileTypes(filetypes);
+
+
   //1d
   ui->projectView->setSpectra(project_);
   connect(&plot_thread_, SIGNAL(plot_ready()), this, SLOT(update_plots()));
 //  ui->projectView->setDetDB(detectors_);
 
   menuLoad.addAction(QIcon(":/icons/oxy/16/document_open.png"), "Open daquiri project", this, SLOT(projectOpen()));
+  menuLoad.addAction(QIcon(":/icons/oxy/16/document_open.png"), "Import something...", this, SLOT(import()));
   ui->toolOpen->setMenu(&menuLoad);
 
   menuSave.addAction(QIcon(":/icons/oxy/16/document_save.png"), "Save project", this, SLOT(projectSave()));
@@ -298,6 +307,35 @@ void ProjectForm::projectOpen()
 
   emit toggleIO(true);
 }
+
+void ProjectForm::import()
+{
+  QStringList fileNames = QFileDialog::getOpenFileNames(this, "Load spectra", data_directory_, importstr);
+
+  if (fileNames.empty())
+    return;
+
+  data_directory_ = path_of_file(fileNames.front());
+
+  if ((!project_->empty()) && (QMessageBox::warning(this, "Append?", "Spectra already open. Append to existing?",
+                                                    QMessageBox::Yes|QMessageBox::Cancel) != QMessageBox::Yes))
+    return;
+
+  //toggle_push(false, false);
+
+  int valid_imports = 0;
+
+  for (int i=0; i<fileNames.size(); i++) {
+    auto pp = ImporterFactory::singleton().attempt_import(fileNames[i].toStdString());
+    if (pp.size() == 1)
+      pp[0]->import(fileNames[i].toStdString(), project_);
+  }
+
+  project_->activate();
+
+  emit toggleIO(true);
+}
+
 
 void ProjectForm::projectSave()
 {
