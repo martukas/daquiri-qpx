@@ -1,0 +1,42 @@
+sudo: required
+before_install:
+  - sudo apt install -y qt5-default
+
+# Enable C++ support
+language: cpp
+
+# Compiler selection
+compiler:
+  - gcc
+  
+language: cpp
+compiler:
+- gcc
+install:
+# Upgrade GCC
+- sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+- sudo apt-get update -qq
+- sudo apt-get install -qq g++-4.9
+- sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9
+
+# Install conan
+- pip install conan
+# Automatic detection of your arch, compiler, etc.
+- conan user
+
+script:
+# Download dependencies, build, test and create package
+- conan create . user/channel
+- conan remote add conancommunity https://api.bintray.com/conan/conan-community/conan
+- conan remote add conan-transit https://api.bintray.com/conan/conan/conan-transit
+- conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+- conan remote add ess-dmsc https://api.bintray.com/conan/ess-dmsc/conan
+- conan profile new --detect default
+#TODO: only ubuntu
+- conan profile update settings.compiler.libcxx=libstdc++11 default  
+
+# Build steps
+script:
+  - mkdir build
+  - cd build
+  - ${DEPS_DIR}/cmake/bin/cmake .. && make
