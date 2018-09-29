@@ -17,6 +17,8 @@ void ImporterTKA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   double timed;
 
   auto hist = DAQuiri::ConsumerFactory::singleton().create_type("Histogram 1D");
+  if (!hist)
+    throw std::runtime_error("ImporterTKA could not get a valid Histogram 1D from factory");
 
   myfile >> data;
   DAQuiri::Setting live_time(DAQuiri::SettingMeta("live_time", DAQuiri::SettingType::duration));
