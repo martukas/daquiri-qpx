@@ -25,20 +25,27 @@ void ImporterCNF::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   std::vector<double> calibration;
 
 //  DBG << "xylib.blocks =  " << newdata->get_block_count();
-  for (int i=0; i < newdata->get_block_count(); i++) {
+  for (int i = 0; i < newdata->get_block_count(); i++)
+  {
     calibration.clear();
 
-    for (uint32_t j=0; j < newdata->get_block(i)->meta.size(); j++) {
+    for (uint32_t j = 0; j < newdata->get_block(i)->meta.size(); j++)
+    {
       std::string key = newdata->get_block(i)->meta.get_key(j);
       std::string value = newdata->get_block(i)->meta.get(key);
 //      DBG << "xylib.meta " << key << " = " << value;
       if (key.substr(0, 12) == "energy calib")
+      {
+        DBG("calib = {}", value);
         calibration.push_back(boost::lexical_cast<double>(value));
-      if (key == "description") {
+      }
+      else if (key == "description")
+      {
         DBG("descr = {}", value);
         hist->set_attribute(DAQuiri::Setting::text("description", value));
       }
-      if (key == "date and time") {
+      else if (key == "date and time")
+      {
         std::istringstream stream{value};
         date::sys_time<std::chrono::seconds> t;
         stream >> date::parse("%a, %Y-%m-%d %H:%M:%S", t);
@@ -47,12 +54,14 @@ void ImporterCNF::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
 //        DBG("parsing start time = '{}' -> {}", value, date::format("%FT%TZ", t));
         hist->set_attribute(DAQuiri::Setting("start_time", t));
       }
-      if (key == "real time (s)") {
+      else if (key == "real time (s)")
+      {
         auto rt_ms = static_cast<int64_t>(std::stod(boost::algorithm::trim_copy(value)) * 1000.0);
 //        DBG("parsing real time = '{}' -> {}", value, rt_ms);
         hist->set_attribute(DAQuiri::Setting("real_time", std::chrono::milliseconds(rt_ms)));
       }
-      if (key == "live time (s)") {
+      else if (key == "live time (s)")
+      {
         auto lt_ms = static_cast<int64_t>(std::stod(boost::algorithm::trim_copy(value)) * 1000.0);
 //        DBG("parsing live time = '{}' -> {}", value, lt_ms);
         hist->set_attribute(DAQuiri::Setting("live_time", std::chrono::milliseconds(lt_ms)));
@@ -61,9 +70,11 @@ void ImporterCNF::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
 
     int column = newdata->get_block(i)->get_column_count();
 
-    if (column == 2) {
+    if (column == 2)
+    {
 //      DBG << "xylib.points = " << newdata->get_block(i)->get_point_count();
-      for (int k = 0; k < newdata->get_block(i)->get_point_count(); k++) {
+      for (int k = 0; k < newdata->get_block(i)->get_point_count(); k++)
+      {
         double data = newdata->get_block(i)->get_column(column).get_value(k);
         DAQuiri::Entry new_entry;
         new_entry.first.resize(1);
@@ -75,13 +86,17 @@ void ImporterCNF::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
     }
   }
 
-//  Calibration new_calib(bits_);
-//  new_calib.set_units("keV");
+  DAQuiri::CalibID from("energy","","");
+  DAQuiri::CalibID to("energy","","keV");
+  DAQuiri::Calibration new_calib(from, to);
+//  auto func = std::make_shared<>()
+//  new_calib.set_function()
 //  new_calib.set_function("Polynomial", calibration);
 //  metadata_.detectors.resize(1);
 //  metadata_.detectors[0].set_energy_calibration(new_calib);
 
   hist->set_attribute(DAQuiri::Setting::text("name", path.stem().string()));
+  hist->set_attribute(DAQuiri::Setting::boolean("visible", true));
 
   hist->import(*this);
 

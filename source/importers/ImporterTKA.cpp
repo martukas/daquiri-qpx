@@ -38,6 +38,7 @@ void ImporterTKA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
 //  init_from_file(name);
 
   hist->set_attribute(DAQuiri::Setting::text("name", path.stem().string()));
+  hist->set_attribute(DAQuiri::Setting::boolean("visible", true));
 
   hist->import(*this);
 

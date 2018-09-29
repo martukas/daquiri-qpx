@@ -331,6 +331,8 @@ void ProjectForm::import()
       pp[0]->import(fileNames[i].toStdString(), project_);
   }
 
+  newProject();
+
   project_->activate();
 
   emit toggleIO(true);
