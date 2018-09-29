@@ -28,12 +28,23 @@ std::unordered_set<std::string> ImporterFactory::extensions() const
 
 std::vector<std::string> ImporterFactory::descriptions() const
 {
+  std::string all_files;
+  for (auto &q : constructors_)
+  {
+    if (!all_files.empty())
+      all_files += " ";
+    all_files += "*." + q.first;
+  }
+
   std::vector<std::string> ret;
+  if (!all_files.empty())
+    ret.push_back("All available formats (" + all_files + ")");
   for (auto &q : constructors_)
   {
     ImporterPtr imp(q.second());
     ret.push_back(imp->description() + " (*." + imp->ext() + ")" );
   }
+
   return ret;
 }
 

@@ -81,6 +81,8 @@ void ImporterCNF::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
 //  metadata_.detectors.resize(1);
 //  metadata_.detectors[0].set_energy_calibration(new_calib);
 
+  hist->set_attribute(DAQuiri::Setting::text("name", path.stem().string()));
+
   hist->import(*this);
 
   project->add_consumer(hist);

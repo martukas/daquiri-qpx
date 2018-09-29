@@ -37,6 +37,8 @@ void ImporterTKA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
 //  metadata_.detectors.resize(1);
 //  init_from_file(name);
 
+  hist->set_attribute(DAQuiri::Setting::text("name", path.stem().string()));
+
   hist->import(*this);
 
   project->add_consumer(hist);
