@@ -39,6 +39,8 @@ void ImporterAVA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
     stream >> date::parse("%a %b %d %T GMT%z %Y", t);
     if (stream.fail())
       throw std::runtime_error("failed to parse " + data);
+//    DBG("parsing start time = '{}' -> {}", data, date::format("%FT%TZ", t));
+
     hist->set_attribute(DAQuiri::Setting("start_time", t));
   }
 

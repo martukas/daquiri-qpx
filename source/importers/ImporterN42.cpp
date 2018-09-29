@@ -1,5 +1,4 @@
 #include "ImporterN42.h"
-#include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <core/consumer_factory.h>
 #include <importers/string_to_chans.h>
