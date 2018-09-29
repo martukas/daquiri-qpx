@@ -4,12 +4,16 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(SOURCES
   ${dir}/importers_autoreg.cpp
+  ${dir}/ImporterAVA.cpp
+  ${dir}/ImporterN42.cpp
   ${dir}/ImporterTKA.cpp
   ${dir}/string_to_chans.cpp
   )
 
 set(HEADERS
   ${dir}/importers_autoreg.h
+  ${dir}/ImporterAVA.h
+  ${dir}/ImporterN42.h
   ${dir}/ImporterTKA.h
   ${dir}/string_to_chans.h
   )
@@ -33,6 +37,7 @@ target_link_libraries(
   ${this_target}
   PUBLIC ${PROJECT_NAME}_core
   PUBLIC ${PROJECT_NAME}_consumers
+  PRIVATE pugixml
 )
 
 enable_coverage(${this_target})

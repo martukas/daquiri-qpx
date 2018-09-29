@@ -1,8 +1,9 @@
 #include "ImporterTKA.h"
-#include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <core/consumer_factory.h>
 #include <importers/string_to_chans.h>
+
+#include <core/util/custom_logger.h>
 
 bool ImporterTKA::validate(const boost::filesystem::path& path) const
 {
@@ -11,26 +12,25 @@ bool ImporterTKA::validate(const boost::filesystem::path& path) const
 
 void ImporterTKA::import(const boost::filesystem::path& path, DAQuiri::ProjectPtr project)
 {
-  using namespace boost::algorithm;
   std::ifstream myfile(path.string(), std::ios::in);
-  std::string data;
-  double timed;
-
   auto hist = DAQuiri::ConsumerFactory::singleton().create_type("Histogram 1D");
   if (!hist)
     throw std::runtime_error("ImporterTKA could not get a valid Histogram 1D from factory");
 
-  myfile >> data;
-  DAQuiri::Setting live_time(DAQuiri::SettingMeta("live_time", DAQuiri::SettingType::duration));
-  timed = boost::lexical_cast<double>(trim_copy(data)) * 1000.0;
-  live_time.set_duration(std::chrono::milliseconds(static_cast<int64_t>(timed)));
-  hist->set_attribute(live_time);
+  using namespace boost::algorithm;
+  std::string data;
+
+  // \todo extract ms part separately
 
   myfile >> data;
-  DAQuiri::Setting real_time(DAQuiri::SettingMeta("real_time", DAQuiri::SettingType::duration));
-  timed = boost::lexical_cast<double>(trim_copy(data)) * 1000.0;
-  real_time.set_duration(std::chrono::milliseconds(static_cast<int64_t>(timed)));
-  hist->set_attribute(real_time);
+  auto lt_ms = static_cast<int64_t>(std::stod(trim_copy(data)) * 1000.0);
+  //DBG("parsing live time = '{}' -> {}", data, lt_ms);
+  hist->set_attribute(DAQuiri::Setting("live_time", std::chrono::milliseconds(lt_ms)));
+
+  myfile >> data;
+  auto rt_ms = static_cast<int64_t>(std::stod(trim_copy(data)) * 1000.0);
+  //DBG("parsing real time = '{}' -> {}", data, rt_ms);
+  hist->set_attribute(DAQuiri::Setting("real_time", std::chrono::milliseconds(rt_ms)));
 
   entry_list = string_to_chans(myfile);
 
