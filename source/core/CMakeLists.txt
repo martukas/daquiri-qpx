@@ -50,6 +50,7 @@ add_library(
 target_include_directories(
   ${this_target}
   PUBLIC ${PROJECT_SOURCE_DIR}/source
+  PUBLIC ${CMAKE_BINARY_DIR}/build_info
   INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
@@ -60,12 +61,9 @@ target_link_libraries(
   PUBLIC h5cpp
   PUBLIC fmt::fmt
   PUBLIC ${DATE_LIBRARIES}
-  PUBLIC ${CMAKE_DL_LIBS}
-  PRIVATE ${OpenSSL_LIBRARIES}
-  PRIVATE ${ZLIB_LIBRARIES}
   PRIVATE Threads::Threads
 )
 
 enable_coverage(${this_target})
 
-#ADD_DEPENDENCIES(${this_target} buildinfo)
+ADD_DEPENDENCIES(${this_target} build_time)
