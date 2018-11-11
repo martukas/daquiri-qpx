@@ -25,8 +25,8 @@ class Consumer
   Consumer();
   Consumer(const Consumer& other)
       : metadata_(other.metadata_)
-        , data_(other.data_->clone())
-        , changed_{true} {}
+      , data_(other.data_->clone())
+      , changed_{true} {}
   virtual Consumer* clone() const = 0;
   virtual ~Consumer() {}
 
