@@ -18,7 +18,7 @@ install:
 - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9
 - sudo apt-get install -qq python-pip
 - sudo apt-get install libffi-dev libssl-dev
-- sudo -H pip2 install requests[security]
+#- sudo -H pip2 install requests[security]
 - sudo -H pip2 install pyopenssl ndg-httpsclient pyasn1
   # Install conan
 - sudo -H pip2 install conan
