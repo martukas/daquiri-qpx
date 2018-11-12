@@ -19,7 +19,7 @@ install:
 - sudo apt-get install -qq python-pip
 - sudo apt-get install libffi-dev libssl-dev
 - sudo -H pip2 install requests[security]
-#- sudo -H pip2 install pyopenssl ndg-httpsclient pyasn1
+- sudo -H pip2 install pyopenssl ndg-httpsclient pyasn1
   # Install conan
 - sudo -H pip2 install conan
 # Automatic detection of your arch, compiler, etc.
@@ -34,7 +34,7 @@ install:
 
 # Build steps
 #script:
-#  - mkdir build
-#  - cd build
-#  - conan install --build=outdated ..
+  - mkdir build
+  - cd build
+  - conan install --build=outdated ..
 #  - source ./activate_build.sh && cmake .. && make
