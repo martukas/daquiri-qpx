@@ -6,6 +6,7 @@ set(SOURCES
   ${dir}/importers_autoreg.cpp
   ${dir}/ImporterAVA.cpp
   ${dir}/ImporterCNF.cpp
+  ${dir}/ImporterMCA.cpp
   ${dir}/ImporterN42.cpp
   ${dir}/ImporterTKA.cpp
   ${dir}/string_to_chans.cpp
@@ -19,6 +20,7 @@ set(HEADERS
   ${dir}/importers_autoreg.h
   ${dir}/ImporterAVA.h
   ${dir}/ImporterCNF.h
+  ${dir}/ImporterMCA.h
   ${dir}/ImporterN42.h
   ${dir}/ImporterTKA.h
   ${dir}/string_to_chans.h
