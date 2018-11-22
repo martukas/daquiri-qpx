@@ -86,12 +86,9 @@ void ImporterMCA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   std::vector<int32_t> spectrum(16384);
   file.read(reinterpret_cast<char*>(spectrum.data()), spectrum.size()*4);
 
-//  for (size_t i=0; i < spectrum.size(); i += 50)
-//    INFO("Spec[{}] = {}", i, spectrum[i]);
-
   auto hist = DAQuiri::ConsumerFactory::singleton().create_type("Histogram 1D");
   if (!hist)
-    throw std::runtime_error("ImporterCNF could not get a valid Histogram 1D from factory");
+    throw std::runtime_error("ImporterMCA could not get a valid Histogram 1D from factory");
 
   hist->set_attribute(DAQuiri::Setting::text("description", std::string(header->xcal.unit_name)));
 

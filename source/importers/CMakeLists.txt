@@ -5,6 +5,7 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 set(SOURCES
   ${dir}/importers_autoreg.cpp
   ${dir}/ImporterAVA.cpp
+  ${dir}/ImporterCHN.cpp
   ${dir}/ImporterCNF.cpp
   ${dir}/ImporterMCA.cpp
   ${dir}/ImporterN42.cpp
@@ -19,6 +20,7 @@ set(SOURCES
 set(HEADERS
   ${dir}/importers_autoreg.h
   ${dir}/ImporterAVA.h
+  ${dir}/ImporterCHN.h
   ${dir}/ImporterCNF.h
   ${dir}/ImporterMCA.h
   ${dir}/ImporterN42.h
