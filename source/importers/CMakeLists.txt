@@ -9,6 +9,7 @@ set(SOURCES
   ${dir}/ImporterCNF.cpp
   ${dir}/ImporterMCA.cpp
   ${dir}/ImporterN42.cpp
+  ${dir}/ImporterSPC.cpp
   ${dir}/ImporterTKA.cpp
   ${dir}/string_to_chans.cpp
   ${dir}/xylib/canberra_cnf.cpp
@@ -24,6 +25,7 @@ set(HEADERS
   ${dir}/ImporterCNF.h
   ${dir}/ImporterMCA.h
   ${dir}/ImporterN42.h
+  ${dir}/ImporterSPC.h
   ${dir}/ImporterTKA.h
   ${dir}/string_to_chans.h
   ${dir}/xylib/canberra_cnf.h
