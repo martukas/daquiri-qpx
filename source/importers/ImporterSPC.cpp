@@ -46,8 +46,10 @@ struct __attribute__ ((packed)) Header
   float ACQTIM;          //Date and time of acquisition start in DECDAY format
   double ACQTI8;         //Date and time as double precision DECDAY
   int16_t SEQNUM;        //Sequence number                                 [41]
-  int16_t MCANU;         //MCA number as two ASCII characters (old) or Detector number as integer for systems with Connections
-  int16_t SEGNUM;        //Segment number as two ASCII characters (old) or as integer value 1 for systems with Connections
+  int16_t
+      MCANU;         //MCA number as two ASCII characters (old) or Detector number as integer for systems with Connections
+  int16_t
+      SEGNUM;        //Segment number as two ASCII characters (old) or as integer value 1 for systems with Connections
   int16_t MCADVT;        //MCA device type
   int16_t CHNSRT;        //Start channel number
   float RLTMDT;          //Real Time in seconds
@@ -169,8 +171,7 @@ struct __attribute__ ((packed)) OrtecHardwareRecord2
   int16_t ZDT_MODE; //0=OFF, 1=NORM_CORR, 2=CORR_ERR
 };
 
-static constexpr int16_t CONTENTSFLAG_MASK_HASZDTSPE = 2;
-
+static constexpr int16_t ContentsFlagMaskHasZDT = 2;
 
 bool ImporterSPC::validate(const boost::filesystem::path& path) const
 {
@@ -179,7 +180,7 @@ bool ImporterSPC::validate(const boost::filesystem::path& path) const
 
 void ImporterSPC::import(const boost::filesystem::path& path, DAQuiri::ProjectPtr project)
 {
-  std::ifstream file (path.string(), std::ios::binary);
+  std::ifstream file(path.string(), std::ios::binary);
 
   Header header;
   file.read(reinterpret_cast<char*>(&header), sizeof(Header));
@@ -188,44 +189,72 @@ void ImporterSPC::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
     throw std::runtime_error("<ImporterSPC> invalid SPC file, bad type markers");
 
   INFO("contents flag: {}", header.ContentsFlag);
-  uint16_t ZDTFlag = 0;
-  if ((header.ContentsFlag & CONTENTSFLAG_MASK_HASZDTSPE) == 2)
-    ZDTFlag = 1;
+  bool ZDT_included = ((header.ContentsFlag & ContentsFlagMaskHasZDT) == ContentsFlagMaskHasZDT);
 
   file.seekg((header.ACQIRP - 1) * 128);
-  AcqInfoRecord adq_header;
-  file.read(reinterpret_cast<char*>(&adq_header), sizeof(AcqInfoRecord));
+  AcqInfoRecord acq_header;
+  file.read(reinterpret_cast<char*>(&acq_header), sizeof(AcqInfoRecord));
 
   file.seekg((header.ANARP4 - 1) * 128 + 128);
   OrtecHardwareRecord2 hw2header;
   file.read(reinterpret_cast<char*>(&hw2header), sizeof(OrtecHardwareRecord2));
 
-  INFO("number of chans: {}", header.SPCCHN);
-  INFO("mca number: {}", header.MCANU);
-  INFO("segment number: {}", header.SEGNUM);
-  INFO("tag numbrr: {}", header.MCADVT);
-  INFO("live time: {}", header.LVTMDT * 100);
-  INFO("real time: {}", header.RLTMDT * 100);
+  std::vector<int32_t> spectrum(static_cast<size_t>(header.SPCCHN));
+  std::vector<int32_t> spectrum2(static_cast<size_t>(header.SPCCHN));
 
   file.seekg((header.SPCTRP - 1) * 128);
-  std::vector<int32_t> spectrum(static_cast<size_t>(header.SPCCHN * (ZDTFlag + 1)));
-  file.read(reinterpret_cast<char*>(spectrum.data()), spectrum.size()*4);
+  file.read(reinterpret_cast<char*>(spectrum.data()), spectrum.size() * sizeof(int32_t));
+  if (ZDT_included)
+  {
+    file.seekg((header.SPCTRP - 1) * 128 + spectrum.size() * sizeof(int32_t));
+    file.read(reinterpret_cast<char*>(spectrum2.data()), spectrum2.size() * sizeof(int32_t));
+  }
 
   file.seekg((header.CALRP1 - 1) * 128);
   CalibrationRecord calheader;
   file.read(reinterpret_cast<char*>(&calheader), sizeof(CalibrationRecord));
 
+  INFO("mca number: {}", header.MCANU);
+  INFO("segment number: {}", header.SEGNUM);
+  INFO("tag numbrr: {}", header.MCADVT);
+  INFO("live time: {}", header.LVTMDT);
+  INFO("real time: {}", header.RLTMDT);
+  INFO("zdt_mode: {}", hw2header.ZDT_MODE);
+
+  INFO("e_cal c0: {}", calheader.EC_1);
+  INFO("e_cal c1: {}", calheader.EC_2);
+  INFO("e_cal c2: {}", calheader.EC_3);
+  INFO("fc_cal c0: {}", calheader.FC_1);
+  INFO("fc_cal c1: {}", calheader.FC_2);
+  INFO("fc_cal c2: {}", calheader.FC_3);
+
+  std::stringstream stream;
+  std::string start_day(&acq_header.SpeDate[0], 2);
+  std::string start_month(&acq_header.SpeDate[3], 3);
+  std::string start_year =
+      ((acq_header.SpeDate[9] == '1') ? "20" : "19")
+          + std::string(&acq_header.SpeDate[7], 2);
+  std::string start_time(&acq_header.SpeTime[0], 10);
+  stream << start_year << "-" << start_month << "-" << start_day
+         << " " << start_time;
+
+  date::sys_time<std::chrono::seconds> t;
+  stream >> date::parse("%Y-%b-%d %H:%M:%S", t);
+  if (stream.fail())
+    throw std::runtime_error("<ImporterSPC> failed to parse date");
+
+  auto lt_ms = static_cast<int64_t>(header.LVTMDT * 1000.0);
+  auto rt_ms = static_cast<int64_t>(header.RLTMDT * 1000.0);
+
   auto hist = DAQuiri::ConsumerFactory::singleton().create_type("Histogram 1D");
   if (!hist)
     throw std::runtime_error("ImporterSPC could not get a valid Histogram 1D from factory");
-
-  auto lt_ms = static_cast<int64_t>(header.LVTMDT * 100.0);
+  hist->set_attribute(DAQuiri::Setting::text("name", path.stem().string()));
+  hist->set_attribute(DAQuiri::Setting::boolean("visible", true));
+  hist->set_attribute(DAQuiri::Setting("start_time", t));
   hist->set_attribute(DAQuiri::Setting("live_time", std::chrono::milliseconds(lt_ms)));
-
-  auto rt_ms = static_cast<int64_t>(header.RLTMDT * 100.0);
   hist->set_attribute(DAQuiri::Setting("real_time", std::chrono::milliseconds(rt_ms)));
-
-  for (size_t i=0; i < spectrum.size(); ++i)
+  for (size_t i = 0; i < spectrum.size(); ++i)
   {
     DAQuiri::Entry new_entry;
     new_entry.first.resize(1);
@@ -233,11 +262,29 @@ void ImporterSPC::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
     new_entry.second = PreciseFloat(spectrum[i]);
     entry_list.push_back(new_entry);
   }
-
-  hist->set_attribute(DAQuiri::Setting::text("name", path.stem().string()));
-  hist->set_attribute(DAQuiri::Setting::boolean("visible", true));
-
   hist->import(*this);
-
   project->add_consumer(hist);
+
+  if (ZDT_included) {
+    auto hist2 = DAQuiri::ConsumerFactory::singleton().create_type("Histogram 1D");
+    if (!hist2)
+      throw std::runtime_error("ImporterSPC could not get a valid Histogram 1D from factory");
+    hist2->set_attribute(DAQuiri::Setting::text("name", path.stem().string() + " (ZDT)"));
+    hist2->set_attribute(DAQuiri::Setting::boolean("visible", true));
+    hist2->set_attribute(DAQuiri::Setting("start_time", t));
+    hist2->set_attribute(DAQuiri::Setting("live_time", std::chrono::milliseconds(rt_ms)));
+    hist2->set_attribute(DAQuiri::Setting("real_time", std::chrono::milliseconds(rt_ms)));
+
+    entry_list.clear();
+    for (size_t i = 0; i < spectrum2.size(); ++i)
+    {
+      DAQuiri::Entry new_entry;
+      new_entry.first.resize(1);
+      new_entry.first[0] = i;
+      new_entry.second = PreciseFloat(spectrum2[i]);
+      entry_list.push_back(new_entry);
+    }
+    hist2->import(*this);
+    project->add_consumer(hist2);
+  }
 }
