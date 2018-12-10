@@ -1,5 +1,6 @@
 #include <core/importer_factory.h>
 #include <core/util/custom_logger.h>
+#include <core/util/string_extensions.h>
 
 namespace DAQuiri {
 
@@ -54,7 +55,7 @@ std::vector<ImporterPtr> ImporterFactory::attempt_import(const boost::filesystem
   for (auto &q : constructors_)
   {
     auto i = ImporterPtr(q.second());
-    if (("." + i->ext()) != path.extension())
+    if (!iequals(("." + i->ext()), path.extension().string()))
       continue;
     auto path2 = path.stem();
     if (i->validate(path2))
