@@ -3,6 +3,10 @@
 
 class ImporterFactory : public TestBase
 {
+  virtual void TearDown()
+  {
+    DAQuiri::ImporterFactory::singleton().clear();
+  }
 };
 
 
@@ -56,28 +60,29 @@ TEST_F(ImporterFactory, empty)
 TEST_F(ImporterFactory, registered)
 {
   auto& cf = DAQuiri::ImporterFactory::singleton();
-  cf.clear();
 
   DAQUIRI_REGISTER_IMPORTER(Importer1);
   EXPECT_EQ(cf.extensions().size(), 1);
   EXPECT_TRUE(cf.extensions().count("ext1"));
-  EXPECT_EQ(cf.descriptions()[0], "descr1 (*.ext1)");
+  EXPECT_EQ(cf.descriptions().size(), 2);
+  EXPECT_EQ(cf.descriptions()[1], "descr1 (*.ext1)");
 
   DAQUIRI_REGISTER_IMPORTER(Importer2a);
   EXPECT_EQ(cf.extensions().size(), 2);
   EXPECT_TRUE(cf.extensions().count("ext2"));
-  EXPECT_EQ(cf.descriptions()[1], "descr2 (*.ext2)");
+  EXPECT_EQ(cf.descriptions().size(), 3);
+  EXPECT_EQ(cf.descriptions()[2], "descr2 (*.ext2)");
 
   DAQUIRI_REGISTER_IMPORTER(Importer2b);
   EXPECT_EQ(cf.extensions().size(), 2);
   EXPECT_TRUE(cf.extensions().count("ext2"));
-  EXPECT_EQ(cf.descriptions()[2], "descr3 (*.ext2)");
+  EXPECT_EQ(cf.descriptions().size(), 4);
+  EXPECT_EQ(cf.descriptions()[3], "descr3 (*.ext2)");
 }
 
 TEST_F(ImporterFactory, importer_filtering)
 {
   auto& cf = DAQuiri::ImporterFactory::singleton();
-  cf.clear();
 
   DAQUIRI_REGISTER_IMPORTER(Importer1);
   DAQUIRI_REGISTER_IMPORTER(Importer2a);
@@ -94,5 +99,4 @@ TEST_F(ImporterFactory, importer_filtering)
   auto l3 = cf.attempt_import(".ext2");
   EXPECT_EQ(l3.size(), 1);
   EXPECT_EQ(l3[0]->description(), "descr3");
-
 }

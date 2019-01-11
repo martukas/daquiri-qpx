@@ -14,8 +14,10 @@ class ImportCNF : public TestBase
     DAQUIRI_REGISTER_CONSUMER(Histogram1D)
   }
 
-  //tear down: clear registrar
-
+  virtual void TearDown()
+  {
+    DAQuiri::ImporterFactory::singleton().clear();
+  }
 };
 
 

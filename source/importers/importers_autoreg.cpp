@@ -1,14 +1,12 @@
 #include <core/importer_factory.h>
-
-#include "importers_autoreg.h"
-#include "ImporterAVA.h"
-#include "ImporterCHN.h"
-#include "ImporterCNF.h"
-#include "ImporterMCA.h"
-#include "ImporterN42.h"
-#include "ImporterSPC.h"
-#include "ImporterTKA.h"
-
+#include <importers/importers_autoreg.h>
+#include <importers/ImporterAVA.h>
+#include <importers/ImporterCHN.h>
+#include <importers/ImporterCNF.h>
+#include <importers/ImporterMCA.h>
+#include <importers/ImporterN42.h>
+#include <importers/ImporterSPC.h>
+#include <importers/ImporterTKA.h>
 
 using namespace DAQuiri;
 

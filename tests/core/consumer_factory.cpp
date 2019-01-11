@@ -110,6 +110,6 @@ TEST_F(ConsumerFactory, create_copy)
   EXPECT_EQ(c2->type(), "Consumer1");
   EXPECT_NE(c1.get(), c2.get());
 
-//  EXPECT_FALSE(cf.create_copy(nullptr));
+  EXPECT_FALSE(cf.create_copy(nullptr));
 }
 

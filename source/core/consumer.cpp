@@ -1,9 +1,9 @@
 #include <core/consumer.h>
+#include <core/importer.h>
 #include <core/util/ascii_tree.h>
 #include <core/util/custom_logger.h>
 #include <core/util/timer.h>
 #include <core/util/h5json.h>
-#include "importer.h"
 
 namespace DAQuiri {
 
