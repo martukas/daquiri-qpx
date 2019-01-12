@@ -67,32 +67,34 @@ void ImporterAVA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   std::stringstream channel_data(data);
   entry_list = string_to_chans(channel_data);
 
-//  Detector newdet;
-//  for (auto &q : root.children("calibration_details"))
-//  {
-//    if ((std::string(q.attribute("type").value()) != "energy") ||
-//        !q.child("model"))
-//      continue;
-//
-//    Calibration newcalib(bits_);
-//
-//    std::string ctype;
-//    if (std::string(q.child("model").attribute("type").value()) == "polynomial")
-//      ctype = "Polynomial";
-//    std::vector<double> encalib;
-//    for (auto &p : q.child("model").children("coefficient"))
-//    {
-//      std::string coefvalstr = boost::algorithm::trim_copy(std::string(p.attribute("value").value()));
-//      encalib.push_back(boost::lexical_cast<double>(coefvalstr));
-//    }
-//    newcalib.set_units("keV");
-//    newcalib.set_function(ctype, encalib);
-//    newdet.set_energy_calibration(newcalib);
-//  }
-//
-//  metadata_.detectors.resize(1);
-//  metadata_.detectors[0] = newdet;
+  DAQuiri::Detector newdet;
+  for (auto &q : root.children("calibration_details"))
+  {
+    if ((std::string(q.attribute("type").value()) != "energy") ||
+        !q.child("model"))
+      continue;
 
+    DAQuiri::CalibID from("energy","unknown","");
+    DAQuiri::CalibID to("energy","unknown","keV");
+    DAQuiri::Calibration newcalib(from, to);
+
+    std::string ctype;
+    if (std::string(q.child("model").attribute("type").value()) == "polynomial")
+      ctype = "Polynomial";
+    std::vector<double> encalib;
+    for (auto &p : q.child("model").children("coefficient"))
+    {
+      std::string coefvalstr = boost::algorithm::trim_copy(std::string(p.attribute("value").value()));
+      encalib.push_back(boost::lexical_cast<double>(coefvalstr));
+    }
+    newcalib.function(ctype, encalib);
+    //DBG("newcalib = {}", newcalib.debug());
+    newdet.set_calibration(newcalib);
+  }
+
+  hist->set_detectors({newdet});
+
+  hist->set_attribute(DAQuiri::Setting::text("value_latch", "energy"));
   hist->set_attribute(DAQuiri::Setting::text("name", path.stem().string()));
   hist->set_attribute(DAQuiri::Setting::boolean("visible", true));
 

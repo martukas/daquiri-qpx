@@ -3,33 +3,40 @@
 #include <core/consumer_factory.h>
 #include <consumers/histogram_1d.h>
 
+#include <core/calibration/coef_function_factory.h>
+#include <core/calibration/polynomial.h>
+
 #include <importers/ImporterAVA.h>
 
 #include <date/date.h>
 
 class ImportAVA : public TestBase
 {
+ protected:
   virtual void SetUp()
   {
-    using namespace DAQuiri;
-    DAQUIRI_REGISTER_CONSUMER(Histogram1D)
+    DAQuiri::ConsumerRegistrar<DAQuiri::Histogram1D> h1d;
+    DAQuiri::CoefFunctionRegistrar<DAQuiri::Polynomial> pol;
+    p = std::make_shared<DAQuiri::Project>();
   }
 
   virtual void TearDown()
   {
     DAQuiri::ImporterFactory::singleton().clear();
+    DAQuiri::CoefFunctionFactory::singleton().clear();
+    DAQuiri::ConsumerFactory::singleton().clear();
   }
-};
 
+  DAQuiri::ProjectPtr p;
+  ImporterAVA importer;
+};
 
 TEST_F(ImportAVA, ImportPrompt1)
 {
-  ImporterAVA importer;
-  auto p = std::make_shared<DAQuiri::Project>();
   importer.import(std::string(TEST_DATA_PATH) + "/prompt1.ava", p);
 
   auto cs = p->get_consumers();
-  EXPECT_EQ(cs.size(), 1);
+  EXPECT_EQ(cs.size(), 1u);
 
   auto c = cs.get(0);
   EXPECT_EQ(c->type(), "Histogram 1D");
@@ -53,29 +60,41 @@ TEST_F(ImportAVA, ImportPrompt1)
   auto ymd = date::year_month_day(daypoint);   // calendar date
   auto tod = date::make_time(converted - daypoint); // Yields time_of_day type
   EXPECT_EQ(static_cast<int>(ymd.year()), 2015);
-  EXPECT_EQ(static_cast<unsigned>(ymd.month()), 1);
-  EXPECT_EQ(static_cast<unsigned>(ymd.day()), 21);
+  EXPECT_EQ(static_cast<unsigned>(ymd.month()), 1u);
+  EXPECT_EQ(static_cast<unsigned>(ymd.day()), 21u);
   EXPECT_EQ(tod.hours().count(), 22);
   EXPECT_EQ(tod.minutes().count(), 14);
   EXPECT_EQ(tod.seconds().count(), 54);
 
   auto data = c->data();
+
+  auto axis = data->axis(0);
+  EXPECT_EQ(axis.calibration.from(), DAQuiri::CalibID("energy", "unknown", ""));
+  EXPECT_EQ(axis.calibration.to(), DAQuiri::CalibID("energy", "unknown", "keV"));
+  auto func = axis.calibration.function();
+  EXPECT_TRUE(func);
+  EXPECT_EQ(func->type(), "Polynomial");
+  EXPECT_NEAR(func->coeffs()[0].value(), -1.37254, 0.000001);
+  EXPECT_NEAR(func->coeffs()[1].value(), 0.718008, 0.000001);
+  EXPECT_NEAR(axis.domain.front(), -1.37254, 0.000001);
+  EXPECT_NEAR(axis.domain.back(),  11761.026405, 0.000001);
+
   auto list = data->all_data();
-  EXPECT_EQ(list->size(), 16383);
+  EXPECT_EQ(list->size(), 16383u);
 
   auto p10 = list->at(10);
-  EXPECT_EQ(p10.first[0], 10);
+  EXPECT_EQ(p10.first[0], 10u);
   EXPECT_EQ(p10.second, 0);
 
   auto p100 = list->at(100);
-  EXPECT_EQ(p100.first[0], 100);
+  EXPECT_EQ(p100.first[0], 100u);
   EXPECT_EQ(p100.second, 4144);
 
   auto p1000 = list->at(1000);
-  EXPECT_EQ(p1000.first[0], 1000);
+  EXPECT_EQ(p1000.first[0], 1000u);
   EXPECT_EQ(p1000.second, 437);
 
   auto p10000 = list->at(10000);
-  EXPECT_EQ(p10000.first[0], 10000);
+  EXPECT_EQ(p10000.first[0], 10000u);
   EXPECT_EQ(p10000.second, 5);
 }
