@@ -65,6 +65,7 @@ void ImporterN42::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
 
   entry_list = string_to_chans_zero_suppressed(channel_data);
 
+  // \todo import calibrations
 //  Detector newdet;
 //  if (node.attribute("Detector"))
 //    newdet.set_name(node.attribute("Detector").value());

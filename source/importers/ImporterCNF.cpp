@@ -18,11 +18,10 @@ void ImporterCNF::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   if (!newdata)
     throw std::runtime_error("ImporterCNF could not load file with xylib");
 
-  auto hist = DAQuiri::ConsumerFactory::singleton().create_type("Histogram 1D");
-  if (!hist)
-    throw std::runtime_error("ImporterCNF could not get a valid Histogram 1D from factory");
-
+  std::string descr;
+  date::sys_time<std::chrono::seconds> start_time;
   std::vector<double> calibration;
+  int64_t rt_ms {0}, lt_ms {0};
 
 //  DBG << "xylib.blocks =  " << newdata->get_block_count();
   for (int i = 0; i < newdata->get_block_count(); i++)
@@ -36,35 +35,31 @@ void ImporterCNF::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
 //      DBG << "xylib.meta " << key << " = " << value;
       if (key.substr(0, 12) == "energy calib")
       {
-        DBG("calib = {}", value);
+//        DBG("calib = {}", value);
         calibration.push_back(boost::lexical_cast<double>(value));
       }
       else if (key == "description")
       {
-        DBG("descr = {}", value);
-        hist->set_attribute(DAQuiri::Setting::text("description", value));
+//        DBG("descr = {}", value);
+        descr = value;
       }
       else if (key == "date and time")
       {
         std::istringstream stream{value};
-        date::sys_time<std::chrono::seconds> t;
-        stream >> date::parse("%a, %Y-%m-%d %H:%M:%S", t);
+        stream >> date::parse("%a, %Y-%m-%d %H:%M:%S", start_time);
         if (stream.fail())
           throw std::runtime_error("failed to parse " + value);
 //        DBG("parsing start time = '{}' -> {}", value, date::format("%FT%TZ", t));
-        hist->set_attribute(DAQuiri::Setting("start_time", t));
       }
       else if (key == "real time (s)")
       {
-        auto rt_ms = static_cast<int64_t>(std::stod(boost::algorithm::trim_copy(value)) * 1000.0);
+        rt_ms = static_cast<int64_t>(std::stod(boost::algorithm::trim_copy(value)) * 1000.0);
 //        DBG("parsing real time = '{}' -> {}", value, rt_ms);
-        hist->set_attribute(DAQuiri::Setting("real_time", std::chrono::milliseconds(rt_ms)));
       }
       else if (key == "live time (s)")
       {
-        auto lt_ms = static_cast<int64_t>(std::stod(boost::algorithm::trim_copy(value)) * 1000.0);
+        lt_ms = static_cast<int64_t>(std::stod(boost::algorithm::trim_copy(value)) * 1000.0);
 //        DBG("parsing live time = '{}' -> {}", value, lt_ms);
-        hist->set_attribute(DAQuiri::Setting("live_time", std::chrono::milliseconds(lt_ms)));
       }
     }
 
@@ -86,14 +81,24 @@ void ImporterCNF::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
     }
   }
 
-  DAQuiri::CalibID from("energy","","");
-  DAQuiri::CalibID to("energy","","keV");
+  auto hist = DAQuiri::ConsumerFactory::singleton().create_type("Histogram 1D");
+  if (!hist)
+    throw std::runtime_error("ImporterCNF could not get a valid Histogram 1D from factory");
+
+  hist->set_attribute(DAQuiri::Setting::text("description", descr));
+  hist->set_attribute(DAQuiri::Setting("start_time", start_time));
+  hist->set_attribute(DAQuiri::Setting("real_time", std::chrono::milliseconds(rt_ms)));
+  hist->set_attribute(DAQuiri::Setting("live_time", std::chrono::milliseconds(lt_ms)));
+  hist->set_attribute(DAQuiri::Setting::text("value_latch", "energy"));
+
+  DAQuiri::CalibID from("energy","unknown","");
+  DAQuiri::CalibID to("energy","unknown","keV");
   DAQuiri::Calibration new_calib(from, to);
-//  auto func = std::make_shared<>()
-//  new_calib.set_function()
-//  new_calib.set_function("Polynomial", calibration);
-//  metadata_.detectors.resize(1);
-//  metadata_.detectors[0].set_energy_calibration(new_calib);
+  new_calib.function("Polynomial", calibration);
+//  DBG("calib = {}", new_calib.debug());
+  DAQuiri::Detector det;
+  det.set_calibration(new_calib);
+  hist->set_detectors({det});
 
   hist->set_attribute(DAQuiri::Setting::text("name", path.stem().string()));
   hist->set_attribute(DAQuiri::Setting::boolean("visible", true));
