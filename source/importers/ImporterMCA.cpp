@@ -2,6 +2,7 @@
 #include <core/consumer_factory.h>
 #include <date/date.h>
 #include <iostream>
+#include <core/util/string_extensions.h>
 
 #include <core/util/custom_logger.h>
 
@@ -49,6 +50,7 @@ struct __attribute__ ((packed)) Header
 
 bool ImporterMCA::validate(const boost::filesystem::path& path) const
 {
+  (void) path;
   return true;
 }
 
@@ -61,7 +63,7 @@ void ImporterMCA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   std::vector<int32_t> spectrum(static_cast<size_t>(header.num_channels));
   file.read(reinterpret_cast<char*>(spectrum.data()), spectrum.size() * sizeof(int32_t));
 
-  std::string spec_name(&header.spectrum_name[0], 26);
+  std::string spec_name(header.spectrum_name, header.spectrum_name + 25);
   INFO("Name: {}", spec_name);
   INFO("Mode: {}", header.acquisition_mode);
   INFO("Read type: {}", header.read_type);
@@ -69,6 +71,7 @@ void ImporterMCA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   INFO("MCA number: {}", header.mca_number);
   INFO("Tag: {}", header.tag);
 
+  // \todo deal with time zone
   date::sys_time<std::chrono::seconds> t;
   t += std::chrono::seconds(header.start_time.time);
   INFO("time.ms_time: {}", header.start_time.milli_time);
@@ -80,17 +83,15 @@ void ImporterMCA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   INFO("elapsed.sweeps: {}", header.elapsed.sweeps);
   INFO("elapsed.comp: {}", header.elapsed.comp);
 
-  std::string cal_units(&header.calibration.unit_name[0], 5);
+  std::string cal_units(header.calibration.unit_name, header.calibration.unit_name + 4);
   std::string cal_unit_type(&header.calibration.unit_type, 1);
   std::string cal_cformat(&header.calibration.cformat, 1);
   std::string cal_corder(&header.calibration.corder, 1);
-  INFO("XCal.ecal0: {}", header.calibration.ecal0);
-  INFO("XCal.ecal1: {}", header.calibration.ecal1);
-  INFO("XCal.ecal2: {}", header.calibration.ecal2);
-  INFO("XCal.units: {}", cal_units);
+  trim(cal_corder);
+  cal_units.erase(cal_units.find('\0'));
+  trim(cal_units);
   INFO("XCal.unit_type: {}", cal_unit_type);
   INFO("XCal.cformat: {}", cal_cformat);
-  INFO("XCal.corder: {}", cal_corder);
 
   auto hist = DAQuiri::ConsumerFactory::singleton().create_type("Histogram 1D");
   if (!hist)
@@ -111,6 +112,24 @@ void ImporterMCA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
     entry_list.push_back(new_entry);
   }
 
+  std::vector<double> calibration{header.calibration.ecal0,
+                                  header.calibration.ecal1,
+                                  header.calibration.ecal2};
+  calibration.resize(std::stoul(cal_corder) + 1);
+  DAQuiri::CalibID from("energy","unknown","");
+  DAQuiri::CalibID to("energy","unknown","keV");
+  if (!cal_units.empty())
+    to.units = cal_units;
+  DAQuiri::Calibration new_calib(from, to);
+  new_calib.function("Polynomial", calibration);
+  DAQuiri::Detector det;
+  det.set_calibration(new_calib);
+
+//  DBG("det = {}", det.debug(""));
+
+  hist->set_detectors({det});
+
+  hist->set_attribute(DAQuiri::Setting::text("value_latch", "energy"));
 
   hist->import(*this);
 

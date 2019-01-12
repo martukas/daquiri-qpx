@@ -9,6 +9,7 @@
 
 bool ImporterN42::validate(const boost::filesystem::path& path) const
 {
+  (void) path;
   return true;
 }
 

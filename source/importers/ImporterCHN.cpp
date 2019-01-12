@@ -21,6 +21,7 @@ struct __attribute__ ((packed)) Header
 
 bool ImporterCHN::validate(const boost::filesystem::path& path) const
 {
+  (void) path;
   return true;
   std::ifstream file(path.string(), std::ios::binary);
   int16_t must_be_neg1;

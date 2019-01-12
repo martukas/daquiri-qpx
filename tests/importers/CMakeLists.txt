@@ -4,6 +4,7 @@ set(SOURCES
   ${dir}/ImporterAVA.cpp
   ${dir}/ImporterCHN.cpp
   ${dir}/ImporterCNF.cpp
+  ${dir}/ImporterMCA.cpp
   ${dir}/ImporterN42.cpp
   ${dir}/ImporterSPC.cpp
   ${dir}/ImporterTKA.cpp

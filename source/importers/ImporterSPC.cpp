@@ -175,6 +175,7 @@ static constexpr int16_t ContentsFlagMaskHasZDT = 2;
 
 bool ImporterSPC::validate(const boost::filesystem::path& path) const
 {
+  (void) path;
   return true;
 }
 
