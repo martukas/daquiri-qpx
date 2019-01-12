@@ -214,19 +214,22 @@ void ImporterSPC::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   CalibrationRecord calheader;
   file.read(reinterpret_cast<char*>(&calheader), sizeof(CalibrationRecord));
 
-  INFO("mca number: {}", header.MCANU);
-  INFO("segment number: {}", header.SEGNUM);
-  INFO("tag numbrr: {}", header.MCADVT);
-  INFO("live time: {}", header.LVTMDT);
-  INFO("real time: {}", header.RLTMDT);
-  INFO("zdt_mode: {}", hw2header.ZDT_MODE);
+//  INFO("mca number: {}", header.MCANU);
+//  INFO("segment number: {}", header.SEGNUM);
+//  INFO("tag numbrr: {}", header.MCADVT);
+//  INFO("zdt_mode: {}", hw2header.ZDT_MODE);
+//
+//  INFO("fc_cal c0: {}", calheader.FC_1);
+//  INFO("fc_cal c1: {}", calheader.FC_2);
+//  INFO("fc_cal c2: {}", calheader.FC_3);
 
-  INFO("e_cal c0: {}", calheader.EC_1);
-  INFO("e_cal c1: {}", calheader.EC_2);
-  INFO("e_cal c2: {}", calheader.EC_3);
-  INFO("fc_cal c0: {}", calheader.FC_1);
-  INFO("fc_cal c1: {}", calheader.FC_2);
-  INFO("fc_cal c2: {}", calheader.FC_3);
+  DAQuiri::CalibID from("energy","unknown","");
+  DAQuiri::CalibID to("energy","unknown","keV");
+  DAQuiri::Calibration new_calib(from, to);
+  new_calib.function("Polynomial", {calheader.EC_1, calheader.EC_2, calheader.EC_3});
+  DAQuiri::Detector det;
+  det.set_calibration(new_calib);
+//  INFO("det = {}", det.debug(""));
 
   std::stringstream stream;
   std::string start_day(&acq_header.SpeDate[0], 2);
@@ -262,6 +265,8 @@ void ImporterSPC::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
     new_entry.second = PreciseFloat(spectrum[i]);
     entry_list.push_back(new_entry);
   }
+  hist->set_detectors({det});
+  hist->set_attribute(DAQuiri::Setting::text("value_latch", "energy"));
   hist->import(*this);
   project->add_consumer(hist);
 
@@ -284,6 +289,8 @@ void ImporterSPC::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
       new_entry.second = PreciseFloat(spectrum2[i]);
       entry_list.push_back(new_entry);
     }
+    hist2->set_detectors({det});
+    hist2->set_attribute(DAQuiri::Setting::text("value_latch", "energy"));
     hist2->import(*this);
     project->add_consumer(hist2);
   }

@@ -89,7 +89,6 @@ void ImporterCNF::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   hist->set_attribute(DAQuiri::Setting("start_time", start_time));
   hist->set_attribute(DAQuiri::Setting("real_time", std::chrono::milliseconds(rt_ms)));
   hist->set_attribute(DAQuiri::Setting("live_time", std::chrono::milliseconds(lt_ms)));
-  hist->set_attribute(DAQuiri::Setting::text("value_latch", "energy"));
 
   DAQuiri::CalibID from("energy","unknown","");
   DAQuiri::CalibID to("energy","unknown","keV");
@@ -100,6 +99,7 @@ void ImporterCNF::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   det.set_calibration(new_calib);
   hist->set_detectors({det});
 
+  hist->set_attribute(DAQuiri::Setting::text("value_latch", "energy"));
   hist->set_attribute(DAQuiri::Setting::text("name", path.stem().string()));
   hist->set_attribute(DAQuiri::Setting::boolean("visible", true));
 

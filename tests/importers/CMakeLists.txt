@@ -4,6 +4,7 @@ set(SOURCES
   ${dir}/ImporterAVA.cpp
   ${dir}/ImporterCNF.cpp
   ${dir}/ImporterN42.cpp
+  ${dir}/ImporterSPC.cpp
   ${dir}/ImporterTKA.cpp
   ${dir}/string_to_chans.cpp
   )
