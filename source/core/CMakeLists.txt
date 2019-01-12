@@ -44,6 +44,7 @@ set(${this_target}_sources ${SOURCES})
 add_subdirectory(util)
 add_subdirectory(calibration)
 add_subdirectory(plugin)
+add_subdirectory(fitting)
 
 add_library(
   ${this_target} STATIC
