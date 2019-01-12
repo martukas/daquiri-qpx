@@ -1,9 +1,13 @@
 #include "daquiri.h"
 #include <consumers/consumers_autoreg.h>
 #include <producers/producers_autoreg.h>
+#include <importers/importers_autoreg.h>
 #include <QApplication>
 #include <QCommandLineParser>
 #include "Profiles.h"
+
+#include <core/calibration/coef_function_factory.h>
+#include <core/calibration/polynomial.h>
 
 int main(int argc, char *argv[])
 {
@@ -46,6 +50,8 @@ int main(int argc, char *argv[])
 
     producers_autoreg();
     consumers_autoreg();
+    importers_autoreg();
+    DAQUIRI_REGISTER_COEF_FUNCTION(DAQuiri::Polynomial);
 
     daquiri w(0, opennew, startnew);
     w.show();

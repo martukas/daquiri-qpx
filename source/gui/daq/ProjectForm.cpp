@@ -5,7 +5,7 @@
 #include <gui/widgets/QFileExtensions.h>
 #include <gui/daq/ConsumerTemplatesForm.h>
 
-#include <core/consumer_factory.h>
+#include <core/importer_factory.h>
 #include <core/util/timer.h>
 
 #include <QSettings>
@@ -29,7 +29,14 @@ ProjectForm::ProjectForm(ThreadRunner& thread,
 {
   ui->setupUi(this);
 
+  std::vector<std::string> spectypes = ImporterFactory::singleton().descriptions();
+  QStringList filetypes;
+  for (auto s : spectypes)
+    filetypes.push_back(QS(s));
+  importstr = catFileTypes(filetypes);
+
   menuLoad.addAction(QIcon(":/icons/oxy/16/document_open.png"), "Open daquiri project", this, SLOT(projectOpen()));
+  menuLoad.addAction(QIcon(":/icons/oxy/16/document_open.png"), "Import histograms...", this, SLOT(import()));
   ui->toolOpen->setMenu(&menuLoad);
 
   menuSave.addAction(QIcon(":/icons/oxy/16/document_save.png"), "Save project", this, SLOT(projectSave()));
@@ -293,6 +300,38 @@ void ProjectForm::projectOpen()
   newProject();
 
   project_identity_ = fileName;
+  project_->activate();
+
+  emit toggleIO(true);
+}
+
+void ProjectForm::import()
+{
+  QStringList fileNames = QFileDialog::getOpenFileNames(this, "Load spectra", data_directory_, importstr,
+                                                        nullptr, QFileDialog::DontUseNativeDialog);
+
+  if (fileNames.empty())
+    return;
+
+  data_directory_ = path_of_file(fileNames.front());
+
+  if ((!project_->empty()) && (QMessageBox::warning(this, "Append?", "Spectra already open. Append to existing?",
+                                                    QMessageBox::Yes | QMessageBox::Cancel) != QMessageBox::Yes))
+    return;
+
+  //toggle_push(false, false);
+
+  int valid_imports = 0;
+
+  for (int i = 0; i < fileNames.size(); i++)
+  {
+    auto pp = ImporterFactory::singleton().attempt_import(fileNames[i].toStdString());
+    if (pp.size() == 1)
+      pp[0]->import(fileNames[i].toStdString(), project_);
+  }
+
+  newProject();
+
   project_->activate();
 
   emit toggleIO(true);

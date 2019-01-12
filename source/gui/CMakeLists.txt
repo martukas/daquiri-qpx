@@ -65,6 +65,7 @@ target_link_libraries(
   ${PROJECT_NAME}_core
   ${PROJECT_NAME}_producers
   ${PROJECT_NAME}_consumers
+  ${PROJECT_NAME}_importers
   QPlot
   QtColorWidgets-Qt52
   Qt5::Widgets

@@ -96,9 +96,19 @@ bool Detector::operator!= (const Detector& other) const
 
 std::string Detector::debug(std::string prepend) const
 {
+  // \todo improve how this looks
   std::stringstream ss;
   ss << id_ << "(" << type_ << ")\n";
-  ss << prepend << k_branch_end << settings_.debug(prepend + "  ");
+  if (!settings_.branches.empty())
+    ss << prepend << k_branch_end << settings_.debug(prepend + "  ");
+  if (!calibrations_.empty())
+  {
+    ss << prepend << k_branch_end << "Calibrations:\n";
+    for (const auto& c : calibrations_)
+    {
+      ss << prepend << "  " << k_branch_mid << c.debug() << "\n";
+    }
+  }
   return ss.str();
 }
 

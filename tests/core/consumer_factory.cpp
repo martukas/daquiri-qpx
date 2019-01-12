@@ -3,7 +3,8 @@
 
 class ConsumerFactory : public TestBase
 {
-  virtual void TearDown() {
+  virtual void TearDown()
+  {
     DAQuiri::ConsumerFactory::singleton().clear();
   }
 };
@@ -56,7 +57,6 @@ class Consumer3 : public FakeConsumer
   std::string my_type() const override { return "Consumer3"; }
 };
 
-
 TEST_F(ConsumerFactory, Singleton)
 {
   auto& a = DAQuiri::ConsumerFactory::singleton();
@@ -67,7 +67,6 @@ TEST_F(ConsumerFactory, Singleton)
 TEST_F(ConsumerFactory, types)
 {
   auto& cf = DAQuiri::ConsumerFactory::singleton();
-  cf.clear();
 
   EXPECT_TRUE(cf.types().empty());
   EXPECT_EQ(cf.types().size(), 0UL);
@@ -89,7 +88,6 @@ TEST_F(ConsumerFactory, types)
 TEST_F(ConsumerFactory, create_type)
 {
   auto& cf = DAQuiri::ConsumerFactory::singleton();
-  cf.clear();
   DAQUIRI_REGISTER_CONSUMER(Consumer1);
   DAQUIRI_REGISTER_CONSUMER(Consumer2);
 
@@ -101,12 +99,14 @@ TEST_F(ConsumerFactory, create_type)
 TEST_F(ConsumerFactory, create_copy)
 {
   auto& cf = DAQuiri::ConsumerFactory::singleton();
-  cf.clear();
   DAQUIRI_REGISTER_CONSUMER(Consumer1);
 
   auto c1 = cf.create_type("Consumer1");
-  auto c2 = cf.create_copy(c1);
+  ASSERT_TRUE(c1);
+  EXPECT_EQ(c1->type(), "Consumer1");
 
+  auto c2 = cf.create_copy(c1);
+  ASSERT_TRUE(c2);
   EXPECT_EQ(c2->type(), "Consumer1");
   EXPECT_NE(c1.get(), c2.get());
 

@@ -12,6 +12,7 @@ target_link_libraries(
     PRIVATE ${PROJECT_NAME}_core
     PRIVATE ${PROJECT_NAME}_producers
     PRIVATE ${PROJECT_NAME}_consumers
+    PRIVATE ${PROJECT_NAME}_importers
 )
 
 set_target_properties(${this_target} PROPERTIES

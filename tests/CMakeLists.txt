@@ -8,35 +8,41 @@ set(${this_target}_sources
 
 add_subdirectory(core)
 add_subdirectory(consumers)
+add_subdirectory(importers)
 
 add_executable(
-    ${this_target} EXCLUDE_FROM_ALL
-    ${${this_target}_sources}
-    ${${this_target}_headers}
+  ${this_target} EXCLUDE_FROM_ALL
+  ${${this_target}_sources}
+  ${${this_target}_headers}
 )
 
 target_include_directories(
-    ${this_target}
-    PRIVATE ${GTEST_INCLUDE_DIRS}
-    PRIVATE ${dir}
+  ${this_target}
+  PRIVATE ${GTEST_INCLUDE_DIRS}
+  PRIVATE ${dir}
 )
 
 target_link_libraries(
-    ${this_target}
-    PRIVATE ${PROJECT_NAME}_core
-    PRIVATE ${PROJECT_NAME}_consumers
-    PRIVATE ${GTEST_LIBRARIES}
-    PRIVATE ${CMAKE_THREAD_LIBS_INIT}
-    PRIVATE ${COVERAGE_LIBRARIES}
+  ${this_target}
+  PRIVATE ${PROJECT_NAME}_core
+  PRIVATE ${PROJECT_NAME}_consumers
+  PRIVATE ${PROJECT_NAME}_importers
+  PRIVATE ${GTEST_LIBRARIES}
+  PRIVATE ${CMAKE_THREAD_LIBS_INIT}
+  PRIVATE ${COVERAGE_LIBRARIES}
 )
+
+get_filename_component(TEST_DATA_PATH "test_data/prompt0.cnf" DIRECTORY)
+target_compile_definitions(${this_target}
+  PRIVATE TEST_DATA_PATH="${CMAKE_CURRENT_SOURCE_DIR}/${TEST_DATA_PATH}/")
 
 enable_coverage(${this_target})
 set_target_properties(${this_target} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests")
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/tests")
 
 add_custom_target(run_unit_tests
-    COMMAND ${this_target} "--gtest_output=xml:${PROJECT_BINARY_DIR}/tests/test_results.xml"
-    DEPENDS ${this_target})
+  COMMAND ${this_target} "--gtest_output=xml:${PROJECT_BINARY_DIR}/tests/test_results.xml"
+  DEPENDS ${this_target})
 add_test(NAME "RunGoogleTests" COMMAND run_unit_tests)
 
 add_subdirectory(system_tests)

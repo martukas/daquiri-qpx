@@ -53,12 +53,12 @@ class ProjectForm : public QWidget
 
   //  void on_pushDetails_clicked();
 
-  void on_toggleIndefiniteRun_clicked();
-
   void projectSave();
   void projectSaveAs();
   void projectSaveSplit();
   void projectOpen();
+  void import();
+  void on_toggleIndefiniteRun_clicked();
 
   void on_doubleSpinMinPause_editingFinished();
 
@@ -88,4 +88,6 @@ class ProjectForm : public QWidget
   void saveSettings();
 
   QString get_label() const;
+
+  QString importstr;
 };
