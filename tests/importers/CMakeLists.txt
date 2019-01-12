@@ -2,6 +2,7 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(SOURCES
   ${dir}/ImporterAVA.cpp
+  ${dir}/ImporterCHN.cpp
   ${dir}/ImporterCNF.cpp
   ${dir}/ImporterN42.cpp
   ${dir}/ImporterSPC.cpp
