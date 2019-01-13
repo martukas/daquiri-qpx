@@ -9,6 +9,8 @@
 #include <core/calibration/coef_function_factory.h>
 #include <core/calibration/polynomial.h>
 
+#include <optimizerROOT/optimizer_ROOT.h>
+
 int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
@@ -52,6 +54,8 @@ int main(int argc, char *argv[])
     consumers_autoreg();
     importers_autoreg();
     DAQUIRI_REGISTER_COEF_FUNCTION(DAQuiri::Polynomial);
+
+    OptimizerRegistrar<OptimizerROOT> registrar(std::string("ROOT"));
 
     daquiri w(0, opennew, startnew);
     w.show();

@@ -525,7 +525,7 @@ void Fitter::save_report(std::string filename) {
 
   file.fill(' ');
   file << "========================================================" << std::endl;
-  file << "===========QPX Fitter analysis results===========" << std::endl;
+  file << "================ Fitter analysis results ===============" << std::endl;
   file << "========================================================" << std::endl;
 
   file << std::endl;

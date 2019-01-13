@@ -34,12 +34,6 @@ class Optimizer
                                               Polynomial& background,
                                               FitSettings settings) = 0;
 
- protected:
-
-  static void initial_sanity(Gaussian& gaussian,
-                             double xmin, double xmax,
-                             double ymin, double ymax);
-
   static void sanity_check(Gaussian& gaussian,
                            double xmin, double xmax,
                            double ymin, double ymax);
@@ -51,6 +45,11 @@ class Optimizer
                            double ymin, double ymax);
 
   static void constrain_center(Hypermet& gaussian, double slack);
+
+  static void initial_sanity(Gaussian& gaussian,
+                             double xmin, double xmax,
+                             double ymin, double ymax);
+
 };
 
 using OptimizerPtr = std::shared_ptr<Optimizer>;
