@@ -60,17 +60,18 @@ class Hypermet
   friend void to_json(nlohmann::json& j, const Hypermet& s);
   friend void from_json(const nlohmann::json& j, Hypermet& s);
 
+  // \todo encapsulate properly
+  bool step_enabled_{true};
+  bool tail_enabled_{true};
+  bool Lskew_enabled_{true};
+  bool Rskew_enabled_{true};
+
  private:
   Parameter height_, center_, width_,
       Lskew_amplitude_, Lskew_slope_,
       Rskew_amplitude_, Rskew_slope_,
       tail_amplitude_, tail_slope_,
       step_amplitude_;
-
-  bool step_enabled_{true};
-  bool tail_enabled_{true};
-  bool Lskew_enabled_{true};
-  bool Rskew_enabled_{true};
 
   double chi2_{0};
   bool user_modified_{false};

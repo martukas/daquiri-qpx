@@ -45,6 +45,7 @@ qt5_add_resources(${this_target}_resources
 
 add_subdirectory(widgets)
 add_subdirectory(daq)
+add_subdirectory(fitter)
 
 add_executable(
   ${this_target}
