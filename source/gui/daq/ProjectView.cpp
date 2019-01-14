@@ -12,9 +12,8 @@
 
 using namespace DAQuiri;
 
-ProjectView::ProjectView(QWidget *parent) :
-  QWidget(parent),
-  ui(new Ui::ProjectView)
+ProjectView::ProjectView(QWidget* parent) :
+    QWidget(parent), ui(new Ui::ProjectView)
 {
   ui->setupUi(this);
 
@@ -119,15 +118,14 @@ void ProjectView::enforce_item(SelectorItem item)
       return;
 
     widget->setAttribute(Qt::WA_DeleteOnClose);
-    connect( widget, SIGNAL(destroyed(QObject*)),
-             this, SLOT(consumerWidgetDestroyed(QObject*)) );
+    connect(widget, SIGNAL(destroyed(QObject * )),
+            this, SLOT(consumerWidgetDestroyed(QObject * )));
     ui->area->addSubWindow(widget);
     consumers_[id] = widget;
     widget->show();
     widget->setConsumer(consumer);
   }
 }
-
 
 void ProjectView::selectorItemDoubleclicked(SelectorItem /*item*/)
 {
@@ -142,7 +140,8 @@ void ProjectView::selectorItemSelected(SelectorItem /*item*/)
 
   if (!consumer)
   {
-    ui->labelSpectrumInfo->setText("<html><head/><body><p>Left-click: see statistics here<br/>Right click: toggle visibility<br/>Double click: details / analysis</p></body></html>");
+    ui->labelSpectrumInfo->setText(
+        "<html><head/><body><p>Left-click: see statistics here<br/>Right click: toggle visibility<br/>Double click: details / analysis</p></body></html>");
     ui->pushFullInfo->setEnabled(false);
     return;
   }
@@ -173,12 +172,15 @@ void ProjectView::selectorItemSelected(SelectorItem /*item*/)
 
   QString infoText =
       "<nobr>" + itm.text + "(" + QS(consumer->type())
-      + ", " + QString::number(bits) + "bits)</nobr><br/>"
-      "<nobr>" + detstr + "</nobr><br/>"
-      "<nobr>Count: " + QString::number(total_count) + "</nobr><br/>"
-      "<nobr>Rate (inst/total): " + QString::number(rate_inst) + "cps / " + QString::number(rate_total) + "cps</nobr><br/>"
-      "<nobr>Live / real:  " + QString::number(live) + "s / " + QString::number(real) + "s</nobr><br/>"
-      "<nobr>Dead:  " + QString::number(dead) + "%</nobr><br/>";
+          + ", " + QString::number(bits) + "bits)</nobr><br/>"
+                                           "<nobr>" + detstr + "</nobr><br/>"
+                                                               "<nobr>Count: " + QString::number(total_count)
+          + "</nobr><br/>"
+            "<nobr>Rate (inst/total): " + QString::number(rate_inst) + "cps / " + QString::number(rate_total)
+          + "cps</nobr><br/>"
+            "<nobr>Live / real:  " + QString::number(live) + "s / " + QString::number(real) + "s</nobr><br/>"
+                                                                                              "<nobr>Dead:  "
+          + QString::number(dead) + "%</nobr><br/>";
 
   ui->labelSpectrumInfo->setText(infoText);
   ui->pushFullInfo->setEnabled(true);
@@ -190,7 +192,7 @@ void ProjectView::updateUI()
   QVector<SelectorItem> items;
 
   size_t i = 0;
-  for (auto &q : project_->get_consumers())
+  for (auto& q : project_->get_consumers())
   {
     if (!q)
       continue;
@@ -235,10 +237,10 @@ void ProjectView::enforce_all()
 void ProjectView::update_plots()
 {
 //  Timer t(true);
-  for (auto &consumer_widget : consumers_)
+  for (auto& consumer_widget : consumers_)
     consumer_widget->update();
 
-  for (auto &consumer_widget : consumers_)
+  for (auto& consumer_widget : consumers_)
     consumer_widget->refresh();
 
   selectorItemSelected(SelectorItem());
@@ -246,7 +248,7 @@ void ProjectView::update_plots()
 }
 
 void ProjectView::on_pushFullInfo_clicked()
-{  
+{
   ConsumerPtr consumer = project_->get_consumer(selector_->selected().data.toLongLong());
   if (!consumer)
     return;
@@ -271,7 +273,7 @@ void ProjectView::on_pushFullInfo_clicked()
 void ProjectView::showAll()
 {
   selector_->show_all();
-  for (auto &q : project_->get_consumers())
+  for (auto& q : project_->get_consumers())
     if (q)
       q->set_attribute(Setting::boolean("visible", true));
   updateUI();
@@ -282,7 +284,7 @@ void ProjectView::showAll()
 void ProjectView::hideAll()
 {
   selector_->hide_all();
-  for (auto &q : project_->get_consumers())
+  for (auto& q : project_->get_consumers())
     if (q)
       q->set_attribute(Setting::boolean("visible", false));
   updateUI();
@@ -292,7 +294,7 @@ void ProjectView::hideAll()
 
 void ProjectView::randAll()
 {
-  for (auto &q : project_->get_consumers())
+  for (auto& q : project_->get_consumers())
     if (q)
     {
       Setting appearance = q->metadata().get_attribute("appearance");
@@ -316,7 +318,7 @@ void ProjectView::deleteSelected()
 
 void ProjectView::deleteShown()
 {
-  for (auto &q : selector_->items())
+  for (auto& q : selector_->items())
     if (q.visible)
       project_->delete_consumer(q.data.toLongLong());
   updateUI();
@@ -326,7 +328,7 @@ void ProjectView::deleteShown()
 
 void ProjectView::deleteHidden()
 {
-  for (auto &q : selector_->items())
+  for (auto& q : selector_->items())
     if (!q.visible)
       project_->delete_consumer(q.data.toLongLong());
   updateUI();
@@ -369,15 +371,15 @@ void ProjectView::enforce_tile_policy()
   else if (tile_policy_ == "horizontal")
     tile_horizontal(ui->area);
 
-  for (auto &q : tile_menu_.actions())
+  for (auto& q : tile_menu_.actions())
   {
     q->setCheckable(true);
     q->setChecked(
-          ((q->text() == "Free-for-all") && (tile_policy_ == "free")) ||
-          ((q->text() == "Tile grid") && (tile_policy_ == "grid")) ||
-          ((q->text() == "Tile horizontal") && (tile_policy_ == "horizontal")) ||
-          ((q->text() == "Tile vertical") && (tile_policy_ == "vertical"))
-          );
+        ((q->text() == "Free-for-all") && (tile_policy_ == "free")) ||
+            ((q->text() == "Tile grid") && (tile_policy_ == "grid")) ||
+            ((q->text() == "Tile horizontal") && (tile_policy_ == "horizontal")) ||
+            ((q->text() == "Tile vertical") && (tile_policy_ == "vertical"))
+    );
   }
 }
 
@@ -393,14 +395,14 @@ void ProjectView::tile_horizontal(QMdiArea* area)
 
   QPoint position(0, 0);
 
-  foreach (QMdiSubWindow *window, area->subWindowList())
-  {
-    QRect rect(0, 0, area->width() / area->subWindowList().count(),
-               area->height());
-    window->setGeometry(rect);
-    window->move(position);
-    position.setX(position.x() + window->width());
-  }
+      foreach (QMdiSubWindow* window, area->subWindowList())
+    {
+      QRect rect(0, 0, area->width() / area->subWindowList().count(),
+                 area->height());
+      window->setGeometry(rect);
+      window->move(position);
+      position.setX(position.x() + window->width());
+    }
 }
 
 void ProjectView::tile_vertical(QMdiArea* area)
@@ -410,14 +412,14 @@ void ProjectView::tile_vertical(QMdiArea* area)
 
   QPoint position(0, 0);
 
-  foreach (QMdiSubWindow *window, area->subWindowList())
-  {
-    QRect rect(0, 0, area->width(),
-               area->height() / area->subWindowList().count());
-    window->setGeometry(rect);
-    window->move(position);
-    position.setY(position.y() + window->height());
-  }
+      foreach (QMdiSubWindow* window, area->subWindowList())
+    {
+      QRect rect(0, 0, area->width(),
+                 area->height() / area->subWindowList().count());
+      window->setGeometry(rect);
+      window->move(position);
+      position.setY(position.y() + window->height());
+    }
 }
 
 void ProjectView::consumerWidgetDestroyed(QObject* o)
@@ -449,6 +451,14 @@ void ProjectView::on_pushHideControls_clicked()
   }
 
   QTimer::singleShot(50, this, SLOT(enforce_tile_policy()));
+}
+
+void ProjectView::on_pushAnalyse_clicked()
+{
+  auto sel = selector_->selected().data;
+  if (sel.isNull())
+    return;
+  emit requestAnalysis(sel.toLongLong());
 }
 
 void ProjectView::loadSettings()

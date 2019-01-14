@@ -20,7 +20,7 @@ class FormFwhmCalibration : public QWidget
   Q_OBJECT
 
 public:
-  explicit FormFwhmCalibration(XMLableDB<DAQuiri::Detector>&, DAQuiri::Fitter&, QWidget *parent = 0);
+  explicit FormFwhmCalibration(DAQuiri::Detector&, DAQuiri::Fitter&, QWidget *parent = 0);
   ~FormFwhmCalibration();
 
   void newSpectrum();
@@ -61,7 +61,7 @@ private:
   //from parent
   QString data_directory_;
 
-  XMLableDB<DAQuiri::Detector> &detectors_;
+  DAQuiri::Detector &detector_;
   DAQuiri::Fitter &fit_data_;
   std::set<double> selected_peaks_;
   

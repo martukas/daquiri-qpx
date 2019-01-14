@@ -6,6 +6,10 @@
 #include <gui/ThreadRunner.h>
 #include <gui/daq/ThreadPlotSignal.h>
 
+// \todo make optional
+#include <gui/analysis/form_analysis_1d.h>
+
+
 namespace Ui
 {
 class ProjectForm;
@@ -30,6 +34,7 @@ class ProjectForm : public QWidget
  signals:
   void toggleIO(bool);
   void requestClose(QWidget*);
+  void openAnalysis(FormAnalysis1D*);
 
  protected:
   void closeEvent(QCloseEvent*);
@@ -61,6 +66,8 @@ class ProjectForm : public QWidget
   void on_toggleIndefiniteRun_clicked();
 
   void on_doubleSpinMinPause_editingFinished();
+
+  void requestAnalysis(int64_t);
 
  private:
   Ui::ProjectForm* ui;

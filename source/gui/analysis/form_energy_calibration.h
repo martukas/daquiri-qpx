@@ -17,7 +17,7 @@ class FormEnergyCalibration : public QWidget
   Q_OBJECT
 
 public:
-  explicit FormEnergyCalibration(XMLableDB<DAQuiri::Detector>&, DAQuiri::Fitter&, QWidget *parent = 0);
+  explicit FormEnergyCalibration(DAQuiri::Detector&, DAQuiri::Fitter&, QWidget *parent = 0);
   ~FormEnergyCalibration();
 
   DAQuiri::Calibration get_new_calibration() {return new_calibration_;}
@@ -59,7 +59,7 @@ private:
 
   QString data_directory_;
 
-  XMLableDB<DAQuiri::Detector> &detectors_;
+  DAQuiri::Detector &detector_;
   DAQuiri::Fitter &fit_data_;
   std::set<double> selected_peaks_;
 

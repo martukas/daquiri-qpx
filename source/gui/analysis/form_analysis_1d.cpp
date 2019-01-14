@@ -9,10 +9,9 @@
 
 using namespace DAQuiri;
 
-FormAnalysis1D::FormAnalysis1D(XMLableDB<Detector>& newDetDB, QWidget *parent) :
+FormAnalysis1D::FormAnalysis1D(QWidget *parent) :
   QWidget(parent),
-  ui(new Ui::FormAnalysis1D),
-  detectors_(newDetDB)
+  ui(new Ui::FormAnalysis1D)
 {
   ui->setupUi(this);
 
@@ -22,12 +21,12 @@ FormAnalysis1D::FormAnalysis1D(XMLableDB<Detector>& newDetDB, QWidget *parent) :
 
   //connect(ui->widgetDetectors, SIGNAL(detectorsUpdated()), this, SLOT(detectorsUpdated()));
 
-  form_energy_calibration_ = new FormEnergyCalibration(detectors_, fit_data_);
+  form_energy_calibration_ = new FormEnergyCalibration(detector_, fit_data_);
   ui->tabs->addTab(form_energy_calibration_, "Energy calibration");
   connect(form_energy_calibration_, SIGNAL(detectorsChanged()), this, SLOT(detectorsUpdated()));
   connect(form_energy_calibration_, SIGNAL(update_detector()), this, SLOT(update_detector_calibs()));
 
-  form_fwhm_calibration_ = new FormFwhmCalibration(detectors_, fit_data_);
+  form_fwhm_calibration_ = new FormFwhmCalibration(detector_, fit_data_);
   ui->tabs->addTab(form_fwhm_calibration_, "FWHM calibration");
   connect(form_fwhm_calibration_, SIGNAL(detectorsChanged()), this, SLOT(detectorsUpdated()));
   connect(form_fwhm_calibration_, SIGNAL(update_detector()), this, SLOT(update_detector_calibs()));
@@ -124,7 +123,7 @@ void FormAnalysis1D::clear() {
 }
 
 
-void FormAnalysis1D::setSpectrum(Project *newset, int64_t idx) {
+void FormAnalysis1D::setSpectrum(ProjectPtr newset, int64_t idx) {
   form_energy_calibration_->clear();
   form_fwhm_calibration_->clear();
   form_fit_results_->clear();
@@ -211,37 +210,38 @@ void FormAnalysis1D::update_detector_calibs()
 
   Detector modified;
 
-  if (ret == QMessageBox::Yes) {
-    if (!detectors_.has_a(fit_data_.detector_)) {
-      bool ok;
-      QString text = QInputDialog::getText(this, "New Detector",
-                                           "Detector name:", QLineEdit::Normal,
-                                           QString::fromStdString(fit_data_.detector_.id()),
-                                           &ok);
-
-      if (!ok)
-        return;
-
-      if (!text.isEmpty()) {
-        modified = fit_data_.detector_;
-        modified.set_id(text.toStdString());
-        if (detectors_.has_a(modified)) {
-          QMessageBox::warning(this, "Already exists", "Detector " + text + " already exists. Will not save to database.", QMessageBox::Ok);
-          modified = Detector();
-        }
-      }
-    } else
-      modified = detectors_.get(fit_data_.detector_);
-
-    if (modified != Detector())
-    {
-      INFO("   applying new calibrations for {} in detector database", modified.id());
-      modified.set_calibration(new_energy_calibration_);
-      modified.set_calibration(new_fwhm_calibration_);
-      detectors_.replace(modified);
-      emit detectorsChanged();
-    }
-  }
+  // \todo reenabled this
+//  if (ret == QMessageBox::Yes) {
+//    if (!detector_.has_a(fit_data_.detector_)) {
+//      bool ok;
+//      QString text = QInputDialog::getText(this, "New Detector",
+//                                           "Detector name:", QLineEdit::Normal,
+//                                           QString::fromStdString(fit_data_.detector_.id()),
+//                                           &ok);
+//
+//      if (!ok)
+//        return;
+//
+//      if (!text.isEmpty()) {
+//        modified = fit_data_.detector_;
+//        modified.set_id(text.toStdString());
+//        if (detector_.has_a(modified)) {
+//          QMessageBox::warning(this, "Already exists", "Detector " + text + " already exists. Will not save to database.", QMessageBox::Ok);
+//          modified = Detector();
+//        }
+//      }
+//    } else
+//      modified = detector_.get(fit_data_.detector_);
+//
+//    if (modified != Detector())
+//    {
+//      INFO("   applying new calibrations for {} in detector database", modified.id());
+//      modified.set_calibration(new_energy_calibration_);
+//      modified.set_calibration(new_fwhm_calibration_);
+//      detector_.replace(modified);
+//      emit detectorsChanged();
+//    }
+//  }
 
   if (ret != QMessageBox::Abort) {
     for (auto &q : spectra_->get_consumers()) {

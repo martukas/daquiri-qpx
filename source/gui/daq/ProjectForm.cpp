@@ -57,6 +57,8 @@ ProjectForm::ProjectForm(ThreadRunner& thread,
 //  ui->projectView->setDetDB(detectors_);
   connect(&runner_thread_, SIGNAL(runComplete()), this, SLOT(run_completed()));
   connect(&plot_thread_, SIGNAL(plot_ready()), this, SLOT(update_plots()));
+  connect(ui->projectView, SIGNAL(requestAnalysis(int64_t)),
+      this, SLOT(requestAnalysis(int64_t)));
 
   loadSettings();
 
@@ -575,4 +577,17 @@ hr_time_t ProjectForm::opened() const
 bool ProjectForm::running() const
 {
   return !interruptor_.load();
+}
+
+void ProjectForm::requestAnalysis(int64_t idx)
+{
+  auto selected = project_->get_consumer(idx);
+  if (!selected)
+    return;
+
+  auto my_analysis_ = new FormAnalysis1D(this);
+  connect(&plot_thread_, SIGNAL(plot_ready()), my_analysis_, SLOT(update_spectrum()));
+  my_analysis_->setWindowTitle("1D: " + QString::fromStdString(selected->metadata().get_attribute("name").get_text()));
+  my_analysis_->setSpectrum(project_, idx);
+  emit openAnalysis(my_analysis_);
 }

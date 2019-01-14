@@ -4,12 +4,12 @@
 #include <core/calibration/coef_function_factory.h>
 #include <gui/widgets/qt_util.h>
 
-FormFwhmCalibration::FormFwhmCalibration(XMLableDB<DAQuiri::Detector>& dets,
-                                         DAQuiri::Fitter& fit, QWidget *parent)
-  : QWidget(parent)
-  , ui(new Ui::FormFwhmCalibration)
-  , fit_data_(fit)
-  , detectors_(dets)
+FormFwhmCalibration::FormFwhmCalibration(DAQuiri::Detector& dets,
+                                         DAQuiri::Fitter& fit, QWidget* parent)
+    : QWidget(parent)
+      , ui(new Ui::FormFwhmCalibration)
+      , fit_data_(fit)
+      , detector_(dets)
 {
   ui->setupUi(this);
 
@@ -64,7 +64,6 @@ void FormFwhmCalibration::loadSettings()
   settings.beginGroup("Program");
   data_directory_ = settings.value("save_directory", QDir::homePath() + "/qpx/data").toString();
   settings.endGroup();
-
 
   settings.beginGroup("FWHM_calibration");
   ui->spinTerms->setValue(settings.value("fit_function_terms", 2).toInt());
@@ -122,12 +121,12 @@ void FormFwhmCalibration::rebuild_table()
 
   ui->tablePeaks->clearContents();
   ui->tablePeaks->setRowCount(fit_data_.peaks().size());
-  int i=0;
-  for (auto &q : fit_data_.peaks())
+  int i = 0;
+  for (auto& q : fit_data_.peaks())
   {
-    bool significant = ( (1 - q.second.hypermet().chi2()) * 100 < ui->doubleMaxFitErr->value());
+    bool significant = ((1 - q.second.hypermet().chi2()) * 100 < ui->doubleMaxFitErr->value());
 // \todo reintroduce this with uncert
-        //                        && (q.second.fwhm().error() < ui->doubleMaxWidthErr->value()));
+    //                        && (q.second.fwhm().error() < ui->doubleMaxWidthErr->value()));
     add_peak_to_table(q.second, i, significant);
     ++i;
   }
@@ -141,7 +140,8 @@ void FormFwhmCalibration::update_selection(std::set<double> selected_peaks)
   bool changed = (selected_peaks_ != selected_peaks);
   selected_peaks_ = selected_peaks;
 
-  if (changed) {
+  if (changed)
+  {
     select_in_table();
     select_in_plot();
   }
@@ -153,17 +153,18 @@ void FormFwhmCalibration::select_in_table()
   this->blockSignals(true);
   ui->tablePeaks->clearSelection();
 
-  QItemSelectionModel *selectionModel = ui->tablePeaks->selectionModel();
+  QItemSelectionModel* selectionModel = ui->tablePeaks->selectionModel();
   QItemSelection itemSelection = selectionModel->selection();
 
-  for (int i=0; i < ui->tablePeaks->rowCount(); ++i)
-    if (selected_peaks_.count(ui->tablePeaks->item(i, 0)->data(Qt::UserRole).toDouble())) {
+  for (int i = 0; i < ui->tablePeaks->rowCount(); ++i)
+    if (selected_peaks_.count(ui->tablePeaks->item(i, 0)->data(Qt::UserRole).toDouble()))
+    {
       ui->tablePeaks->selectRow(i);
       itemSelection.merge(selectionModel->selection(), QItemSelectionModel::Select);
     }
 
   selectionModel->clearSelection();
-  selectionModel->select(itemSelection,QItemSelectionModel::Select);
+  selectionModel->select(itemSelection, QItemSelectionModel::Select);
 
   ui->tablePeaks->blockSignals(false);
   this->blockSignals(false);
@@ -172,14 +173,14 @@ void FormFwhmCalibration::select_in_table()
 void FormFwhmCalibration::select_in_plot()
 {
   std::set<double> selected_energies;
-  for (auto &p : fit_data_.peaks())
+  for (auto& p : fit_data_.peaks())
     if (selected_peaks_.count(p.first))
       selected_energies.insert(p.second.energy());
   ui->PlotCalib->set_selected_pts(selected_energies);
   ui->PlotCalib->replotAll();
 }
 
-void FormFwhmCalibration::add_peak_to_table(const DAQuiri::Peak &p, int row, bool gray)
+void FormFwhmCalibration::add_peak_to_table(const DAQuiri::Peak& p, int row, bool gray)
 {
   QBrush background(gray ? Qt::lightGray : Qt::white);
 
@@ -202,17 +203,18 @@ void FormFwhmCalibration::replot_calib()
   QVector<double> xx, yy;
 
   double xmin = std::numeric_limits<double>::max();
-  double xmax = - std::numeric_limits<double>::max();
+  double xmax = -std::numeric_limits<double>::max();
 
-  for (auto &q : fit_data_.peaks()) {
+  for (auto& q : fit_data_.peaks())
+  {
     double x = q.second.energy();
     double y = q.second.fwhm();
     double x_sigma = 1; //q.second.energy().uncertainty();
     double y_sigma = 1; //q.second.fwhm().uncertainty();
 
-    if ( (1 - q.second.hypermet().chi2()) * 100 < ui->doubleMaxFitErr->value())
-     // \todo reintroduce this
-       // && (q.second.fwhm().error() < ui->doubleMaxWidthErr->value()))
+    if ((1 - q.second.hypermet().chi2()) * 100 < ui->doubleMaxFitErr->value())
+      // \todo reintroduce this
+      // && (q.second.fwhm().error() < ui->doubleMaxWidthErr->value()))
     {
       xx_relevant.push_back(x);
       yy_relevant.push_back(y);
@@ -235,15 +237,19 @@ void FormFwhmCalibration::replot_calib()
   xmax += x_margin;
   xmin -= x_margin;
 
-  if (xx.size() > 0) {
+  if (xx.size() > 0)
+  {
     ui->PlotCalib->addPoints(style_pts, xx, yy, QVector<double>(), QVector<double>());
     ui->PlotCalib->addPoints(style_relevant, xx_relevant, yy_relevant, xx_relevant_sigma, yy_relevant_sigma);
-    if (new_calibration_.valid()) {
+    if (new_calibration_.valid())
+    {
 
-      double step = (xmax-xmin) / 50.0;
-      xx.clear(); yy.clear();
+      double step = (xmax - xmin) / 50.0;
+      xx.clear();
+      yy.clear();
 
-      for (double x=xmin; x < xmax; x+=step) {
+      for (double x = xmin; x < xmax; x += step)
+      {
         double y = new_calibration_.transform(x);
         xx.push_back(x);
         yy.push_back(y);
@@ -259,40 +265,45 @@ void FormFwhmCalibration::selection_changed_in_plot()
 {
   std::set<double> selected_energies = ui->PlotCalib->get_selected_pts();
   selected_peaks_.clear();
-  for (auto &p : fit_data_.peaks())
+  for (auto& p : fit_data_.peaks())
     if (selected_energies.count(p.second.energy()))
       selected_peaks_.insert(p.first);
 
   select_in_table();
   if (isVisible())
-    emit selection_changed(selected_peaks_);
+      emit selection_changed(selected_peaks_);
   toggle_push();
 }
 
 void FormFwhmCalibration::selection_changed_in_table()
 {
   selected_peaks_.clear();
-  foreach (QModelIndex i, ui->tablePeaks->selectionModel()->selectedRows())
-    selected_peaks_.insert(ui->tablePeaks->item(i.row(), 0)->data(Qt::UserRole).toDouble());
+      foreach (QModelIndex i,
+               ui->tablePeaks->selectionModel()->selectedRows())
+      selected_peaks_.insert(ui->tablePeaks->item(i.row(),
+                                                  0)->data(Qt::UserRole).toDouble());
 
   select_in_plot();
   if (isVisible())
-    emit selection_changed(selected_peaks_);
+      emit selection_changed(selected_peaks_);
   toggle_push();
 }
 
 void FormFwhmCalibration::toggle_push()
 {
-  if (detectors_.get(fit_data_.detector_).get_calibration({"energy", fit_data_.detector_.id()},
-                                                          {"fwhm", fit_data_.detector_.id()}).valid())
+  if (detector_.get_calibration({"energy", fit_data_.detector_.id()},
+                                {"fwhm", fit_data_.detector_.id()}).valid())
     ui->pushFromDB->setEnabled(true);
   else
     ui->pushFromDB->setEnabled(false);
 
-  if (static_cast<int>(fit_data_.peaks().size()) > 1) {
+  if (static_cast<int>(fit_data_.peaks().size()) > 1)
+  {
     ui->spinTerms->setEnabled(true);
     ui->pushFit->setEnabled(true);
-  } else {
+  }
+  else
+  {
     ui->pushFit->setEnabled(false);
     ui->spinTerms->setEnabled(false);
   }
@@ -301,7 +312,7 @@ void FormFwhmCalibration::toggle_push()
 }
 
 void FormFwhmCalibration::on_pushFit_clicked()
-{  
+{
   fit_calibration();
   replot_calib();
   select_in_plot();
@@ -316,9 +327,9 @@ void FormFwhmCalibration::fit_calibration()
     return;
 
   std::vector<double> xx, yy, xx_sigma, yy_sigma;
-  for (auto &q : fit_data_.peaks())
+  for (auto& q : fit_data_.peaks())
   {
-    if ( (1 - q.second.hypermet().chi2()) * 100 < ui->doubleMaxFitErr->value())
+    if ((1 - q.second.hypermet().chi2()) * 100 < ui->doubleMaxFitErr->value())
       // \todo bring it back w uncertainty
 //        && (q.second.fwhm().error() < ui->doubleMaxWidthErr->value()))
     {
@@ -328,18 +339,18 @@ void FormFwhmCalibration::fit_calibration()
 //      if (std::isfinite(q.second.energy().uncertainty()))
 //        xx_sigma.push_back(q.second.energy().uncertainty());
 //      else
-        xx_sigma.push_back(0);
+      xx_sigma.push_back(0);
       yy.push_back(pow(q.second.fwhm(), 2));
 //      if (std::isfinite(q.second.fwhm().uncertainty()))
 //        yy_sigma.push_back(2*q.second.fwhm().uncertainty()*q.second.fwhm().value());
 //      else
-        yy_sigma.push_back(0);
+      yy_sigma.push_back(0);
     }
   }
 
 //  SqrtPoly p;
   auto p = DAQuiri::CoefFunctionFactory::singleton().create_type("Polynomial");
-  for (int i=0; i <= ui->spinTerms->value(); ++i)
+  for (int i = 0; i <= ui->spinTerms->value(); ++i)
     p->set_coeff(i, {0, 50, 0});
 
   optimizer->fit(p, xx, yy, xx_sigma, yy_sigma);
@@ -361,8 +372,8 @@ void FormFwhmCalibration::on_pushApplyCalib_clicked()
 
 void FormFwhmCalibration::on_pushFromDB_clicked()
 {
-  new_calibration_ = detectors_.get(fit_data_.detector_).get_calibration({"energy", fit_data_.detector_.id()},
-                                                                         {"fwhm", fit_data_.detector_.id()});
+  new_calibration_ = detector_.get_calibration({"energy", fit_data_.detector_.id()},
+                                               {"fwhm", fit_data_.detector_.id()});
   replot_calib();
   select_in_plot();
   toggle_push();
@@ -373,7 +384,7 @@ void FormFwhmCalibration::on_pushDetDB_clicked()
 {
   // \todo bring it back
 //  WidgetDetectors *det_widget = new WidgetDetectors(this);
-//  det_widget->setData(detectors_);
+//  det_widget->setData(detector_);
 //  connect(det_widget, SIGNAL(detectorsUpdated()), this, SLOT(detectorsUpdated()));
 //  det_widget->exec();
 }

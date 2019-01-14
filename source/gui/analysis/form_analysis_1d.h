@@ -15,10 +15,10 @@ class FormAnalysis1D : public QWidget
   Q_OBJECT
 
 public:
-  explicit FormAnalysis1D(XMLableDB<DAQuiri::Detector>& newDetDB, QWidget *parent = 0);
+  explicit FormAnalysis1D(QWidget *parent = 0);
   ~FormAnalysis1D();
 
-  void setSpectrum(DAQuiri::Project *newset, int64_t idx);
+  void setSpectrum(DAQuiri::ProjectPtr newset, int64_t idx);
 
   void clear();
 
@@ -54,10 +54,10 @@ private:
 
   //from parent
   QString data_directory_;
-  DAQuiri::Project *spectra_;
+  DAQuiri::ProjectPtr spectra_;
   int64_t current_spectrum_;
 
-  XMLableDB<DAQuiri::Detector> &detectors_;
+  DAQuiri::Detector detector_;
 
 
   void loadSettings();

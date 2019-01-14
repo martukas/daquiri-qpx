@@ -7,11 +7,8 @@
 #include <core/calibration/coef_function_factory.h>
 #include <gui/widgets/qt_util.h>
 
-FormEnergyCalibration::FormEnergyCalibration(XMLableDB<DAQuiri::Detector>& dets, DAQuiri::Fitter &fit, QWidget *parent) :
-  QWidget(parent),
-  ui(new Ui::FormEnergyCalibration),
-  detectors_(dets),
-  fit_data_(fit)
+FormEnergyCalibration::FormEnergyCalibration(DAQuiri::Detector& dets, DAQuiri::Fitter& fit, QWidget* parent) :
+    QWidget(parent), ui(new Ui::FormEnergyCalibration), detector_(dets), fit_data_(fit)
 {
   ui->setupUi(this);
 
@@ -26,7 +23,6 @@ FormEnergyCalibration::FormEnergyCalibration(XMLableDB<DAQuiri::Detector>& dets,
   style_fit.default_pen = QPen(Qt::darkCyan, 2);
 
   ui->PlotCalib->setAxisLabels("channel", "energy");
-
 
   ui->tablePeaks->verticalHeader()->hide();
   ui->tablePeaks->setColumnCount(3);
@@ -54,8 +50,10 @@ FormEnergyCalibration::~FormEnergyCalibration()
   delete ui;
 }
 
-bool FormEnergyCalibration::save_close() {
-  if (ui->isotopes->save_close()) {
+bool FormEnergyCalibration::save_close()
+{
+  if (ui->isotopes->save_close())
+  {
     saveSettings();
     return true;
   }
@@ -136,31 +134,34 @@ void FormEnergyCalibration::select_in_table()
   this->blockSignals(true);
   ui->tablePeaks->clearSelection();
 
-  QItemSelectionModel *selectionModel = ui->tablePeaks->selectionModel();
+  QItemSelectionModel* selectionModel = ui->tablePeaks->selectionModel();
   QItemSelection itemSelection = selectionModel->selection();
 
-  for (int i=0; i < ui->tablePeaks->rowCount(); ++i)
-    if (selected_peaks_.count(ui->tablePeaks->item(i, 0)->data(Qt::UserRole).toDouble())) {
+  for (int i = 0; i < ui->tablePeaks->rowCount(); ++i)
+    if (selected_peaks_.count(ui->tablePeaks->item(i, 0)->data(Qt::UserRole).toDouble()))
+    {
       ui->tablePeaks->selectRow(i);
       itemSelection.merge(selectionModel->selection(), QItemSelectionModel::Select);
     }
 
   selectionModel->clearSelection();
-  selectionModel->select(itemSelection,QItemSelectionModel::Select);
+  selectionModel->select(itemSelection, QItemSelectionModel::Select);
 
   ui->tablePeaks->blockSignals(false);
   this->blockSignals(false);
 }
 
-void FormEnergyCalibration::replot_calib() {
+void FormEnergyCalibration::replot_calib()
+{
   ui->PlotCalib->clearAll();
 
   QVector<double> xx, yy;
 
   double xmin = std::numeric_limits<double>::max();
-  double xmax = - std::numeric_limits<double>::max();
+  double xmax = -std::numeric_limits<double>::max();
 
-  for (auto &q : fit_data_.peaks()) {
+  for (auto& q : fit_data_.peaks())
+  {
     double x = q.first;
     double y = q.second.energy();
 
@@ -177,7 +178,8 @@ void FormEnergyCalibration::replot_calib() {
   xmax += x_margin;
   xmin -= x_margin;
 
-  if (xx.size()) {
+  if (xx.size())
+  {
     QVector<double> xx_sigma(yy.size(), 0);
     QVector<double> yy_sigma(yy.size(), 0);
 
@@ -185,10 +187,11 @@ void FormEnergyCalibration::replot_calib() {
     ui->PlotCalib->set_selected_pts(selected_peaks_);
     if (new_calibration_.valid())
     {
-      double step = (xmax-xmin) / 50.0;
-      xx.clear(); yy.clear();
+      double step = (xmax - xmin) / 50.0;
+      xx.clear();
+      yy.clear();
 
-      for (double i=xmin; i < xmax; i+=step)
+      for (double i = xmin; i < xmax; i += step)
       {
         xx.push_back(i);
         // \todo bit shift first
@@ -202,18 +205,21 @@ void FormEnergyCalibration::replot_calib() {
   ui->PlotCalib->replotAll();
 }
 
-void FormEnergyCalibration::rebuild_table() {
+void FormEnergyCalibration::rebuild_table()
+{
   ui->tablePeaks->blockSignals(true);
   this->blockSignals(true);
 
   std::set<double> flagged;
   ui->tablePeaks->clearContents();
   ui->tablePeaks->setRowCount(fit_data_.peaks().size());
-  int i=0;
-  for (auto &p : fit_data_.peaks()) {
+  int i = 0;
+  for (auto& p : fit_data_.peaks())
+  {
     bool close = false;
-    for (auto &e : ui->isotopes->current_isotope_gammas())
-      if (std::abs(p.second.energy() - e.energy) < 2.0) {//hardcoded
+    for (auto& e : ui->isotopes->current_isotope_gammas())
+      if (std::abs(p.second.energy() - e.energy) < 2.0)
+      {//hardcoded
         flagged.insert(e.energy);
         close = true;
       }
@@ -232,36 +238,42 @@ void FormEnergyCalibration::selection_changed_in_plot()
   selected_peaks_ = ui->PlotCalib->get_selected_pts();
   select_in_table();
   if (isVisible())
-    emit selection_changed(selected_peaks_);
+      emit selection_changed(selected_peaks_);
   toggle_push();
 }
 
-void FormEnergyCalibration::selection_changed_in_table() {
+void FormEnergyCalibration::selection_changed_in_table()
+{
   selected_peaks_.clear();
-  foreach (QModelIndex i, ui->tablePeaks->selectionModel()->selectedRows())
-    selected_peaks_.insert(ui->tablePeaks->item(i.row(), 0)->data(Qt::UserRole).toDouble());
+      foreach (QModelIndex i,
+               ui->tablePeaks->selectionModel()->selectedRows())selected_peaks_.insert(ui->tablePeaks->item(i.row(),
+                                                                                                            0)->data(Qt::UserRole).toDouble());
 
   select_in_plot();
   if (isVisible())
-    emit selection_changed(selected_peaks_);
+      emit selection_changed(selected_peaks_);
   toggle_push();
 }
 
-void FormEnergyCalibration::toggle_push() {
+void FormEnergyCalibration::toggle_push()
+{
   size_t sel = selected_peaks_.size();
 
   ui->pushEnergiesToPeaks->setEnabled((sel > 0) && (sel == ui->isotopes->current_gammas().size()));
   ui->pushPeaksToNuclide->setEnabled((sel > 0) && (ui->isotopes->current_gammas().empty()));
 
-  if (static_cast<int>(fit_data_.peaks().size()) > 1) {
+  if (static_cast<int>(fit_data_.peaks().size()) > 1)
+  {
     ui->pushFit->setEnabled(true);
     ui->spinTerms->setEnabled(true);
-  } else {
+  }
+  else
+  {
     ui->pushFit->setEnabled(false);
     ui->spinTerms->setEnabled(false);
   }
 
-  if (detectors_.get(fit_data_.detector_).get_calibration({"energy", fit_data_.detector_.id()}, {"energy"}).valid())
+  if (detector_.get_calibration({"energy", fit_data_.detector_.id()}, {"energy"}).valid())
     ui->pushFromDB->setEnabled(true);
   else
     ui->pushFromDB->setEnabled(false);
@@ -279,7 +291,7 @@ void FormEnergyCalibration::on_pushFit_clicked()
   x.resize(fit_data_.peaks().size());
   y.resize(fit_data_.peaks().size());
   int i = 0;
-  for (auto &q : fit_data_.peaks())
+  for (auto& q : fit_data_.peaks())
   {
     x[i] = q.first;
     y[i] = q.second.energy();
@@ -290,15 +302,16 @@ void FormEnergyCalibration::on_pushFit_clicked()
 
   auto p = DAQuiri::CoefFunctionFactory::singleton().create_type("Polynomial");
   p->set_coeff(0, {-50, 50, 0});
-  p->set_coeff(1,   {0, 50, 0.5});
-  for (int i=2; i <= ui->spinTerms->value(); ++i)
+  p->set_coeff(1, {0, 50, 0.5});
+  for (int i = 2; i <= ui->spinTerms->value(); ++i)
     p->set_coeff(i, {-5, 5, 0.5});
 
   optimizer->fit(p, x, y, std::vector<double>(), std::vector<double>());
 
   if (p->coeffs().size())
   {
-    new_calibration_ = DAQuiri::Calibration({"energy", fit_data_.detector_.id()},{"energy", fit_data_.detector_.id(), "keV"});
+    new_calibration_ =
+        DAQuiri::Calibration({"energy", fit_data_.detector_.id()}, {"energy", fit_data_.detector_.id(), "keV"});
     new_calibration_.function(p);
   }
   else
@@ -310,7 +323,8 @@ void FormEnergyCalibration::on_pushFit_clicked()
   emit new_fit();
 }
 
-void FormEnergyCalibration::isotope_energies_chosen() {
+void FormEnergyCalibration::isotope_energies_chosen()
+{
   update_data();
 }
 
@@ -321,7 +335,7 @@ void FormEnergyCalibration::on_pushApplyCalib_clicked()
 
 void FormEnergyCalibration::on_pushFromDB_clicked()
 {
-  new_calibration_ = detectors_.get(fit_data_.detector_).get_calibration({"energy", fit_data_.detector_.id()}, {"energy"});
+  new_calibration_ = detector_.get_calibration({"energy", fit_data_.detector_.id()}, {"energy"});
   replot_calib();
   select_in_plot();
   toggle_push();
@@ -332,7 +346,7 @@ void FormEnergyCalibration::on_pushDetDB_clicked()
 {
   // \todo reenable this
 //  WidgetDetectors *det_widget = new WidgetDetectors(this);
-//  det_widget->setData(detectors_);
+//  det_widget->setData(detector_);
 //  connect(det_widget, SIGNAL(detectorsUpdated()), this, SLOT(detectorsUpdated()));
 //  det_widget->exec();
 }
@@ -340,7 +354,7 @@ void FormEnergyCalibration::on_pushDetDB_clicked()
 void FormEnergyCalibration::on_pushPeaksToNuclide_clicked()
 {
   std::vector<double> gammas;
-  for (auto &q : fit_data_.peaks())
+  for (auto& q : fit_data_.peaks())
     if (selected_peaks_.count(q.first))
       gammas.push_back(q.second.energy());
   ui->isotopes->push_energies(gammas);
@@ -353,8 +367,9 @@ void FormEnergyCalibration::on_pushEnergiesToPeaks_clicked()
 
   std::vector<double> peakIDs;
   double last_sel = -1;
-  for (auto &q : fit_data_.peaks())
-    if (selected_peaks_.count(q.first)) {
+  for (auto& q : fit_data_.peaks())
+    if (selected_peaks_.count(q.first))
+    {
       peakIDs.push_back(q.first);
       last_sel = q.first;
     }
@@ -362,12 +377,13 @@ void FormEnergyCalibration::on_pushEnergiesToPeaks_clicked()
   if (gammas.size() != peakIDs.size())
     return;
 
-  for (size_t i=0; i<gammas.size(); ++i)
+  for (size_t i = 0; i < gammas.size(); ++i)
     fit_data_.override_energy(peakIDs.at(i), gammas.at(i));
 
   selected_peaks_.clear();
-  for (auto &q : fit_data_.peaks())
-    if (q.first > last_sel) {
+  for (auto& q : fit_data_.peaks())
+    if (q.first > last_sel)
+    {
       selected_peaks_.insert(q.first);
       break;
     }
@@ -379,7 +395,8 @@ void FormEnergyCalibration::on_pushEnergiesToPeaks_clicked()
   emit selection_changed(selected_peaks_);
 }
 
-void FormEnergyCalibration::add_peak_to_table(const DAQuiri::Peak &p, int row, bool gray) {
+void FormEnergyCalibration::add_peak_to_table(const DAQuiri::Peak& p, int row, bool gray)
+{
   QBrush background(gray ? Qt::lightGray : Qt::white);
 
   add_to_table(ui->tablePeaks, row, 0, QString::number(p.center()),

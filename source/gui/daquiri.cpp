@@ -44,6 +44,7 @@ daquiri::daquiri(QWidget *parent,
   qRegisterMetaType<DAQuiri::ProducerStatus>("DAQuiri::ProducerStatus");
   qRegisterMetaType<DAQuiri::StreamManifest>("DAQuiri::StreamManifest");
   qRegisterMetaType<DAQuiri::ProjectPtr>("DAQuiri::ProjectPtr");
+  qRegisterMetaType<DAQuiri::Fitter>("DAQuiri::Fitter");
   qRegisterMetaType<hr_duration_t>("hr_duration_t");
   qRegisterMetaType<hr_time_t >("hr_time_t");
 
@@ -321,6 +322,7 @@ void daquiri::open_project(ProjectPtr proj, bool start, QString name)
   connect(newSpectraForm, SIGNAL(toggleIO(bool)), this, SLOT(toggleIO(bool)));
   connect(this, SIGNAL(toggle_push(bool, DAQuiri::ProducerStatus, DAQuiri::StreamManifest)),
           newSpectraForm, SLOT(toggle_push(bool, DAQuiri::ProducerStatus, DAQuiri::StreamManifest)));
+  connect(newSpectraForm, SIGNAL(openAnalysis(FormAnalysis1D*)), this, SLOT(analyze_1d(FormAnalysis1D*)));
 
   add_closable_tab(newSpectraForm);
   ui->tabs->setCurrentWidget(newSpectraForm);
@@ -329,6 +331,15 @@ void daquiri::open_project(ProjectPtr proj, bool start, QString name)
   newSpectraForm->toggle_push(true, engine_status_, stream_manifest_);
   if (start && (engine_status_ & ProducerStatus::can_run))
     QTimer::singleShot(500, newSpectraForm, SLOT(start_DAQ()));
+}
+
+void daquiri::analyze_1d(FormAnalysis1D* formAnalysis) {
+  add_closable_tab(formAnalysis);
+  //connect(formAnalysis, SIGNAL(detectorsChanged()), this, SLOT(detectors_updated()));
+  ui->tabs->setCurrentWidget(formAnalysis);
+  formAnalysis->update_spectrum();
+  //formAnalysis->toggle_push(true, engine_status_, stream_manifest_);
+  reorder_tabs();
 }
 
 void daquiri::initialize_settings_dir()

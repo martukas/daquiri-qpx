@@ -9,6 +9,8 @@
 
 #include <core/util/custom_logger.h>
 
+class FormAnalysis1D;
+
 namespace Ui {
 class daquiri;
 }
@@ -86,7 +88,9 @@ class daquiri : public QMainWindow
     void save();
     void close_older(uint32_t mins);
 
-  private:
+    void analyze_1d(FormAnalysis1D*);
+
+ private:
     //helper functions
     void saveSettings();
     void loadSettings();
