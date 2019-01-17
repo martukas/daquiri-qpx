@@ -65,11 +65,6 @@ void FormEnergyCalibration::loadSettings()
 {
   QSettings settings;
 
-  settings.beginGroup("Program");
-  ui->isotopes->setDir(settings.value("settingsdirectory", QDir::homePath() + "/qpx/settings").toString());
-  data_directory_ = settings.value("save_directory", QDir::homePath() + "/qpx/data").toString();
-  settings.endGroup();
-
   settings.beginGroup("Energy_calibration");
   ui->spinTerms->setValue(settings.value("fit_function_terms", 2).toInt());
   ui->isotopes->set_current_isotope(settings.value("current_isotope", "Co-60").toString());

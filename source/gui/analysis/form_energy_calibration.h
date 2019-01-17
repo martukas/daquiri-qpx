@@ -57,8 +57,6 @@ private slots:
 private:
   Ui::FormEnergyCalibration *ui;
 
-  QString data_directory_;
-
   DAQuiri::Detector &detector_;
   DAQuiri::Fitter &fit_data_;
   std::set<double> selected_peaks_;

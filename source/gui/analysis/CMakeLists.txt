@@ -19,8 +19,6 @@ set(UI
   )
 
 set(HEADERS
-  ${dir}/xmlable.h
-
   ${dir}/isotope.h
   ${dir}/widget_isotopes.h
   ${dir}/widget_plot_calib.h

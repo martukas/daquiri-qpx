@@ -17,11 +17,11 @@ class TableGammas : public QAbstractTableModel
   Q_OBJECT
 
 private:
-  std::vector<RadTypes::Gamma> gammas_;
+  std::vector<RadTypes::Radiation> gammas_;
 
 public:
-  void set_gammas(const XMLableDB<RadTypes::Gamma> &);
-  XMLableDB<RadTypes::Gamma> get_gammas();
+  void set_gammas(const Container<RadTypes::Radiation> &);
+  Container<RadTypes::Radiation> get_gammas();
   void clear();
 
   explicit TableGammas(QObject *parent = 0);
@@ -48,10 +48,9 @@ class WidgetIsotopes : public QWidget
 
 public:
   explicit WidgetIsotopes(QWidget *parent = 0);
-  void setDir(QString filedir);
   ~WidgetIsotopes();
   std::vector<double> current_gammas() const;
-  std::list<RadTypes::Gamma> current_isotope_gammas() const;
+  std::list<RadTypes::Radiation> current_isotope_gammas() const;
   QString current_isotope() const;
   void set_current_isotope(QString);
 
@@ -82,18 +81,15 @@ private slots:
   void energies_changed();
 
 private:
+  Ui::WidgetIsotopes *ui;
 
   TableGammas table_gammas_;
   SettingDelegate special_delegate_;
+  QSortFilterProxyModel sort_model_;
 
-  QSortFilterProxyModel sortModel;
-
-  Ui::WidgetIsotopes *ui;
-  QString root_dir_;
-  bool modified_;
-
-  XMLableDB<RadTypes::Isotope> isotopes_;
+  Container<RadTypes::Isotope> isotopes_;
 
   std::vector<double> current_gammas_;
 
+  bool modified_ {false};
 };

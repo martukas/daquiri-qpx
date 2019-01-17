@@ -1,0 +1,5716 @@
+{
+ "daquiri_git_version": "96af560",
+ "isotopes": [
+  {
+   "beta": {
+    "abundance": 100.0,
+    "energy": 88.1
+   },
+   "gamma_constant": "9 20 0 0",
+   "gammas": [
+    {
+     "abundance": 1.0,
+     "energy": 1633.6
+    }
+   ],
+   "half_life": 0.1838,
+   "name": "F-20"
+  },
+  {
+   "beta": {
+    "abundance": 100.0,
+    "energy": 104.0
+   },
+   "gamma_constant": "8 19 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0254,
+     "energy": 109.9
+    },
+    {
+     "abundance": 0.95921,
+     "energy": 197.1
+    },
+    {
+     "abundance": 0.50411,
+     "energy": 1356.9
+    },
+    {
+     "abundance": 0.02646,
+     "energy": 1444.2
+    },
+    {
+     "abundance": 0.01393,
+     "energy": 1554.0
+    }
+   ],
+   "half_life": 0.45,
+   "name": "O-19"
+  },
+  {
+   "beta": {
+    "abundance": 100.0,
+    "energy": 95.1
+   },
+   "gamma_constant": "11 24 0 0",
+   "gammas": [
+    {
+     "abundance": 1.0,
+     "energy": 1368.633
+    },
+    {
+     "abundance": 0.99944,
+     "energy": 2754.028
+    }
+   ],
+   "half_life": 897.6,
+   "name": "Na-24"
+  },
+  {
+   "beta": {
+    "abundance": 100.0,
+    "energy": 88.1
+   },
+   "gamma_constant": "12 27 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0081,
+     "energy": 170.685
+    },
+    {
+     "abundance": 0.7184,
+     "energy": 843.74
+    },
+    {
+     "abundance": 0.2804,
+     "energy": 1014.423
+    }
+   ],
+   "half_life": 9.46,
+   "name": "Mg-27"
+  },
+  {
+   "beta": {
+    "abundance": 100.0,
+    "energy": 101.0
+   },
+   "gamma_constant": "13 28 0 0",
+   "gammas": [
+    {
+     "abundance": 1.0,
+     "energy": 1778.96912
+    }
+   ],
+   "half_life": 2.24,
+   "name": "Al-28"
+  },
+  {
+   "beta": {
+    "abundance": 100.0,
+    "energy": 69.9
+   },
+   "gamma_constant": "13 29 0 0",
+   "gammas": [
+    {
+     "abundance": 0.9066,
+     "energy": 1273.367
+    },
+    {
+     "abundance": 0.0372,
+     "energy": 2028.126
+    },
+    {
+     "abundance": 0.0574,
+     "energy": 2425.907
+    }
+   ],
+   "half_life": 6.56,
+   "name": "Al-29"
+  },
+  {
+   "beta": {
+    "abundance": 100.0,
+    "energy": 67.0
+   },
+   "gamma_constant": "14 31 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0007,
+     "energy": 1266.1211
+    }
+   ],
+   "half_life": 157.2,
+   "name": "Si-31"
+  },
+  {
+   "beta": {
+    "abundance": 100.0,
+    "energy": 94.9
+   },
+   "gamma_constant": "15 32 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0,
+     "energy": 0.0
+    }
+   ],
+   "half_life": 20563.2,
+   "name": "P-32"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "16 35 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0,
+     "energy": 0.0
+    }
+   ],
+   "half_life": 126014.4,
+   "name": "S-35"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "16 35 0 0",
+   "gammas": [
+    {
+     "abundance": 0.94,
+     "energy": 3103.36
+    },
+    {
+     "abundance": 0.0026,
+     "energy": 3741.02
+    }
+   ],
+   "half_life": 5.05,
+   "name": "S-37"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "17 38 0 0",
+   "gammas": [
+    {
+     "abundance": 0.3191,
+     "energy": 1642.714
+    },
+    {
+     "abundance": 0.42411,
+     "energy": 2167.405
+    }
+   ],
+   "half_life": 37.24,
+   "name": "Cl-38"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "18 41 0 0",
+   "gammas": [
+    {
+     "abundance": 0.991,
+     "energy": 1293.587
+    },
+    {
+     "abundance": 0.000525,
+     "energy": 1677.198
+    }
+   ],
+   "half_life": 109.8,
+   "name": "Ar-41"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "19 42 0 0",
+   "gammas": [
+    {
+     "abundance": 0.003,
+     "energy": 312.6
+    },
+    {
+     "abundance": 0.18,
+     "energy": 1524.7
+    }
+   ],
+   "half_life": 741.6,
+   "name": "K-42"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "20 47 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0624,
+     "energy": 489.23
+    },
+    {
+     "abundance": 0.019113,
+     "energy": 767.13
+    },
+    {
+     "abundance": 0.0624,
+     "energy": 807.86
+    },
+    {
+     "abundance": 0.71,
+     "energy": 1297.09
+    }
+   ],
+   "half_life": 6537.6,
+   "name": "Ca-47"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "20 49 0 0",
+   "gammas": [
+    {
+     "abundance": 0.00636,
+     "energy": 1408.92
+    }
+   ],
+   "half_life": 8.72,
+   "name": "Ca-49"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "21 46 0 0",
+   "gammas": [
+    {
+     "abundance": 0.99984,
+     "energy": 889.277
+    },
+    {
+     "abundance": 0.99987,
+     "energy": 1120.545
+    }
+   ],
+   "half_life": 120686.4,
+   "name": "Sc-46"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "21 46 0 142.528",
+   "gammas": [
+    {
+     "abundance": 0.01989,
+     "energy": 4.086
+    },
+    {
+     "abundance": 0.039518,
+     "energy": 4.091
+    },
+    {
+     "abundance": 0.62,
+     "energy": 142.528
+    }
+   ],
+   "half_life": 0.3125,
+   "name": "Sc-46m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "21 47 0 0",
+   "gammas": [
+    {
+     "abundance": 0.6834,
+     "energy": 159.377
+    }
+   ],
+   "half_life": 4824.0,
+   "name": "Sc-47"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "21 48 0 0",
+   "gammas": [
+    {
+     "abundance": 0.07489,
+     "energy": 175.361
+    },
+    {
+     "abundance": 1.001,
+     "energy": 983.517
+    },
+    {
+     "abundance": 0.9765,
+     "energy": 1037.599
+    },
+    {
+     "abundance": 0.02384,
+     "energy": 1212.88
+    },
+    {
+     "abundance": 1.0015,
+     "energy": 1312.096
+    }
+   ],
+   "half_life": 2622.0,
+   "name": "Sc-48"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "22 51 0 0",
+   "gammas": [
+    {
+     "abundance": 0.93,
+     "energy": 320.08
+    },
+    {
+     "abundance": 0.01189,
+     "energy": 608.61
+    },
+    {
+     "abundance": 0.0694,
+     "energy": 928.6
+    },
+    {
+     "abundance": 0.0,
+     "energy": 1.0
+    }
+   ],
+   "half_life": 5.76,
+   "name": "Ti-51"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "25 54 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0774,
+     "energy": 5.405
+    },
+    {
+     "abundance": 0.1538,
+     "energy": 5.415
+    },
+    {
+     "abundance": 0.025,
+     "energy": 5.947
+    },
+    {
+     "abundance": 0.99976,
+     "energy": 834.848
+    }
+   ],
+   "half_life": 449452.8,
+   "name": "Mn-54"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "25 56 0 0",
+   "gammas": [
+    {
+     "abundance": 0.9893,
+     "energy": 846.771
+    },
+    {
+     "abundance": 0.2728,
+     "energy": 1810.772
+    },
+    {
+     "abundance": 0.1434,
+     "energy": 2113.123
+    },
+    {
+     "abundance": 0.00993,
+     "energy": 2522.886
+    }
+   ],
+   "half_life": 154.8,
+   "name": "Mn-56"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "24 51 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0693,
+     "energy": 4.945
+    },
+    {
+     "abundance": 0.1367,
+     "energy": 4.952
+    },
+    {
+     "abundance": 0.02342,
+     "energy": 5.427
+    },
+    {
+     "abundance": 0.1,
+     "energy": 320.0824
+    }
+   ],
+   "half_life": 39888.0,
+   "name": "Cr-51"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "23 52 0 0",
+   "gammas": [
+    {
+     "abundance": 0.00588,
+     "energy": 1333.649
+    },
+    {
+     "abundance": 1.001,
+     "energy": 1434.068
+    }
+   ],
+   "half_life": 3.75,
+   "name": "V-52"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "26 59 0 0",
+   "gammas": [
+    {
+     "abundance": 0.01024,
+     "energy": 142.652
+    },
+    {
+     "abundance": 0.0308,
+     "energy": 192.349
+    },
+    {
+     "abundance": 0.56515,
+     "energy": 1099.251
+    },
+    {
+     "abundance": 0.43211,
+     "energy": 1291.596
+    }
+   ],
+   "half_life": 64080.0,
+   "name": "Fe-59"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "28 57 0 0",
+   "gammas": [
+    {
+     "abundance": 0.1673,
+     "energy": 127.164
+    },
+    {
+     "abundance": 0.81716,
+     "energy": 1377.63
+    },
+    {
+     "abundance": 0.057516,
+     "energy": 1757.55
+    },
+    {
+     "abundance": 0.122625,
+     "energy": 1919.52
+    }
+   ],
+   "half_life": 2136.0,
+   "name": "Ni-57"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "27 58 0 0",
+   "gammas": [
+    {
+     "abundance": 0.149016,
+     "energy": 510.998
+    },
+    {
+     "abundance": 0.0068311,
+     "energy": 863.9599
+    },
+    {
+     "abundance": 0.005188,
+     "energy": 1674.73
+    },
+    {
+     "abundance": 0.99,
+     "energy": 810.775
+    },
+    {
+     "abundance": 0.0804,
+     "energy": 6.391
+    },
+    {
+     "abundance": 0.1598,
+     "energy": 6.404
+    },
+    {
+     "abundance": 0.0286,
+     "energy": 7.058
+    }
+   ],
+   "half_life": 101980.8,
+   "name": "Co-58"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "27 60 0 0",
+   "gammas": [
+    {
+     "abundance": 0.9997367,
+     "energy": 1173.237
+    },
+    {
+     "abundance": 0.999856,
+     "energy": 1332.501
+    }
+   ],
+   "half_life": 2701612.8,
+   "name": "Co-60"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "27 60 0 58",
+   "gammas": [
+    {
+     "abundance": 0.0934,
+     "energy": 6.915
+    },
+    {
+     "abundance": 0.1838,
+     "energy": 6.93
+    },
+    {
+     "abundance": 0.0332,
+     "energy": 7.649
+    },
+    {
+     "abundance": 0.02,
+     "energy": 58.603
+    }
+   ],
+   "half_life": 10.47,
+   "name": "Co-60m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "28 65 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0481,
+     "energy": 366.273
+    },
+    {
+     "abundance": 0.15439,
+     "energy": 1115.546
+    },
+    {
+     "abundance": 0.24,
+     "energy": 1481.84
+    }
+   ],
+   "half_life": 151.2,
+   "name": "Ni-65"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "29 64 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0022,
+     "energy": 0.851
+    },
+    {
+     "abundance": 0.0014,
+     "energy": 0.868
+    },
+    {
+     "abundance": 0.049,
+     "energy": 7.461
+    },
+    {
+     "abundance": 0.0965,
+     "energy": 7.478
+    },
+    {
+     "abundance": 0.016,
+     "energy": 8.265
+    },
+    {
+     "abundance": 0.00473,
+     "energy": 1345.84
+    },
+    {
+     "abundance": 0.174022,
+     "energy": 510.998
+    }
+   ],
+   "half_life": 762.0,
+   "name": "Cu-64"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "29 66 0 0",
+   "gammas": [
+    {
+     "abundance": 0.09,
+     "energy": 1039.231
+    }
+   ],
+   "half_life": 5.1,
+   "name": "Cu-66"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "29 67 0 0",
+   "gammas": [
+    {
+     "abundance": 0.01957,
+     "energy": 8.616
+    },
+    {
+     "abundance": 0.038415,
+     "energy": 8.639
+    },
+    {
+     "abundance": 0.0701,
+     "energy": 91.266
+    },
+    {
+     "abundance": 0.1612,
+     "energy": 93.311
+    },
+    {
+     "abundance": 0.4873,
+     "energy": 184.577
+    },
+    {
+     "abundance": 0.0079711,
+     "energy": 300.219
+    }
+   ],
+   "half_life": 3715.2,
+   "name": "Cu-67"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "30 65 0 0",
+   "gammas": [
+    {
+     "abundance": 0.1196,
+     "energy": 8.028
+    },
+    {
+     "abundance": 0.234,
+     "energy": 8.048
+    },
+    {
+     "abundance": 0.04,
+     "energy": 8.905
+    },
+    {
+     "abundance": 0.506,
+     "energy": 1115.546
+    },
+    {
+     "abundance": 0.0140318,
+     "energy": 510.998
+    }
+   ],
+   "half_life": 351216.0,
+   "name": "Zn-65"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "30 69 0 438.63",
+   "gammas": [
+    {
+     "abundance": 0.0066524,
+     "energy": 8.616
+    },
+    {
+     "abundance": 0.01315,
+     "energy": 8.639
+    },
+    {
+     "abundance": 0.94772,
+     "energy": 438.63
+    }
+   ],
+   "half_life": 825.6,
+   "name": "Zn-69m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "30 71 0 1759.6",
+   "gammas": [
+    {
+     "abundance": 0.0293,
+     "energy": 121.51
+    },
+    {
+     "abundance": 0.0566,
+     "energy": 142.6
+    },
+    {
+     "abundance": 0.93,
+     "energy": 386.28
+    },
+    {
+     "abundance": 0.0263,
+     "energy": 389.88
+    },
+    {
+     "abundance": 0.01129,
+     "energy": 453.11
+    },
+    {
+     "abundance": 0.623,
+     "energy": 487.38
+    },
+    {
+     "abundance": 0.28419,
+     "energy": 511.564
+    },
+    {
+     "abundance": 0.27919,
+     "energy": 596.14
+    },
+    {
+     "abundance": 0.573,
+     "energy": 620.18
+    },
+    {
+     "abundance": 0.0333,
+     "energy": 753.41
+    },
+    {
+     "abundance": 0.0205,
+     "energy": 771.21
+    },
+    {
+     "abundance": 0.0488,
+     "energy": 964.64
+    },
+    {
+     "abundance": 0.0121,
+     "energy": 988.57
+    },
+    {
+     "abundance": 0.007419,
+     "energy": 1006.52
+    },
+    {
+     "abundance": 0.00687,
+     "energy": 1010.92
+    },
+    {
+     "abundance": 0.03,
+     "energy": 1107.5
+    },
+    {
+     "abundance": 0.007,
+     "energy": 1475.9
+    },
+    {
+     "abundance": 0.01,
+     "energy": 1759.6
+    }
+   ],
+   "half_life": 236.4,
+   "name": "Zn-71m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "33 76 0 0",
+   "gammas": [
+    {
+     "abundance": 0.45,
+     "energy": 559.101
+    },
+    {
+     "abundance": 0.01206,
+     "energy": 563.178
+    },
+    {
+     "abundance": 0.0623,
+     "energy": 657.041
+    },
+    {
+     "abundance": 0.01449,
+     "energy": 1212.94
+    },
+    {
+     "abundance": 0.034218,
+     "energy": 1216.104
+    },
+    {
+     "abundance": 0.01219,
+     "energy": 1228.6
+    }
+   ],
+   "half_life": 1579.2,
+   "name": "As-76"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "33 74 0 0",
+   "gammas": [
+    {
+     "abundance": 0.053722,
+     "energy": 9.855
+    },
+    {
+     "abundance": 0.1054,
+     "energy": 9.886
+    },
+    {
+     "abundance": 0.00683,
+     "energy": 10.975
+    },
+    {
+     "abundance": 0.01336,
+     "energy": 10.982
+    },
+    {
+     "abundance": 0.593,
+     "energy": 595.847
+    },
+    {
+     "abundance": 0.1545,
+     "energy": 634.78
+    },
+    {
+     "abundance": 0.58122,
+     "energy": 510.998
+    }
+   ],
+   "half_life": 25588.8,
+   "name": "As-74"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "34 75 0 0",
+   "gammas": [
+    {
+     "abundance": 0.01112,
+     "energy": 66.0518
+    },
+    {
+     "abundance": 0.0342,
+     "energy": 96.734
+    },
+    {
+     "abundance": 0.1723,
+     "energy": 121.1155
+    },
+    {
+     "abundance": 0.5837,
+     "energy": 136.0
+    },
+    {
+     "abundance": 0.01484,
+     "energy": 198.606
+    },
+    {
+     "abundance": 0.589,
+     "energy": 264.6576
+    },
+    {
+     "abundance": 0.2499,
+     "energy": 279.5422
+    },
+    {
+     "abundance": 0.013165,
+     "energy": 303.9236
+    },
+    {
+     "abundance": 0.1147,
+     "energy": 400.65728
+    }
+   ],
+   "half_life": 172468.8,
+   "name": "Se-75"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "34 77 0 161.922",
+   "gammas": [
+    {
+     "abundance": 0.070425,
+     "energy": 11.182
+    },
+    {
+     "abundance": 0.1375,
+     "energy": 11.222
+    },
+    {
+     "abundance": 0.00943,
+     "energy": 12.49
+    },
+    {
+     "abundance": 0.01827,
+     "energy": 12.496
+    },
+    {
+     "abundance": 0.53,
+     "energy": 161.922
+    }
+   ],
+   "half_life": 0.29083,
+   "name": "Se-77m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "34 79 0 95.733",
+   "gammas": [
+    {
+     "abundance": 0.1266,
+     "energy": 11.182
+    },
+    {
+     "abundance": 0.24411,
+     "energy": 11.222
+    },
+    {
+     "abundance": 0.01678,
+     "energy": 12.49
+    },
+    {
+     "abundance": 0.032415,
+     "energy": 12.496
+    },
+    {
+     "abundance": 0.096228,
+     "energy": 95.733
+    }
+   ],
+   "half_life": 3.91,
+   "name": "Se-79m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "34 81 0 0",
+   "gammas": [
+    {
+     "abundance": 0.007,
+     "energy": 275.988
+    },
+    {
+     "abundance": 0.0022,
+     "energy": 566.04
+    },
+    {
+     "abundance": 0.0028,
+     "energy": 828.27
+    }
+   ],
+   "half_life": 18.45,
+   "name": "Se-81"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "34 81 0 103.016",
+   "gammas": [
+    {
+     "abundance": 0.1244,
+     "energy": 11.182
+    },
+    {
+     "abundance": 0.2409,
+     "energy": 11.222
+    },
+    {
+     "abundance": 0.01646,
+     "energy": 12.49
+    },
+    {
+     "abundance": 0.0319,
+     "energy": 12.496
+    },
+    {
+     "abundance": 0.13,
+     "energy": 103.016
+    }
+   ],
+   "half_life": 57.25,
+   "name": "Se-81m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "34 83 0 0",
+   "gammas": [
+    {
+     "abundance": 0.019412,
+     "energy": 208.309
+    },
+    {
+     "abundance": 0.32713,
+     "energy": 224.84
+    },
+    {
+     "abundance": 0.00608,
+     "energy": 329.53
+    },
+    {
+     "abundance": 0.7,
+     "energy": 356.687
+    },
+    {
+     "abundance": 0.016211,
+     "energy": 415.25
+    },
+    {
+     "abundance": 0.00918,
+     "energy": 451.63
+    },
+    {
+     "abundance": 0.034615,
+     "energy": 457.41
+    },
+    {
+     "abundance": 0.023612,
+     "energy": 485.72
+    },
+    {
+     "abundance": 0.433,
+     "energy": 510.17
+    },
+    {
+     "abundance": 0.033621,
+     "energy": 553.2021
+    },
+    {
+     "abundance": 0.0433,
+     "energy": 571.948
+    },
+    {
+     "abundance": 0.028814,
+     "energy": 609.41
+    },
+    {
+     "abundance": 0.032921,
+     "energy": 664.8
+    },
+    {
+     "abundance": 0.01037,
+     "energy": 679.4
+    },
+    {
+     "abundance": 0.0313,
+     "energy": 712.11
+    },
+    {
+     "abundance": 0.15017,
+     "energy": 718.1
+    },
+    {
+     "abundance": 0.00767,
+     "energy": 735.12
+    },
+    {
+     "abundance": 0.14815,
+     "energy": 799.07
+    },
+    {
+     "abundance": 0.133,
+     "energy": 836.529
+    },
+    {
+     "abundance": 0.0828,
+     "energy": 866.85
+    },
+    {
+     "abundance": 0.0721,
+     "energy": 883.61
+    },
+    {
+     "abundance": 0.0436,
+     "energy": 887.81
+    },
+    {
+     "abundance": 0.01318,
+     "energy": 995.93
+    },
+    {
+     "abundance": 0.011911,
+     "energy": 1042.35
+    },
+    {
+     "abundance": 0.0555,
+     "energy": 1064.11
+    },
+    {
+     "abundance": 0.02659,
+     "energy": 1082.33
+    },
+    {
+     "abundance": 0.0414,
+     "energy": 1191.75
+    },
+    {
+     "abundance": 0.00917,
+     "energy": 1206.88
+    },
+    {
+     "abundance": 0.01306,
+     "energy": 1225.95
+    },
+    {
+     "abundance": 0.0174,
+     "energy": 1293.83
+    },
+    {
+     "abundance": 0.0536,
+     "energy": 1299.15
+    },
+    {
+     "abundance": 0.0399,
+     "energy": 1317.05
+    },
+    {
+     "abundance": 0.0544,
+     "energy": 1341.29
+    },
+    {
+     "abundance": 0.046221,
+     "energy": 1352.59
+    },
+    {
+     "abundance": 0.01135,
+     "energy": 1420.63
+    },
+    {
+     "abundance": 0.0253,
+     "energy": 1554.81
+    },
+    {
+     "abundance": 0.0209,
+     "energy": 1779.96
+    },
+    {
+     "abundance": 0.0133,
+     "energy": 1827.12
+    },
+    {
+     "abundance": 0.0168,
+     "energy": 1854.53
+    },
+    {
+     "abundance": 0.0157,
+     "energy": 1871.33
+    },
+    {
+     "abundance": 0.0783,
+     "energy": 1894.88
+    },
+    {
+     "abundance": 0.0934,
+     "energy": 2290.33
+    },
+    {
+     "abundance": 0.0343,
+     "energy": 2337.53
+    }
+   ],
+   "half_life": 22.3,
+   "name": "Se-83"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "34 83 0 2051.52",
+   "gammas": [
+    {
+     "abundance": 0.18,
+     "energy": 356.687
+    },
+    {
+     "abundance": 0.1525,
+     "energy": 673.98
+    },
+    {
+     "abundance": 0.0126,
+     "energy": 799.07
+    },
+    {
+     "abundance": 0.1617,
+     "energy": 987.968
+    },
+    {
+     "abundance": 0.0123,
+     "energy": 997.55
+    },
+    {
+     "abundance": 0.0217,
+     "energy": 1020.75
+    },
+    {
+     "abundance": 0.2127,
+     "energy": 1030.86
+    },
+    {
+     "abundance": 0.0159,
+     "energy": 1053.7
+    },
+    {
+     "abundance": 0.0357,
+     "energy": 1063.64
+    },
+    {
+     "abundance": 0.0123,
+     "energy": 1558.9
+    },
+    {
+     "abundance": 0.0196,
+     "energy": 1660.06
+    },
+    {
+     "abundance": 0.1133,
+     "energy": 2051.52
+    }
+   ],
+   "half_life": 1.173333,
+   "name": "Se-83m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "35 80 0 0",
+   "gammas": [
+    {
+     "abundance": 0.00964,
+     "energy": 11.182
+    },
+    {
+     "abundance": 0.01868,
+     "energy": 11.222
+    },
+    {
+     "abundance": 0.07,
+     "energy": 616.61
+    },
+    {
+     "abundance": 0.0108,
+     "energy": 666.14
+    },
+    {
+     "abundance": 0.002,
+     "energy": 703.9
+    },
+    {
+     "abundance": 0.022,
+     "energy": 510.998
+    }
+   ],
+   "half_life": 17.68,
+   "name": "Br-80"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "35 80 0 37.052",
+   "gammas": [
+    {
+     "abundance": 0.017,
+     "energy": 1.481
+    },
+    {
+     "abundance": 0.78,
+     "energy": 11.9
+    },
+    {
+     "abundance": 0.09,
+     "energy": 13.28
+    },
+    {
+     "abundance": 0.3918,
+     "energy": 37.052
+    }
+   ],
+   "half_life": 265.2,
+   "name": "Br-80m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "35 82 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0226,
+     "energy": 221.48
+    },
+    {
+     "abundance": 0.7087,
+     "energy": 554.348
+    },
+    {
+     "abundance": 0.012,
+     "energy": 606.34
+    },
+    {
+     "abundance": 0.4344,
+     "energy": 619.106
+    },
+    {
+     "abundance": 0.2849,
+     "energy": 698.374
+    },
+    {
+     "abundance": 0.8358,
+     "energy": 776.517
+    },
+    {
+     "abundance": 0.2403,
+     "energy": 827.828
+    },
+    {
+     "abundance": 0.0127,
+     "energy": 1007.59
+    },
+    {
+     "abundance": 0.2723,
+     "energy": 1044.0
+    },
+    {
+     "abundance": 0.2648,
+     "energy": 1317.473
+    },
+    {
+     "abundance": 0.1632,
+     "energy": 1474.88
+    }
+   ],
+   "half_life": 2118.0,
+   "name": "Br-82"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "35 82 0 776.517",
+   "gammas": [
+    {
+     "abundance": 0.012,
+     "energy": 1.481
+    },
+    {
+     "abundance": 0.37,
+     "energy": 11.878
+    },
+    {
+     "abundance": 0.05,
+     "energy": 13.284
+    },
+    {
+     "abundance": 0.0024,
+     "energy": 45.949
+    },
+    {
+     "abundance": 0.0026,
+     "energy": 776.517
+    }
+   ],
+   "half_life": 6.13,
+   "name": "Br-82m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "37 86 0 0",
+   "gammas": [
+    {
+     "abundance": 0.09,
+     "energy": 1076.64
+    }
+   ],
+   "half_life": 26870.4,
+   "name": "Rb-86"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "37 86 0 556.07",
+   "gammas": [
+    {
+     "abundance": 0.98,
+     "energy": 556.07
+    }
+   ],
+   "half_life": 1.02,
+   "name": "Rb-86m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "37 88 0 0",
+   "gammas": [
+    {
+     "abundance": 0.14049,
+     "energy": 898.042
+    },
+    {
+     "abundance": 0.214024,
+     "energy": 1836.063
+    },
+    {
+     "abundance": 0.0196,
+     "energy": 2677.89
+    }
+   ],
+   "half_life": 17.8,
+   "name": "Rb-88"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "38 85 0 0",
+   "gammas": [
+    {
+     "abundance": 0.1818,
+     "energy": 13.336
+    },
+    {
+     "abundance": 0.3501,
+     "energy": 13.395
+    },
+    {
+     "abundance": 0.0256,
+     "energy": 14.952
+    },
+    {
+     "abundance": 0.0497,
+     "energy": 14.961
+    },
+    {
+     "abundance": 0.96,
+     "energy": 514.006
+    }
+   ],
+   "half_life": 93369.6,
+   "name": "Sr-85"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "38 85 0 231.67",
+   "gammas": [
+    {
+     "abundance": 0.0245,
+     "energy": 13.336
+    },
+    {
+     "abundance": 0.0473,
+     "energy": 13.395
+    },
+    {
+     "abundance": 0.1293,
+     "energy": 151.159
+    },
+    {
+     "abundance": 0.84416,
+     "energy": 231.67
+    }
+   ],
+   "half_life": 67.66,
+   "name": "Sr-85m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "38 87 0 388.531",
+   "gammas": [
+    {
+     "abundance": 0.0307,
+     "energy": 14.098
+    },
+    {
+     "abundance": 0.059,
+     "energy": 14.165
+    },
+    {
+     "abundance": 0.8195,
+     "energy": 388.531
+    }
+   ],
+   "half_life": 168.6,
+   "name": "Sr-87m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "38 89 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0001,
+     "energy": 908.96
+    }
+   ],
+   "half_life": 72792.0,
+   "name": "Sr-89"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "39 90 0 479.179",
+   "gammas": [
+    {
+     "abundance": 0.0208,
+     "energy": 14.883
+    },
+    {
+     "abundance": 0.0401,
+     "energy": 14.958
+    },
+    {
+     "abundance": 0.9734,
+     "energy": 202.51
+    },
+    {
+     "abundance": 0.90743,
+     "energy": 479.179
+    }
+   ],
+   "half_life": 191.4,
+   "name": "Y-90m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "40 95 0 0",
+   "gammas": [
+    {
+     "abundance": 0.4417,
+     "energy": 724.199
+    },
+    {
+     "abundance": 0.54,
+     "energy": 756.729
+    }
+   ],
+   "half_life": 92188.8,
+   "name": "Zr-95"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "40 97 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0114,
+     "energy": 254.17
+    },
+    {
+     "abundance": 0.0209,
+     "energy": 355.4
+    },
+    {
+     "abundance": 0.050319,
+     "energy": 507.64
+    },
+    {
+     "abundance": 0.0138,
+     "energy": 602.37
+    },
+    {
+     "abundance": 0.0101,
+     "energy": 703.76
+    },
+    {
+     "abundance": 0.93,
+     "energy": 743.363
+    },
+    {
+     "abundance": 0.0101,
+     "energy": 1021.23
+    },
+    {
+     "abundance": 0.0261,
+     "energy": 1147.97
+    },
+    {
+     "abundance": 0.0102,
+     "energy": 1362.68
+    },
+    {
+     "abundance": 0.0109,
+     "energy": 1750.24
+    }
+   ],
+   "half_life": 1004.4,
+   "name": "Zr-97"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "41 94 0 871.091",
+   "gammas": [
+    {
+     "abundance": 0.1254,
+     "energy": 16.521
+    },
+    {
+     "abundance": 0.2397,
+     "energy": 16.615
+    },
+    {
+     "abundance": 0.0188,
+     "energy": 18.607
+    },
+    {
+     "abundance": 0.0364,
+     "energy": 18.623
+    },
+    {
+     "abundance": 0.005,
+     "energy": 871.091
+    }
+   ],
+   "half_life": 6.26,
+   "name": "Nb-94m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "42 93 0 1477.134",
+   "gammas": [
+    {
+     "abundance": 0.0665,
+     "energy": 17.374
+    },
+    {
+     "abundance": 0.0102,
+     "energy": 19.59
+    },
+    {
+     "abundance": 0.0197,
+     "energy": 19.607
+    },
+    {
+     "abundance": 0.1275,
+     "energy": 17.479
+    },
+    {
+     "abundance": 0.56714,
+     "energy": 263.062
+    },
+    {
+     "abundance": 0.9972,
+     "energy": 684.672
+    },
+    {
+     "abundance": 0.99125,
+     "energy": 1477.134
+    }
+   ],
+   "half_life": 411.0,
+   "name": "Mo-93m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "42 99 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0301,
+     "energy": 18.251
+    },
+    {
+     "abundance": 0.0573,
+     "energy": 18.367
+    },
+    {
+     "abundance": 0.0105,
+     "energy": 40.58
+    },
+    {
+     "abundance": 0.894323,
+     "energy": 140.511
+    },
+    {
+     "abundance": 0.0599,
+     "energy": 181.063
+    },
+    {
+     "abundance": 0.0119,
+     "energy": 366.42
+    },
+    {
+     "abundance": 0.121312,
+     "energy": 739.5
+    },
+    {
+     "abundance": 0.0426,
+     "energy": 777.921
+    }
+   ],
+   "half_life": 3956.4,
+   "name": "Mo-99"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "42 101 0 0",
+   "gammas": [
+    {
+     "abundance": 0.021,
+     "energy": 9.31
+    },
+    {
+     "abundance": 0.0227,
+     "energy": 18.251
+    },
+    {
+     "abundance": 0.0421,
+     "energy": 18.367
+    },
+    {
+     "abundance": 0.0373,
+     "energy": 80.92
+    },
+    {
+     "abundance": 0.18,
+     "energy": 191.92
+    },
+    {
+     "abundance": 0.0277,
+     "energy": 195.93
+    },
+    {
+     "abundance": 0.00865,
+     "energy": 398.84
+    },
+    {
+     "abundance": 0.0153,
+     "energy": 408.69
+    },
+    {
+     "abundance": 0.0139,
+     "energy": 499.65
+    },
+    {
+     "abundance": 0.1162,
+     "energy": 505.92
+    },
+    {
+     "abundance": 0.014,
+     "energy": 512.83
+    },
+    {
+     "abundance": 0.2038,
+     "energy": 590.1
+    },
+    {
+     "abundance": 0.0102,
+     "energy": 608.34
+    },
+    {
+     "abundance": 0.0121,
+     "energy": 642.71
+    },
+    {
+     "abundance": 0.0666,
+     "energy": 695.56
+    },
+    {
+     "abundance": 0.0333,
+     "energy": 713.04
+    },
+    {
+     "abundance": 0.0171,
+     "energy": 871.08
+    },
+    {
+     "abundance": 0.032,
+     "energy": 877.39
+    },
+    {
+     "abundance": 0.0412,
+     "energy": 934.21
+    },
+    {
+     "abundance": 0.1307,
+     "energy": 1012.47
+    },
+    {
+     "abundance": 0.0402,
+     "energy": 1160.98
+    },
+    {
+     "abundance": 0.0101,
+     "energy": 1186.76
+    },
+    {
+     "abundance": 0.018,
+     "energy": 1199.94
+    },
+    {
+     "abundance": 0.0472,
+     "energy": 1251.1
+    },
+    {
+     "abundance": 0.02717,
+     "energy": 1304.0
+    },
+    {
+     "abundance": 0.0169,
+     "energy": 1355.89
+    },
+    {
+     "abundance": 0.0113,
+     "energy": 1382.71
+    },
+    {
+     "abundance": 0.0614,
+     "energy": 1532.49
+    },
+    {
+     "abundance": 0.0175,
+     "energy": 1599.26
+    },
+    {
+     "abundance": 0.0168,
+     "energy": 1673.91
+    },
+    {
+     "abundance": 0.0101,
+     "energy": 1759.72
+    },
+    {
+     "abundance": 0.014,
+     "energy": 1840.24
+    },
+    {
+     "abundance": 0.065918,
+     "energy": 2032.1
+    },
+    {
+     "abundance": 0.0215,
+     "energy": 2041.24
+    }
+   ],
+   "half_life": 14.6,
+   "name": "Mo-101"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "47 108 0 0",
+   "gammas": [
+    {
+     "abundance": 0.01004,
+     "energy": 21.177
+    },
+    {
+     "abundance": 0.005,
+     "energy": 433.93
+    },
+    {
+     "abundance": 0.00261,
+     "energy": 618.84
+    },
+    {
+     "abundance": 0.01769,
+     "energy": 632.97
+    },
+    {
+     "abundance": 0.00283,
+     "energy": 510.998
+    }
+   ],
+   "half_life": 2.37,
+   "name": "Ag-108"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "47 110 0 0",
+   "gammas": [
+    {
+     "abundance": 0.045,
+     "energy": 657.76
+    }
+   ],
+   "half_life": 0.41,
+   "name": "Ag-110"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "47 110 0 1562.30",
+   "gammas": [
+    {
+     "abundance": 0.0372,
+     "energy": 446.811
+    },
+    {
+     "abundance": 0.02787,
+     "energy": 620.36
+    },
+    {
+     "abundance": 0.9404,
+     "energy": 657.76
+    },
+    {
+     "abundance": 0.1028,
+     "energy": 677.62
+    },
+    {
+     "abundance": 0.06396,
+     "energy": 687.015
+    },
+    {
+     "abundance": 0.1633,
+     "energy": 706.682
+    },
+    {
+     "abundance": 0.047,
+     "energy": 744.277
+    },
+    {
+     "abundance": 0.2214,
+     "energy": 763.944
+    },
+    {
+     "abundance": 0.07294,
+     "energy": 818.031
+    },
+    {
+     "abundance": 0.7223,
+     "energy": 884.685
+    },
+    {
+     "abundance": 0.3413,
+     "energy": 937.493
+    },
+    {
+     "abundance": 0.2412,
+     "energy": 1384.3
+    },
+    {
+     "abundance": 0.03969,
+     "energy": 1475.78
+    },
+    {
+     "abundance": 0.12955,
+     "energy": 1505.04
+    },
+    {
+     "abundance": 0.01022,
+     "energy": 1562.3
+    }
+   ],
+   "half_life": 359654.0,
+   "name": "Ag-110m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "48 107 0 0",
+   "gammas": [
+    {
+     "abundance": 0.31515,
+     "energy": 21.99
+    },
+    {
+     "abundance": 0.593,
+     "energy": 22.163
+    },
+    {
+     "abundance": 0.0508,
+     "energy": 24.912
+    },
+    {
+     "abundance": 0.0985,
+     "energy": 24.943
+    },
+    {
+     "abundance": 0.0245,
+     "energy": 25.455
+    },
+    {
+     "abundance": 0.0483,
+     "energy": 93.124
+    },
+    {
+     "abundance": 0.002,
+     "energy": 510.998
+    }
+   ],
+   "half_life": 390.0,
+   "name": "Cd-107"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "48 109 0 0",
+   "gammas": [
+    {
+     "abundance": 0.295,
+     "energy": 21.99
+    },
+    {
+     "abundance": 0.5572,
+     "energy": 22.163
+    },
+    {
+     "abundance": 0.0476,
+     "energy": 24.912
+    },
+    {
+     "abundance": 0.0923,
+     "energy": 24.943
+    },
+    {
+     "abundance": 0.023,
+     "energy": 25.455
+    },
+    {
+     "abundance": 0.03611,
+     "energy": 88.045
+    }
+   ],
+   "half_life": 666144.0,
+   "name": "Cd-109"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "48 111 0 245.395",
+   "gammas": [
+    {
+     "abundance": 0.1165,
+     "energy": 22.984
+    },
+    {
+     "abundance": 0.2179,
+     "energy": 23.174
+    },
+    {
+     "abundance": 0.0188,
+     "energy": 26.061
+    },
+    {
+     "abundance": 0.0363,
+     "energy": 26.095
+    },
+    {
+     "abundance": 0.2919,
+     "energy": 150.824
+    },
+    {
+     "abundance": 0.945,
+     "energy": 245.395
+    }
+   ],
+   "half_life": 48.6,
+   "name": "Cd-111m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "48 115 0 0",
+   "gammas": [
+    {
+     "abundance": 0.1083,
+     "energy": 24.002
+    },
+    {
+     "abundance": 0.2036,
+     "energy": 24.21
+    },
+    {
+     "abundance": 0.0178,
+     "energy": 27.238
+    },
+    {
+     "abundance": 0.0343,
+     "energy": 27.276
+    },
+    {
+     "abundance": 0.0194,
+     "energy": 260.89
+    },
+    {
+     "abundance": 0.4591,
+     "energy": 336.24
+    },
+    {
+     "abundance": 0.08039,
+     "energy": 492.36
+    },
+    {
+     "abundance": 0.274518,
+     "energy": 527.9
+    }
+   ],
+   "half_life": 3207.6,
+   "name": "Cd-115"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "48 115 0 933.87",
+   "gammas": [
+    {
+     "abundance": 0.0029,
+     "energy": 484.47
+    },
+    {
+     "abundance": 0.2,
+     "energy": 933.87
+    }
+   ],
+   "half_life": 64224.0,
+   "name": "Cd-115m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "48 117 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0162,
+     "energy": 24.002
+    },
+    {
+     "abundance": 0.0304,
+     "energy": 24.21
+    },
+    {
+     "abundance": 0.0326,
+     "energy": 89.73
+    },
+    {
+     "abundance": 0.28,
+     "energy": 273.349
+    },
+    {
+     "abundance": 0.1794,
+     "energy": 344.459
+    },
+    {
+     "abundance": 0.0984,
+     "energy": 434.19
+    },
+    {
+     "abundance": 0.0268,
+     "energy": 831.8
+    },
+    {
+     "abundance": 0.03962,
+     "energy": 880.71
+    },
+    {
+     "abundance": 0.0153,
+     "energy": 945.67
+    },
+    {
+     "abundance": 0.03792,
+     "energy": 1051.7
+    },
+    {
+     "abundance": 0.0103,
+     "energy": 1116.6
+    },
+    {
+     "abundance": 0.0167,
+     "energy": 1142.43
+    },
+    {
+     "abundance": 0.012,
+     "energy": 1247.89
+    },
+    {
+     "abundance": 0.1844,
+     "energy": 1303.27
+    },
+    {
+     "abundance": 0.0162,
+     "energy": 1337.57
+    },
+    {
+     "abundance": 0.0128,
+     "energy": 1408.72
+    },
+    {
+     "abundance": 0.01426,
+     "energy": 1562.24
+    },
+    {
+     "abundance": 0.111922,
+     "energy": 1576.62
+    },
+    {
+     "abundance": 0.01006,
+     "energy": 1706.93
+    },
+    {
+     "abundance": 0.02018,
+     "energy": 1723.06
+    }
+   ],
+   "half_life": 149.4,
+   "name": "Cd-117"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "48 117 0 2417.4",
+   "gammas": [
+    {
+     "abundance": 0.0105,
+     "energy": 97.7
+    },
+    {
+     "abundance": 0.0333,
+     "energy": 366.91
+    },
+    {
+     "abundance": 0.0162,
+     "energy": 460.94
+    },
+    {
+     "abundance": 0.0102,
+     "energy": 484.79
+    },
+    {
+     "abundance": 0.1478,
+     "energy": 564.397
+    },
+    {
+     "abundance": 0.028,
+     "energy": 631.8
+    },
+    {
+     "abundance": 0.01,
+     "energy": 712.71
+    },
+    {
+     "abundance": 0.045,
+     "energy": 748.05
+    },
+    {
+     "abundance": 0.0173,
+     "energy": 762.72
+    },
+    {
+     "abundance": 0.793,
+     "energy": 860.41
+    },
+    {
+     "abundance": 0.0364,
+     "energy": 931.37
+    },
+    {
+     "abundance": 0.1174,
+     "energy": 1029.06
+    },
+    {
+     "abundance": 0.2315,
+     "energy": 1065.98
+    },
+    {
+     "abundance": 0.1103,
+     "energy": 1234.59
+    },
+    {
+     "abundance": 0.0207,
+     "energy": 1339.3
+    },
+    {
+     "abundance": 0.0165,
+     "energy": 1365.54
+    },
+    {
+     "abundance": 0.1343,
+     "energy": 1432.91
+    },
+    {
+     "abundance": 0.26,
+     "energy": 1997.33
+    },
+    {
+     "abundance": 0.074416,
+     "energy": 2096.4
+    },
+    {
+     "abundance": 0.078618,
+     "energy": 2322.75
+    },
+    {
+     "abundance": 0.0102,
+     "energy": 2417.4
+    }
+   ],
+   "half_life": 21.6,
+   "name": "Cd-117m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "49 114 0 190.27",
+   "gammas": [
+    {
+     "abundance": 0.154,
+     "energy": 190.27
+    },
+    {
+     "abundance": 0.0439,
+     "energy": 558.43
+    },
+    {
+     "abundance": 0.0433,
+     "energy": 725.24
+    }
+   ],
+   "half_life": 71294.4,
+   "name": "In-114m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "49 116 0 2112.312",
+   "gammas": [
+    {
+     "abundance": 0.0329,
+     "energy": 138.327
+    },
+    {
+     "abundance": 0.27712,
+     "energy": 416.86
+    },
+    {
+     "abundance": 0.1154,
+     "energy": 818.718
+    },
+    {
+     "abundance": 0.56211,
+     "energy": 1097.326
+    },
+    {
+     "abundance": 0.84417,
+     "energy": 1293.558
+    },
+    {
+     "abundance": 0.1003,
+     "energy": 1507.67
+    },
+    {
+     "abundance": 0.02468,
+     "energy": 1752.72
+    },
+    {
+     "abundance": 0.1554,
+     "energy": 2112.312
+    }
+   ],
+   "half_life": 54.15,
+   "name": "In-116m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "50 113 0 0",
+   "gammas": [
+    {
+     "abundance": 0.2829,
+     "energy": 24.002
+    },
+    {
+     "abundance": 0.5281,
+     "energy": 24.21
+    },
+    {
+     "abundance": 0.0463,
+     "energy": 27.238
+    },
+    {
+     "abundance": 0.0893,
+     "energy": 27.276
+    },
+    {
+     "abundance": 0.0237,
+     "energy": 27.862
+    },
+    {
+     "abundance": 0.0182,
+     "energy": 255.05
+    },
+    {
+     "abundance": 0.64,
+     "energy": 391.69
+    }
+   ],
+   "half_life": 165729.6,
+   "name": "Sn-113"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "50 113 0 77.38",
+   "gammas": [
+    {
+     "abundance": 0.1293,
+     "energy": 25.044
+    },
+    {
+     "abundance": 0.2425,
+     "energy": 25.271
+    },
+    {
+     "abundance": 0.0215,
+     "energy": 28.444
+    },
+    {
+     "abundance": 0.0414,
+     "energy": 28.486
+    },
+    {
+     "abundance": 0.0113,
+     "energy": 29.111
+    },
+    {
+     "abundance": 0.005,
+     "energy": 77.38
+    }
+   ],
+   "half_life": 21.4,
+   "name": "Sn-113m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "50 117 0 158.562",
+   "gammas": [
+    {
+     "abundance": 0.1954,
+     "energy": 25.044
+    },
+    {
+     "abundance": 0.3648,
+     "energy": 25.271
+    },
+    {
+     "abundance": 0.0323,
+     "energy": 28.444
+    },
+    {
+     "abundance": 0.0623,
+     "energy": 28.486
+    },
+    {
+     "abundance": 0.017,
+     "energy": 29.111
+    },
+    {
+     "abundance": 0.02113,
+     "energy": 156.02
+    },
+    {
+     "abundance": 0.86,
+     "energy": 158.562
+    }
+   ],
+   "half_life": 19584.0,
+   "name": "Sn-117m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "50 119 0 28.486",
+   "gammas": [
+    {
+     "abundance": 0.0803,
+     "energy": 25.044
+    },
+    {
+     "abundance": 0.1496,
+     "energy": 25.271
+    },
+    {
+     "abundance": 0.0133,
+     "energy": 28.444
+    },
+    {
+     "abundance": 0.0256,
+     "energy": 28.486
+    },
+    {
+     "abundance": 0.1615,
+     "energy": 23.87
+    },
+    {
+     "abundance": 0.1433,
+     "energy": 25.27
+    }
+   ],
+   "half_life": 421920.0,
+   "name": "Sn-119m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "50 123 0 0",
+   "gammas": [
+    {
+     "abundance": 0.006,
+     "energy": 1088.64
+    }
+   ],
+   "half_life": 185760.0,
+   "name": "Sn-123"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "50 123 0 160.33",
+   "gammas": [
+    {
+     "abundance": 0.0315,
+     "energy": 26.111
+    },
+    {
+     "abundance": 0.0588,
+     "energy": 26.359
+    },
+    {
+     "abundance": 0.0101,
+     "energy": 29.726
+    },
+    {
+     "abundance": 0.86,
+     "energy": 160.33
+    }
+   ],
+   "half_life": 40.08,
+   "name": "Sn-123m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "50 125 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0141,
+     "energy": 332.1
+    },
+    {
+     "abundance": 0.01486,
+     "energy": 469.85
+    },
+    {
+     "abundance": 0.0107,
+     "energy": 800.28
+    },
+    {
+     "abundance": 0.042816,
+     "energy": 822.48
+    },
+    {
+     "abundance": 0.041316,
+     "energy": 915.55
+    },
+    {
+     "abundance": 0.1,
+     "energy": 1067.1
+    },
+    {
+     "abundance": 0.0119,
+     "energy": 1087.7
+    },
+    {
+     "abundance": 0.0459,
+     "energy": 1089.15
+    },
+    {
+     "abundance": 0.01927,
+     "energy": 2002.147
+    }
+   ],
+   "half_life": 13881.6,
+   "name": "Sn-125"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "50 125 0 332.10",
+   "gammas": [
+    {
+     "abundance": 0.97219,
+     "energy": 332.1
+    }
+   ],
+   "half_life": 9.52,
+   "name": "Sn-125m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "51 122 0 0",
+   "gammas": [
+    {
+     "abundance": 0.71,
+     "energy": 564.119
+    },
+    {
+     "abundance": 0.0385,
+     "energy": 692.794
+    }
+   ],
+   "half_life": 3888.0,
+   "name": "Sb-122"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "51 122 0 61.4127",
+   "gammas": [
+    {
+     "abundance": 0.0889,
+     "energy": 26.111
+    },
+    {
+     "abundance": 0.1664,
+     "energy": 26.359
+    },
+    {
+     "abundance": 0.0148,
+     "energy": 29.679
+    },
+    {
+     "abundance": 0.0286,
+     "energy": 29.726
+    },
+    {
+     "abundance": 0.55,
+     "energy": 61.4127
+    }
+   ],
+   "half_life": 4.21,
+   "name": "Sb-122m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "51 124 0 0",
+   "gammas": [
+    {
+     "abundance": 0.9826,
+     "energy": 602.729
+    },
+    {
+     "abundance": 0.07456,
+     "energy": 645.85
+    },
+    {
+     "abundance": 0.0136,
+     "energy": 709.304
+    },
+    {
+     "abundance": 0.0287,
+     "energy": 713.781
+    },
+    {
+     "abundance": 0.1081,
+     "energy": 722.786
+    },
+    {
+     "abundance": 0.018929,
+     "energy": 968.201
+    },
+    {
+     "abundance": 0.018411,
+     "energy": 1045.131
+    },
+    {
+     "abundance": 0.01588,
+     "energy": 1325.512
+    },
+    {
+     "abundance": 0.01043,
+     "energy": 1355.176
+    },
+    {
+     "abundance": 0.02623,
+     "energy": 1368.168
+    },
+    {
+     "abundance": 0.01228,
+     "energy": 1436.563
+    },
+    {
+     "abundance": 0.477915,
+     "energy": 1690.983
+    },
+    {
+     "abundance": 0.0513,
+     "energy": 2090.945
+    }
+   ],
+   "half_life": 86688.0,
+   "name": "Sb-124"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "51 124 0 645.8549",
+   "gammas": [
+    {
+     "abundance": 0.25,
+     "energy": 498.38
+    },
+    {
+     "abundance": 0.25,
+     "energy": 602.729
+    },
+    {
+     "abundance": 0.25,
+     "energy": 645.8549
+    }
+   ],
+   "half_life": 1.55,
+   "name": "Sb-124m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "53 128 0 0",
+   "gammas": [
+    {
+     "abundance": 0.2172,
+     "energy": 27.202
+    },
+    {
+     "abundance": 0.404,
+     "energy": 27.472
+    },
+    {
+     "abundance": 0.0364,
+     "energy": 30.944
+    },
+    {
+     "abundance": 0.0707,
+     "energy": 30.995
+    },
+    {
+     "abundance": 0.0203,
+     "energy": 31.704
+    },
+    {
+     "abundance": 0.17,
+     "energy": 442.901
+    },
+    {
+     "abundance": 0.0158,
+     "energy": 526.557
+    }
+   ],
+   "half_life": 24.99,
+   "name": "I-128"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "55 134 0 0",
+   "gammas": [
+    {
+     "abundance": 0.01486,
+     "energy": 475.365
+    },
+    {
+     "abundance": 0.0835,
+     "energy": 563.246
+    },
+    {
+     "abundance": 0.15386,
+     "energy": 569.331
+    },
+    {
+     "abundance": 0.9762,
+     "energy": 604.721
+    },
+    {
+     "abundance": 0.8553,
+     "energy": 795.864
+    },
+    {
+     "abundance": 0.0869,
+     "energy": 801.953
+    },
+    {
+     "abundance": 0.017897,
+     "energy": 1167.968
+    },
+    {
+     "abundance": 0.03014,
+     "energy": 1365.185
+    }
+   ],
+   "half_life": 1082736.0,
+   "name": "Cs-134"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "55 134 0 127.5021",
+   "gammas": [
+    {
+     "abundance": 0.01086,
+     "energy": 11.242
+    },
+    {
+     "abundance": 0.0891,
+     "energy": 30.625
+    },
+    {
+     "abundance": 0.1654,
+     "energy": 30.973
+    },
+    {
+     "abundance": 0.0153,
+     "energy": 34.92
+    },
+    {
+     "abundance": 0.0295,
+     "energy": 34.987
+    },
+    {
+     "abundance": 0.13,
+     "energy": 127.5021
+    }
+   ],
+   "half_life": 174.6,
+   "name": "Cs-134m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "56 131 0 0",
+   "gammas": [
+    {
+     "abundance": 0.2808,
+     "energy": 30.625
+    },
+    {
+     "abundance": 0.5171,
+     "energy": 30.973
+    },
+    {
+     "abundance": 0.048,
+     "energy": 34.92
+    },
+    {
+     "abundance": 0.0933,
+     "energy": 34.987
+    },
+    {
+     "abundance": 0.0287,
+     "energy": 35.818
+    },
+    {
+     "abundance": 0.289723,
+     "energy": 123.805
+    },
+    {
+     "abundance": 0.02123,
+     "energy": 133.609
+    },
+    {
+     "abundance": 0.196623,
+     "energy": 216.078
+    },
+    {
+     "abundance": 0.0241,
+     "energy": 239.629
+    },
+    {
+     "abundance": 0.02813,
+     "energy": 249.432
+    },
+    {
+     "abundance": 0.1404,
+     "energy": 373.246
+    },
+    {
+     "abundance": 0.0131,
+     "energy": 404.046
+    },
+    {
+     "abundance": 0.02087,
+     "energy": 486.522
+    },
+    {
+     "abundance": 0.47,
+     "energy": 496.326
+    },
+    {
+     "abundance": 0.01193,
+     "energy": 585.041
+    },
+    {
+     "abundance": 0.01437,
+     "energy": 620.11
+    },
+    {
+     "abundance": 0.01324,
+     "energy": 1047.6
+    }
+   ],
+   "half_life": 16992.0,
+   "name": "Ba-131"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "56 131 0 108.081",
+   "gammas": [
+    {
+     "abundance": 0.14021,
+     "energy": 31.817
+    },
+    {
+     "abundance": 0.264,
+     "energy": 32.194
+    },
+    {
+     "abundance": 0.0244,
+     "energy": 36.304
+    },
+    {
+     "abundance": 0.0477,
+     "energy": 36.378
+    },
+    {
+     "abundance": 0.0148,
+     "energy": 37.255
+    },
+    {
+     "abundance": 0.0137,
+     "energy": 79.05
+    },
+    {
+     "abundance": 0.55,
+     "energy": 108.081
+    }
+   ],
+   "half_life": 14.6,
+   "name": "Ba-131m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "56 133 0 0",
+   "gammas": [
+    {
+     "abundance": 0.3499,
+     "energy": 30.625
+    },
+    {
+     "abundance": 0.6451,
+     "energy": 30.973
+    },
+    {
+     "abundance": 0.0599,
+     "energy": 34.92
+    },
+    {
+     "abundance": 0.1163,
+     "energy": 34.987
+    },
+    {
+     "abundance": 0.0358,
+     "energy": 35.818
+    },
+    {
+     "abundance": 0.02199,
+     "energy": 53.161
+    },
+    {
+     "abundance": 0.02626,
+     "energy": 79.6139
+    },
+    {
+     "abundance": 0.3406,
+     "energy": 80.9971
+    },
+    {
+     "abundance": 0.07164,
+     "energy": 276.398
+    },
+    {
+     "abundance": 0.1833,
+     "energy": 302.853
+    },
+    {
+     "abundance": 0.6205,
+     "energy": 356.017
+    },
+    {
+     "abundance": 0.08943,
+     "energy": 383.851
+    }
+   ],
+   "half_life": 5529312.0,
+   "name": "Ba-133"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "56 133 0 275.925",
+   "gammas": [
+    {
+     "abundance": 0.0153,
+     "energy": 12.327
+    },
+    {
+     "abundance": 0.0269,
+     "energy": 36.304
+    },
+    {
+     "abundance": 0.0519,
+     "energy": 36.378
+    },
+    {
+     "abundance": 0.0164,
+     "energy": 37.255
+    },
+    {
+     "abundance": 0.1783,
+     "energy": 275.925
+    }
+   ],
+   "half_life": 2334.0,
+   "name": "Ba-133m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "56 135 0 268.218",
+   "gammas": [
+    {
+     "abundance": 0.1555,
+     "energy": 31.817
+    },
+    {
+     "abundance": 0.2851,
+     "energy": 32.194
+    },
+    {
+     "abundance": 0.0267,
+     "energy": 36.304
+    },
+    {
+     "abundance": 0.0516,
+     "energy": 36.378
+    },
+    {
+     "abundance": 0.0163,
+     "energy": 37.255
+    },
+    {
+     "abundance": 0.1564,
+     "energy": 268.218
+    }
+   ],
+   "half_life": 1722.0,
+   "name": "Ba-135m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "56 137 0 661.657",
+   "gammas": [
+    {
+     "abundance": 0.0216,
+     "energy": 31.817
+    },
+    {
+     "abundance": 0.0398,
+     "energy": 32.194
+    },
+    {
+     "abundance": 0.90116,
+     "energy": 661.657
+    }
+   ],
+   "half_life": 2.55,
+   "name": "Ba-137m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "56 139 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0141,
+     "energy": 33.034
+    },
+    {
+     "abundance": 0.0263,
+     "energy": 33.442
+    },
+    {
+     "abundance": 0.23724,
+     "energy": 165.864
+    }
+   ],
+   "half_life": 84.63,
+   "name": "Ba-139"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "58 137 0 0",
+   "gammas": [
+    {
+     "abundance": 0.008,
+     "energy": 10.65
+    },
+    {
+     "abundance": 0.2197,
+     "energy": 33.034
+    },
+    {
+     "abundance": 0.40212,
+     "energy": 33.442
+    },
+    {
+     "abundance": 0.0379,
+     "energy": 37.72
+    },
+    {
+     "abundance": 0.0731,
+     "energy": 37.801
+    },
+    {
+     "abundance": 0.0237,
+     "energy": 38.726
+    },
+    {
+     "abundance": 0.018,
+     "energy": 447.158
+    }
+   ],
+   "half_life": 540.0,
+   "name": "Ce-137"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "58 137 0 254.29",
+   "gammas": [
+    {
+     "abundance": 0.1597,
+     "energy": 34.279
+    },
+    {
+     "abundance": 0.2911,
+     "energy": 34.72
+    },
+    {
+     "abundance": 0.0278,
+     "energy": 39.17
+    },
+    {
+     "abundance": 0.0536,
+     "energy": 39.258
+    },
+    {
+     "abundance": 0.0172,
+     "energy": 40.228
+    },
+    {
+     "abundance": 0.0044,
+     "energy": 169.26
+    },
+    {
+     "abundance": 0.1104,
+     "energy": 254.29
+    }
+   ],
+   "half_life": 2064.0,
+   "name": "Ce-137m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "55 137 0 0",
+   "gammas": [
+    {
+     "abundance": 0.851,
+     "energy": 661.657
+    }
+   ],
+   "half_life": 15804792.0,
+   "name": "Cs-137"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "57 138 0 0",
+   "gammas": [
+    {
+     "abundance": 0.656,
+     "energy": 1435.8
+    }
+   ],
+   "half_life": 99999999.0,
+   "name": "La-138"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "58 139 0 0",
+   "gammas": [
+    {
+     "abundance": 0.2387,
+     "energy": 33.034
+    },
+    {
+     "abundance": 0.4361,
+     "energy": 33.442
+    },
+    {
+     "abundance": 0.0411,
+     "energy": 37.72
+    },
+    {
+     "abundance": 0.0793,
+     "energy": 37.801
+    },
+    {
+     "abundance": 0.0257,
+     "energy": 38.726
+    },
+    {
+     "abundance": 0.8,
+     "energy": 165.864
+    }
+   ],
+   "half_life": 198230.0,
+   "name": "Ce-139"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "58 141 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0496,
+     "energy": 35.55
+    },
+    {
+     "abundance": 0.0906,
+     "energy": 36.026
+    },
+    {
+     "abundance": 0.0167,
+     "energy": 40.748
+    },
+    {
+     "abundance": 0.4823,
+     "energy": 145.4405
+    }
+   ],
+   "half_life": 46800.0,
+   "name": "Ce-141"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "58 143 0 0",
+   "gammas": [
+    {
+     "abundance": 0.1817,
+     "energy": 35.55
+    },
+    {
+     "abundance": 0.3301,
+     "energy": 36.026
+    },
+    {
+     "abundance": 0.0316,
+     "energy": 40.653
+    },
+    {
+     "abundance": 0.061,
+     "energy": 40.748
+    },
+    {
+     "abundance": 0.0198,
+     "energy": 41.764
+    },
+    {
+     "abundance": 0.1173,
+     "energy": 57.356
+    },
+    {
+     "abundance": 0.0205,
+     "energy": 231.55
+    },
+    {
+     "abundance": 0.428,
+     "energy": 293.266
+    },
+    {
+     "abundance": 0.03233,
+     "energy": 350.619
+    },
+    {
+     "abundance": 0.02161,
+     "energy": 490.368
+    },
+    {
+     "abundance": 0.05694,
+     "energy": 664.571
+    },
+    {
+     "abundance": 0.05394,
+     "energy": 721.929
+    },
+    {
+     "abundance": 0.01031,
+     "energy": 880.46
+    }
+   ],
+   "half_life": 1980.0,
+   "name": "Ce-143"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "57 140 0 0",
+   "gammas": [
+    {
+     "abundance": 0.011,
+     "energy": 34.72
+    },
+    {
+     "abundance": 0.2033,
+     "energy": 328.762
+    },
+    {
+     "abundance": 0.029,
+     "energy": 432.493
+    },
+    {
+     "abundance": 0.4556,
+     "energy": 487.021
+    },
+    {
+     "abundance": 0.04334,
+     "energy": 751.637
+    },
+    {
+     "abundance": 0.232819,
+     "energy": 815.772
+    },
+    {
+     "abundance": 0.05507,
+     "energy": 867.846
+    },
+    {
+     "abundance": 0.02663,
+     "energy": 919.55
+    },
+    {
+     "abundance": 0.06907,
+     "energy": 925.189
+    },
+    {
+     "abundance": 0.95414,
+     "energy": 1596.21
+    },
+    {
+     "abundance": 0.03464,
+     "energy": 2521.4
+    }
+   ],
+   "half_life": 2416.2,
+   "name": "La-140"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "59 142 0 0",
+   "gammas": [
+    {
+     "abundance": 0.037,
+     "energy": 1575.85
+    }
+   ],
+   "half_life": 1147.2,
+   "name": "Pr-142"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "60 147 0 0",
+   "gammas": [
+    {
+     "abundance": 0.1323,
+     "energy": 38.171
+    },
+    {
+     "abundance": 0.2405,
+     "energy": 38.725
+    },
+    {
+     "abundance": 0.0233,
+     "energy": 43.713
+    },
+    {
+     "abundance": 0.0451,
+     "energy": 43.827
+    },
+    {
+     "abundance": 0.0148,
+     "energy": 44.942
+    },
+    {
+     "abundance": 0.28,
+     "energy": 91.105
+    },
+    {
+     "abundance": 0.0195,
+     "energy": 319.411
+    },
+    {
+     "abundance": 0.012,
+     "energy": 439.895
+    },
+    {
+     "abundance": 0.1317,
+     "energy": 531.016
+    }
+   ],
+   "half_life": 15811.2,
+   "name": "Nd-147"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "60 149 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0934,
+     "energy": 38.171
+    },
+    {
+     "abundance": 0.1698,
+     "energy": 38.725
+    },
+    {
+     "abundance": 0.0165,
+     "energy": 43.713
+    },
+    {
+     "abundance": 0.0319,
+     "energy": 43.827
+    },
+    {
+     "abundance": 0.0105,
+     "energy": 44.942
+    },
+    {
+     "abundance": 0.013,
+     "energy": 58.883
+    },
+    {
+     "abundance": 0.01123,
+     "energy": 74.323
+    },
+    {
+     "abundance": 0.01451,
+     "energy": 97.001
+    },
+    {
+     "abundance": 0.19213,
+     "energy": 114.314
+    },
+    {
+     "abundance": 0.0593,
+     "energy": 155.873
+    },
+    {
+     "abundance": 0.0179,
+     "energy": 188.64
+    },
+    {
+     "abundance": 0.01394,
+     "energy": 198.928
+    },
+    {
+     "abundance": 0.02546,
+     "energy": 208.147
+    },
+    {
+     "abundance": 0.2591,
+     "energy": 211.309
+    },
+    {
+     "abundance": 0.039416,
+     "energy": 240.22
+    },
+    {
+     "abundance": 0.060316,
+     "energy": 267.693
+    },
+    {
+     "abundance": 0.1073,
+     "energy": 270.166
+    },
+    {
+     "abundance": 0.0456,
+     "energy": 326.554
+    },
+    {
+     "abundance": 0.01384,
+     "energy": 349.231
+    },
+    {
+     "abundance": 0.0744,
+     "energy": 423.553
+    },
+    {
+     "abundance": 0.0115,
+     "energy": 443.551
+    },
+    {
+     "abundance": 0.0658,
+     "energy": 540.509
+    },
+    {
+     "abundance": 0.0804,
+     "energy": 654.831
+    }
+   ],
+   "half_life": 103.2,
+   "name": "Nd-149"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "60 151 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0621,
+     "energy": 38.171
+    },
+    {
+     "abundance": 0.1133,
+     "energy": 38.725
+    },
+    {
+     "abundance": 0.011,
+     "energy": 43.713
+    },
+    {
+     "abundance": 0.0212,
+     "energy": 43.827
+    },
+    {
+     "abundance": 0.01265,
+     "energy": 68.98
+    },
+    {
+     "abundance": 0.02055,
+     "energy": 85.12
+    },
+    {
+     "abundance": 0.0153,
+     "energy": 89.96
+    },
+    {
+     "abundance": 0.3905,
+     "energy": 116.8
+    },
+    {
+     "abundance": 0.0705,
+     "energy": 138.89
+    },
+    {
+     "abundance": 0.0287,
+     "energy": 170.76
+    },
+    {
+     "abundance": 0.063321,
+     "energy": 175.07
+    },
+    {
+     "abundance": 0.1483,
+     "energy": 255.68
+    },
+    {
+     "abundance": 0.01825,
+     "energy": 300.58
+    },
+    {
+     "abundance": 0.059212,
+     "energy": 423.56
+    },
+    {
+     "abundance": 0.013,
+     "energy": 585.22
+    },
+    {
+     "abundance": 0.02385,
+     "energy": 677.88
+    },
+    {
+     "abundance": 0.0592,
+     "energy": 736.23
+    },
+    {
+     "abundance": 0.0152,
+     "energy": 739.2
+    },
+    {
+     "abundance": 0.017,
+     "energy": 755.57
+    },
+    {
+     "abundance": 0.0472,
+     "energy": 797.53
+    },
+    {
+     "abundance": 0.025,
+     "energy": 1016.4
+    },
+    {
+     "abundance": 0.0408,
+     "energy": 1122.63
+    },
+    {
+     "abundance": 0.1333,
+     "energy": 1180.89
+    }
+   ],
+   "half_life": 12.44,
+   "name": "Nd-151"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "62 145 0 0",
+   "gammas": [
+    {
+     "abundance": 0.3999,
+     "energy": 38.171
+    },
+    {
+     "abundance": 0.7241,
+     "energy": 38.725
+    },
+    {
+     "abundance": 0.0704,
+     "energy": 43.713
+    },
+    {
+     "abundance": 0.1363,
+     "energy": 43.827
+    },
+    {
+     "abundance": 0.0447,
+     "energy": 44.942
+    },
+    {
+     "abundance": 0.0169,
+     "energy": 45.06
+    },
+    {
+     "abundance": 0.12,
+     "energy": 61.25
+    }
+   ],
+   "half_life": 489600.0,
+   "name": "Sm-145"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "62 153 0 0",
+   "gammas": [
+    {
+     "abundance": 0.1794,
+     "energy": 40.902
+    },
+    {
+     "abundance": 0.3227,
+     "energy": 41.542
+    },
+    {
+     "abundance": 0.0317,
+     "energy": 46.905
+    },
+    {
+     "abundance": 0.0613,
+     "energy": 47.038
+    },
+    {
+     "abundance": 0.0203,
+     "energy": 48.249
+    },
+    {
+     "abundance": 0.04856,
+     "energy": 69.673
+    },
+    {
+     "abundance": 0.3,
+     "energy": 103.18
+    }
+   ],
+   "half_life": 2776.2,
+   "name": "Sm-153"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "62 155 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0509,
+     "energy": 40.902
+    },
+    {
+     "abundance": 0.0923,
+     "energy": 41.542
+    },
+    {
+     "abundance": 0.0174,
+     "energy": 47.038
+    },
+    {
+     "abundance": 0.746,
+     "energy": 104.33
+    },
+    {
+     "abundance": 0.01988,
+     "energy": 141.44
+    },
+    {
+     "abundance": 0.037,
+     "energy": 245.771
+    }
+   ],
+   "half_life": 22.3,
+   "name": "Sm-155"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "63 152 0 0",
+   "gammas": [
+    {
+     "abundance": 0.2115,
+     "energy": 39.522
+    },
+    {
+     "abundance": 0.3831,
+     "energy": 40.118
+    },
+    {
+     "abundance": 0.0374,
+     "energy": 45.294
+    },
+    {
+     "abundance": 0.0724,
+     "energy": 45.414
+    },
+    {
+     "abundance": 0.0239,
+     "energy": 46.578
+    },
+    {
+     "abundance": 0.2858,
+     "energy": 121.78
+    },
+    {
+     "abundance": 0.07583,
+     "energy": 244.6975
+    },
+    {
+     "abundance": 0.2654,
+     "energy": 344.2785
+    },
+    {
+     "abundance": 0.02234,
+     "energy": 411.11
+    },
+    {
+     "abundance": 0.02821,
+     "energy": 443.965
+    },
+    {
+     "abundance": 0.12942,
+     "energy": 778.9
+    },
+    {
+     "abundance": 0.04245,
+     "energy": 867.378
+    },
+    {
+     "abundance": 0.14605,
+     "energy": 964.079
+    },
+    {
+     "abundance": 0.10207,
+     "energy": 1085.869
+    },
+    {
+     "abundance": 0.01727,
+     "energy": 1089.737
+    },
+    {
+     "abundance": 0.13644,
+     "energy": 1112.074
+    },
+    {
+     "abundance": 0.01422,
+     "energy": 1212.948
+    },
+    {
+     "abundance": 0.01623,
+     "energy": 1299.14
+    },
+    {
+     "abundance": 0.21005,
+     "energy": 1408.006
+    }
+   ],
+   "half_life": 7000000.0,
+   "name": "Eu-152"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "63 152 0 963.390",
+   "gammas": [
+    {
+     "abundance": 0.0131,
+     "energy": 45.294
+    },
+    {
+     "abundance": 0.0254,
+     "energy": 45.414
+    },
+    {
+     "abundance": 0.07,
+     "energy": 121.78
+    },
+    {
+     "abundance": 0.0238,
+     "energy": 344.2785
+    },
+    {
+     "abundance": 0.1423,
+     "energy": 841.57
+    },
+    {
+     "abundance": 0.1167,
+     "energy": 963.39
+    }
+   ],
+   "half_life": 559.2,
+   "name": "Eu-152m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "63 154 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0741,
+     "energy": 42.309
+    },
+    {
+     "abundance": 0.1343,
+     "energy": 42.996
+    },
+    {
+     "abundance": 0.0132,
+     "energy": 48.551
+    },
+    {
+     "abundance": 0.0256,
+     "energy": 48.695
+    },
+    {
+     "abundance": 0.4079,
+     "energy": 123.071
+    },
+    {
+     "abundance": 0.0695,
+     "energy": 247.925
+    },
+    {
+     "abundance": 0.0499,
+     "energy": 591.763
+    },
+    {
+     "abundance": 0.01802,
+     "energy": 692.421
+    },
+    {
+     "abundance": 0.2022,
+     "energy": 723.304
+    },
+    {
+     "abundance": 0.0457,
+     "energy": 756.763
+    },
+    {
+     "abundance": 0.1227,
+     "energy": 873.19
+    },
+    {
+     "abundance": 0.1064,
+     "energy": 996.262
+    },
+    {
+     "abundance": 0.1801,
+     "energy": 1004.725
+    },
+    {
+     "abundance": 0.351918,
+     "energy": 1274.436
+    },
+    {
+     "abundance": 0.01798,
+     "energy": 1596.495
+    }
+   ],
+   "half_life": 4515000.0,
+   "name": "Eu-154"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "64 153 0 0",
+   "gammas": [
+    {
+     "abundance": 0.3529,
+     "energy": 40.902
+    },
+    {
+     "abundance": 0.6351,
+     "energy": 41.542
+    },
+    {
+     "abundance": 0.0625,
+     "energy": 46.905
+    },
+    {
+     "abundance": 0.1213,
+     "energy": 47.038
+    },
+    {
+     "abundance": 0.04,
+     "energy": 48.249
+    },
+    {
+     "abundance": 0.0159,
+     "energy": 48.386
+    },
+    {
+     "abundance": 0.02419,
+     "energy": 69.67
+    },
+    {
+     "abundance": 0.29,
+     "energy": 97.43
+    },
+    {
+     "abundance": 0.2111,
+     "energy": 103.18
+    }
+   ],
+   "half_life": 347904.0,
+   "name": "Gd-153"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "64 159 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0543,
+     "energy": 43.744
+    },
+    {
+     "abundance": 0.0975,
+     "energy": 44.482
+    },
+    {
+     "abundance": 0.0188,
+     "energy": 50.384
+    },
+    {
+     "abundance": 0.0215,
+     "energy": 58.0
+    },
+    {
+     "abundance": 0.1146,
+     "energy": 363.55
+    }
+   ],
+   "half_life": 1113.6,
+   "name": "Gd-159"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "64 161 0 0",
+   "gammas": [
+    {
+     "abundance": 0.1307,
+     "energy": 43.744
+    },
+    {
+     "abundance": 0.2341,
+     "energy": 44.482
+    },
+    {
+     "abundance": 0.0235,
+     "energy": 50.228
+    },
+    {
+     "abundance": 0.0453,
+     "energy": 50.384
+    },
+    {
+     "abundance": 0.0152,
+     "energy": 51.698
+    },
+    {
+     "abundance": 0.037716,
+     "energy": 56.29
+    },
+    {
+     "abundance": 0.0106,
+     "energy": 77.393
+    },
+    {
+     "abundance": 0.1398,
+     "energy": 102.315
+    },
+    {
+     "abundance": 0.0258,
+     "energy": 165.213
+    },
+    {
+     "abundance": 0.059525,
+     "energy": 283.55
+    },
+    {
+     "abundance": 0.2279,
+     "energy": 314.92
+    },
+    {
+     "abundance": 0.0168,
+     "energy": 338.07
+    },
+    {
+     "abundance": 0.60115,
+     "energy": 360.94
+    },
+    {
+     "abundance": 0.0268,
+     "energy": 480.12
+    },
+    {
+     "abundance": 0.0126,
+     "energy": 529.5
+    }
+   ],
+   "half_life": 3.66,
+   "name": "Gd-161"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "65 160 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0597,
+     "energy": 45.208
+    },
+    {
+     "abundance": 0.1066,
+     "energy": 45.998
+    },
+    {
+     "abundance": 0.01093,
+     "energy": 51.947
+    },
+    {
+     "abundance": 0.0211,
+     "energy": 52.113
+    },
+    {
+     "abundance": 0.131512,
+     "energy": 86.7882
+    },
+    {
+     "abundance": 0.0518,
+     "energy": 197.0352
+    },
+    {
+     "abundance": 0.04018,
+     "energy": 215.646
+    },
+    {
+     "abundance": 0.2613,
+     "energy": 298.58
+    },
+    {
+     "abundance": 0.01336,
+     "energy": 392.514
+    },
+    {
+     "abundance": 0.0214,
+     "energy": 765.28
+    },
+    {
+     "abundance": 0.301,
+     "energy": 879.383
+    },
+    {
+     "abundance": 0.0981,
+     "energy": 962.317
+    },
+    {
+     "abundance": 0.251,
+     "energy": 966.171
+    },
+    {
+     "abundance": 0.01038,
+     "energy": 1002.88
+    },
+    {
+     "abundance": 0.01565,
+     "energy": 1115.12
+    },
+    {
+     "abundance": 0.1487,
+     "energy": 1177.962
+    },
+    {
+     "abundance": 0.02384,
+     "energy": 1199.89
+    },
+    {
+     "abundance": 0.07444,
+     "energy": 1271.88
+    },
+    {
+     "abundance": 0.02864,
+     "energy": 1312.14
+    }
+   ],
+   "half_life": 104112.0,
+   "name": "Tb-160"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "66 157 0 0",
+   "gammas": [
+    {
+     "abundance": 0.2611,
+     "energy": 43.744
+    },
+    {
+     "abundance": 0.4682,
+     "energy": 44.482
+    },
+    {
+     "abundance": 0.0472,
+     "energy": 50.228
+    },
+    {
+     "abundance": 0.0914,
+     "energy": 50.384
+    },
+    {
+     "abundance": 0.0303,
+     "energy": 51.698
+    },
+    {
+     "abundance": 0.0112,
+     "energy": 51.849
+    },
+    {
+     "abundance": 0.0184,
+     "energy": 182.2
+    },
+    {
+     "abundance": 0.92,
+     "energy": 326.16
+    }
+   ],
+   "half_life": 486.0,
+   "name": "Dy-157"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "66 159 0 0",
+   "gammas": [
+    {
+     "abundance": 0.2709,
+     "energy": 43.744
+    },
+    {
+     "abundance": 0.4851,
+     "energy": 44.482
+    },
+    {
+     "abundance": 0.0489,
+     "energy": 50.228
+    },
+    {
+     "abundance": 0.0953,
+     "energy": 50.384
+    },
+    {
+     "abundance": 0.0314,
+     "energy": 51.698
+    },
+    {
+     "abundance": 0.0117,
+     "energy": 51.849
+    },
+    {
+     "abundance": 0.0222,
+     "energy": 58.0
+    }
+   ],
+   "half_life": 207936.0,
+   "name": "Dy-159"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "66 165 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0271,
+     "energy": 46.7
+    },
+    {
+     "abundance": 0.0482,
+     "energy": 47.547
+    },
+    {
+     "abundance": 0.035818,
+     "energy": 94.7
+    }
+   ],
+   "half_life": 139.8,
+   "name": "Dy-165"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "66 165 0 515.467",
+   "gammas": [
+    {
+     "abundance": 0.0262,
+     "energy": 45.208
+    },
+    {
+     "abundance": 0.0467,
+     "energy": 45.998
+    },
+    {
+     "abundance": 0.03019,
+     "energy": 108.16
+    },
+    {
+     "abundance": 0.01535,
+     "energy": 515.467
+    }
+   ],
+   "half_life": 1.26,
+   "name": "Dy-165m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "67 166 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0302,
+     "energy": 48.221
+    },
+    {
+     "abundance": 0.0535,
+     "energy": 49.128
+    },
+    {
+     "abundance": 0.0108,
+     "energy": 55.674
+    },
+    {
+     "abundance": 0.0671,
+     "energy": 80.574
+    }
+   ],
+   "half_life": 1608.0,
+   "name": "Ho-166"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "67 166 0 950.967",
+   "gammas": [
+    {
+     "abundance": 0.1082,
+     "energy": 48.221
+    },
+    {
+     "abundance": 0.1924,
+     "energy": 49.128
+    },
+    {
+     "abundance": 0.0201,
+     "energy": 55.48
+    },
+    {
+     "abundance": 0.0387,
+     "energy": 55.674
+    },
+    {
+     "abundance": 0.013,
+     "energy": 57.142
+    },
+    {
+     "abundance": 0.1233,
+     "energy": 80.574
+    },
+    {
+     "abundance": 0.7267,
+     "energy": 184.41
+    },
+    {
+     "abundance": 0.0261,
+     "energy": 215.89
+    },
+    {
+     "abundance": 0.01089,
+     "energy": 259.737
+    },
+    {
+     "abundance": 0.2977,
+     "energy": 280.459
+    },
+    {
+     "abundance": 0.03732,
+     "energy": 300.762
+    },
+    {
+     "abundance": 0.02476,
+     "energy": 365.747
+    },
+    {
+     "abundance": 0.1141,
+     "energy": 410.944
+    },
+    {
+     "abundance": 0.02984,
+     "energy": 451.521
+    },
+    {
+     "abundance": 0.01212,
+     "energy": 464.797
+    },
+    {
+     "abundance": 0.0969,
+     "energy": 529.801
+    },
+    {
+     "abundance": 0.055,
+     "energy": 570.99
+    },
+    {
+     "abundance": 0.01408,
+     "energy": 611.55
+    },
+    {
+     "abundance": 0.0548,
+     "energy": 670.502
+    },
+    {
+     "abundance": 0.01343,
+     "energy": 691.249
+    },
+    {
+     "abundance": 0.5532,
+     "energy": 711.683
+    },
+    {
+     "abundance": 0.1229,
+     "energy": 752.285
+    },
+    {
+     "abundance": 0.03078,
+     "energy": 778.817
+    },
+    {
+     "abundance": 0.5808,
+     "energy": 810.276
+    },
+    {
+     "abundance": 0.0982,
+     "energy": 830.577
+    },
+    {
+     "abundance": 0.02755,
+     "energy": 950.967
+    }
+   ],
+   "half_life": 630700000.0,
+   "name": "Ho-166m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "68 171 0 0",
+   "gammas": [
+    {
+     "abundance": 0.1335,
+     "energy": 49.773
+    },
+    {
+     "abundance": 0.2359,
+     "energy": 50.742
+    },
+    {
+     "abundance": 0.0248,
+     "energy": 57.3
+    },
+    {
+     "abundance": 0.048,
+     "energy": 57.505
+    },
+    {
+     "abundance": 0.0162,
+     "energy": 59.028
+    },
+    {
+     "abundance": 0.2058,
+     "energy": 111.621
+    },
+    {
+     "abundance": 0.023,
+     "energy": 116.656
+    },
+    {
+     "abundance": 0.091,
+     "energy": 124.015
+    },
+    {
+     "abundance": 0.2898,
+     "energy": 295.901
+    },
+    {
+     "abundance": 0.644,
+     "energy": 308.31
+    }
+   ],
+   "half_life": 451.2,
+   "name": "Er-171"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "70 169 0 0",
+   "gammas": [
+    {
+     "abundance": 0.5321,
+     "energy": 49.773
+    },
+    {
+     "abundance": 0.94022,
+     "energy": 50.742
+    },
+    {
+     "abundance": 0.0993,
+     "energy": 57.3
+    },
+    {
+     "abundance": 0.1925,
+     "energy": 57.505
+    },
+    {
+     "abundance": 0.0647,
+     "energy": 59.028
+    },
+    {
+     "abundance": 0.0172,
+     "energy": 59.21
+    },
+    {
+     "abundance": 0.4426,
+     "energy": 63.12
+    },
+    {
+     "abundance": 0.02614,
+     "energy": 93.61514
+    },
+    {
+     "abundance": 0.1747,
+     "energy": 109.77987
+    },
+    {
+     "abundance": 0.01869,
+     "energy": 118.19
+    },
+    {
+     "abundance": 0.1131,
+     "energy": 130.52
+    },
+    {
+     "abundance": 0.2216,
+     "energy": 177.21
+    },
+    {
+     "abundance": 0.3583,
+     "energy": 197.9578
+    },
+    {
+     "abundance": 0.01715,
+     "energy": 261.07
+    },
+    {
+     "abundance": 0.1005,
+     "energy": 307.73
+    }
+   ],
+   "half_life": 46108.8,
+   "name": "Yb-169"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "70 175 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0108,
+     "energy": 52.965
+    },
+    {
+     "abundance": 0.019,
+     "energy": 54.07
+    },
+    {
+     "abundance": 0.0188,
+     "energy": 113.805
+    },
+    {
+     "abundance": 0.0301,
+     "energy": 282.522
+    },
+    {
+     "abundance": 0.064,
+     "energy": 396.329
+    }
+   ],
+   "half_life": 6033.6,
+   "name": "Yb-175"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "70 177 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0247,
+     "energy": 52.965
+    },
+    {
+     "abundance": 0.0434,
+     "energy": 54.07
+    },
+    {
+     "abundance": 0.0342,
+     "energy": 121.62
+    },
+    {
+     "abundance": 0.0134,
+     "energy": 138.606
+    },
+    {
+     "abundance": 0.20133,
+     "energy": 150.392
+    },
+    {
+     "abundance": 0.0563,
+     "energy": 1080.21
+    },
+    {
+     "abundance": 0.034717,
+     "energy": 1241.22
+    }
+   ],
+   "half_life": 112.8,
+   "name": "Yb-177"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "71 176 0 88.34",
+   "gammas": [
+    {
+     "abundance": 0.0285,
+     "energy": 54.611
+    },
+    {
+     "abundance": 0.0497,
+     "energy": 55.79
+    },
+    {
+     "abundance": 0.0105,
+     "energy": 63.243
+    },
+    {
+     "abundance": 0.0894,
+     "energy": 88.34
+    }
+   ],
+   "half_life": 220.8,
+   "name": "Lu-176m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "71 177 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0162,
+     "energy": 54.611
+    },
+    {
+     "abundance": 0.0283,
+     "energy": 55.79
+    },
+    {
+     "abundance": 0.0643,
+     "energy": 112.9498
+    },
+    {
+     "abundance": 0.1106,
+     "energy": 208.3664
+    }
+   ],
+   "half_life": 9662.4,
+   "name": "Lu-177"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "71 177 0 465.84",
+   "gammas": [
+    {
+     "abundance": 0.0519,
+     "energy": 52.965
+    },
+    {
+     "abundance": 0.0913,
+     "energy": 54.07
+    },
+    {
+     "abundance": 0.3429,
+     "energy": 54.611
+    },
+    {
+     "abundance": 0.5971,
+     "energy": 55.79
+    },
+    {
+     "abundance": 0.019,
+     "energy": 61.29
+    },
+    {
+     "abundance": 0.0656,
+     "energy": 62.985
+    },
+    {
+     "abundance": 0.1363,
+     "energy": 63.243
+    },
+    {
+     "abundance": 0.0433,
+     "energy": 64.942
+    },
+    {
+     "abundance": 0.0178,
+     "energy": 55.15
+    },
+    {
+     "abundance": 0.1234,
+     "energy": 105.35
+    },
+    {
+     "abundance": 0.2044,
+     "energy": 112.9498
+    },
+    {
+     "abundance": 0.0591,
+     "energy": 121.6211
+    },
+    {
+     "abundance": 0.1553,
+     "energy": 128.503
+    },
+    {
+     "abundance": 0.014,
+     "energy": 136.7248
+    },
+    {
+     "abundance": 0.0351,
+     "energy": 147.16
+    },
+    {
+     "abundance": 0.1693,
+     "energy": 153.28
+    },
+    {
+     "abundance": 0.0481,
+     "energy": 171.8576
+    },
+    {
+     "abundance": 0.1261,
+     "energy": 174.399
+    },
+    {
+     "abundance": 0.0343,
+     "energy": 177.0
+    },
+    {
+     "abundance": 0.1383,
+     "energy": 204.1
+    },
+    {
+     "abundance": 0.5771,
+     "energy": 208.366
+    },
+    {
+     "abundance": 0.0659,
+     "energy": 214.43
+    },
+    {
+     "abundance": 0.0328,
+     "energy": 218.1039
+    },
+    {
+     "abundance": 0.3707,
+     "energy": 228.4838
+    },
+    {
+     "abundance": 0.0558,
+     "energy": 233.86
+    },
+    {
+     "abundance": 0.0614,
+     "energy": 249.67
+    },
+    {
+     "abundance": 0.0343,
+     "energy": 268.78
+    },
+    {
+     "abundance": 0.1413,
+     "energy": 281.78
+    },
+    {
+     "abundance": 0.0102,
+     "energy": 291.42
+    },
+    {
+     "abundance": 0.0508,
+     "energy": 296.4581
+    },
+    {
+     "abundance": 0.018,
+     "energy": 299.05
+    },
+    {
+     "abundance": 0.0182,
+     "energy": 305.5
+    },
+    {
+     "abundance": 0.0126,
+     "energy": 313.72
+    },
+    {
+     "abundance": 0.1053,
+     "energy": 319.02
+    },
+    {
+     "abundance": 0.012,
+     "energy": 321.31
+    },
+    {
+     "abundance": 0.1815,
+     "energy": 327.68
+    },
+    {
+     "abundance": 0.0169,
+     "energy": 341.64
+    },
+    {
+     "abundance": 0.0315,
+     "energy": 367.41
+    },
+    {
+     "abundance": 0.2971,
+     "energy": 378.5
+    },
+    {
+     "abundance": 0.0313,
+     "energy": 385.03
+    },
+    {
+     "abundance": 0.1746,
+     "energy": 413.66
+    },
+    {
+     "abundance": 0.2138,
+     "energy": 418.53
+    },
+    {
+     "abundance": 0.0235,
+     "energy": 465.84
+    }
+   ],
+   "half_life": 231696.0,
+   "name": "Lu-177m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "73 182 0 0",
+   "gammas": [
+    {
+     "abundance": 0.1036,
+     "energy": 57.981
+    },
+    {
+     "abundance": 0.1804,
+     "energy": 59.318
+    },
+    {
+     "abundance": 0.0202,
+     "energy": 66.95
+    },
+    {
+     "abundance": 0.0389,
+     "energy": 67.244
+    },
+    {
+     "abundance": 0.0135,
+     "energy": 69.067
+    },
+    {
+     "abundance": 0.0292,
+     "energy": 65.71
+    },
+    {
+     "abundance": 0.4126,
+     "energy": 67.74
+    },
+    {
+     "abundance": 0.0265,
+     "energy": 84.68
+    },
+    {
+     "abundance": 0.141,
+     "energy": 100.1
+    },
+    {
+     "abundance": 0.01885,
+     "energy": 113.67
+    },
+    {
+     "abundance": 0.0693,
+     "energy": 152.42
+    },
+    {
+     "abundance": 0.02642,
+     "energy": 156.38
+    },
+    {
+     "abundance": 0.03082,
+     "energy": 179.39
+    },
+    {
+     "abundance": 0.0144,
+     "energy": 198.35
+    },
+    {
+     "abundance": 0.0749,
+     "energy": 222.1085
+    },
+    {
+     "abundance": 0.0363,
+     "energy": 229.32
+    },
+    {
+     "abundance": 0.03605,
+     "energy": 264.07
+    },
+    {
+     "abundance": 0.02066,
+     "energy": 1001.69
+    },
+    {
+     "abundance": 0.349,
+     "energy": 1121.3
+    },
+    {
+     "abundance": 0.1623,
+     "energy": 1189.05
+    },
+    {
+     "abundance": 0.2698,
+     "energy": 1221.4
+    },
+    {
+     "abundance": 0.1144,
+     "energy": 1231.01
+    },
+    {
+     "abundance": 0.01488,
+     "energy": 1257.41
+    },
+    {
+     "abundance": 0.01349,
+     "energy": 1289.15
+    }
+   ],
+   "half_life": 164880.0,
+   "name": "Ta-182"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "73 182 0 16.263",
+   "gammas": [
+    {
+     "abundance": 2.2e-05,
+     "energy": 16.263
+    }
+   ],
+   "half_life": 15.84,
+   "name": "Ta-182m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "74 181 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0103,
+     "energy": 6.238
+    },
+    {
+     "abundance": 0.1875,
+     "energy": 56.28
+    },
+    {
+     "abundance": 0.3269,
+     "energy": 57.535
+    },
+    {
+     "abundance": 0.0362,
+     "energy": 64.948
+    },
+    {
+     "abundance": 0.0698,
+     "energy": 65.222
+    },
+    {
+     "abundance": 0.024,
+     "energy": 66.982
+    }
+   ],
+   "half_life": 174528.0,
+   "name": "W-181"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "74 185 0 0",
+   "gammas": [
+    {
+     "abundance": 0.00019,
+     "energy": 125.35
+    }
+   ],
+   "half_life": 108144.0,
+   "name": "W-185"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "74 187 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0706,
+     "energy": 59.718
+    },
+    {
+     "abundance": 0.1223,
+     "energy": 61.141
+    },
+    {
+     "abundance": 0.0139,
+     "energy": 68.995
+    },
+    {
+     "abundance": 0.0268,
+     "energy": 69.309
+    },
+    {
+     "abundance": 0.1114,
+     "energy": 72.0
+    },
+    {
+     "abundance": 0.0885,
+     "energy": 134.243
+    },
+    {
+     "abundance": 0.2184,
+     "energy": 479.531
+    },
+    {
+     "abundance": 0.0508,
+     "energy": 551.532
+    },
+    {
+     "abundance": 0.0628,
+     "energy": 618.361
+    },
+    {
+     "abundance": 0.01089,
+     "energy": 625.511
+    },
+    {
+     "abundance": 0.2736,
+     "energy": 685.774
+    },
+    {
+     "abundance": 0.0412,
+     "energy": 772.89
+    }
+   ],
+   "half_life": 1434.0,
+   "name": "W-187"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "76 185 0 0",
+   "gammas": [
+    {
+     "abundance": 0.2166,
+     "energy": 59.718
+    },
+    {
+     "abundance": 0.3751,
+     "energy": 61.141
+    },
+    {
+     "abundance": 0.0426,
+     "energy": 68.995
+    },
+    {
+     "abundance": 0.082,
+     "energy": 69.309
+    },
+    {
+     "abundance": 0.0285,
+     "energy": 71.195
+    },
+    {
+     "abundance": 0.01318,
+     "energy": 592.074
+    },
+    {
+     "abundance": 0.7808,
+     "energy": 646.116
+    },
+    {
+     "abundance": 0.0394,
+     "energy": 717.424
+    },
+    {
+     "abundance": 0.06296,
+     "energy": 874.813
+    },
+    {
+     "abundance": 0.0517,
+     "energy": 880.523
+    }
+   ],
+   "half_life": 134784.0,
+   "name": "Os-185"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "76 190 0 616.08",
+   "gammas": [
+    {
+     "abundance": 0.0564,
+     "energy": 61.486
+    },
+    {
+     "abundance": 0.097,
+     "energy": 63.0
+    },
+    {
+     "abundance": 0.0111,
+     "energy": 71.079
+    },
+    {
+     "abundance": 0.0215,
+     "energy": 71.414
+    },
+    {
+     "abundance": 0.7026,
+     "energy": 186.718
+    },
+    {
+     "abundance": 0.9488,
+     "energy": 361.136
+    },
+    {
+     "abundance": 0.9779,
+     "energy": 502.53
+    },
+    {
+     "abundance": 0.9862,
+     "energy": 616.08
+    }
+   ],
+   "half_life": 9.9,
+   "name": "Os-190m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "76 191 0 0",
+   "gammas": [
+    {
+     "abundance": 0.1801,
+     "energy": 63.287
+    },
+    {
+     "abundance": 0.3092,
+     "energy": 64.896
+    },
+    {
+     "abundance": 0.0359,
+     "energy": 73.202
+    },
+    {
+     "abundance": 0.0694,
+     "energy": 73.56
+    },
+    {
+     "abundance": 0.0244,
+     "energy": 75.575
+    },
+    {
+     "abundance": 0.29017,
+     "energy": 129.421
+    }
+   ],
+   "half_life": 22176.0,
+   "name": "Os-191"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "76 191 0 74.379",
+   "gammas": [
+    {
+     "abundance": 0.0316,
+     "energy": 61.486
+    },
+    {
+     "abundance": 0.0544,
+     "energy": 63.0
+    },
+    {
+     "abundance": 0.012,
+     "energy": 71.414
+    },
+    {
+     "abundance": 0.0007,
+     "energy": 74.379
+    }
+   ],
+   "half_life": 786.0,
+   "name": "Os-191m"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "76 193 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0368,
+     "energy": 63.287
+    },
+    {
+     "abundance": 0.0633,
+     "energy": 64.896
+    },
+    {
+     "abundance": 0.0142,
+     "energy": 73.56
+    },
+    {
+     "abundance": 0.0325,
+     "energy": 73.042
+    },
+    {
+     "abundance": 0.0427,
+     "energy": 138.938
+    },
+    {
+     "abundance": 0.0124,
+     "energy": 280.456
+    },
+    {
+     "abundance": 0.0128,
+     "energy": 321.604
+    },
+    {
+     "abundance": 0.0126,
+     "energy": 387.52
+    },
+    {
+     "abundance": 0.0395,
+     "energy": 460.547
+    },
+    {
+     "abundance": 0.013,
+     "energy": 557.429
+    }
+   ],
+   "half_life": 1830.0,
+   "name": "Os-193"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "79 198 0 0",
+   "gammas": [
+    {
+     "abundance": 0.96,
+     "energy": 411.8
+    },
+    {
+     "abundance": 0.00804,
+     "energy": 675.883
+    },
+    {
+     "abundance": 0.00159,
+     "energy": 1087.684
+    },
+    {
+     "abundance": 0.0080116,
+     "energy": 68.894
+    },
+    {
+     "abundance": 0.01363,
+     "energy": 70.818
+    },
+    {
+     "abundance": 0.00311,
+     "energy": 80.255
+    },
+    {
+     "abundance": 0.00112,
+     "energy": 82.473
+    }
+   ],
+   "half_life": 3873.6,
+   "name": "Au-198"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "79 196 0 0",
+   "gammas": [
+    {
+     "abundance": 0.2166,
+     "energy": 65.122
+    },
+    {
+     "abundance": 0.3701,
+     "energy": 66.831
+    },
+    {
+     "abundance": 0.0435,
+     "energy": 75.368
+    },
+    {
+     "abundance": 0.084,
+     "energy": 75.749
+    },
+    {
+     "abundance": 0.0298,
+     "energy": 77.831
+    },
+    {
+     "abundance": 0.2295,
+     "energy": 332.983
+    },
+    {
+     "abundance": 0.87,
+     "energy": 355.684
+    },
+    {
+     "abundance": 0.07,
+     "energy": 426.0
+    }
+   ],
+   "half_life": 8928.0,
+   "name": "Au-196"
+  },
+  {
+   "beta": {
+    "abundance": 0.0,
+    "energy": 0.0
+   },
+   "gamma_constant": "92 239 0 0",
+   "gammas": [
+    {
+     "abundance": 0.0125,
+     "energy": 16.816
+    },
+    {
+     "abundance": 0.0263,
+     "energy": 17.751
+    },
+    {
+     "abundance": 0.0414,
+     "energy": 43.533
+    },
+    {
+     "abundance": 0.48,
+     "energy": 74.664
+    },
+    {
+     "abundance": 0.0016,
+     "energy": 844.1
+    }
+   ],
+   "half_life": 23.47,
+   "name": "U-239"
+  }
+ ]
+}
