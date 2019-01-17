@@ -3,8 +3,10 @@
 
 #include <core/util/custom_logger.h>
 
-FormPeakInfo::FormPeakInfo(DAQuiri::Hypermet& hm, QWidget* parent) :
-    hm_(hm), ui(new Ui::FormPeakInfo)
+FormPeakInfo::FormPeakInfo(DAQuiri::Hypermet& hm, QWidget* parent)
+  : QDialog(parent)
+  , ui(new Ui::FormPeakInfo)
+  , hm_(hm)
 {
   ui->setupUi(this);
   this->setFixedSize(this->size());
@@ -227,72 +229,72 @@ void FormPeakInfo::on_buttonBox_rejected()
   reject();
 }
 
-void FormPeakInfo::on_doubleMinRskewSlope_valueChanged(double arg1)
+void FormPeakInfo::on_doubleMinRskewSlope_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormPeakInfo::on_doubleMaxRskewSlope_valueChanged(double arg1)
+void FormPeakInfo::on_doubleMaxRskewSlope_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormPeakInfo::on_doubleMinRskewAmp_valueChanged(double arg1)
+void FormPeakInfo::on_doubleMinRskewAmp_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormPeakInfo::on_doubleMaxRskewAmp_valueChanged(double arg1)
+void FormPeakInfo::on_doubleMaxRskewAmp_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormPeakInfo::on_doubleMinLskewSlope_valueChanged(double arg1)
+void FormPeakInfo::on_doubleMinLskewSlope_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormPeakInfo::on_doubleMaxLskewSlope_valueChanged(double arg1)
+void FormPeakInfo::on_doubleMaxLskewSlope_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormPeakInfo::on_doubleMinLskewAmp_valueChanged(double arg1)
+void FormPeakInfo::on_doubleMinLskewAmp_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormPeakInfo::on_doubleMaxLskewAmp_valueChanged(double arg1)
+void FormPeakInfo::on_doubleMaxLskewAmp_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormPeakInfo::on_doubleMinTailSlope_valueChanged(double arg1)
+void FormPeakInfo::on_doubleMinTailSlope_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormPeakInfo::on_doubleMaxTailSlope_valueChanged(double arg1)
+void FormPeakInfo::on_doubleMaxTailSlope_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormPeakInfo::on_doubleMinTailAmp_valueChanged(double arg1)
+void FormPeakInfo::on_doubleMinTailAmp_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormPeakInfo::on_doubleMaxTailAmp_valueChanged(double arg1)
+void FormPeakInfo::on_doubleMaxTailAmp_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormPeakInfo::on_doubleMinStep_valueChanged(double arg1)
+void FormPeakInfo::on_doubleMinStep_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormPeakInfo::on_doubleMaxStep_valueChanged(double arg1)
+void FormPeakInfo::on_doubleMaxStep_valueChanged(double)
 {
   enforce_bounds();
 }

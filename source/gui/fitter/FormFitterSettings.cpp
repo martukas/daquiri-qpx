@@ -3,9 +3,10 @@
 
 #include <core/util/custom_logger.h>
 
-FormFitterSettings::FormFitterSettings(DAQuiri::FitSettings &fs, QWidget *parent) :
-  fit_settings_(fs),
-  ui(new Ui::FormFitterSettings)
+FormFitterSettings::FormFitterSettings(DAQuiri::FitSettings &fs, QWidget *parent)
+  : QDialog(parent)
+  , ui(new Ui::FormFitterSettings)
+  , fit_settings_(fs)
 {
   ui->setupUi(this);
   this->setFixedSize(this->size());
@@ -206,72 +207,72 @@ void FormFitterSettings::on_buttonBox_rejected()
   reject();
 }
 
-void FormFitterSettings::on_doubleMinRskewSlope_valueChanged(double arg1)
+void FormFitterSettings::on_doubleMinRskewSlope_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormFitterSettings::on_doubleMaxRskewSlope_valueChanged(double arg1)
+void FormFitterSettings::on_doubleMaxRskewSlope_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormFitterSettings::on_doubleMinRskewAmp_valueChanged(double arg1)
+void FormFitterSettings::on_doubleMinRskewAmp_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormFitterSettings::on_doubleMaxRskewAmp_valueChanged(double arg1)
+void FormFitterSettings::on_doubleMaxRskewAmp_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormFitterSettings::on_doubleMinLskewSlope_valueChanged(double arg1)
+void FormFitterSettings::on_doubleMinLskewSlope_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormFitterSettings::on_doubleMaxLskewSlope_valueChanged(double arg1)
+void FormFitterSettings::on_doubleMaxLskewSlope_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormFitterSettings::on_doubleMinLskewAmp_valueChanged(double arg1)
+void FormFitterSettings::on_doubleMinLskewAmp_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormFitterSettings::on_doubleMaxLskewAmp_valueChanged(double arg1)
+void FormFitterSettings::on_doubleMaxLskewAmp_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormFitterSettings::on_doubleMinTailSlope_valueChanged(double arg1)
+void FormFitterSettings::on_doubleMinTailSlope_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormFitterSettings::on_doubleMaxTailSlope_valueChanged(double arg1)
+void FormFitterSettings::on_doubleMaxTailSlope_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormFitterSettings::on_doubleMinTailAmp_valueChanged(double arg1)
+void FormFitterSettings::on_doubleMinTailAmp_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormFitterSettings::on_doubleMaxTailAmp_valueChanged(double arg1)
+void FormFitterSettings::on_doubleMaxTailAmp_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormFitterSettings::on_doubleMinStep_valueChanged(double arg1)
+void FormFitterSettings::on_doubleMinStep_valueChanged(double)
 {
   enforce_bounds();
 }
 
-void FormFitterSettings::on_doubleMaxStep_valueChanged(double arg1)
+void FormFitterSettings::on_doubleMaxStep_valueChanged(double)
 {
   enforce_bounds();
 }

@@ -25,20 +25,20 @@ private slots:
 
   void on_buttonBox_rejected();
 
-  void on_doubleMinRskewSlope_valueChanged(double arg1);
-  void on_doubleMaxRskewSlope_valueChanged(double arg1);
-  void on_doubleMinRskewAmp_valueChanged(double arg1);
-  void on_doubleMaxRskewAmp_valueChanged(double arg1);
-  void on_doubleMinLskewSlope_valueChanged(double arg1);
-  void on_doubleMaxLskewSlope_valueChanged(double arg1);
-  void on_doubleMinLskewAmp_valueChanged(double arg1);
-  void on_doubleMaxLskewAmp_valueChanged(double arg1);
-  void on_doubleMinTailSlope_valueChanged(double arg1);
-  void on_doubleMaxTailSlope_valueChanged(double arg1);
-  void on_doubleMinTailAmp_valueChanged(double arg1);
-  void on_doubleMaxTailAmp_valueChanged(double arg1);
-  void on_doubleMinStep_valueChanged(double arg1);
-  void on_doubleMaxStep_valueChanged(double arg1);
+  void on_doubleMinRskewSlope_valueChanged(double);
+  void on_doubleMaxRskewSlope_valueChanged(double);
+  void on_doubleMinRskewAmp_valueChanged(double);
+  void on_doubleMaxRskewAmp_valueChanged(double);
+  void on_doubleMinLskewSlope_valueChanged(double);
+  void on_doubleMaxLskewSlope_valueChanged(double);
+  void on_doubleMinLskewAmp_valueChanged(double);
+  void on_doubleMaxLskewAmp_valueChanged(double);
+  void on_doubleMinTailSlope_valueChanged(double);
+  void on_doubleMaxTailSlope_valueChanged(double);
+  void on_doubleMinTailAmp_valueChanged(double);
+  void on_doubleMaxTailAmp_valueChanged(double);
+  void on_doubleMinStep_valueChanged(double);
+  void on_doubleMaxStep_valueChanged(double);
 
 private:
   Ui::FormPeakInfo *ui;
