@@ -50,7 +50,7 @@ void CValueDefault::Value(double val)
   _X = std::asin(1);
 }
 
-double CValueDefault::ValueAt(double atX)
+double CValueDefault::ValueAt(double atX) const
 {
   try
   {
@@ -65,7 +65,7 @@ double CValueDefault::ValueAt(double atX)
   }
 }
 
-double CValueDefault::GradAt(double atX)
+double CValueDefault::GradAt(double atX) const
 {
   try
   {
@@ -119,7 +119,7 @@ void CValueGam::Value(double val)
   }
 }
 
-double CValueGam::ValueAt(double atX)
+double CValueGam::ValueAt(double atX) const
 {
   try
   {
@@ -134,7 +134,7 @@ double CValueGam::ValueAt(double atX)
   }
 }
 
-double CValueGam::GradAt(double atX)
+double CValueGam::GradAt(double atX) const
 {
   try
   {
@@ -234,7 +234,7 @@ void CValueBkgDefault::Value(double val)
   }
 }
 
-double CValueBkgDefault::ValueAt(double atX)
+double CValueBkgDefault::ValueAt(double atX) const
 {
   try
   {
@@ -249,7 +249,7 @@ double CValueBkgDefault::ValueAt(double atX)
   }
 }
 
-double CValueBkgDefault::GradAt(double atX)
+double CValueBkgDefault::GradAt(double atX) const
 {
   try
   {

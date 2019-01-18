@@ -17,12 +17,12 @@ class BFGS {
 
  private:
   double Sign(double a, double b);
-  double BrentDeriv(double a, double b, double c, double tol, double& xmin,
+  double BrentDeriv(const Region& region, double a, double b, double c, double tol, double& xmin,
                     const std::vector<double>& gx, const std::vector<double>& gh);
-  void Bracket(double& a, double& b, double& c, double& fa, double& fb, double& fc,
+  void Bracket(const Region& region, double& a, double& b, double& c, double& fa, double& fb, double& fc,
                const std::vector<double>& gx, const std::vector<double>& gh);
-  double fgv(double lambda, std::vector<double> gx, std::vector<double> g);
-  double dfgv(double lambda, std::vector<double> gx, std::vector<double> g);
-  void LinMin(std::vector<double>& x, std::vector<double> h, double& fmin);
+  double fgv(const Region& region, double lambda, std::vector<double> gx, std::vector<double> g);
+  double dfgv(const Region& region, double lambda, std::vector<double> gx, std::vector<double> g);
+  void LinMin(const Region& region, std::vector<double>& x, std::vector<double> h, double& fmin);
 
 };

@@ -48,7 +48,8 @@ double BFGS::Sign(double a, double b)
 static constexpr int32_t brent_iter{500};
 static constexpr double zeps{0.0000000001};
 
-double BFGS::BrentDeriv(double a,
+double BFGS::BrentDeriv(const Region& region,
+                        double a,
                         double b,
                         double c,
                         double tol,
@@ -77,10 +78,10 @@ double BFGS::BrentDeriv(double a,
     w = v;
     x = v;
     e = 0;
-    fx = fgv(x, gx, gh);
+    fx = fgv(region, x, gx, gh);
     fv = fx;
     fw = fx;
-    dx = dfgv(x, gx, gh);
+    dx = dfgv(region, x, gx, gh);
     dv = dx;
     dw = dx;
 
@@ -145,17 +146,17 @@ double BFGS::BrentDeriv(double a,
         if (std::abs(d) >= tol1)
         {
           u = x + d;
-          fu = fgv(u, gx, gh);
+          fu = fgv(region, u, gx, gh);
         }
         else
         {
           u = x + Sign(tol1, d);
-          fu = fgv(u, gx, gh);
+          fu = fgv(region, u, gx, gh);
           done = (fu > fx);
         }
         if (!done)
         {
-          du = dfgv(u, gx, gh);
+          du = dfgv(region, u, gx, gh);
           if (fu < fx)
           {
             if (u >= x)
@@ -217,15 +218,15 @@ static constexpr double gold{1.618034};
 static constexpr double glimit{100.0};
 static constexpr double tiny{1.0E-20};
 
-void BFGS::Bracket(double& a, double& b, double& c, double& fa, double& fb, double& fc,
+void BFGS::Bracket(const Region& region, double& a, double& b, double& c, double& fa, double& fb, double& fc,
                    const std::vector<double>& gx, const std::vector<double>& gh)
 {
   double ulim, u, r, q, fu, dum;
   bool n;
   try
   {
-    fa = fgv(a, gx, gh);
-    fb = fgv(b, gx, gh);
+    fa = fgv(region, a, gx, gh);
+    fb = fgv(region, b, gx, gh);
 
     if (fb > fa)
     {
@@ -238,7 +239,7 @@ void BFGS::Bracket(double& a, double& b, double& c, double& fa, double& fb, doub
     }
 
     c = b + gold * (b - a);
-    fc = fgv(c, gx, gh);
+    fc = fgv(region, c, gx, gh);
 
     while (fb > fc)
     {
@@ -254,7 +255,7 @@ void BFGS::Bracket(double& a, double& b, double& c, double& fa, double& fb, doub
       ulim = b + glimit * (c - b);
       if ((b - u) * (u - c) > 0)
       {
-        fu = fgv(u, gx, gh);
+        fu = fgv(region, u, gx, gh);
         if (fu < fc)
         {
           a = b;
@@ -272,12 +273,12 @@ void BFGS::Bracket(double& a, double& b, double& c, double& fa, double& fb, doub
         else
         {
           u = c + gold * (c - b);
-          fu = fgv(u, gx, gh);
+          fu = fgv(region, u, gx, gh);
         }
       }
       else if ((c - u) * (u - ulim) > 0)
       {
-        fu = fgv(u, gx, gh);
+        fu = fgv(region, u, gx, gh);
         if (fu < fc)
         {
           b = c;
@@ -285,18 +286,18 @@ void BFGS::Bracket(double& a, double& b, double& c, double& fa, double& fb, doub
           u = c + gold * (c - b);
           fb = fc;
           fc = fu;
-          fu = fgv(u, gx, gh);
+          fu = fgv(region, u, gx, gh);
         }
       }
       else if ((u - ulim) * (ulim - c) >= 0)
       {
         u = ulim;
-        fu = fgv(u, gx, gh);
+        fu = fgv(region, u, gx, gh);
       }
       else
       {
         u = c + gold * (c - b);
-        fu = fgv(u, gx, gh);
+        fu = fgv(region, u, gx, gh);
       }
 
       if (n)
@@ -316,7 +317,7 @@ void BFGS::Bracket(double& a, double& b, double& c, double& fa, double& fb, doub
   }
 }
 
-double BFGS::fgv(double lambda, std::vector<double> gx, std::vector<double> gh)
+double BFGS::fgv(const Region& region, double lambda, std::vector<double> gx, std::vector<double> gh)
 {
   try
   {
@@ -324,7 +325,7 @@ double BFGS::fgv(double lambda, std::vector<double> gx, std::vector<double> gh)
     std::vector<double> xlocal(n);
     for (size_t i = 0; i < n; ++i)
       xlocal[i] = gx[i] + lambda * gh[i];
-    return Region::CalcChiSq(xlocal);
+    return region.CalcChiSq(xlocal);
   }
   catch (...)
   {
@@ -332,7 +333,7 @@ double BFGS::fgv(double lambda, std::vector<double> gx, std::vector<double> gh)
   }
 }
 
-double BFGS::dfgv(double lambda, std::vector<double> gx, std::vector<double> gh)
+double BFGS::dfgv(const Region& region, double lambda, std::vector<double> gx, std::vector<double> gh)
 {
   auto n = gx.size();
   std::vector<double> xlocal(n);
@@ -342,7 +343,7 @@ double BFGS::dfgv(double lambda, std::vector<double> gx, std::vector<double> gh)
   {
     for (size_t i = 0; i < n; ++i)
       xlocal[i] = gx[i] + lambda * gh[i];
-    Region::GradChiSq(xlocal, dflocal, junk);
+    region.GradChiSq(xlocal, dflocal, junk);
     s = 0;
     for (size_t i = 0; i < n; ++i)
       s += dflocal[i] * gh[i];
@@ -356,7 +357,7 @@ double BFGS::dfgv(double lambda, std::vector<double> gx, std::vector<double> gh)
 
 static constexpr float linmin_tol{0.0001};
 
-void BFGS::LinMin(std::vector<double>& x, std::vector<double> h, double& fmin)
+void BFGS::LinMin(const Region& region, std::vector<double>& x, std::vector<double> h, double& fmin)
 {
   double lambdak, xk, fxk, fa, fb, a, b;
   auto n = x.size();
@@ -365,8 +366,8 @@ void BFGS::LinMin(std::vector<double>& x, std::vector<double> h, double& fmin)
     a = 0.0;
     xk = 1.0;
     b = 2.0;
-    Bracket(a, xk, b, fa, fxk, fb, x, h);
-    fmin = BrentDeriv(a, xk, b, linmin_tol, lambdak, x, h);
+    Bracket(region, a, xk, b, fa, fxk, fb, x, h);
+    fmin = BrentDeriv(region, a, xk, b, linmin_tol, lambdak, x, h);
     DBG("lambda={}", lambdak);
     for (size_t j = 0; j < n; ++j)
     {
@@ -384,18 +385,18 @@ void BFGS::LinMin(std::vector<double>& x, std::vector<double> h, double& fmin)
 static constexpr double eps{0.0000000001};
 static constexpr size_t maxit{500};
 
-void BFGS::BFGSMin(Region& RegObj, double tolf, size_t& iter)
+void BFGS::BFGSMin(Region& region, double tolf, size_t& iter)
 {
   try
   {
-    auto x = RegObj.Vector;
+    auto x = region.Vector;
     auto n = x.size();
     double f, fmin, s, s1, s2;
-    double fv = RegObj.DegreeOfFreedom;
+    double fv = region.DegreeOfFreedom();
     std::vector<double> h(n), g(n), u(n), Adg(n);
     bool done{false};
 
-    RegObj.GradChiSq(x, g, f);
+    region.GradChiSq(x, g, f);
 
     Eigen::SparseMatrix<double> A(n, n);
     A.setIdentity();
@@ -403,31 +404,31 @@ void BFGS::BFGSMin(Region& RegObj, double tolf, size_t& iter)
     size_t k;
     for (k = 0; k <= maxit; ++k)
     {
-      LinMin(x, h, fmin);
+      LinMin(region, x, h, fmin);
       //if (std::abs(f - fmin) < 0.000001) { done = true; }
       done = (2 * std::abs(fmin - f)) <= (tolf * (std::abs(fmin) + std::abs(f) + eps));
       f = fmin;
 
-      for(size_t i = 0; i < n; ++i)
+      for (size_t i = 0; i < n; ++i)
         u[i] = g[i];
 
-      RegObj.GradChiSq(x, g, fmin);
+      region.GradChiSq(x, g, fmin);
       INFO("Fitting... Iteration = {}, Chisq = {}", k, fmin / fv);
 
-      for(size_t i = 0; i < n; ++i)
+      for (size_t i = 0; i < n; ++i)
         u[i] = g[i] - u[i];
 
-      for(size_t i = 0; i < n; ++i)
+      for (size_t i = 0; i < n; ++i)
       {
         s = 0;
-        for(size_t j = 0; j < n; ++j)
+        for (size_t j = 0; j < n; ++j)
           s += A.coeff(i, j) * u[j];
         Adg[i] = s;
       }
       s1 = 0;
       s = 0;
 
-      for(size_t i = 0; i < n; ++i)
+      for (size_t i = 0; i < n; ++i)
       {
         s1 += u[i] * h[i];
         s += u[i] * Adg[i];
@@ -440,17 +441,17 @@ void BFGS::BFGSMin(Region& RegObj, double tolf, size_t& iter)
       else
         s2 = 0;
 
-      for(size_t i = 0; i < n; ++i)
+      for (size_t i = 0; i < n; ++i)
         u[i] = s1 * h[i] - s2 * Adg[i];
 
-      for(size_t i = 0; i < n; ++i)
-        for(size_t j = 0; j < n; ++j)
+      for (size_t i = 0; i < n; ++i)
+        for (size_t j = 0; j < n; ++j)
           A.coeffRef(i, j) += s1 * h[i] * h[j] - s2 * Adg[i] * Adg[j] + s * u[i] * u[j];
 
-      for(size_t i = 0; i < n; ++i)
+      for (size_t i = 0; i < n; ++i)
       {
         h[i] = 0;
-        for(size_t j = 0; j < n; ++j)
+        for (size_t j = 0; j < n; ++j)
           h[i] -= A.coeff(i, j) * g[j];
       }
 
@@ -465,7 +466,7 @@ void BFGS::BFGSMin(Region& RegObj, double tolf, size_t& iter)
     {
       if (!done && Cancelfit)
         WARN("Warning: The fit was interrupted");
-      RegObj.Vector = x;
+      region.Vector = x;
       iter = k;
     }
   }

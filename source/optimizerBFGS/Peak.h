@@ -56,8 +56,8 @@ class CValueDefault {
   void X(double Value);
   double Value() const;
   void Value (double val);
-  double ValueAt(double atX);
-  double GradAt(double atX);
+  double ValueAt(double atX) const;
+  double GradAt(double atX) const;
 };
 
 class CValue: public CValueDefault {
@@ -80,8 +80,8 @@ class CValueGam
   void X(double Value);
   double Value() const;
   void Value(double val);
-  double ValueAt(double atX);
-  double GradAt(double atX);
+  double ValueAt(double atX) const;
+  double GradAt(double atX) const;
 };
 
 class CPeak
@@ -115,8 +115,8 @@ class CValueBkgDefault
   void X(double Value);
   double Value() const;
   void Value(double val);
-  double ValueAt(double atX);
-  double GradAt(double atX);
+  double ValueAt(double atX) const;
+  double GradAt(double atX) const;
 };
 
 class CValueBkg

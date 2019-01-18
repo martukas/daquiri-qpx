@@ -2,14 +2,13 @@
 
 #include <core/util/custom_logger.h>
 
-void Region::New(double FromChannel,
-                 double ToChannel) //, Position As Double, Min As Double, Max As Double, Optional Gamma As Double = 10)
-{       //Region constructor
+Region::Region(CSpectrum& spe, double FromChannel, double ToChannel)
+: spectrum(spe)
+, FirstChannel(std::min(FromChannel, ToChannel))
+, LastChannel(std::max(FromChannel, ToChannel))
+{
   try
   {
-    FirstChannel = std::min(FromChannel, ToChannel);
-    LastChannel = std::max(FromChannel, ToChannel);
-
     DEL.Max(4);
     DEL.Min(0.8);
 
@@ -44,7 +43,7 @@ void Region::New(double FromChannel,
     BSL.ToFit = true;
     BCV.ToFit = true;
 
-    //  SearchPeaks()
+    //  SearchPeaks();
 
   }
   catch (...)
@@ -88,7 +87,7 @@ void Region::Slope(bool Value)
   BSL.ToFit = Value;
 }
 
-bool Region::Curve()
+bool Region::Curve() const
 {
   return CurveFlag;
 }
@@ -126,7 +125,7 @@ int32_t Region::L(int32_t i, int32_t j, int32_t m)
   return ret;
 }
 
-void Region::SearchPeaks(const CSpectrum& spectrum, uint8_t Threshold)
+void Region::SearchPeaks(uint8_t Threshold)
 {
   int32_t m;
   try
@@ -138,17 +137,17 @@ void Region::SearchPeaks(const CSpectrum& spectrum, uint8_t Threshold)
     m = 3;
   }
 
-  int32_t i, j;
+  size_t i;
   try
   {
-    for (j = FirstChannel; j <= LastChannel; ++j)
+    for (size_t j = FirstChannel; j <= LastChannel; ++j)
     {
       double Value = 0;
       double Var = 0;
       for (i = j - m; i <= (j + 2 * m - 1); ++j)
         if (i > 1)
           Value = Value + L(i, j, m) * spectrum.Channel[i];
-      Var = Var + square(L(i, j, m)) * spectrum.Channel[i];
+      Var += square(L(i, j, m)) * spectrum.Channel[i];
 
       //Conv(j - FirstChannel) = Value / std::sqrt(Var)
       //if(((Conv(j - FirstChannel - 2) < Conv(j - FirstChannel - 1)) && _
@@ -282,11 +281,6 @@ double Region::UncPeakAreaEff(size_t PeakIndex, const CCalibration& cal)
       (t / eff) * std::max(1.0, ChisqNorm());
 }
 
-size_t Region::NPeaks() const
-{
-  return Peak.size();
-}
-
 size_t Region::FitVars() const
 {
   size_t n = 2;    //BLN,DEL: always on!
@@ -310,7 +304,6 @@ size_t Region::FitVars() const
 
 void Region::setupFit()
 {
-
   auto vars = FitVars(); // - 1 ?
   Vector.resize(vars);
   Gradient.resize(vars);
@@ -377,20 +370,18 @@ void Region::setupFit()
     shift += 1;
   }
 
-  for (size_t i = 0; i < Peak.size(); ++i)
+  for (auto& p : Peak)
   {
-    Vector[2 + shift] = Peak[i].GAM.X();
-    Peak[i].GAM.XIndex = 2 + shift;
-    Vector[3 + shift] = Peak[i].POS.X();
-    Peak[i].POS.XIndex = 3 + shift;
+    Vector[2 + shift] = p.GAM.X();
+    p.GAM.XIndex = 2 + shift;
+    Vector[3 + shift] = p.POS.X();
+    p.POS.XIndex = 3 + shift;
     shift += 2;
   }
-
 }
 
 void Region::storeFit()
 {
-
   double Chisq_norm = std::max(ChisqNorm(), 1.0) * 0.5;
   int32_t shift{0};
 
@@ -486,7 +477,7 @@ void Region::FuncValue(double E, std::vector<double>& Value)
 {
   //returns the value of the fitted curve and the background at Energy E
   //Dim FTotal, FBkg0, FBkg, FPeak As Double
-  Value.resize(Peak.size());
+  Value.resize(Peak.size() + 2);
   double _DE, _GAM, _DEL, _BST, _BRT, _BLT;
   try
   {
@@ -535,7 +526,7 @@ void Region::FuncValue(double E, std::vector<double>& Value)
   }
 }
 
-double Region::CalcChiSq(const CSpectrum& spectrum, const std::vector<double>& XVector)
+double Region::CalcChiSq(const std::vector<double>& XVector) const
 {
   //Calculates the normalized Chi-square over a region
   double DE;
@@ -543,7 +534,6 @@ double Region::CalcChiSq(const CSpectrum& spectrum, const std::vector<double>& X
   double _Gauss, _ShortTail, _LongTail, _RightTail, _StepBkg;
   try
   {
-
     Chisq = 0;
 
     if (AST.ToFit)
@@ -584,10 +574,10 @@ double Region::CalcChiSq(const CSpectrum& spectrum, const std::vector<double>& X
         FTotal += BCV.ValueAt(XVector[BCV.XIndex]) *
             square(j - FirstChannel);
 
-      for (size_t i = 0; i < Peak.size(); ++i)
+      for (auto& p : Peak)
       {
-        DE = j - Peak[i].POS.ValueAt(XVector[Peak[i].POS.XIndex]);
-        _GAM = Peak[i].GAM.ValueAt(XVector[Peak[i].GAM.XIndex]);
+        DE = j - p.POS.ValueAt(XVector[p.POS.XIndex]);
+        _GAM = p.GAM.ValueAt(XVector[p.GAM.XIndex]);
         if (LeftTail())
         {
           _LongTail = _GAM * 0.5 * _ALT *
@@ -598,7 +588,7 @@ double Region::CalcChiSq(const CSpectrum& spectrum, const std::vector<double>& X
         if (StepBkg())
         {
           _StepBkg = _SIG * 0.5 * _GAM *
-              erfc(Peak[i].StepType() * DE / _DEL);
+              erfc(p.StepType() * DE / _DEL);
           FTotal += _StepBkg;
         }
         FTotal = std::max(FTotal, 0.0);
@@ -622,7 +612,6 @@ double Region::CalcChiSq(const CSpectrum& spectrum, const std::vector<double>& X
     } //j //Channel
 
     return Chisq;
-
   }
   catch (...)
   {
@@ -641,9 +630,8 @@ size_t Region::DegreeOfFreedom() const
   return ((LastChannel - FirstChannel) - FitVars());
 }
 
-void Region::GradChiSq(const CSpectrum& spectrum,
-                       const std::vector<double>& XVector,
-                       std::vector<double>& XGradient, double& Chisq)
+void Region::GradChiSq(const std::vector<double>& XVector,
+                       std::vector<double>& XGradient, double& Chisq) const
 {
   //Calculates the Chi-square and its gradient
 
@@ -668,7 +656,6 @@ void Region::GradChiSq(const CSpectrum& spectrum,
     double DE, t1, t2;
     double _GAM, _DEL, _AST, _BST, _ART, _BRT, _ALT, _BLT, _SIG, FTotal;
     double _Gauss, _ShortTail, _LongTail, _RightTail, _StepBkg;
-    nfuncEval += 1;
 
     Chisq = 0;
 
@@ -727,11 +714,11 @@ void Region::GradChiSq(const CSpectrum& spectrum,
         XXGradient[BCV.XIndex] = square(j - FirstChannel);
       }
 
-      for (size_t i = 0; i < Peak.size(); ++i)
+      for (auto& p : Peak)
       {
 
-        DE = j - Peak[i].POS.ValueAt(XVector[Peak[i].POS.XIndex]);
-        _GAM = Peak[i].GAM.ValueAt(XVector[Peak[i].GAM.XIndex]);
+        DE = j - p.POS.ValueAt(XVector[p.POS.XIndex]);
+        _GAM = p.GAM.ValueAt(XVector[p.GAM.XIndex]);
         t1 = DE / _DEL;
         //---Left Tail---
         if (LeftTail())
@@ -746,9 +733,9 @@ void Region::GradChiSq(const CSpectrum& spectrum,
               std::exp(-square(1.0 / (2.0 * _BLT) + t1)) / _DEL);
           XXGradient[DEL.XIndex] += DEL.GradAt(XVector[DEL.XIndex])
               * (-1.0 * t1 / (_DEL * _BLT) * _LongTail + t2 * t1);
-          XXGradient[Peak[i].POS.XIndex] += -1.0 / (_BLT * _DEL) *
+          XXGradient[p.POS.XIndex] += -1.0 / (_BLT * _DEL) *
               _LongTail + t2;
-          XXGradient[Peak[i].GAM.XIndex] += _LongTail / _GAM;
+          XXGradient[p.GAM.XIndex] += _LongTail / _GAM;
 
           XXGradient[ALT.XIndex] += _LongTail / _ALT *
               ALT.GradAt(XVector[ALT.XIndex]);
@@ -761,13 +748,13 @@ void Region::GradChiSq(const CSpectrum& spectrum,
         if (StepBkg())
         {
           _StepBkg = _SIG * 0.5 * _GAM *
-              erfc(Peak[i].StepType() * t1);
+              erfc(p.StepType() * t1);
           FTotal += _StepBkg;
 
           XXGradient[DEL.XIndex] += DEL.GradAt(XVector[DEL.XIndex]) *
-              (_GAM * _SIG * Peak[i].StepType() / std::sqrt(M_PI) *
+              (_GAM * _SIG * p.StepType() / std::sqrt(M_PI) *
                   std::exp(-DE / _DEL * t1) * t1 / _DEL);
-          XXGradient[Peak[i].GAM.XIndex] += _StepBkg / _GAM;
+          XXGradient[p.GAM.XIndex] += _StepBkg / _GAM;
           XXGradient[SIG.XIndex] += _StepBkg / _SIG *
               SIG.GradAt(XVector[SIG.XIndex]);
         }
@@ -780,8 +767,8 @@ void Region::GradChiSq(const CSpectrum& spectrum,
         XXGradient[DEL.XIndex] += DEL.GradAt(XVector[DEL.XIndex]) *
             (2.0 * square(t1) / _DEL * _Gauss);
 
-        XXGradient[Peak[i].POS.XIndex] += 2.0 * t1 / _DEL * _Gauss;
-        XXGradient[Peak[i].GAM.XIndex] += _Gauss / _GAM;
+        XXGradient[p.POS.XIndex] += 2.0 * t1 / _DEL * _Gauss;
+        XXGradient[p.GAM.XIndex] += _Gauss / _GAM;
 
         //---Short Tail---
 
@@ -795,9 +782,9 @@ void Region::GradChiSq(const CSpectrum& spectrum,
         XXGradient[DEL.XIndex] += DEL.GradAt(XVector[DEL.XIndex]) *
             (-1.0 * t1 / (_DEL * _BST) * _ShortTail + t2 * t1);
 
-        XXGradient[Peak[i].POS.XIndex] += -1.0 / (_BST * _DEL) *
+        XXGradient[p.POS.XIndex] += -1.0 / (_BST * _DEL) *
             _ShortTail + t2;
-        XXGradient[Peak[i].GAM.XIndex] += _ShortTail / _GAM;
+        XXGradient[p.GAM.XIndex] += _ShortTail / _GAM;
 
         if (AST.ToFit)
           XXGradient[AST.XIndex] += _ShortTail / _AST *
@@ -822,9 +809,9 @@ void Region::GradChiSq(const CSpectrum& spectrum,
           XXGradient[DEL.XIndex] += DEL.GradAt(XVector[DEL.XIndex]) *
               ((t1 / (_DEL * _BRT) * _RightTail - t2 * t1));
 
-          XXGradient[Peak[i].POS.XIndex] += 1.0 / (_BRT * _DEL) *
+          XXGradient[p.POS.XIndex] += 1.0 / (_BRT * _DEL) *
               _RightTail - t2;
-          XXGradient[Peak[i].GAM.XIndex] +=
+          XXGradient[p.GAM.XIndex] +=
               _RightTail / _GAM;
 
           XXGradient[ART.XIndex] += _RightTail / _ART *
@@ -835,9 +822,9 @@ void Region::GradChiSq(const CSpectrum& spectrum,
         }
 
         //XXGradient(DEL.XIndex) *= DEL.GradAt(XVector(DEL.XIndex))
-        XXGradient[Peak[i].GAM.XIndex] *= Peak[i].GAM.GradAt(XVector[Peak[i].GAM.XIndex]);
-        XXGradient[Peak[i].POS.XIndex] *= Peak[i].POS.GradAt(XVector[Peak[i].POS.XIndex]);
-      } //i //Peak
+        XXGradient[p.GAM.XIndex] *= p.GAM.GradAt(XVector[p.GAM.XIndex]);
+        XXGradient[p.POS.XIndex] *= p.POS.GradAt(XVector[p.POS.XIndex]);
+      } //Peak
 
       double t3 = -2 * (spectrum.Channel[j] - FTotal) /
           square(spectrum.Weight(j));
@@ -846,7 +833,7 @@ void Region::GradChiSq(const CSpectrum& spectrum,
       {
         XGradient[k] += XXGradient[k] * t3;
         XXGradient[k] = 0;
-      } //k
+      }
       Chisq += square((spectrum.Channel[j] - FTotal) / spectrum.Weight(j));
     } //j //Channel
     //Chisq /= df
