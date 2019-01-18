@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstdint>
 #include <string>
 
@@ -32,7 +34,7 @@ class CEff
   void Close();
   bool InitDone() const;
   double Value(double Energy) const;
-  double SigmaRel(double ByVal);
+  double SigmaRel(double ByVal) const;
 
  private:
   double e_ortpol(size_t n, double X) const;
@@ -101,23 +103,5 @@ class CCalibration
 
  private:
   uint8_t _CalOrder;
-};
-
-class CSpectrum
-{
- public:
-  std::vector<size_t> Channel;
-  CCalibration Calibration;
-  double Weight(size_t i) const;
-
-  // template type for Val;
-  int8_t Sign(double Val);
-
-  double DeadTime(double TrueTime, double LiveTime);
-  double Rate(double LiveTime, double SumCounts);
-
- private:
-  // template type for Val;
-  size_t mystery_function(double Val);
 };
 
