@@ -1,5 +1,7 @@
 #include <optimizerBFGS/optimizer_bfgs.h>
 
+#include <optimizerBFGS/more_math.h>
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #pragma GCC diagnostic ignored "-Wmisleading-indentation"
@@ -8,34 +10,6 @@
 #pragma GCC diagnostic pop
 
 #include <core/util/custom_logger.h>
-
-static constexpr double p{0.47047};
-static constexpr double b1{0.1740121};
-static constexpr double b2{-0.0479399};
-static constexpr double b3{0.3739278};
-
-double BFGS::erfc(double x)
-{
-  try
-  {
-    double x0, cutf, T;
-    if (x < 0)
-      x0 = -x;
-    else
-      x0 = x;
-    T = 1.0 / (1.0 + p * x0);
-    cutf = (b1 * T + b2 * T * T + b3 * T * T * T)
-        * std::exp(-(x0 * x0));
-    if (x < 0)
-      return 2 - 2 * cutf;
-    else
-      return 2 * cutf;
-  }
-  catch (...)
-  {
-    std::throw_with_nested(std::runtime_error(""));
-  }
-}
 
 double BFGS::Sign(double a, double b)
 {

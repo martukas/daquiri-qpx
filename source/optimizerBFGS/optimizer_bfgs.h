@@ -11,8 +11,6 @@ class BFGS {
   int32_t nfuncprofile;
   int32_t DiffType {1};
 
-  double erfc(double x);
-
   void BFGSMin(Region& RegObj, double tolf, size_t& iter);
 
  private:

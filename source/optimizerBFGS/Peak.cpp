@@ -1,6 +1,7 @@
 #include <optimizerBFGS/Peak.h>
 
 #include <core/util/custom_logger.h>
+#include <optimizerBFGS/more_math.h>
 
 double CValueDefault::Max() const
 {

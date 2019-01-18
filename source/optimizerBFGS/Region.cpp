@@ -1,4 +1,5 @@
 #include <optimizerBFGS/Region.h>
+#include <optimizerBFGS/more_math.h>
 
 #include <core/util/custom_logger.h>
 
