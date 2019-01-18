@@ -4,10 +4,12 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(SOURCES
   ${dir}/optimizer_bfgs.cpp
+  ${dir}/SpectrumIO.cpp
   )
 
 set(HEADERS
   ${dir}/optimizer_bfgs.h
+  ${dir}/SpectrumIO.h
   )
 
 set(${this_target}_headers ${HEADERS})
