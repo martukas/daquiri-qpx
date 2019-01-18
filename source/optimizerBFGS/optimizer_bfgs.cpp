@@ -9,16 +9,6 @@
 
 #include <core/util/custom_logger.h>
 
-double Region::CalcChiSq(const std::vector<double>& v)
-{
-  return 0;
-}
-
-void Region::GradChiSq(const std::vector<double>& v, std::vector<double>& v2, double&)
-{
-
-}
-
 static constexpr double p{0.47047};
 static constexpr double b1{0.1740121};
 static constexpr double b2{-0.0479399};

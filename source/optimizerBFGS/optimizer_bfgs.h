@@ -1,15 +1,8 @@
 #pragma once
 
+#include <optimizerBFGS/Region.h>
 #include <cstdint>
 #include <vector>
-
-struct Region {
-  std::vector<double> Vector;
-  double DegreeOfFreedom;
-
-  static double CalcChiSq(const std::vector<double>& v);
-  static void GradChiSq(const std::vector<double>& v, std::vector<double>& v2, double&);
-};
 
 class BFGS {
  public:
