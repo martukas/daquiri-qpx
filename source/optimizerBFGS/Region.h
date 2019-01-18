@@ -60,15 +60,14 @@ class Region
   void SearchPeaks(uint8_t Threshold = 3);
   void AddPeak(double Position, double Min, double Max, double Gamma = 10);
   void DeletePeak(size_t index);
-  void SortPeak();
   virtual double PeakArea(size_t PeakIndex) const;
-  virtual double UncPeakArea(size_t PeakIndex);
+  virtual double UncPeakArea(size_t PeakIndex) const;
   virtual double PeakAreaEff(size_t PeakIndex, const CCalibration& cal);
   virtual double UncPeakAreaEff(size_t PeakIndex, const CCalibration& cal);
   virtual size_t FitVars() const;
   virtual void setupFit();
   virtual void storeFit();
-  virtual void FuncValue(double E, std::vector<double>& Value);
+  virtual void FuncValue(double E, std::vector<double>& Value) const;
   virtual double CalcChiSq(const std::vector<double>& XVector) const;
   double ChisqNorm() const;
   size_t DegreeOfFreedom() const;
@@ -76,7 +75,7 @@ class Region
                          std::vector<double>& XGradient, double& Chisq) const;
 
  private:
-  int32_t L(int32_t i, int32_t j, int32_t m);
+  static int32_t L(int32_t i, int32_t j, int32_t m);
 
  protected:
   bool TailFlag{true};

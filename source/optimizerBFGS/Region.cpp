@@ -214,18 +214,6 @@ void Region::DeletePeak(size_t index)
   }
 }
 
-void Region::SortPeak()
-{
-  try
-  {
-    //Peak.s
-  }
-  catch (...)
-  {
-    ERR("Sort Peaks failed!");
-  }
-}
-
 double Region::PeakArea(size_t PeakIndex) const
 {
   return Peak[PeakIndex].GAM.Value() * DEL.Value() * (std::sqrt(M_PI) +
@@ -233,7 +221,7 @@ double Region::PeakArea(size_t PeakIndex) const
       ART.Value() * BRT.Value() * std::exp(-0.25 / square(BRT.Value())));
 }
 
-double Region::UncPeakArea(size_t PeakIndex)
+double Region::UncPeakArea(size_t PeakIndex) const
 {
   double t = PeakArea(PeakIndex);
   //, i, j As Integer
@@ -474,7 +462,7 @@ void Region::storeFit()
   }
 }
 
-void Region::FuncValue(double E, std::vector<double>& Value)
+void Region::FuncValue(double E, std::vector<double>& Value) const
 {
   //returns the value of the fitted curve and the background at Energy E
   //Dim FTotal, FBkg0, FBkg, FPeak As Double

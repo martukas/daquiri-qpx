@@ -81,6 +81,7 @@ class CValueBkgDefault
  private:
   double _X{0};
   double _dX{0};
+
  public:
   double UncValue{0};
   double XIndex{-1};
@@ -98,6 +99,7 @@ class CValueBkg
  private:
   double _X{0};
   double _dX{0};
+
  public:
   double UncValue{0};
   int32_t XIndex{-1};
@@ -105,12 +107,8 @@ class CValueBkg
 
   double X() const;
   void X(double Value);
-
   double Value() const;
-
   void Value(double val);
-
   double ValueAt(double atX) const;
-
   double GradAt(double atX);
 };

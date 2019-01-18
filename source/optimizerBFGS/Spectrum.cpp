@@ -1,5 +1,5 @@
 #include <optimizerBFGS/Spectrum.h>
-#include <fstream>
+#include <optimizerBFGS/more_math.h>
 
 #include <core/util/custom_logger.h>
 
@@ -16,16 +16,6 @@ double CSpectrum::Weight(size_t i) const
       k1 = Channel[i - 1] + Channel[i] + Channel[i + 1] / 3.0;
     return std::max(std::sqrt(k1), 1.0);
   }
-}
-
-// template type for Val;
-int8_t CSpectrum::Sign(double Val)
-{
-  if (Val < 0)
-    return -1;
-  if (Val > 0)
-    return 1;
-  return 0;
 }
 
 double CSpectrum::DeadTime(double TrueTime, double LiveTime)
@@ -51,7 +41,7 @@ size_t CSpectrum::mystery_function(double Val)
   while (!Ready)
   {
     size_t exponent = std::log(std::abs(Val)) / std::log(2);
-    Val = Val - Sign(Val) * pow(2, exponent);
+    Val = Val - signum(Val) * pow(2, exponent);
     if ((Val >= 0) && (Val < pow(2, 36)))
       Ready = true;
   }

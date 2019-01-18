@@ -10,14 +10,11 @@ class CSpectrum
   CCalibration Calibration;
   double Weight(size_t i) const;
 
-  // template type for Val;
-  int8_t Sign(double Val);
-
-  double DeadTime(double TrueTime, double LiveTime);
-  double Rate(double LiveTime, double SumCounts);
+  static double DeadTime(double TrueTime, double LiveTime);
+  static double Rate(double LiveTime, double SumCounts);
 
  private:
-  // template type for Val;
+  // \todo template type for Val;
   size_t mystery_function(double Val);
 };
 

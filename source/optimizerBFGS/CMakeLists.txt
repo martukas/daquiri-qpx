@@ -3,17 +3,21 @@ set(this_target ${PROJECT_NAME}_optimizerBFGS)
 set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(SOURCES
+  ${dir}/EfficiencyCal.cpp
+  ${dir}/NonlinearityCal.cpp
+  ${dir}/Calibration.cpp
   ${dir}/optimizer_bfgs.cpp
   ${dir}/Spectrum.cpp
-  ${dir}/Calibration.cpp
   ${dir}/Peak.cpp
   ${dir}/Region.cpp
   )
 
 set(HEADERS
+  ${dir}/EfficiencyCal.h
+  ${dir}/NonlinearityCal.h
+  ${dir}/Calibration.h
   ${dir}/optimizer_bfgs.h
   ${dir}/Spectrum.h
-  ${dir}/Calibration.h
   ${dir}/Peak.h
   ${dir}/Region.h
   ${dir}/more_math.h
