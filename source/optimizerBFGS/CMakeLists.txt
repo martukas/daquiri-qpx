@@ -16,6 +16,7 @@ set(HEADERS
   ${dir}/Calibration.h
   ${dir}/Peak.h
   ${dir}/Region.h
+  ${dir}/more_math.h
   )
 
 set(${this_target}_headers ${HEADERS})

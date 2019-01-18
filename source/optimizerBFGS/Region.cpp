@@ -502,19 +502,19 @@ void Region::FuncValue(double E, std::vector<double>& Value)
       if (LeftTail())
         Value[1] += _GAM * 0.5 * ALT.Value() *
             std::exp(_DE / (_BLT * _DEL)) *
-            erfc(_DE / _DEL + 0.5 / _BLT);
+            std::erfc(_DE / _DEL + 0.5 / _BLT);
       if (StepBkg())
         Value[1] += SIG.Value() * 0.5 * _GAM *
-            erfc(Peak[i].StepType() * _DE / _DEL);
+            std::erfc(Peak[i].StepType() * _DE / _DEL);
 
       Value[i + 2] = _GAM * std::exp(-1.0 * (square(_DE) / square(_DEL)));
       Value[i + 2] += _GAM * 0.5 * AST.Value() *
           std::exp(_DE / (_BST * _DEL)) *
-          erfc(_DE / _DEL + 0.5 / _BST);
+          std::erfc(_DE / _DEL + 0.5 / _BST);
       if (RightTail())
         Value[i + 2] += _GAM * 0.5 * ART.Value() *
             std::exp(-1.0 * _DE / (_BRT * _DEL)) *
-            erfc(-1.0 * _DE / _DEL + 0.5 / _BRT);
+            std::erfc(-1.0 * _DE / _DEL + 0.5 / _BRT);
     }
     //Value(0):FTotal
     Value[0] = Value[1];
@@ -583,13 +583,13 @@ double Region::CalcChiSq(const std::vector<double>& XVector) const
         {
           _LongTail = _GAM * 0.5 * _ALT *
               std::exp(DE / (_BLT * _DEL)) *
-              erfc(DE / _DEL + 0.5 / _BLT);
+              std::erfc(DE / _DEL + 0.5 / _BLT);
           FTotal += _LongTail;
         }
         if (StepBkg())
         {
           _StepBkg = _SIG * 0.5 * _GAM *
-              erfc(p.StepType() * DE / _DEL);
+              std::erfc(p.StepType() * DE / _DEL);
           FTotal += _StepBkg;
         }
         FTotal = std::max(FTotal, 0.0);
@@ -598,13 +598,13 @@ double Region::CalcChiSq(const std::vector<double>& XVector) const
         FTotal += _Gauss;
         _ShortTail = _GAM * 0.5 * _AST *
             std::exp(DE / (_BST * _DEL)) *
-            erfc(DE / _DEL + 0.5 / _BST);
+            std::erfc(DE / _DEL + 0.5 / _BST);
         FTotal += _ShortTail;
         if (RightTail())
         {
           _RightTail = _GAM * 0.5 * _ART *
               std::exp(-1.0 * DE / (_BRT * _DEL)) *
-              erfc(0.5 / _BRT - DE / _DEL);
+              std::erfc(0.5 / _BRT - DE / _DEL);
           FTotal += _RightTail;
         }
       } //i
@@ -725,7 +725,7 @@ void Region::GradChiSq(const std::vector<double>& XVector,
         if (LeftTail())
         {
           _LongTail = _GAM * 0.5 * _ALT * std::exp(t1 / _BLT) *
-              erfc(t1 + 0.5 / _BLT);
+              std::erfc(t1 + 0.5 / _BLT);
 
           FTotal += _LongTail;
 
@@ -749,7 +749,7 @@ void Region::GradChiSq(const std::vector<double>& XVector,
         if (StepBkg())
         {
           _StepBkg = _SIG * 0.5 * _GAM *
-              erfc(p.StepType() * t1);
+              std::erfc(p.StepType() * t1);
           FTotal += _StepBkg;
 
           XXGradient[DEL.XIndex] += DEL.GradAt(XVector[DEL.XIndex]) *
@@ -774,7 +774,7 @@ void Region::GradChiSq(const std::vector<double>& XVector,
         //---Short Tail---
 
         _ShortTail = _GAM * 0.5 * _AST * std::exp(t1 / _BST) *
-            erfc(t1 + 0.5 / _BST);
+            std::erfc(t1 + 0.5 / _BST);
         FTotal += _ShortTail;
 
         //t2 = (_GAM * _AST * std::exp(t1 / _BST) / M_PI ^ (0.5) * std::exp(-1.0 * (1.0 / (2.0 * _BST) + t1) ^ 2) * t1 / _DEL)
@@ -801,7 +801,7 @@ void Region::GradChiSq(const std::vector<double>& XVector,
 
           _RightTail = _GAM * 0.5 * _ART *
               std::exp(-1.0 * t1 / _BRT) *
-              erfc(0.5 / _BRT - t1);
+              std::erfc(0.5 / _BRT - t1);
           FTotal += _RightTail;
 
           //t2 = (_GAM * _ART * std::exp(-1.0 * t1 / _BRT) / M_PI ^ (0.5) * std::exp(-(1.0 / (2.0 * _BRT) - t1) ^ 2) * t1 / _DEL)

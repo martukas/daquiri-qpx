@@ -1,4 +1,6 @@
 #include <optimizerBFGS/Calibration.h>
+#include <optimizerBFGS/more_math.h>
+
 #include <fstream>
 
 #include <core/util/custom_logger.h>
@@ -118,7 +120,7 @@ double CEff::SigmaRel(double Energy) const
     for (size_t i = 0; i <= e_maxdeg; ++i)
     {
       w = e_normfact[i] * e_ortpol(i, X);
-      sigeff += w * w * e_VarMatrix.coeff(i, i);
+      sigeff += square(w) * e_VarMatrix.coeff(i, i);
       for (size_t j = 0; j < i; ++j)
         sigeff += 2 * w * e_normfact[j] * e_ortpol(j, X) * e_VarMatrix.coeff(i, j);
     }
@@ -253,9 +255,11 @@ double CNonlin::Sigma(double Position)
     for (size_t i = 0; i <= n_maxdeg - 2; ++i)
     {
       double w = n_normfact[i + 2] * n_ortpol(i + 2, X);
-      siglin += w * w * n_VarMatrix.coeff(i, i);
+      siglin += square(w) * n_VarMatrix.coeff(i, i);
       for (size_t j = 0; j <= i - 1; ++i)
-        siglin += 2 * w * n_normfact[j + 2] * n_ortpol(j + 2, X) * n_VarMatrix.coeff(i, j);
+        siglin += 2 * w * n_normfact[j + 2] *
+            n_ortpol(j + 2, X) *
+            n_VarMatrix.coeff(i, j);
     }
     if (siglin >= 0)
       siglin = std::sqrt(siglin);

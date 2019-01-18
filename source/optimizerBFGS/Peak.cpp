@@ -124,7 +124,7 @@ double CValueGam::ValueAt(double atX) const
 {
   try
   {
-    double ret = atX * atX;
+    double ret = square(atX);
     if (!std::isfinite(ret))
       throw std::runtime_error("Quiet NaN overflow occurred");
     return ret;
@@ -139,7 +139,7 @@ double CValueGam::GradAt(double atX) const
 {
   try
   {
-    double ret = atX + atX;
+    double ret = 2.0 * atX;
     if (!std::isfinite(ret))
       throw std::runtime_error("Quiet NaN overflow occurred");
     return ret;
@@ -210,7 +210,7 @@ double CValueBkgDefault::Value() const
 {
   try
   {
-    double ret = _X * _X;
+    double ret = square(_X);
     if (!std::isfinite(ret))
       throw std::runtime_error("Quiet NaN overflow occurred");
     return ret;
@@ -239,7 +239,7 @@ double CValueBkgDefault::ValueAt(double atX) const
 {
   try
   {
-    double ret = atX * atX;
+    double ret = square(atX);
     if (!std::isfinite(ret))
       throw std::runtime_error("Quiet NaN overflow occurred");
     return ret;
@@ -254,7 +254,7 @@ double CValueBkgDefault::GradAt(double atX) const
 {
   try
   {
-    double ret = atX + atX;
+    double ret = 2.0 * atX;
     if (!std::isfinite(ret))
       throw std::runtime_error("Quiet NaN overflow occurred");
     return ret;

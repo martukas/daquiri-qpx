@@ -9,6 +9,7 @@ set(${this_target}_sources
 add_subdirectory(core)
 add_subdirectory(consumers)
 add_subdirectory(importers)
+add_subdirectory(optimizerBFGS)
 
 add_executable(
   ${this_target} EXCLUDE_FROM_ALL
