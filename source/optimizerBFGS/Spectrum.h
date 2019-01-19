@@ -3,6 +3,9 @@
 #include <optimizerBFGS/Calibration.h>
 #include <vector>
 
+namespace Hypermet
+{
+
 class CSpectrum
 {
  public:
@@ -18,3 +21,4 @@ class CSpectrum
   size_t mystery_function(double Val);
 };
 
+}

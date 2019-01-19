@@ -2,15 +2,19 @@
 
 #include <optimizerBFGS/Calibration.h>
 
-class CValueDefault {
+namespace Hypermet
+{
+
+class CValueDefault
+{
  private:
-  double _X {0};
-  double _dX {0};
-  double _Max {1};
-  double _Min {0};
+  double _X{0};
+  double _dX{0};
+  double _Max{1};
+  double _Min{0};
  public:
-  double UncValue {0};
-  int32_t XIndex {-1};
+  double UncValue{0};
+  int32_t XIndex{-1};
 
   //void SetRange(double NewMin, double NewMax) {
   //    if(Not NewMin < NewMax) { return; }
@@ -29,16 +33,16 @@ class CValueDefault {
   double X();
   void X(double Value);
   double Value() const;
-  void Value (double val);
+  void Value(double val);
   double ValueAt(double atX) const;
   double GradAt(double atX) const;
 };
 
-class CValue: public CValueDefault {
+class CValue : public CValueDefault
+{
  public:
-  bool ToFit {true};
+  bool ToFit{true};
 };
-
 
 class CValueGam
 {
@@ -112,3 +116,5 @@ class CValueBkg
   double ValueAt(double atX) const;
   double GradAt(double atX);
 };
+
+}

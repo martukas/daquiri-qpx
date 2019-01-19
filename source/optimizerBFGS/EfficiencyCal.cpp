@@ -5,6 +5,9 @@
 
 #include <core/util/custom_logger.h>
 
+namespace Hypermet
+{
+
 void EfficiencyCal::Init(std::string flnm)
 {
   try
@@ -95,7 +98,6 @@ double EfficiencyCal::Value(double Energy) const
     double X{e_c0 + std::log(Energy) * e_c1};
     for (size_t i = 0; i <= e_maxdeg; ++i)
       retval += e_poly_coeff[i] * e_normfact[i] * e_ortpol(i, X);
-
     return std::exp(retval);
   }
   catch (...)
@@ -109,9 +111,6 @@ double EfficiencyCal::SigmaRel(double Energy) const
 {
   try
   {
-    double w;
-    int32_t j;
-
     if (!e_init_done)
       return 0;
 
@@ -119,20 +118,21 @@ double EfficiencyCal::SigmaRel(double Energy) const
     double sigeff{0};
     for (size_t i = 0; i <= e_maxdeg; ++i)
     {
-      w = e_normfact[i] * e_ortpol(i, X);
+      double w{e_normfact[i] * e_ortpol(i, X)};
       sigeff += square(w) * e_VarMatrix.coeff(i, i);
       for (size_t j = 0; j < i; ++j)
         sigeff += 2 * w * e_normfact[j] * e_ortpol(j, X) * e_VarMatrix.coeff(i, j);
     }
-    if (sigeff >= 0)
-      sigeff = std::sqrt(sigeff);
+    if (sigeff >= 0.0)
+      return std::sqrt(sigeff);
     else
-      sigeff = 0;
-    return sigeff;
+      return 0.0;
   }
   catch (...)
   {
     ERR("Efficiency error: {exception}");
     return 0;
   }
+}
+
 }

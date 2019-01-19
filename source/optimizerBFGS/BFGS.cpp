@@ -1,4 +1,4 @@
-#include <optimizerBFGS/optimizer_bfgs.h>
+#include <optimizerBFGS/BFGS.h>
 
 #include <optimizerBFGS/more_math.h>
 
@@ -10,6 +10,9 @@
 #pragma GCC diagnostic pop
 
 #include <core/util/custom_logger.h>
+
+namespace Hypermet
+{
 
 double BFGS::Sign(double a, double b)
 {
@@ -448,4 +451,6 @@ void BFGS::BFGSMin(Region& region, double tolf, size_t& iter)
   {
     std::throw_with_nested(std::runtime_error(""));
   }
+}
+
 }

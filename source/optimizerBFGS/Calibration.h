@@ -3,6 +3,9 @@
 #include <optimizerBFGS/EfficiencyCal.h>
 #include <optimizerBFGS/NonlinearityCal.h>
 
+namespace Hypermet
+{
+
 class CCalibration
 {
  public:
@@ -34,3 +37,4 @@ class CCalibration
   uint8_t _CalOrder;
 };
 
+}

@@ -3,6 +3,9 @@
 
 #include <core/util/custom_logger.h>
 
+namespace Hypermet
+{
+
 CCalibration::CCalibration()
 {
   //EnergyCal[0].Channel = 0;
@@ -76,3 +79,4 @@ double CCalibration::Width(double Channel) const
   //fwhm_a = -(Energy(chfwhm2) * fwhm1 ^ 2 - fwhm2 ^ 2 * Energy(chfwhm1)) / (-Energy(chfwhm2) + Energy(chfwhm1))
 }
 
+}

@@ -6,7 +6,7 @@ set(SOURCES
   ${dir}/EfficiencyCal.cpp
   ${dir}/NonlinearityCal.cpp
   ${dir}/Calibration.cpp
-  ${dir}/optimizer_bfgs.cpp
+  ${dir}/BFGS.cpp
   ${dir}/Spectrum.cpp
   ${dir}/Peak.cpp
   ${dir}/Region.cpp
@@ -16,7 +16,7 @@ set(HEADERS
   ${dir}/EfficiencyCal.h
   ${dir}/NonlinearityCal.h
   ${dir}/Calibration.h
-  ${dir}/optimizer_bfgs.h
+  ${dir}/BFGS.h
   ${dir}/Spectrum.h
   ${dir}/Peak.h
   ${dir}/Region.h

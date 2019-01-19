@@ -5,6 +5,9 @@
 
 #include <core/util/custom_logger.h>
 
+namespace Hypermet
+{
+
 void NonlinearityCal::Init(std::string flnm)
 {
   try
@@ -99,8 +102,8 @@ double NonlinearityCal::Value(double Position) const
   {
     if (!n_init_done)
       return 0;
-    double X = n_c0 + (Position + 1) * n_c1;
-    double retval = n_bl0 + n_bl1 * X;
+    double X{n_c0 + (Position + 1) * n_c1};
+    double retval{n_bl0 + n_bl1 * X};
     for (size_t i = 0; i <= n_maxdeg - 2; ++i)
       retval += n_poly_coeff[i] * n_normfact[i + 2] * n_ortpol(i + 2, X);
     return retval;
@@ -112,28 +115,27 @@ double NonlinearityCal::Value(double Position) const
   }
 }
 
-double NonlinearityCal::Sigma(double Position)
+double NonlinearityCal::Sigma(double Position) const
 {
   try
   {
     if (!n_init_done)
       return 0;
-    double X = n_c0 + (Position + 1) * n_c1;
-    double siglin = 0;
+    double X {n_c0 + (Position + 1) * n_c1};
+    double siglin {0};
     for (size_t i = 0; i <= n_maxdeg - 2; ++i)
     {
-      double w = n_normfact[i + 2] * n_ortpol(i + 2, X);
+      double w {n_normfact[i + 2] * n_ortpol(i + 2, X)};
       siglin += square(w) * n_VarMatrix.coeff(i, i);
       for (size_t j = 0; j <= i - 1; ++i)
-        siglin += 2 * w * n_normfact[j + 2] *
-            n_ortpol(j + 2, X) *
-            n_VarMatrix.coeff(i, j);
+        siglin += 2 * w * n_normfact[j + 2]
+            * n_ortpol(j + 2, X)
+            * n_VarMatrix.coeff(i, j);
     }
-    if (siglin >= 0)
-      siglin = std::sqrt(siglin);
+    if (siglin >= 0.0)
+      return std::sqrt(siglin);
     else
-      siglin = 0;
-    return siglin;
+      return 0.0;
   }
   catch (...)
   {
@@ -148,8 +150,8 @@ double NonlinearityCal::nonlin1(double Position)
   {
     if (!n_init_done)
       return 0;
-    double X = n_c0 + (Position + 1) * n_c1;
-    double retval = 0;
+    double X {n_c0 + (Position + 1) * n_c1};
+    double retval {0};
     for (size_t i = 0; i <= n_maxdeg - 2; ++i)
       retval += n_poly_coeff[i] * n_normfact[i + 2] * n_ortpol(i + 2, X);
     return retval;
@@ -178,4 +180,6 @@ void NonlinearityCal::SetBasePoints(double ch1, double ch2)
     ERR("Nonlinearity error: {exception}");
     return;
   }
+}
+
 }

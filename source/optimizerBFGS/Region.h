@@ -10,6 +10,9 @@
 #include <Eigen/Sparse>
 #pragma GCC diagnostic pop
 
+namespace Hypermet
+{
+
 enum class RegTypes : uint16_t
 {
   Normal = 0,
@@ -40,9 +43,9 @@ class Region
   //public: BoronPeak As CBoronPeak
   //public: AnnPeak As CAnnPeak
 
-  std::vector<double> Vector{4};
-  std::vector<double> Gradient{4};
-  Eigen::SparseMatrix<double> Hessinv{4, 4};
+  std::vector<double> Vector;
+  std::vector<double> Gradient;
+  Eigen::SparseMatrix<double> Hessinv;
 
   Region(CSpectrum& spe, double FromChannel, double ToChannel);
 
@@ -84,3 +87,5 @@ class Region
   bool CurveFlag{true};
   bool RightTailFlag{true};
 };
+
+}

@@ -3,10 +3,13 @@
 
 #include <core/util/custom_logger.h>
 
+namespace Hypermet
+{
+
 Region::Region(CSpectrum& spe, double FromChannel, double ToChannel)
-: spectrum(spe)
-, FirstChannel(std::min(FromChannel, ToChannel))
-, LastChannel(std::max(FromChannel, ToChannel))
+    : spectrum(spe)
+      , FirstChannel(std::min(FromChannel, ToChannel))
+      , LastChannel(std::max(FromChannel, ToChannel))
 {
   try
   {
@@ -833,3 +836,4 @@ void Region::GradChiSq(const std::vector<double>& XVector,
   }
 }
 
+}

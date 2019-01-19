@@ -3,6 +3,9 @@
 #include <core/util/custom_logger.h>
 #include <optimizerBFGS/more_math.h>
 
+namespace Hypermet
+{
+
 double CValueDefault::Max() const
 {
   return _Max;
@@ -46,9 +49,9 @@ void CValueDefault::Value(double val)
   if (std::abs(t) <= 1)
     _X = std::asin((_Min + _Max - 2 * val) / (_Min - _Max));
   else if (signum(t) < 0)
-  _X = std::asin(-1);
+    _X = std::asin(-1);
   else
-  _X = std::asin(1);
+    _X = std::asin(1);
 }
 
 double CValueDefault::ValueAt(double atX) const
@@ -293,4 +296,6 @@ double CValueBkg::ValueAt(double atX) const
 double CValueBkg::GradAt(double atX)
 {
   return 1;
+}
+
 }

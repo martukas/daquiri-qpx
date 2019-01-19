@@ -3,6 +3,9 @@
 
 #include <core/util/custom_logger.h>
 
+namespace Hypermet
+{
+
 double CSpectrum::Weight(size_t i) const
 {
   double k0 = Channel[i];
@@ -48,3 +51,4 @@ size_t CSpectrum::mystery_function(double Val)
   return Val;
 }
 
+}

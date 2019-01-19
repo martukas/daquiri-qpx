@@ -4,12 +4,16 @@
 #include <cstdint>
 #include <vector>
 
-class BFGS {
+namespace Hypermet
+{
+
+class BFGS
+{
  public:
-  bool Cancelfit {false};
+  bool Cancelfit{false};
 
   int32_t nfuncprofile;
-  int32_t DiffType {1};
+  int32_t DiffType{1};
 
   void BFGSMin(Region& RegObj, double tolf, size_t& iter);
 
@@ -22,5 +26,6 @@ class BFGS {
   double fgv(const Region& region, double lambda, std::vector<double> gx, std::vector<double> g);
   double dfgv(const Region& region, double lambda, std::vector<double> gx, std::vector<double> g);
   void LinMin(const Region& region, std::vector<double>& x, std::vector<double> h, double& fmin);
-
 };
+
+}

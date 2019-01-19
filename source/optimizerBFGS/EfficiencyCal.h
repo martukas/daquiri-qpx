@@ -10,6 +10,9 @@
 #include <Eigen/Sparse>
 #pragma GCC diagnostic pop
 
+namespace Hypermet
+{
+
 class EfficiencyCal
 {
   // This class loads and calculates the efficiency from an existing fit, as done by Hypermet-PC.
@@ -21,7 +24,7 @@ class EfficiencyCal
   float e_maxdeg;
   double e_apol[7], e_bpol[6], e_normfact[8], e_poly_coeff[8];
 
-  Eigen::SparseMatrix<double> e_VarMatrix{8, 8};
+  Eigen::SparseMatrix<double> e_VarMatrix;
 
   double e_c0, e_c1;
   bool e_init_done{false};
@@ -36,3 +39,5 @@ class EfficiencyCal
  private:
   double e_ortpol(size_t n, double X) const;
 };
+
+}

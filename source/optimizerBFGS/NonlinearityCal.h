@@ -10,6 +10,9 @@
 #include <Eigen/Sparse>
 #pragma GCC diagnostic pop
 
+namespace Hypermet
+{
+
 class NonlinearityCal
 {
   // This class loads and calculates the nonlinearity from an existing fit, as done by Hypermet-PC.
@@ -20,7 +23,7 @@ class NonlinearityCal
  private:
   float n_maxdeg;
   double n_apol[7], n_bpol[6], n_normfact[8], n_poly_coeff[7];
-  Eigen::SparseMatrix<double> n_VarMatrix{8, 8};
+  Eigen::SparseMatrix<double> n_VarMatrix;
 
   double n_c0, n_c1;
   double n_bl0, n_bl1;
@@ -31,10 +34,12 @@ class NonlinearityCal
   void Close();
   bool InitDone() const;
   double Value(double Position) const;
-  double Sigma(double Position);
+  double Sigma(double Position) const;
   void SetBasePoints(double ch1, double ch2);
 
  private:
   double n_ortpol(size_t n, double X) const;
   double nonlin1(double Position);
 };
+
+}
