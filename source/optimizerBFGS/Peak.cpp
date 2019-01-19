@@ -41,13 +41,13 @@ void CValueDefault::X(double Value)
 
 double CValueDefault::Value() const
 {
-  return _Min + (_Max - _Min) / 2 * (1 + std::sin(_X));
+  return ValueAt(_X);
 }
 void CValueDefault::Value(double val)
 {
-  double t = (_Min + _Max - 2 * val) / (_Min - _Max);
+  double t = (_Min + _Max - 2.0 * val) / (_Min - _Max);
   if (std::abs(t) <= 1)
-    _X = std::asin((_Min + _Max - 2 * val) / (_Min - _Max));
+    _X = std::asin((_Min + _Max - 2.0 * val) / (_Min - _Max));
   else if (signum(t) < 0)
     _X = std::asin(-1);
   else
@@ -56,32 +56,12 @@ void CValueDefault::Value(double val)
 
 double CValueDefault::ValueAt(double atX) const
 {
-  try
-  {
-    double ret = _Min + (_Max - _Min) / 2.0 * (1.0 + std::sin(atX));
-    if (!std::isfinite(ret))
-      throw std::runtime_error("Quiet NaN overflow occurred");
-    return ret;
-  }
-  catch (...)
-  {
-    std::throw_with_nested(std::runtime_error("ValueAt failed"));
-  }
+  return _Min + (_Max - _Min) / 2.0 * (1.0 + std::sin(atX));
 }
 
 double CValueDefault::GradAt(double atX) const
 {
-  try
-  {
-    double ret = (_Max - _Min) * std::cos(atX) / 2.0;
-    if (!std::isfinite(ret))
-      throw std::runtime_error("Quiet NaN overflow occurred");
-    return ret;
-  }
-  catch (...)
-  {
-    std::throw_with_nested(std::runtime_error("GradAt failed"));
-  }
+  return (_Max - _Min) * std::cos(atX) / 2.0;
 }
 
 double CValueGam::X()
@@ -95,62 +75,22 @@ void CValueGam::X(double Value)
 
 double CValueGam::Value() const
 {
-  try
-  {
-    double ret = _X * _X;
-    if (!std::isfinite(ret))
-      throw std::runtime_error("Quiet NaN overflow occurred");
-    return ret;
-
-  }
-  catch (...)
-  {
-    std::throw_with_nested(std::runtime_error("Value failed"));
-  }
+  return ValueAt(_X);
 }
 
 void CValueGam::Value(double val)
 {
-  try
-  {
-    _X = std::sqrt(val);
-    if (!std::isfinite(_X))
-      throw std::runtime_error("Quiet NaN overflow occurred");
-  }
-  catch (...)
-  {
-    std::throw_with_nested(std::runtime_error("Value failed"));
-  }
+  _X = std::sqrt(val);
 }
 
 double CValueGam::ValueAt(double atX) const
 {
-  try
-  {
-    double ret = square(atX);
-    if (!std::isfinite(ret))
-      throw std::runtime_error("Quiet NaN overflow occurred");
-    return ret;
-  }
-  catch (...)
-  {
-    std::throw_with_nested(std::runtime_error("ValueAt failed"));
-  }
+  return square(atX);
 }
 
 double CValueGam::GradAt(double atX) const
 {
-  try
-  {
-    double ret = 2.0 * atX;
-    if (!std::isfinite(ret))
-      throw std::runtime_error("Quiet NaN overflow occurred");
-    return ret;
-  }
-  catch (...)
-  {
-    std::throw_with_nested(std::runtime_error("GradAt failed"));
-  }
+  return 2.0 * atX;
 }
 
 int32_t CPeak::StepType() const
@@ -211,61 +151,22 @@ void CValueBkgDefault::X(double Value)
 
 double CValueBkgDefault::Value() const
 {
-  try
-  {
-    double ret = square(_X);
-    if (!std::isfinite(ret))
-      throw std::runtime_error("Quiet NaN overflow occurred");
-    return ret;
-  }
-  catch (...)
-  {
-    std::throw_with_nested(std::runtime_error("Value failed"));
-  }
+  return ValueAt(_X);
 }
 
 void CValueBkgDefault::Value(double val)
 {
-  try
-  {
-    _X = std::sqrt(val);
-    if (!std::isfinite(_X))
-      throw std::runtime_error("Quiet NaN overflow occurred");
-  }
-  catch (...)
-  {
-    std::throw_with_nested(std::runtime_error("Value failed"));
-  }
+  _X = std::sqrt(val);
 }
 
 double CValueBkgDefault::ValueAt(double atX) const
 {
-  try
-  {
-    double ret = square(atX);
-    if (!std::isfinite(ret))
-      throw std::runtime_error("Quiet NaN overflow occurred");
-    return ret;
-  }
-  catch (...)
-  {
-    std::throw_with_nested(std::runtime_error("ValueAt failed"));
-  }
+  return square(atX);
 }
 
 double CValueBkgDefault::GradAt(double atX) const
 {
-  try
-  {
-    double ret = 2.0 * atX;
-    if (!std::isfinite(ret))
-      throw std::runtime_error("Quiet NaN overflow occurred");
-    return ret;
-  }
-  catch (...)
-  {
-    std::throw_with_nested(std::runtime_error("GradAt failed"));
-  }
+  return  2.0 * atX;
 }
 
 double CValueBkg::X() const
@@ -295,7 +196,8 @@ double CValueBkg::ValueAt(double atX) const
 
 double CValueBkg::GradAt(double atX)
 {
-  return 1;
+  (void) atX;
+  return 1.0;
 }
 
 }
