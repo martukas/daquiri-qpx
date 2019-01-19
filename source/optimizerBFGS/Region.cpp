@@ -521,95 +521,68 @@ void Region::FuncValue(double E, std::vector<double>& Value) const
 double Region::CalcChiSq(const std::vector<double>& XVector) const
 {
   //Calculates the normalized Chi-square over a region
-  double DE;
-  double _GAM, _DEL, _AST, _BST, _ART, _BRT, _ALT, _BLT, _SIG, FTotal;
-  double _Gauss, _ShortTail, _LongTail, _RightTail, _StepBkg;
   try
   {
     Chisq = 0;
 
-    if (AST.ToFit)
-      _AST = AST.ValueAt(XVector[AST.XIndex]);
-    else
-      _AST = AST.Value();
-
-    if (BST.ToFit)
-      _BST = BST.ValueAt(XVector[BST.XIndex]);
-    else
-      _BST = BST.Value();
-
-    _DEL = DEL.ValueAt(XVector[DEL.XIndex]);
-
-    if (LeftTail())
-    {
-      _ALT = ALT.ValueAt(XVector[ALT.XIndex]);
-      _BLT = BLT.ValueAt(XVector[BLT.XIndex]);
-    }
-
-    if (StepBkg())
-      _SIG = SIG.ValueAt(XVector[SIG.XIndex]);
-
-    if (RightTail())
-    {
-      _ART = ART.ValueAt(XVector[ART.XIndex]);
-      _BRT = BRT.ValueAt(XVector[BRT.XIndex]);
-    }
+    double _AST = AST.ToFit ? AST.ValueAt(XVector[AST.XIndex]) : AST.Value();
+    double _BST = BST.ToFit ? BST.ValueAt(XVector[BST.XIndex]) : BST.Value();
+    double _DEL = DEL.ValueAt(XVector[DEL.XIndex]);
+    double _ALT = LeftTail() ? ALT.ValueAt(XVector[ALT.XIndex]) : 0.0;
+    double _BLT = LeftTail() ? BLT.ValueAt(XVector[BLT.XIndex]) : 0.0;
+    double _SIG = StepBkg() ? SIG.ValueAt(XVector[SIG.XIndex]) : 0.0;
+    double _ART = RightTail() ? ART.ValueAt(XVector[ART.XIndex]) : 0.0;
+    double _BRT = RightTail() ? BRT.ValueAt(XVector[BRT.XIndex]) : 0.0;
 
     for (size_t j = FirstChannel; j <= LastChannel; ++j)
     {
-
-      FTotal = BLN.ValueAt(XVector[BLN.XIndex]);
+      // Background
+      double FTotal = BLN.ValueAt(XVector[BLN.XIndex]);
       if (Slope())
-        FTotal += BSL.ValueAt(XVector[BSL.XIndex]) *
-            (j - FirstChannel);
+        FTotal += BSL.ValueAt(XVector[BSL.XIndex]) * (j - FirstChannel);
       if (Curve())
-        FTotal += BCV.ValueAt(XVector[BCV.XIndex]) *
-            square(j - FirstChannel);
+        FTotal += BCV.ValueAt(XVector[BCV.XIndex]) * square(j - FirstChannel);
 
       for (auto& p : Peak)
       {
-        DE = j - p.POS.ValueAt(XVector[p.POS.XIndex]);
-        _GAM = p.GAM.ValueAt(XVector[p.GAM.XIndex]);
+        double DE = j - p.POS.ValueAt(XVector[p.POS.XIndex]);
+        double _GAM = p.GAM.ValueAt(XVector[p.GAM.XIndex]);
         if (LeftTail())
         {
-          _LongTail = _GAM * 0.5 * _ALT *
+          FTotal += _GAM * 0.5 * _ALT *
               std::exp(DE / (_BLT * _DEL)) *
               std::erfc(DE / _DEL + 0.5 / _BLT);
-          FTotal += _LongTail;
         }
         if (StepBkg())
         {
-          _StepBkg = _SIG * 0.5 * _GAM *
+          FTotal += _GAM * 0.5 * _SIG *
               std::erfc(p.StepType() * DE / _DEL);
-          FTotal += _StepBkg;
         }
         FTotal = std::max(FTotal, 0.0);
         //--- Peak components ---
-        _Gauss = _GAM * std::exp(-1.0 * square(DE / _DEL));
-        FTotal += _Gauss;
-        _ShortTail = _GAM * 0.5 * _AST *
+        // Gaussian
+        FTotal += _GAM * std::exp(-1.0 * square(DE / _DEL));
+        // Short tail
+        FTotal += _GAM * 0.5 * _AST *
             std::exp(DE / (_BST * _DEL)) *
             std::erfc(DE / _DEL + 0.5 / _BST);
-        FTotal += _ShortTail;
         if (RightTail())
         {
-          _RightTail = _GAM * 0.5 * _ART *
+          FTotal += _GAM * 0.5 * _ART *
               std::exp(-1.0 * DE / (_BRT * _DEL)) *
               std::erfc(0.5 / _BRT - DE / _DEL);
-          FTotal += _RightTail;
         }
-      } //i
+      }
       Chisq += square((spectrum.Channel[j] - FTotal) /
           spectrum.Weight(j));
-    } //j //Channel
+    } //Channel
 
     return Chisq;
   }
   catch (...)
   {
-    ERR("Error in func: ");
+    std::throw_with_nested(std::runtime_error("CalcChiSq failed"));
   }
-
 }
 
 double Region::ChisqNorm() const
@@ -643,54 +616,27 @@ void Region::GradChiSq(const std::vector<double>& XVector,
   //dfunc2(reg, XVector, XGradient2, Chisq2)
   try
   {
-    std::vector<double> XXGradient(XGradient.size() - 1);
+    // zero-out arrays
+    std::vector<double> XXGradient(XGradient.size(), 0.0);
+    XGradient.assign(XGradient.size(), 0.0);
 
-    double DE, t1, t2;
-    double _GAM, _DEL, _AST, _BST, _ART, _BRT, _ALT, _BLT, _SIG, FTotal;
-    double _Gauss, _ShortTail, _LongTail, _RightTail, _StepBkg;
+    double t2;
 
     Chisq = 0;
 
-    for (size_t k = 0; k <= XGradient.size(); ++k)
-    {
-      XGradient[k] = 0.0;
-      XXGradient[k] = 0.0;
-    } //k
-
-    if (AST.ToFit)
-      _AST = AST.ValueAt(XVector[AST.XIndex]);
-    else
-      _AST = AST.Value();
-
-    if (BST.ToFit)
-      _BST = BST.ValueAt(XVector[BST.XIndex]);
-    else
-      _BST = BST.Value();
-
-    _DEL = DEL.ValueAt(XVector[DEL.XIndex]);
-
-    if (LeftTail())
-    {
-      _ALT = ALT.ValueAt(XVector[ALT.XIndex]);
-      _BLT = BLT.ValueAt(XVector[BLT.XIndex]);
-    }
-
-    if (StepBkg())
-      _SIG = SIG.ValueAt(XVector[SIG.XIndex]);
-
-    if (RightTail())
-    {
-      _ART = ART.ValueAt(XVector[ART.XIndex]);
-      _BRT = BRT.ValueAt(XVector[BRT.XIndex]);
-    }
+    double _AST = AST.ToFit ? AST.ValueAt(XVector[AST.XIndex]) : AST.Value();
+    double _BST = BST.ToFit ? BST.ValueAt(XVector[BST.XIndex]) : BST.Value();
+    double _DEL = DEL.ValueAt(XVector[DEL.XIndex]);
+    double _ALT = LeftTail() ? ALT.ValueAt(XVector[ALT.XIndex]) : 0.0;
+    double _BLT = LeftTail() ? BLT.ValueAt(XVector[BLT.XIndex]) : 0.0;
+    double _SIG = StepBkg() ? SIG.ValueAt(XVector[SIG.XIndex]) : 0.0;
+    double _ART = RightTail() ? ART.ValueAt(XVector[ART.XIndex]) : 0.0;
+    double _BRT = RightTail() ? BRT.ValueAt(XVector[BRT.XIndex]) : 0.0;
 
     for (size_t j = FirstChannel; j <= LastChannel; ++j)
     {
-
-
       //--- Poly Background ---
-
-      FTotal = BLN.ValueAt(XVector[BLN.XIndex]);
+      double FTotal = BLN.ValueAt(XVector[BLN.XIndex]);
       XXGradient[BLN.XIndex] = BLN.GradAt(XVector[BLN.XIndex]);
       if (Slope())
       {
@@ -709,13 +655,13 @@ void Region::GradChiSq(const std::vector<double>& XVector,
       for (auto& p : Peak)
       {
 
-        DE = j - p.POS.ValueAt(XVector[p.POS.XIndex]);
-        _GAM = p.GAM.ValueAt(XVector[p.GAM.XIndex]);
-        t1 = DE / _DEL;
+        double DE = j - p.POS.ValueAt(XVector[p.POS.XIndex]);
+        double _GAM = p.GAM.ValueAt(XVector[p.GAM.XIndex]);
+        double t1 = DE / _DEL;
         //---Left Tail---
         if (LeftTail())
         {
-          _LongTail = _GAM * 0.5 * _ALT * std::exp(t1 / _BLT) *
+          double _LongTail = _GAM * 0.5 * _ALT * std::exp(t1 / _BLT) *
               std::erfc(t1 + 0.5 / _BLT);
 
           FTotal += _LongTail;
@@ -739,7 +685,7 @@ void Region::GradChiSq(const std::vector<double>& XVector,
         //---Step---
         if (StepBkg())
         {
-          _StepBkg = _SIG * 0.5 * _GAM *
+          double _StepBkg = _SIG * 0.5 * _GAM *
               std::erfc(p.StepType() * t1);
           FTotal += _StepBkg;
 
@@ -753,7 +699,7 @@ void Region::GradChiSq(const std::vector<double>& XVector,
         FTotal = std::max(FTotal, 0.0);
 
         //---Gaussian---
-        _Gauss = _GAM * std::exp(-1.0 * square(t1));
+        double _Gauss = _GAM * std::exp(-1.0 * square(t1));
         FTotal += _Gauss;
 
         XXGradient[DEL.XIndex] += DEL.GradAt(XVector[DEL.XIndex]) *
@@ -764,7 +710,7 @@ void Region::GradChiSq(const std::vector<double>& XVector,
 
         //---Short Tail---
 
-        _ShortTail = _GAM * 0.5 * _AST * std::exp(t1 / _BST) *
+        double _ShortTail = _GAM * 0.5 * _AST * std::exp(t1 / _BST) *
             std::erfc(t1 + 0.5 / _BST);
         FTotal += _ShortTail;
 
@@ -789,8 +735,7 @@ void Region::GradChiSq(const std::vector<double>& XVector,
         //---Right Tail---
         if (RightTail())
         {
-
-          _RightTail = _GAM * 0.5 * _ART *
+          double _RightTail = _GAM * 0.5 * _ART *
               std::exp(-1.0 * t1 / _BRT) *
               std::erfc(0.5 / _BRT - t1);
           FTotal += _RightTail;
@@ -824,7 +769,7 @@ void Region::GradChiSq(const std::vector<double>& XVector,
       for (size_t k = 0; k < FitVars(); ++k)
       {
         XGradient[k] += XXGradient[k] * t3;
-        XXGradient[k] = 0;
+        XXGradient[k] = 0.0;
       }
       Chisq += square((spectrum.Channel[j] - FTotal) / spectrum.Weight(j));
     } //j //Channel
