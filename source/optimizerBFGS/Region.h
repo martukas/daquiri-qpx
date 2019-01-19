@@ -13,79 +13,86 @@
 namespace Hypermet
 {
 
-enum class RegTypes : uint16_t
-{
-  Normal = 0,
-  Annihilation = 1,
-  Boron = 2,
-  GeTriangle = 3,
-  IntPeakShape = 4
-};
-
 class Region
 {
  public:
+  enum class Type : uint16_t
+  {
+    Normal = 0,
+    Annihilation = 1,
+    Boron = 2,
+    GeTriangle = 3,
+    IntPeakShape = 4
+  };
+
   CSpectrum& spectrum;
-  RegTypes Type{RegTypes::Normal};
-  double FirstChannel, LastChannel;
-  //double Chisq, UncChisq;
+  Type region_type{Type::Normal};
+  double first_channel, last_channel;
 
-  ValueDefault DEL;
-  Value AST, BST, ALT, BLT;
-  Value ART, BRT;
-  Value SIG;
-  ValueBkgDefault BLN;
-  ValueBkg BSL, BCV;
+  // background
+  ValueBkgDefault background_base;
+  ValueBkg background_slope, background_curve;
+
+  // peak
+  ValueDefault width;
+  Value short_tail_amplitude, short_tail_slope;
+  Value right_tail_amplitude, right_tail_slope;
+
+  // step & tail
+  Value long_tail_amplitude, long_tail_slope;
+  Value step_amplitude;
+
   std::vector<Peak> peaks;
-
-  mutable double Chisq {0};
-
   //public: BoronPeak As CBoronPeak
   //public: AnnPeak As CAnnPeak
 
-  std::vector<double> Vector;
-  std::vector<double> Gradient;
-  Eigen::SparseMatrix<double> Hessinv;
+  std::vector<double> fit;
+  //std::vector<double> fit_gradients; // \todo why unused?
+  Eigen::SparseMatrix<double> inv_hessian;
 
-  Region(CSpectrum& spe, double FromChannel, double ToChannel);
+  mutable double chi_squared {0};
+  //mutable double UncChisq{0};
 
-  bool LeftTail() const;
-  void LeftTail(bool enable);
-  bool RightTail() const;
-  void RightTail(bool enable);
-  bool Slope() const;
-  void Slope(bool enable);
-  bool Curve() const;
-  void Curve(bool enable);
-  bool StepBkg() const;
-  void StepBkg(bool enable);
+  Region(CSpectrum& spe, double from_channel, double to_channel);
 
-  void SearchPeaks(uint8_t Threshold = 3);
-  void AddPeak(double Position, double Min, double Max, double Gamma = 10);
-  void DeletePeak(size_t index);
-  virtual double PeakArea(size_t PeakIndex) const;
-  virtual double UncPeakArea(size_t PeakIndex) const;
-  virtual double PeakAreaEff(size_t PeakIndex, const Calibration& cal);
-  virtual double UncPeakAreaEff(size_t PeakIndex, const Calibration& cal);
-  virtual size_t FitVars() const;
-  virtual void setupFit();
-  virtual void storeFit();
-  virtual void FuncValue(double E, std::vector<double>& ret) const;
-  virtual double CalcChiSq(const std::vector<double>& XVector) const;
-  double ChisqNorm() const;
-  size_t DegreeOfFreedom() const;
-  virtual void GradChiSq(const std::vector<double>& XVector,
-                         std::vector<double>& XGradient, double& Chisq) const;
+  bool slope() const;
+  void slope(bool enable);
+  bool curve() const;
+  void curve(bool enable);
+  bool left_tail() const;
+  void left_tail(bool enable);
+  bool right_tail() const;
+  void right_tail(bool enable);
+  bool step() const;
+  void step(bool enable);
+
+  void find_peaks(uint8_t Threshold = 3);
+  void add_peak(double Position, double Min, double Max, double Gamma = 10);
+  void remove_peak(size_t index);
+  virtual double peak_area(size_t PeakIndex) const;
+  virtual double peak_area_unc(size_t PeakIndex) const;
+  virtual double peak_area_eff(size_t PeakIndex, const Calibration& cal);
+  virtual double peak_area_eff_unc(size_t PeakIndex, const Calibration& cal);
+  virtual size_t fit_var_count() const;
+  virtual void setup_fit();
+  virtual void store_fit();
+  virtual void eval_fit(double E, std::vector<double>& ret) const;
+  virtual double calc_chi_sq(const std::vector<double>& XVector) const;
+  double chi_sq_normalized() const;
+  size_t degrees_of_freedom() const;
+  virtual void grad_chi_sq(const std::vector<double>& XVector,
+                           std::vector<double>& XGradient, double& Chisq) const;
 
  private:
+  // \todo what does this mean?
   static int32_t L(int32_t i, int32_t j, int32_t m);
 
  protected:
-  bool TailFlag{true};
-  bool SlopeFlag{true};
-  bool StepFlag{true};
-  bool CurveFlag{true};
-  bool RightTailFlag{true};
+  bool slope_enabled_{true};
+  bool curve_enabled_{true};
+  bool left_tail_enabled_{true};
+  bool step_enabled_{true};
+  bool right_tail_enabled_{true};
 };
 
 }

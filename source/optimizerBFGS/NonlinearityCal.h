@@ -21,21 +21,20 @@ class NonlinearityCal
   // A new method for determination of gamma-ray spectrometer non-linearity,
   // Nucl. Instr. Meth. A 422 (1999) 469-473
  private:
-  float n_maxdeg;
-  double n_apol[7], n_bpol[6], n_normfact[8], n_poly_coeff[7];
-  Eigen::SparseMatrix<double> n_VarMatrix;
+  std::vector<double> apol_, bpol_, norm_factors_, coefficients_;
+  Eigen::SparseMatrix<double> variance_;
 
   double n_c0, n_c1;
   double n_bl0, n_bl1;
-  bool n_init_done{false};
+  bool initialized_{false};
 
  public:
-  void Init(std::string flnm);
-  void Close();
-  bool InitDone() const;
-  double val(double Position) const;
-  double sigma(double Position) const;
-  void SetBasePoints(double ch1, double ch2);
+  void load(std::string flnm);
+  void close();
+  bool initialized() const;
+  double val(double position) const;
+  double sigma(double position) const;
+  void set_base_points(double ch1, double ch2);
 
  private:
   double n_ortpol(size_t n, double X) const;

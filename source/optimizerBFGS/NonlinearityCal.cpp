@@ -8,7 +8,7 @@
 namespace Hypermet
 {
 
-void NonlinearityCal::Init(std::string flnm)
+void NonlinearityCal::load(std::string flnm)
 {
   try
   {
@@ -17,6 +17,7 @@ void NonlinearityCal::Init(std::string flnm)
 
     std::ifstream file(flnm, std::ios::binary);
 
+    float n_maxdeg;
     file.read(reinterpret_cast<char*>(&n_maxdeg), sizeof(n_maxdeg));
 
 //            FileGet(1, n_maxdeg)
@@ -37,20 +38,20 @@ void NonlinearityCal::Init(std::string flnm)
 //            FileGet(1, junk2, , False)
     std::vector<double> junk2(n_maxdeg);
 
-    n_VarMatrix.resize(n_maxdeg - 2, n_maxdeg - 2);
+    variance_.resize(n_maxdeg - 2, n_maxdeg - 2);
     for (size_t i = 0; i <= (n_maxdeg - 2); ++i)
     {
       //FileGet(1, junk2, , False)
       for (size_t k = 0; k <= (n_maxdeg - 2); ++k)
-        n_VarMatrix.coeffRef(i, k) = junk2[k];
+        variance_.coeffRef(i, k) = junk2[k];
     }
 
-    n_init_done = true;
+    initialized_ = true;
   }
   catch (...)
   {
     ERR("Nonlinearity error: {exception}");
-    n_init_done = false;
+    initialized_ = false;
   }
 
 
@@ -67,14 +68,14 @@ void NonlinearityCal::Init(std::string flnm)
 //        }
 }
 
-void NonlinearityCal::Close()
+void NonlinearityCal::close()
 {
-  n_init_done = false;
+  initialized_ = false;
 }
 
-bool NonlinearityCal::InitDone() const
+bool NonlinearityCal::initialized() const
 {
-  return n_init_done;
+  return initialized_;
 }
 
 double NonlinearityCal::n_ortpol(size_t n, double X) const
@@ -83,10 +84,10 @@ double NonlinearityCal::n_ortpol(size_t n, double X) const
   {
     std::vector<double> pol(n + 1);
     pol[0] = 1;
-    pol[1] = (X - n_apol[0]);
+    pol[1] = (X - apol_[0]);
 
     for (size_t i = 2; i <= n; ++i)
-      pol[i] = (X - n_apol[i - 1]) * pol[i - 1] - n_bpol[i - 2] * pol[i - 2];
+      pol[i] = (X - apol_[i - 1]) * pol[i - 1] - bpol_[i - 2] * pol[i - 2];
     pol[n];
   }
   catch (...)
@@ -96,16 +97,16 @@ double NonlinearityCal::n_ortpol(size_t n, double X) const
   }
 }
 
-double NonlinearityCal::val(double Position) const
+double NonlinearityCal::val(double position) const
 {
   try
   {
-    if (!n_init_done)
+    if (!initialized_)
       return 0;
-    double X{n_c0 + (Position + 1) * n_c1};
+    double X{n_c0 + (position + 1) * n_c1};
     double retval{n_bl0 + n_bl1 * X};
-    for (size_t i = 0; i <= n_maxdeg - 2; ++i)
-      retval += n_poly_coeff[i] * n_normfact[i + 2] * n_ortpol(i + 2, X);
+    for (size_t i = 0; i < (coefficients_.size() - 2); ++i)
+      retval += coefficients_[i] * norm_factors_[i + 2] * n_ortpol(i + 2, X);
     return retval;
   }
   catch (...)
@@ -115,22 +116,22 @@ double NonlinearityCal::val(double Position) const
   }
 }
 
-double NonlinearityCal::sigma(double Position) const
+double NonlinearityCal::sigma(double position) const
 {
   try
   {
-    if (!n_init_done)
+    if (!initialized_)
       return 0;
-    double X {n_c0 + (Position + 1) * n_c1};
+    double X {n_c0 + (position + 1) * n_c1};
     double siglin {0};
-    for (size_t i = 0; i <= n_maxdeg - 2; ++i)
+    for (size_t i = 0; i < (coefficients_.size() - 2); ++i)
     {
-      double w {n_normfact[i + 2] * n_ortpol(i + 2, X)};
-      siglin += square(w) * n_VarMatrix.coeff(i, i);
+      double w {norm_factors_[i + 2] * n_ortpol(i + 2, X)};
+      siglin += square(w) * variance_.coeff(i, i);
       for (size_t j = 0; j <= i - 1; ++i)
-        siglin += 2 * w * n_normfact[j + 2]
+        siglin += 2 * w * norm_factors_[j + 2]
             * n_ortpol(j + 2, X)
-            * n_VarMatrix.coeff(i, j);
+            * variance_.coeff(i, j);
     }
     if (siglin >= 0.0)
       return std::sqrt(siglin);
@@ -148,12 +149,12 @@ double NonlinearityCal::nonlin1(double Position)
 {
   try
   {
-    if (!n_init_done)
+    if (!initialized_)
       return 0;
     double X {n_c0 + (Position + 1) * n_c1};
     double retval {0};
-    for (size_t i = 0; i <= n_maxdeg - 2; ++i)
-      retval += n_poly_coeff[i] * n_normfact[i + 2] * n_ortpol(i + 2, X);
+    for (size_t i = 0; i < (coefficients_.size() - 2); ++i)
+      retval += coefficients_[i] * norm_factors_[i + 2] * n_ortpol(i + 2, X);
     return retval;
   }
   catch (...)
@@ -163,9 +164,9 @@ double NonlinearityCal::nonlin1(double Position)
   }
 }
 
-void NonlinearityCal::SetBasePoints(double ch1, double ch2)
+void NonlinearityCal::set_base_points(double ch1, double ch2)
 {
-  if (!n_init_done)
+  if (!initialized_)
     throw (std::runtime_error("No nonlinearity correction loaded"));
 
   try

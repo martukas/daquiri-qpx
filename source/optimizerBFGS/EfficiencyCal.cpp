@@ -8,7 +8,7 @@
 namespace Hypermet
 {
 
-void EfficiencyCal::Init(std::string flnm)
+void EfficiencyCal::load(std::string flnm)
 {
   try
   {
@@ -17,6 +17,7 @@ void EfficiencyCal::Init(std::string flnm)
 
     std::ifstream file(flnm, std::ios::binary);
 
+    float e_maxdeg;
     file.read(reinterpret_cast<char*>(&e_maxdeg), sizeof(e_maxdeg));
 
 //            junk = (e_maxdeg And Not 15) >> 4
@@ -38,33 +39,33 @@ void EfficiencyCal::Init(std::string flnm)
 //            FileGet(1, e_poly_coeff, , False)
     std::vector<double> junk2(e_maxdeg);
 
-    e_VarMatrix.resize(e_maxdeg, e_maxdeg);
+    variance_.resize(e_maxdeg, e_maxdeg);
     for (size_t i = 0; i <= e_maxdeg; ++i)
     {
       //FileGet(1, junk2, , False)
       for (size_t k = 0; k <= e_maxdeg; ++k)
-        e_VarMatrix.coeffRef(i, k) = junk2[k];
+        variance_.coeffRef(i, k) = junk2[k];
     }
 
-    e_init_done = true;
+    initialized_ = true;
 
   }
   catch (...)
   {
     ERR("Efficiency error: {exception}");
-    e_init_done = false;
+    initialized_ = false;
     std::throw_with_nested(std::runtime_error("Efficiency error"));
   }
 }
 
-void EfficiencyCal::Close()
+void EfficiencyCal::close()
 {
-  e_init_done = false;
+  initialized_ = false;
 }
 
-bool EfficiencyCal::InitDone() const
+bool EfficiencyCal::initialized() const
 {
-  return e_init_done;
+  return initialized_;
 }
 
 double EfficiencyCal::e_ortpol(size_t n, double X) const
@@ -74,10 +75,10 @@ double EfficiencyCal::e_ortpol(size_t n, double X) const
     std::vector<double> pol(n + 1);
     pol[0] = 1;
     if (n != 0)
-      pol[1] = (X - e_apol[0]);
+      pol[1] = (X - apol_[0]);
 
     for (size_t i = 2; i <= n; ++i)
-      pol[i] = (X - e_apol[i - 1]) * pol[i - 1] - e_bpol[i - 2] * pol[i - 2];
+      pol[i] = (X - apol_[i - 1]) * pol[i - 1] - bpol_[i - 2] * pol[i - 2];
     return pol[n];
   }
   catch (...)
@@ -87,17 +88,17 @@ double EfficiencyCal::e_ortpol(size_t n, double X) const
   }
 }
 
-double EfficiencyCal::val(double Energy) const
+double EfficiencyCal::val(double energy) const
 {
   try
   {
-    if (!e_init_done)
+    if (!initialized_)
       return 1;
 
     double retval{0};
-    double X{e_c0 + std::log(Energy) * e_c1};
-    for (size_t i = 0; i <= e_maxdeg; ++i)
-      retval += e_poly_coeff[i] * e_normfact[i] * e_ortpol(i, X);
+    double X{e_c0 + std::log(energy) * e_c1};
+    for (size_t i = 0; i < coefficients_.size(); ++i)
+      retval += coefficients_[i] * norm_factors_[i] * e_ortpol(i, X);
     return std::exp(retval);
   }
   catch (...)
@@ -107,21 +108,21 @@ double EfficiencyCal::val(double Energy) const
   }
 }
 
-double EfficiencyCal::SigmaRel(double Energy) const
+double EfficiencyCal::sigma_rel(double val) const
 {
   try
   {
-    if (!e_init_done)
+    if (!initialized_)
       return 0;
 
-    double X{e_c0 + std::log(Energy) * e_c1};
+    double X{e_c0 + std::log(val) * e_c1};
     double sigeff{0};
-    for (size_t i = 0; i <= e_maxdeg; ++i)
+    for (size_t i = 0; i < coefficients_.size(); ++i)
     {
-      double w{e_normfact[i] * e_ortpol(i, X)};
-      sigeff += square(w) * e_VarMatrix.coeff(i, i);
+      double w{norm_factors_[i] * e_ortpol(i, X)};
+      sigeff += square(w) * variance_.coeff(i, i);
       for (size_t j = 0; j < i; ++j)
-        sigeff += 2 * w * e_normfact[j] * e_ortpol(j, X) * e_VarMatrix.coeff(i, j);
+        sigeff += 2 * w * norm_factors_[j] * e_ortpol(j, X) * variance_.coeff(i, j);
     }
     if (sigeff >= 0.0)
       return std::sqrt(sigeff);

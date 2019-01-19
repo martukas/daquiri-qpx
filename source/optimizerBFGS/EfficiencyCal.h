@@ -21,20 +21,19 @@ class EfficiencyCal
   // Wide energy range efficiency calibration method for Ge detectors,
   // Nucl. Instr. Meth. A 489 (2002) 140?159
  private:
-  float e_maxdeg;
-  double e_apol[7], e_bpol[6], e_normfact[8], e_poly_coeff[8];
+  std::vector<double> apol_, bpol_, norm_factors_, coefficients_;
 
-  Eigen::SparseMatrix<double> e_VarMatrix;
+  Eigen::SparseMatrix<double> variance_;
 
   double e_c0, e_c1;
-  bool e_init_done{false};
+  bool initialized_{false};
 
  public:
-  void Init(std::string flnm);
-  void Close();
-  bool InitDone() const;
-  double val(double Energy) const;
-  double SigmaRel(double ByVal) const;
+  void load(std::string flnm);
+  void close();
+  bool initialized() const;
+  double val(double energy) const;
+  double sigma_rel(double val) const;
 
  private:
   double e_ortpol(size_t n, double X) const;

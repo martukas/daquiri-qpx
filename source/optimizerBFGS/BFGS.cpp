@@ -302,7 +302,7 @@ double BFGS::fgv(const Region& region, double lambda, std::vector<double> gx, st
     std::vector<double> xlocal(n);
     for (size_t i = 0; i < n; ++i)
       xlocal[i] = gx[i] + lambda * gh[i];
-    return region.CalcChiSq(xlocal);
+    return region.calc_chi_sq(xlocal);
   }
   catch (...)
   {
@@ -320,7 +320,7 @@ double BFGS::dfgv(const Region& region, double lambda, std::vector<double> gx, s
   {
     for (size_t i = 0; i < n; ++i)
       xlocal[i] = gx[i] + lambda * gh[i];
-    region.GradChiSq(xlocal, dflocal, junk);
+    region.grad_chi_sq(xlocal, dflocal, junk);
     s = 0;
     for (size_t i = 0; i < n; ++i)
       s += dflocal[i] * gh[i];
@@ -366,14 +366,14 @@ void BFGS::BFGSMin(Region& region, double tolf, size_t& iter)
 {
   try
   {
-    auto x = region.Vector;
+    auto x = region.fit;
     auto n = x.size();
     double f, fmin, s, s1, s2;
-    double fv = region.DegreeOfFreedom();
+    double fv = region.degrees_of_freedom();
     std::vector<double> h(n), g(n), u(n), Adg(n);
     bool done{false};
 
-    region.GradChiSq(x, g, f);
+    region.grad_chi_sq(x, g, f);
 
     Eigen::SparseMatrix<double> A(n, n);
     A.setIdentity();
@@ -389,7 +389,7 @@ void BFGS::BFGSMin(Region& region, double tolf, size_t& iter)
       for (size_t i = 0; i < n; ++i)
         u[i] = g[i];
 
-      region.GradChiSq(x, g, fmin);
+      region.grad_chi_sq(x, g, fmin);
       INFO("Fitting... Iteration = {}, Chisq = {}", k, fmin / fv);
 
       for (size_t i = 0; i < n; ++i)
@@ -443,7 +443,7 @@ void BFGS::BFGSMin(Region& region, double tolf, size_t& iter)
     {
       if (!done && Cancelfit)
         WARN("Warning: The fit was interrupted");
-      region.Vector = x;
+      region.fit = x;
       iter = k;
     }
   }
