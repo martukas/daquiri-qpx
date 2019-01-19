@@ -10,15 +10,15 @@ class CSpectrum
 {
  public:
   std::vector<size_t> Channel;
-  CCalibration Calibration;
+  Calibration calibration;
   double Weight(size_t i) const;
 
   static double DeadTime(double TrueTime, double LiveTime);
   static double Rate(double LiveTime, double SumCounts);
 
  private:
-  // \todo template type for Val;
-  size_t mystery_function(double Val);
+  // \todo template type for val;
+  size_t mystery_function(double val);
 };
 
 }

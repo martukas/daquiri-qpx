@@ -6,197 +6,203 @@
 namespace Hypermet
 {
 
-double CValueDefault::Max() const
+double ValueDefault::max() const
 {
-  return _Max;
-}
-void CValueDefault::Max(double NewMax)
-{
-  //Dim Value As Double = _Min + (_Max - _Min) / 2 * (1 + std::Sin(_X))
-  //Value = std::min(NewMax, Value)
-  _Max = NewMax;
-  //_X = std::Asin((_Min + _Max - 2 * Value) / (-1 * _Max + _Min))
+  return max_;
 }
 
-double CValueDefault::Min()
+void ValueDefault::max(double new_max)
 {
-  return _Min;
-}
-void CValueDefault::Min(double NewMin)
-{
-  //Dim Value As Double = _Min + (_Max - _Min) / 2 * (1 + std::Sin(_X))
-  _Min = NewMin;
-  //temp = std::max(temp, Value)
-  //_X = std::Asin((_Min + _Max - 2 * temp) / (-1 * _Max + _Min))
+  //Dim val As Double = _Min + (_Max - _Min) / 2 * (1 + std::Sin(x_))
+  //Value = std::min(NewMax, val)
+  max_ = new_max;
+  //x_ = std::Asin((_Min + _Max - 2 * val) / (-1 * _Max + _Min))
 }
 
-double CValueDefault::X()
+double ValueDefault::min()
 {
-  return _X;
-}
-void CValueDefault::X(double Value)
-{
-  _X = Value;
+  return min_;
 }
 
-double CValueDefault::Value() const
+void ValueDefault::min(double new_min)
 {
-  return ValueAt(_X);
+  //Dim val As Double = _Min + (_Max - _Min) / 2 * (1 + std::Sin(x_))
+  min_ = new_min;
+  //temp = std::max(temp, val)
+  //x_ = std::Asin((_Min + _Max - 2 * temp) / (-1 * _Max + _Min))
 }
-void CValueDefault::Value(double val)
+
+double ValueDefault::x()
 {
-  double t = (_Min + _Max - 2.0 * val) / (_Min - _Max);
+  return x_;
+}
+
+void ValueDefault::x(double new_x)
+{
+  x_ = new_x;
+}
+
+double ValueDefault::val() const
+{
+  return val_at(x_);
+}
+
+void ValueDefault::val(double new_val)
+{
+  double t = (min_ + max_ - 2.0 * new_val) / (min_ - max_);
   if (std::abs(t) <= 1)
-    _X = std::asin((_Min + _Max - 2.0 * val) / (_Min - _Max));
+    x_ = std::asin((min_ + max_ - 2.0 * new_val) / (min_ - max_));
   else if (signum(t) < 0)
-    _X = std::asin(-1);
+    x_ = std::asin(-1);
   else
-    _X = std::asin(1);
+    x_ = std::asin(1);
 }
 
-double CValueDefault::ValueAt(double atX) const
+double ValueDefault::val_at(double at_x) const
 {
-  return _Min + (_Max - _Min) / 2.0 * (1.0 + std::sin(atX));
+  return min_ + (max_ - min_) / 2.0 * (1.0 + std::sin(at_x));
 }
 
-double CValueDefault::GradAt(double atX) const
+double ValueDefault::grad_at(double at_x) const
 {
-  return (_Max - _Min) * std::cos(atX) / 2.0;
+  return (max_ - min_) * std::cos(at_x) / 2.0;
 }
 
-double CValueGam::X()
+double ValueGam::x()
 {
-  return _X;
-}
-void CValueGam::X(double Value)
-{
-  _X = Value;
+  return x_;
 }
 
-double CValueGam::Value() const
+void ValueGam::x(double new_x)
 {
-  return ValueAt(_X);
+  x_ = new_x;
 }
 
-void CValueGam::Value(double val)
+double ValueGam::val() const
 {
-  _X = std::sqrt(val);
+  return val_at(x_);
 }
 
-double CValueGam::ValueAt(double atX) const
+void ValueGam::val(double new_val)
 {
-  return square(atX);
+  x_ = std::sqrt(new_val);
 }
 
-double CValueGam::GradAt(double atX) const
+double ValueGam::val_at(double at_x) const
 {
-  return 2.0 * atX;
+  return square(at_x);
 }
 
-int32_t CPeak::StepType() const
+double ValueGam::grad_at(double at_x) const
 {
-  return FEPStatus;
+  return 2.0 * at_x;
 }
 
-double CPeak::PeakPosition() const
+int32_t Peak::step_type() const
 {
-  return POS.Value();
+  return FEP_status_;
 }
 
-double CPeak::UncPeakPosition() const
+double Peak::peak_position() const
 {
-  return POS.UncValue;
+  return position.val();
 }
 
-double CPeak::PeakEnergy(const CCalibration& cal) const
+double Peak::peak_position_unc() const
 {
-  return cal.ChannelToEnergy(POS.Value());
+  return position.uncert_value;
 }
 
-double CPeak::UncPeakEnergy(const CCalibration& cal) const
+double Peak::peak_energy(const Calibration& cal) const
 {
-  return cal.EnergySlope() * POS.UncValue;
+  return cal.channel_to_energy(position.val());
 }
 
-bool CPeak::IsFullEnergyPeak() const
+double Peak::peak_energy_unc(const Calibration& cal) const
 {
-  if (FEPStatus == 1)
+  return cal.energy_slope() * position.uncert_value;
+}
+
+bool Peak::full_energy_peak() const
+{
+  if (FEP_status_ == 1)
     return true;
-  else if (FEPStatus == -1)
+  else if (FEP_status_ == -1)
     return false;
   return false; // false? Ask Laci
 }
-void CPeak::IsFullEnergyPeak(bool Value)
+
+void Peak::full_energy_peak(bool flag)
 {
-  if (Value)
-    FEPStatus = 1;
+  if (flag)
+    FEP_status_ = 1;
   else
-    FEPStatus = -1;
+    FEP_status_ = -1;
 }
 
-bool CPeak::operator<(const CPeak& other) const
+bool Peak::operator<(const Peak& other) const
 {
-  return POS.Value() < other.POS.Value();
+  return position.val() < other.position.val();
 }
 
-double CValueBkgDefault::X() const
+double ValueBkgDefault::x() const
 {
-  return _X;
+  return x_;
 }
 
-void CValueBkgDefault::X(double Value)
+void ValueBkgDefault::x(double new_x)
 {
-  _X = Value;
+  x_ = new_x;
 }
 
-double CValueBkgDefault::Value() const
+double ValueBkgDefault::val() const
 {
-  return ValueAt(_X);
+  return val_at(x_);
 }
 
-void CValueBkgDefault::Value(double val)
+void ValueBkgDefault::val(double new_val)
 {
-  _X = std::sqrt(val);
+  x_ = std::sqrt(new_val);
 }
 
-double CValueBkgDefault::ValueAt(double atX) const
+double ValueBkgDefault::val_at(double at_x) const
 {
-  return square(atX);
+  return square(at_x);
 }
 
-double CValueBkgDefault::GradAt(double atX) const
+double ValueBkgDefault::grad_at(double at_x) const
 {
-  return  2.0 * atX;
+  return 2.0 * at_x;
 }
 
-double CValueBkg::X() const
+double ValueBkg::x() const
 {
-  return _X;
+  return x_;
 }
 
-void CValueBkg::X(double Value)
+void ValueBkg::x(double new_x)
 {
-  _X = Value;
+  x_ = new_x;
 }
 
-double CValueBkg::Value() const
+double ValueBkg::val() const
 {
-  return _X;
+  return x_;
 }
 
-void CValueBkg::Value(double val)
+void ValueBkg::val(double new_val)
 {
-  _X = val;
+  x_ = new_val;
 }
 
-double CValueBkg::ValueAt(double atX) const
+double ValueBkg::val_at(double at_x) const
 {
-  return atX;
+  return at_x;
 }
 
-double CValueBkg::GradAt(double atX)
+double ValueBkg::grad_at(double at_x) const
 {
-  (void) atX;
+  (void) at_x;
   return 1.0;
 }
 

@@ -13,39 +13,39 @@ Region::Region(CSpectrum& spe, double FromChannel, double ToChannel)
 {
   try
   {
-    DEL.Max(4);
-    DEL.Min(0.8);
+    DEL.max(4);
+    DEL.min(0.8);
 
-    AST.Max(1.5);
-    AST.Min(0.02);
-    AST.ToFit = true;
+    AST.max(1.5);
+    AST.min(0.02);
+    AST.to_fit = true;
 
-    BST.Max(0.5);
-    BST.Min(0.2);
-    BST.ToFit = true;
+    BST.max(0.5);
+    BST.min(0.2);
+    BST.to_fit = true;
 
-    ALT.Max(0.15);
-    ALT.Min(0.0001);
-    ALT.ToFit = true;
+    ALT.max(0.15);
+    ALT.min(0.0001);
+    ALT.to_fit = true;
 
-    BLT.Max(50);
-    BLT.Min(2.5);
-    BLT.ToFit = true;
+    BLT.max(50);
+    BLT.min(2.5);
+    BLT.to_fit = true;
 
-    ART.Max(0.9);
-    ART.Min(0.01);
-    ART.ToFit = true;
+    ART.max(0.9);
+    ART.min(0.01);
+    ART.to_fit = true;
 
-    BRT.Max(1.5);
-    BRT.Min(0.3);
-    BRT.ToFit = true;
+    BRT.max(1.5);
+    BRT.min(0.3);
+    BRT.to_fit = true;
 
-    SIG.Max(0.05);
-    SIG.Min(0.000001);
-    SIG.ToFit = true;
+    SIG.max(0.05);
+    SIG.min(0.000001);
+    SIG.to_fit = true;
 
-    BSL.ToFit = true;
-    BCV.ToFit = true;
+    BSL.to_fit = true;
+    BCV.to_fit = true;
 
     //  SearchPeaks();
 
@@ -62,22 +62,22 @@ bool Region::LeftTail() const
   return TailFlag;
 }
 
-void Region::LeftTail(bool Value)
+void Region::LeftTail(bool enable)
 {
-  TailFlag = Value;
-  ALT.ToFit = Value;
-  BLT.ToFit = Value;
+  TailFlag = enable;
+  ALT.to_fit = enable;
+  BLT.to_fit = enable;
 }
 
 bool Region::RightTail() const
 {
   return RightTailFlag;
 }
-void Region::RightTail(bool Value)
+void Region::RightTail(bool enable)
 {
-  RightTailFlag = Value;
-  ART.ToFit = Value;
-  BRT.ToFit = Value;
+  RightTailFlag = enable;
+  ART.to_fit = enable;
+  BRT.to_fit = enable;
 }
 
 bool Region::Slope() const
@@ -85,10 +85,10 @@ bool Region::Slope() const
   return SlopeFlag;
 }
 
-void Region::Slope(bool Value)
+void Region::Slope(bool enable)
 {
-  SlopeFlag = Value;
-  BSL.ToFit = Value;
+  SlopeFlag = enable;
+  BSL.to_fit = enable;
 }
 
 bool Region::Curve() const
@@ -96,10 +96,10 @@ bool Region::Curve() const
   return CurveFlag;
 }
 
-void Region::Curve(bool Value)
+void Region::Curve(bool enable)
 {
-  CurveFlag = Value;
-  BCV.ToFit = Value;
+  CurveFlag = enable;
+  BCV.to_fit = enable;
 }
 
 bool Region::StepBkg() const
@@ -108,10 +108,10 @@ bool Region::StepBkg() const
   return StepFlag;
 }
 
-void Region::StepBkg(bool Value)
+void Region::StepBkg(bool enable)
 {
-  StepFlag = Value;
-  SIG.ToFit = Value;
+  StepFlag = enable;
+  SIG.to_fit = enable;
 }
 
 int32_t Region::L(int32_t i, int32_t j, int32_t m)
@@ -134,7 +134,7 @@ void Region::SearchPeaks(uint8_t Threshold)
   int32_t m;
   try
   {
-    m = static_cast<int32_t>(1.6551 * DEL.Value());
+    m = static_cast<int32_t>(1.6551 * DEL.val());
   }
   catch (...)
   {
@@ -146,14 +146,14 @@ void Region::SearchPeaks(uint8_t Threshold)
   {
     for (size_t j = FirstChannel; j <= LastChannel; ++j)
     {
-      double Value = 0;
+      double val = 0;
       double Var = 0;
       for (i = j - m; i <= (j + 2 * m - 1); ++j)
         if (i > 1)
-          Value = Value + L(i, j, m) * spectrum.Channel[i];
+          val = val + L(i, j, m) * spectrum.Channel[i];
       Var += square(L(i, j, m)) * spectrum.Channel[i];
 
-      //Conv(j - FirstChannel) = Value / std::sqrt(Var)
+      //Conv(j - FirstChannel) = val / std::sqrt(Var)
       //if(((Conv(j - FirstChannel - 2) < Conv(j - FirstChannel - 1)) && _
       //(Conv(j - FirstChannel) < Conv(j - FirstChannel - 1)) && _
       //(Conv(j - FirstChannel - 1) > Threshold))) {
@@ -170,18 +170,18 @@ void Region::AddPeak(double Position, double Min, double Max, double Gamma)
 {
   try
   {
-    Peak.push_back(CPeak());
+    peaks.emplace_back();
 
-    Peak.back().GAM.XIndex = Peak[std::max(Peak.size() - 2, size_t(0))].GAM.XIndex + 2;
-    Peak.back().POS.XIndex = Peak[std::max(Peak.size() - 2, size_t(0))].POS.XIndex + 2;
+    peaks.back().GAM.x_index = peaks[std::max(peaks.size() - 2, size_t(0))].GAM.x_index + 2;
+    peaks.back().position.x_index = peaks[std::max(peaks.size() - 2, size_t(0))].position.x_index + 2;
 
-    Peak.back().POS.Min(Min);
-    Peak.back().POS.Max(Max);
-    Peak.back().POS.Value(Position);
-    Peak.back().POS.UncValue = 0;
+    peaks.back().position.min(Min);
+    peaks.back().position.max(Max);
+    peaks.back().position.val(Position);
+    peaks.back().position.uncert_value = 0;
 
-    Peak.back().GAM.Value(Gamma);
-    Peak.back().GAM.UncValue = 0;
+    peaks.back().GAM.val(Gamma);
+    peaks.back().GAM.uncert_value = 0;
 
   }
   catch (...)
@@ -194,22 +194,22 @@ void Region::DeletePeak(size_t index)
 {
   try
   {
-    if (index >= Peak.size())
+    if (index >= peaks.size())
     {
       ERR("Can't delete the peak! (invalid index)");
       return;
     }
-    if (Peak.size() == 1)
+    if (peaks.size() == 1)
     {
       ERR("Can't delete the only peak!");
       return;
     }
-    for (size_t i = index; i < Peak.size() - 1; ++i)
+    for (size_t i = index; i < peaks.size() - 1; ++i)
     {
-      Peak[i].POS = Peak[i + 1].POS;
-      Peak[i].GAM = Peak[i + 1].GAM;
+      peaks[i].position = peaks[i + 1].position;
+      peaks[i].GAM = peaks[i + 1].GAM;
     } //i
-    Peak.resize(Peak.size() - 1);
+    peaks.resize(peaks.size() - 1);
   }
   catch (...)
   {
@@ -219,9 +219,9 @@ void Region::DeletePeak(size_t index)
 
 double Region::PeakArea(size_t PeakIndex) const
 {
-  return Peak[PeakIndex].GAM.Value() * DEL.Value() * (std::sqrt(M_PI) +
-      AST.Value() * BST.Value() * std::exp(-0.25 / square(BST.Value())) +
-      ART.Value() * BRT.Value() * std::exp(-0.25 / square(BRT.Value())));
+  return peaks[PeakIndex].GAM.val() * DEL.val() * (std::sqrt(M_PI) +
+      AST.val() * BST.val() * std::exp(-0.25 / square(BST.val())) +
+      ART.val() * BRT.val() * std::exp(-0.25 / square(BRT.val())));
 }
 
 double Region::UncPeakArea(size_t PeakIndex) const
@@ -235,39 +235,39 @@ double Region::UncPeakArea(size_t PeakIndex) const
   //} //j
   //} //i
   //
-  //Dim Bracket As Double = (std::sqrt(M_PI) + AST.Value() * BST.Value() * std::exp(-0.25 / BST.Value() ^ 2) + ART.Value() * BRT.Value() * std::exp(-0.25 / BRT.Value() ^ 2))
+  //Dim Bracket As Double = (std::sqrt(M_PI) + AST.val() * BST.val() * std::exp(-0.25 / BST.val() ^ 2) + ART.val() * BRT.val() * std::exp(-0.25 / BRT.val() ^ 2))
   //(dGAM/dX*dArea/dGAM)^2*Var(X)*Chisq
-  //t = (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.Value() * Bracket) ^ 2 * Hessinv.coeff(DEL.XIndex, DEL.XIndex) * cs
+  //t = (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.val() * Bracket) ^ 2 * Hessinv.coeff(DEL.x_index, DEL.x_index) * cs
   //(dGAM/dX*dArea/dGAM)*(dDEL/dY*dArea/dDEL)*Covar(X,Y)*Chisq
-  //t += (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.Value() * Bracket) * (DEL.GradAt(DEL.X) * Peak(PeakIndex).GAM.Value() * Bracket) * Hessinv.coeff(Peak(PeakIndex).GAM.XIndex, DEL.XIndex) * cs
-  //if(AST.ToFit = true) {
+  //t += (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.val() * Bracket) * (DEL.GradAt(DEL.X) * Peak(PeakIndex).GAM.val() * Bracket) * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, DEL.x_index) * cs
+  //if(AST.to_fit = true) {
   ////(dGAM/dX*dArea/dGAM)*(dAST/dY*dArea/dAST)*Covar(X,Y)*Chisq
-  //t += (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.Value() * Bracket) * (AST.GradAt(AST.X) * Peak(PeakIndex).GAM.Value() * DEL.Value() * BST.Value() * std::exp(-0.25 / BST.Value() ^ 2)) * Hessinv.coeff(Peak(PeakIndex).GAM.XIndex, AST.XIndex) * cs
+  //t += (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.val() * Bracket) * (AST.GradAt(AST.X) * Peak(PeakIndex).GAM.val() * DEL.val() * BST.val() * std::exp(-0.25 / BST.val() ^ 2)) * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, AST.x_index) * cs
   //}
-  //if(BST.ToFit = true) {
+  //if(BST.to_fit = true) {
   //(dGAM/dX*dArea/dGAM)*(dBST/dY*dArea/dBST)*Covar(X,Y)*Chisq
-  //t += (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.Value() * Bracket) * (BST.GradAt(BST.X) * Peak(PeakIndex).GAM.Value() * DEL.Value() * AST.Value() * (1 + 0.5 / BST.Value() ^ 2) * std::exp(-0.25 / BST.Value() ^ 2)) * Hessinv.coeff(Peak(PeakIndex).GAM.XIndex, AST.XIndex) * cs
+  //t += (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.val() * Bracket) * (BST.GradAt(BST.X) * Peak(PeakIndex).GAM.val() * DEL.val() * AST.val() * (1 + 0.5 / BST.val() ^ 2) * std::exp(-0.25 / BST.val() ^ 2)) * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, AST.x_index) * cs
   //}
   return std::sqrt(t) * std::max(1.0, ChisqNorm());
 }
 
-double Region::PeakAreaEff(size_t PeakIndex, const CCalibration& cal)
+double Region::PeakAreaEff(size_t PeakIndex, const Calibration& cal)
 {
   double
-      eff = cal.Efficiency.Value(cal.ChannelToEnergy(Peak[PeakIndex].POS.Value()));
+      eff = cal.efficiency.val(cal.channel_to_energy(peaks[PeakIndex].position.val()));
   //eff = 1 if uninitialized
-  return (Peak[PeakIndex].GAM.Value() * DEL.Value() * (std::sqrt(M_PI) +
-      AST.Value() * BST.Value() * std::exp(-0.25 / square(BST.Value())) +
-      ART.Value() * BRT.Value() * std::exp(-0.25 / square(BRT.Value())))) / eff;
+  return (peaks[PeakIndex].GAM.val() * DEL.val() * (std::sqrt(M_PI) +
+      AST.val() * BST.val() * std::exp(-0.25 / square(BST.val())) +
+      ART.val() * BRT.val() * std::exp(-0.25 / square(BRT.val())))) / eff;
 }
 
-double Region::UncPeakAreaEff(size_t PeakIndex, const CCalibration& cal)
+double Region::UncPeakAreaEff(size_t PeakIndex, const Calibration& cal)
 {
   double t = PeakArea(PeakIndex);
   double
-      eff = cal.Efficiency.Value(cal.ChannelToEnergy(Peak[PeakIndex].POS.Value()));
+      eff = cal.efficiency.val(cal.channel_to_energy(peaks[PeakIndex].position.val()));
   double sigrel_eff =
-      cal.Efficiency.SigmaRel(cal.ChannelToEnergy(Peak[PeakIndex].POS.Value()));
+      cal.efficiency.SigmaRel(cal.channel_to_energy(peaks[PeakIndex].position.val()));
   //sigrel_eff = 0 if uninitialized
   return (square(std::sqrt(std::sqrt(t) / t)) + square(sigrel_eff)) *
       (t / eff) * std::max(1.0, ChisqNorm());
@@ -276,9 +276,9 @@ double Region::UncPeakAreaEff(size_t PeakIndex, const CCalibration& cal)
 size_t Region::FitVars() const
 {
   size_t n = 2;    //BLN,DEL: always on!
-  if (AST.ToFit)
+  if (AST.to_fit)
     n += 1; //AST,BST
-  if (BST.ToFit)
+  if (BST.to_fit)
     n += 1;
   if (TailFlag)
     n += 2; //ALT,BLT
@@ -290,7 +290,7 @@ size_t Region::FitVars() const
     n += 1;
   if (CurveFlag)
     n += 1;
-  n += 2 * Peak.size(); //GAM, POS
+  n += 2 * peaks.size(); //GAM, POS
   return n;
 }
 
@@ -304,70 +304,70 @@ void Region::setupFit()
 
   int32_t shift = 0;
 
-  Vector[0] = BLN.X();
-  BLN.XIndex = 0;
-  Vector[1] = DEL.X();
-  DEL.XIndex = 1;
+  Vector[0] = BLN.x();
+  BLN.x_index = 0;
+  Vector[1] = DEL.x();
+  DEL.x_index = 1;
 
-  if (AST.ToFit)
+  if (AST.to_fit)
   {
-    Vector[2] = AST.X();
-    AST.XIndex = 2;
+    Vector[2] = AST.x();
+    AST.x_index = 2;
     shift += 1;
   }
 
-  if (BST.ToFit)
+  if (BST.to_fit)
   {
-    Vector[2 + shift] = BST.X();
-    BST.XIndex = 2 + shift;
+    Vector[2 + shift] = BST.x();
+    BST.x_index = 2 + shift;
     shift += 1;
   }
 
   if (TailFlag)
   {
-    Vector[2 + shift] = ALT.X();
-    ALT.XIndex = 2 + shift;
-    Vector[3 + shift] = BLT.X();
-    BLT.XIndex = 3 + shift;
+    Vector[2 + shift] = ALT.x();
+    ALT.x_index = 2 + shift;
+    Vector[3 + shift] = BLT.x();
+    BLT.x_index = 3 + shift;
     shift += 2;
   }
 
   if (RightTailFlag)
   {
-    Vector[2 + shift] = ART.X();
-    ART.XIndex = 2 + shift;
-    Vector[3 + shift] = BRT.X();
-    BRT.XIndex = 3 + shift;
+    Vector[2 + shift] = ART.x();
+    ART.x_index = 2 + shift;
+    Vector[3 + shift] = BRT.x();
+    BRT.x_index = 3 + shift;
     shift += 2;
   }
 
   if (StepBkg())
   {
-    Vector[2 + shift] = SIG.X();
-    SIG.XIndex = 2 + shift;
+    Vector[2 + shift] = SIG.x();
+    SIG.x_index = 2 + shift;
     shift += 1;
   }
 
   if (Slope())
   {
-    Vector[2 + shift] = BSL.X();
-    BSL.XIndex = 2 + shift;
+    Vector[2 + shift] = BSL.x();
+    BSL.x_index = 2 + shift;
     shift += 1;
   }
 
   if (Curve())
   {
-    Vector[2 + shift] = BCV.X();
-    BCV.XIndex = 2 + shift;
+    Vector[2 + shift] = BCV.x();
+    BCV.x_index = 2 + shift;
     shift += 1;
   }
 
-  for (auto& p : Peak)
+  for (auto& p : peaks)
   {
-    Vector[2 + shift] = p.GAM.X();
-    p.GAM.XIndex = 2 + shift;
-    Vector[3 + shift] = p.POS.X();
-    p.POS.XIndex = 3 + shift;
+    Vector[2 + shift] = p.GAM.x();
+    p.GAM.x_index = 2 + shift;
+    Vector[3 + shift] = p.position.x();
+    p.position.x_index = 3 + shift;
     shift += 2;
   }
 }
@@ -382,135 +382,135 @@ void Region::storeFit()
     for (size_t j = 0; j < FitVars(); ++j)
       Hessinv.coeffRef(i, j) *= df;
 
-  BLN.X(Vector[0]);
-  BLN.UncValue = std::sqrt(std::abs(Hessinv.coeff(0, 0) *
-      BLN.GradAt(square(Vector[0])) * Chisq_norm));
-  DEL.X(Vector[1]);
-  DEL.UncValue = std::sqrt(std::abs(Hessinv.coeff(1, 1) *
-      DEL.GradAt(square(Vector[1])) * Chisq_norm));
+  BLN.x(Vector[0]);
+  BLN.uncert_value = std::sqrt(std::abs(Hessinv.coeff(0, 0) *
+      BLN.grad_at(square(Vector[0])) * Chisq_norm));
+  DEL.x(Vector[1]);
+  DEL.uncert_value = std::sqrt(std::abs(Hessinv.coeff(1, 1) *
+      DEL.grad_at(square(Vector[1])) * Chisq_norm));
 
-  if (AST.ToFit)
+  if (AST.to_fit)
   {
-    AST.X(Vector[2]);
-    AST.UncValue = std::sqrt(std::abs(Hessinv.coeff(2, 2) *
-        AST.GradAt(square(Vector[2])) * Chisq_norm));
+    AST.x(Vector[2]);
+    AST.uncert_value = std::sqrt(std::abs(Hessinv.coeff(2, 2) *
+        AST.grad_at(square(Vector[2])) * Chisq_norm));
     shift += 1;
   }
 
-  if (BST.ToFit)
+  if (BST.to_fit)
   {
-    BST.X(Vector[2 + shift]);
-    BST.UncValue = std::sqrt(std::abs(Hessinv.coeff(2 + shift, 2 + shift)
-                                          * BST.GradAt(square(Vector[2 + shift])) * Chisq_norm));
+    BST.x(Vector[2 + shift]);
+    BST.uncert_value = std::sqrt(std::abs(Hessinv.coeff(2 + shift, 2 + shift)
+                                              * BST.grad_at(square(Vector[2 + shift])) * Chisq_norm));
     shift += 1;
   }
 
   if (TailFlag)
   {
-    ALT.X(Vector[2 + shift]);
-    ALT.UncValue = std::sqrt(std::abs(Hessinv.coeff(2 + shift, 2 + shift)
-                                          * ALT.GradAt(square(Vector[2 + shift])) * Chisq_norm));
-    BLT.X(Vector[3 + shift]);
-    BLT.UncValue = std::sqrt(std::abs(Hessinv.coeff(3 + shift, 3 + shift)
-                                          * BLT.GradAt(square(Vector[3 + shift])) * Chisq_norm));
+    ALT.x(Vector[2 + shift]);
+    ALT.uncert_value = std::sqrt(std::abs(Hessinv.coeff(2 + shift, 2 + shift)
+                                              * ALT.grad_at(square(Vector[2 + shift])) * Chisq_norm));
+    BLT.x(Vector[3 + shift]);
+    BLT.uncert_value = std::sqrt(std::abs(Hessinv.coeff(3 + shift, 3 + shift)
+                                              * BLT.grad_at(square(Vector[3 + shift])) * Chisq_norm));
     shift += 2;
   }
 
   if (RightTailFlag)
   {
-    ART.X(Vector[2 + shift]);
-    ART.UncValue = std::sqrt(std::abs(Hessinv.coeff(2 + shift, 2 + shift)
-                                          * ART.GradAt(square(Vector[2 + shift])) * Chisq_norm));
-    BRT.X(Vector[3 + shift]);
-    BRT.UncValue = std::sqrt(std::abs(Hessinv.coeff(3 + shift, 3 + shift)
-                                          * BRT.GradAt(square(Vector[3 + shift])) * Chisq_norm));
+    ART.x(Vector[2 + shift]);
+    ART.uncert_value = std::sqrt(std::abs(Hessinv.coeff(2 + shift, 2 + shift)
+                                              * ART.grad_at(square(Vector[2 + shift])) * Chisq_norm));
+    BRT.x(Vector[3 + shift]);
+    BRT.uncert_value = std::sqrt(std::abs(Hessinv.coeff(3 + shift, 3 + shift)
+                                              * BRT.grad_at(square(Vector[3 + shift])) * Chisq_norm));
     shift += 2;
   }
 
   if (StepBkg())
   {
-    SIG.X(Vector[2 + shift]);
-    SIG.UncValue = std::sqrt(std::abs(Hessinv.coeff(2 + shift, 2 + shift)
-                                          * SIG.GradAt(square(Vector[2 + shift])) * Chisq_norm));
+    SIG.x(Vector[2 + shift]);
+    SIG.uncert_value = std::sqrt(std::abs(Hessinv.coeff(2 + shift, 2 + shift)
+                                              * SIG.grad_at(square(Vector[2 + shift])) * Chisq_norm));
     shift += 1;
   }
 
   if (Slope())
   {
-    BSL.X(Vector[2 + shift]);
-    BSL.UncValue = std::sqrt(std::abs(Hessinv.coeff(2 + shift, 2 + shift)
-                                          * BSL.GradAt(square(Vector[2 + shift])) * Chisq_norm));
+    BSL.x(Vector[2 + shift]);
+    BSL.uncert_value = std::sqrt(std::abs(Hessinv.coeff(2 + shift, 2 + shift)
+                                              * BSL.grad_at(square(Vector[2 + shift])) * Chisq_norm));
     shift += 1;
   }
 
   if (Curve())
   {
-    BCV.X(Vector[2 + shift]);
-    BCV.UncValue = std::sqrt(std::abs(Hessinv.coeff(2 + shift, 2 + shift)
-                                          * BCV.GradAt(square(Vector[2 + shift])) * Chisq_norm));
+    BCV.x(Vector[2 + shift]);
+    BCV.uncert_value = std::sqrt(std::abs(Hessinv.coeff(2 + shift, 2 + shift)
+                                              * BCV.grad_at(square(Vector[2 + shift])) * Chisq_norm));
     shift += 1;
   }
 
-  for (auto& p : Peak)
+  for (auto& p : peaks)
   {
-    p.GAM.X(Vector[2 + shift]);
-    p.GAM.UncValue =
+    p.GAM.x(Vector[2 + shift]);
+    p.GAM.uncert_value =
         std::sqrt(std::abs(Hessinv.coeff(2 + shift, 2 + shift) *
-            p.GAM.GradAt(square(Vector[2 + shift])) * Chisq_norm));
-    p.POS.X(Vector[3 + shift]);
-    p.POS.UncValue =
+            p.GAM.grad_at(square(Vector[2 + shift])) * Chisq_norm));
+    p.position.x(Vector[3 + shift]);
+    p.position.uncert_value =
         std::sqrt(std::abs(Hessinv.coeff(3 + shift, 3 + shift) *
-            p.POS.GradAt(square(Vector[3 + shift])) * Chisq_norm));
+            p.position.grad_at(square(Vector[3 + shift])) * Chisq_norm));
     shift += 2;
   }
 }
 
-void Region::FuncValue(double E, std::vector<double>& Value) const
+void Region::FuncValue(double E, std::vector<double>& ret) const
 {
   //returns the value of the fitted curve and the background at Energy E
   //Dim FTotal, FBkg0, FBkg, FPeak As Double
-  Value.resize(Peak.size() + 2);
+  ret.resize(peaks.size() + 2);
   double _DE, _GAM, _DEL, _BST, _BRT, _BLT;
   try
   {
-    //Value(1):bkg
-    Value[1] = BLN.Value();
+    //val(1):bkg
+    ret[1] = BLN.val();
     if (Slope())
-      Value[1] += BSL.Value() * (E - FirstChannel);
+      ret[1] += BSL.val() * (E - FirstChannel);
     if (Curve())
-      Value[1] += BCV.Value() * square(E - FirstChannel);
+      ret[1] += BCV.val() * square(E - FirstChannel);
 
-    _BRT = BRT.Value();
-    _BST = BST.Value();
-    _DEL = DEL.Value();
-    _BLT = BLT.Value();
+    _BRT = BRT.val();
+    _BST = BST.val();
+    _DEL = DEL.val();
+    _BLT = BLT.val();
 
-    for (size_t i = 0; i < Peak.size(); ++i)
+    for (size_t i = 0; i < peaks.size(); ++i)
     {
-      _DE = E - Peak[i].POS.Value();
-      _GAM = Peak[i].GAM.Value();
+      _DE = E - peaks[i].position.val();
+      _GAM = peaks[i].GAM.val();
 
       if (LeftTail())
-        Value[1] += _GAM * 0.5 * ALT.Value() *
+        ret[1] += _GAM * 0.5 * ALT.val() *
             std::exp(_DE / (_BLT * _DEL)) *
             std::erfc(_DE / _DEL + 0.5 / _BLT);
       if (StepBkg())
-        Value[1] += SIG.Value() * 0.5 * _GAM *
-            std::erfc(Peak[i].StepType() * _DE / _DEL);
+        ret[1] += SIG.val() * 0.5 * _GAM *
+            std::erfc(peaks[i].step_type() * _DE / _DEL);
 
-      Value[i + 2] = _GAM * std::exp(-1.0 * (square(_DE) / square(_DEL)));
-      Value[i + 2] += _GAM * 0.5 * AST.Value() *
+      ret[i + 2] = _GAM * std::exp(-1.0 * (square(_DE) / square(_DEL)));
+      ret[i + 2] += _GAM * 0.5 * AST.val() *
           std::exp(_DE / (_BST * _DEL)) *
           std::erfc(_DE / _DEL + 0.5 / _BST);
       if (RightTail())
-        Value[i + 2] += _GAM * 0.5 * ART.Value() *
+        ret[i + 2] += _GAM * 0.5 * ART.val() *
             std::exp(-1.0 * _DE / (_BRT * _DEL)) *
             std::erfc(-1.0 * _DE / _DEL + 0.5 / _BRT);
     }
-    //Value(0):FTotal
-    Value[0] = Value[1];
-    for (size_t i = 0; i < Peak.size(); ++i)
-      Value[0] += Value[i + 2];
+    //val(0):FTotal
+    ret[0] = ret[1];
+    for (size_t i = 0; i < peaks.size(); ++i)
+      ret[0] += ret[i + 2];
   }
   catch (...)
   {
@@ -525,28 +525,28 @@ double Region::CalcChiSq(const std::vector<double>& XVector) const
   {
     Chisq = 0;
 
-    double _AST = AST.ToFit ? AST.ValueAt(XVector[AST.XIndex]) : AST.Value();
-    double _BST = BST.ToFit ? BST.ValueAt(XVector[BST.XIndex]) : BST.Value();
-    double _DEL = DEL.ValueAt(XVector[DEL.XIndex]);
-    double _ALT = LeftTail() ? ALT.ValueAt(XVector[ALT.XIndex]) : 0.0;
-    double _BLT = LeftTail() ? BLT.ValueAt(XVector[BLT.XIndex]) : 0.0;
-    double _SIG = StepBkg() ? SIG.ValueAt(XVector[SIG.XIndex]) : 0.0;
-    double _ART = RightTail() ? ART.ValueAt(XVector[ART.XIndex]) : 0.0;
-    double _BRT = RightTail() ? BRT.ValueAt(XVector[BRT.XIndex]) : 0.0;
+    double _AST = AST.to_fit ? AST.val_at(XVector[AST.x_index]) : AST.val();
+    double _BST = BST.to_fit ? BST.val_at(XVector[BST.x_index]) : BST.val();
+    double _DEL = DEL.val_at(XVector[DEL.x_index]);
+    double _ALT = LeftTail() ? ALT.val_at(XVector[ALT.x_index]) : 0.0;
+    double _BLT = LeftTail() ? BLT.val_at(XVector[BLT.x_index]) : 0.0;
+    double _SIG = StepBkg() ? SIG.val_at(XVector[SIG.x_index]) : 0.0;
+    double _ART = RightTail() ? ART.val_at(XVector[ART.x_index]) : 0.0;
+    double _BRT = RightTail() ? BRT.val_at(XVector[BRT.x_index]) : 0.0;
 
     for (size_t j = FirstChannel; j <= LastChannel; ++j)
     {
       // Background
-      double FTotal = BLN.ValueAt(XVector[BLN.XIndex]);
+      double FTotal = BLN.val_at(XVector[BLN.x_index]);
       if (Slope())
-        FTotal += BSL.ValueAt(XVector[BSL.XIndex]) * (j - FirstChannel);
+        FTotal += BSL.val_at(XVector[BSL.x_index]) * (j - FirstChannel);
       if (Curve())
-        FTotal += BCV.ValueAt(XVector[BCV.XIndex]) * square(j - FirstChannel);
+        FTotal += BCV.val_at(XVector[BCV.x_index]) * square(j - FirstChannel);
 
-      for (auto& p : Peak)
+      for (auto& p : peaks)
       {
-        double DE = j - p.POS.ValueAt(XVector[p.POS.XIndex]);
-        double _GAM = p.GAM.ValueAt(XVector[p.GAM.XIndex]);
+        double DE = j - p.position.val_at(XVector[p.position.x_index]);
+        double _GAM = p.GAM.val_at(XVector[p.GAM.x_index]);
         if (LeftTail())
         {
           FTotal += _GAM * 0.5 * _ALT *
@@ -556,7 +556,7 @@ double Region::CalcChiSq(const std::vector<double>& XVector) const
         if (StepBkg())
         {
           FTotal += _GAM * 0.5 * _SIG *
-              std::erfc(p.StepType() * DE / _DEL);
+              std::erfc(p.step_type() * DE / _DEL);
         }
         FTotal = std::max(FTotal, 0.0);
         //--- Peak components ---
@@ -624,39 +624,39 @@ void Region::GradChiSq(const std::vector<double>& XVector,
 
     Chisq = 0;
 
-    double _AST = AST.ToFit ? AST.ValueAt(XVector[AST.XIndex]) : AST.Value();
-    double _BST = BST.ToFit ? BST.ValueAt(XVector[BST.XIndex]) : BST.Value();
-    double _DEL = DEL.ValueAt(XVector[DEL.XIndex]);
-    double _ALT = LeftTail() ? ALT.ValueAt(XVector[ALT.XIndex]) : 0.0;
-    double _BLT = LeftTail() ? BLT.ValueAt(XVector[BLT.XIndex]) : 0.0;
-    double _SIG = StepBkg() ? SIG.ValueAt(XVector[SIG.XIndex]) : 0.0;
-    double _ART = RightTail() ? ART.ValueAt(XVector[ART.XIndex]) : 0.0;
-    double _BRT = RightTail() ? BRT.ValueAt(XVector[BRT.XIndex]) : 0.0;
+    double _AST = AST.to_fit ? AST.val_at(XVector[AST.x_index]) : AST.val();
+    double _BST = BST.to_fit ? BST.val_at(XVector[BST.x_index]) : BST.val();
+    double _DEL = DEL.val_at(XVector[DEL.x_index]);
+    double _ALT = LeftTail() ? ALT.val_at(XVector[ALT.x_index]) : 0.0;
+    double _BLT = LeftTail() ? BLT.val_at(XVector[BLT.x_index]) : 0.0;
+    double _SIG = StepBkg() ? SIG.val_at(XVector[SIG.x_index]) : 0.0;
+    double _ART = RightTail() ? ART.val_at(XVector[ART.x_index]) : 0.0;
+    double _BRT = RightTail() ? BRT.val_at(XVector[BRT.x_index]) : 0.0;
 
     for (size_t j = FirstChannel; j <= LastChannel; ++j)
     {
       //--- Poly Background ---
-      double FTotal = BLN.ValueAt(XVector[BLN.XIndex]);
-      XXGradient[BLN.XIndex] = BLN.GradAt(XVector[BLN.XIndex]);
+      double FTotal = BLN.val_at(XVector[BLN.x_index]);
+      XXGradient[BLN.x_index] = BLN.grad_at(XVector[BLN.x_index]);
       if (Slope())
       {
-        FTotal += BSL.ValueAt(XVector[BSL.XIndex]) *
+        FTotal += BSL.val_at(XVector[BSL.x_index]) *
             (j - FirstChannel);
-        XXGradient[BSL.XIndex] = (j - FirstChannel);
+        XXGradient[BSL.x_index] = (j - FirstChannel);
       }
 
       if (Curve())
       {
-        FTotal += BCV.ValueAt(XVector[BCV.XIndex]) *
+        FTotal += BCV.val_at(XVector[BCV.x_index]) *
             square(j - FirstChannel);
-        XXGradient[BCV.XIndex] = square(j - FirstChannel);
+        XXGradient[BCV.x_index] = square(j - FirstChannel);
       }
 
-      for (auto& p : Peak)
+      for (auto& p : peaks)
       {
 
-        double DE = j - p.POS.ValueAt(XVector[p.POS.XIndex]);
-        double _GAM = p.GAM.ValueAt(XVector[p.GAM.XIndex]);
+        double DE = j - p.position.val_at(XVector[p.position.x_index]);
+        double _GAM = p.GAM.val_at(XVector[p.GAM.x_index]);
         double t1 = DE / _DEL;
         //---Left Tail---
         if (LeftTail())
@@ -669,15 +669,15 @@ void Region::GradChiSq(const std::vector<double>& XVector,
           //t2 = (_GAM * _ALT * std::exp(t1 / _BLT) / M_PI ^ (0.5) * std::exp(-(1.0 / (2.0 * _BLT) + t1) ^ 2) * t1 / _DEL)
           t2 = (_GAM * _ALT * std::exp(t1 / _BLT) / std::sqrt(M_PI) *
               std::exp(-square(1.0 / (2.0 * _BLT) + t1)) / _DEL);
-          XXGradient[DEL.XIndex] += DEL.GradAt(XVector[DEL.XIndex])
+          XXGradient[DEL.x_index] += DEL.grad_at(XVector[DEL.x_index])
               * (-1.0 * t1 / (_DEL * _BLT) * _LongTail + t2 * t1);
-          XXGradient[p.POS.XIndex] += -1.0 / (_BLT * _DEL) *
+          XXGradient[p.position.x_index] += -1.0 / (_BLT * _DEL) *
               _LongTail + t2;
-          XXGradient[p.GAM.XIndex] += _LongTail / _GAM;
+          XXGradient[p.GAM.x_index] += _LongTail / _GAM;
 
-          XXGradient[ALT.XIndex] += _LongTail / _ALT *
-              ALT.GradAt(XVector[ALT.XIndex]);
-          XXGradient[BLT.XIndex] += BLT.GradAt(XVector[BLT.XIndex])
+          XXGradient[ALT.x_index] += _LongTail / _ALT *
+              ALT.grad_at(XVector[ALT.x_index]);
+          XXGradient[BLT.x_index] += BLT.grad_at(XVector[BLT.x_index])
               * ((-1.0 * t1 / square(_BLT)) *
                   _LongTail + (_DEL / (2.0 * square(_BLT)) * t2));
 
@@ -686,15 +686,15 @@ void Region::GradChiSq(const std::vector<double>& XVector,
         if (StepBkg())
         {
           double _StepBkg = _SIG * 0.5 * _GAM *
-              std::erfc(p.StepType() * t1);
+              std::erfc(p.step_type() * t1);
           FTotal += _StepBkg;
 
-          XXGradient[DEL.XIndex] += DEL.GradAt(XVector[DEL.XIndex]) *
-              (_GAM * _SIG * p.StepType() / std::sqrt(M_PI) *
+          XXGradient[DEL.x_index] += DEL.grad_at(XVector[DEL.x_index]) *
+              (_GAM * _SIG * p.step_type() / std::sqrt(M_PI) *
                   std::exp(-DE / _DEL * t1) * t1 / _DEL);
-          XXGradient[p.GAM.XIndex] += _StepBkg / _GAM;
-          XXGradient[SIG.XIndex] += _StepBkg / _SIG *
-              SIG.GradAt(XVector[SIG.XIndex]);
+          XXGradient[p.GAM.x_index] += _StepBkg / _GAM;
+          XXGradient[SIG.x_index] += _StepBkg / _SIG *
+              SIG.grad_at(XVector[SIG.x_index]);
         }
         FTotal = std::max(FTotal, 0.0);
 
@@ -702,11 +702,11 @@ void Region::GradChiSq(const std::vector<double>& XVector,
         double _Gauss = _GAM * std::exp(-1.0 * square(t1));
         FTotal += _Gauss;
 
-        XXGradient[DEL.XIndex] += DEL.GradAt(XVector[DEL.XIndex]) *
+        XXGradient[DEL.x_index] += DEL.grad_at(XVector[DEL.x_index]) *
             (2.0 * square(t1) / _DEL * _Gauss);
 
-        XXGradient[p.POS.XIndex] += 2.0 * t1 / _DEL * _Gauss;
-        XXGradient[p.GAM.XIndex] += _Gauss / _GAM;
+        XXGradient[p.position.x_index] += 2.0 * t1 / _DEL * _Gauss;
+        XXGradient[p.GAM.x_index] += _Gauss / _GAM;
 
         //---Short Tail---
 
@@ -717,18 +717,18 @@ void Region::GradChiSq(const std::vector<double>& XVector,
         //t2 = (_GAM * _AST * std::exp(t1 / _BST) / M_PI ^ (0.5) * std::exp(-1.0 * (1.0 / (2.0 * _BST) + t1) ^ 2) * t1 / _DEL)
         t2 = (_GAM * _AST * std::exp(t1 / _BST) / std::sqrt(M_PI) *
             std::exp(-1.0 * square(1.0 / (2.0 * _BST) + t1)) / _DEL);
-        XXGradient[DEL.XIndex] += DEL.GradAt(XVector[DEL.XIndex]) *
+        XXGradient[DEL.x_index] += DEL.grad_at(XVector[DEL.x_index]) *
             (-1.0 * t1 / (_DEL * _BST) * _ShortTail + t2 * t1);
 
-        XXGradient[p.POS.XIndex] += -1.0 / (_BST * _DEL) *
+        XXGradient[p.position.x_index] += -1.0 / (_BST * _DEL) *
             _ShortTail + t2;
-        XXGradient[p.GAM.XIndex] += _ShortTail / _GAM;
+        XXGradient[p.GAM.x_index] += _ShortTail / _GAM;
 
-        if (AST.ToFit)
-          XXGradient[AST.XIndex] += _ShortTail / _AST *
-              AST.GradAt(XVector[AST.XIndex]);
-        if (BST.ToFit)
-          XXGradient[BST.XIndex] += BST.GradAt(XVector[BST.XIndex]) *
+        if (AST.to_fit)
+          XXGradient[AST.x_index] += _ShortTail / _AST *
+              AST.grad_at(XVector[AST.x_index]);
+        if (BST.to_fit)
+          XXGradient[BST.x_index] += BST.grad_at(XVector[BST.x_index]) *
               ((-1.0 * t1 / square(_BST)) *
                   _ShortTail + (_DEL / (2.0 * square(_BST)) * t2));
 
@@ -743,24 +743,24 @@ void Region::GradChiSq(const std::vector<double>& XVector,
           //t2 = (_GAM * _ART * std::exp(-1.0 * t1 / _BRT) / M_PI ^ (0.5) * std::exp(-(1.0 / (2.0 * _BRT) - t1) ^ 2) * t1 / _DEL)
           t2 = (_GAM * _ART * std::exp(-1.0 * t1 / _BRT) / std::sqrt(M_PI) *
               std::exp(-square(1.0 / (2.0 * _BRT) - t1)) / _DEL);
-          XXGradient[DEL.XIndex] += DEL.GradAt(XVector[DEL.XIndex]) *
+          XXGradient[DEL.x_index] += DEL.grad_at(XVector[DEL.x_index]) *
               ((t1 / (_DEL * _BRT) * _RightTail - t2 * t1));
 
-          XXGradient[p.POS.XIndex] += 1.0 / (_BRT * _DEL) *
+          XXGradient[p.position.x_index] += 1.0 / (_BRT * _DEL) *
               _RightTail - t2;
-          XXGradient[p.GAM.XIndex] +=
+          XXGradient[p.GAM.x_index] +=
               _RightTail / _GAM;
 
-          XXGradient[ART.XIndex] += _RightTail / _ART *
-              ART.GradAt(XVector[ART.XIndex]);
-          XXGradient[BRT.XIndex] += BRT.GradAt(XVector[BRT.XIndex])
+          XXGradient[ART.x_index] += _RightTail / _ART *
+              ART.grad_at(XVector[ART.x_index]);
+          XXGradient[BRT.x_index] += BRT.grad_at(XVector[BRT.x_index])
               * ((t1 / square(_BRT)) * _RightTail + (_DEL / (2.0 *
                   square(_BRT)) * t2));
         }
 
-        //XXGradient(DEL.XIndex) *= DEL.GradAt(XVector(DEL.XIndex))
-        XXGradient[p.GAM.XIndex] *= p.GAM.GradAt(XVector[p.GAM.XIndex]);
-        XXGradient[p.POS.XIndex] *= p.POS.GradAt(XVector[p.POS.XIndex]);
+        //XXGradient(DEL.x_index) *= DEL.GradAt(XVector(DEL.x_index))
+        XXGradient[p.GAM.x_index] *= p.GAM.grad_at(XVector[p.GAM.x_index]);
+        XXGradient[p.position.x_index] *= p.position.grad_at(XVector[p.position.x_index]);
       } //Peak
 
       double t3 = -2 * (spectrum.Channel[j] - FTotal) /

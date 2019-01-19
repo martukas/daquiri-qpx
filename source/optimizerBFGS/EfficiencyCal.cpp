@@ -87,7 +87,7 @@ double EfficiencyCal::e_ortpol(size_t n, double X) const
   }
 }
 
-double EfficiencyCal::Value(double Energy) const
+double EfficiencyCal::val(double Energy) const
 {
   try
   {

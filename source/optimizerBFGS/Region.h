@@ -30,13 +30,13 @@ class Region
   double FirstChannel, LastChannel;
   //double Chisq, UncChisq;
 
-  CValueDefault DEL;
-  CValue AST, BST, ALT, BLT;
-  CValue ART, BRT;
-  CValue SIG;
-  CValueBkgDefault BLN;
-  CValueBkg BSL, BCV;
-  std::vector<CPeak> Peak;
+  ValueDefault DEL;
+  Value AST, BST, ALT, BLT;
+  Value ART, BRT;
+  Value SIG;
+  ValueBkgDefault BLN;
+  ValueBkg BSL, BCV;
+  std::vector<Peak> peaks;
 
   mutable double Chisq {0};
 
@@ -50,27 +50,27 @@ class Region
   Region(CSpectrum& spe, double FromChannel, double ToChannel);
 
   bool LeftTail() const;
-  void LeftTail(bool Value);
+  void LeftTail(bool enable);
   bool RightTail() const;
-  void RightTail(bool Value);
+  void RightTail(bool enable);
   bool Slope() const;
-  void Slope(bool Value);
+  void Slope(bool enable);
   bool Curve() const;
-  void Curve(bool Value);
+  void Curve(bool enable);
   bool StepBkg() const;
-  void StepBkg(bool Value);
+  void StepBkg(bool enable);
 
   void SearchPeaks(uint8_t Threshold = 3);
   void AddPeak(double Position, double Min, double Max, double Gamma = 10);
   void DeletePeak(size_t index);
   virtual double PeakArea(size_t PeakIndex) const;
   virtual double UncPeakArea(size_t PeakIndex) const;
-  virtual double PeakAreaEff(size_t PeakIndex, const CCalibration& cal);
-  virtual double UncPeakAreaEff(size_t PeakIndex, const CCalibration& cal);
+  virtual double PeakAreaEff(size_t PeakIndex, const Calibration& cal);
+  virtual double UncPeakAreaEff(size_t PeakIndex, const Calibration& cal);
   virtual size_t FitVars() const;
   virtual void setupFit();
   virtual void storeFit();
-  virtual void FuncValue(double E, std::vector<double>& Value) const;
+  virtual void FuncValue(double E, std::vector<double>& ret) const;
   virtual double CalcChiSq(const std::vector<double>& XVector) const;
   double ChisqNorm() const;
   size_t DegreeOfFreedom() const;

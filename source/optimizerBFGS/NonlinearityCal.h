@@ -33,8 +33,8 @@ class NonlinearityCal
   void Init(std::string flnm);
   void Close();
   bool InitDone() const;
-  double Value(double Position) const;
-  double Sigma(double Position) const;
+  double val(double Position) const;
+  double sigma(double Position) const;
   void SetBasePoints(double ch1, double ch2);
 
  private:

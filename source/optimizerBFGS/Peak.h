@@ -5,116 +5,116 @@
 namespace Hypermet
 {
 
-class CValueDefault
+class ValueDefault
 {
  private:
-  double _X{0};
-  double _dX{0};
-  double _Max{1};
-  double _Min{0};
+  double x_{0};
+  double dx_{0};
+  double max_{1};
+  double min_{0};
  public:
-  double UncValue{0};
-  int32_t XIndex{-1};
+  double uncert_value{0};
+  int32_t x_index{-1};
 
   //void SetRange(double NewMin, double NewMax) {
   //    if(Not NewMin < NewMax) { return; }
-  //    double Value = _Min + (_Max - _Min) / 2 * (1 + std::sin(_X));
-  //    Value = std::min(NewMin, Value);
-  //    Value = std::max(NewMax, Value);
+  //    double val = _Min + (_Max - _Min) / 2 * (1 + std::sin(x_));
+  //    Value = std::min(NewMin, val);
+  //    Value = std::max(NewMax, val);
   //    _Min = NewMin;
   //    _Max = NewMax;
-  //    _X = std::asin((_Min + _Max - 2 * Value) / (-1 * _Max + _Min));
+  //    x_ = std::asin((_Min + _Max - 2 * val) / (-1 * _Max + _Min));
   //}
 
-  double Max() const;
-  void Max(double NewMax);
-  double Min();
-  void Min(double NewMin);
-  double X();
-  void X(double Value);
-  double Value() const;
-  void Value(double val);
-  double ValueAt(double atX) const;
-  double GradAt(double atX) const;
+  double max() const;
+  void max(double new_max);
+  double min();
+  void min(double new_min);
+  double x();
+  void x(double new_x);
+  double val() const;
+  void val(double new_val);
+  double val_at(double at_x) const;
+  double grad_at(double at_x) const;
 };
 
-class CValue : public CValueDefault
+class Value : public ValueDefault
 {
  public:
-  bool ToFit{true};
+  bool to_fit{true};
 };
 
-class CValueGam
-{
- private:
-  double _X{0};
-  double _dX{0};
- public:
-  double UncValue{0};
-  int32_t XIndex{-1};
-
- public:
-  double X();
-  void X(double Value);
-  double Value() const;
-  void Value(double val);
-  double ValueAt(double atX) const;
-  double GradAt(double atX) const;
-};
-
-class CPeak
+class ValueGam
 {
  private:
-  int32_t FEPStatus{1};
+  double x_{0};
+  double dx_{0};
  public:
-  CValueDefault POS;
-  CValueGam GAM;
+  double uncert_value{0};
+  int32_t x_index{-1};
 
-  int32_t StepType() const;
-  double PeakPosition() const;
-  double UncPeakPosition() const;
-  double PeakEnergy(const CCalibration& cal) const;
-  double UncPeakEnergy(const CCalibration& cal) const;
-  bool IsFullEnergyPeak() const;
-  void IsFullEnergyPeak(bool Value);
-  bool operator<(const CPeak& other) const;
+ public:
+  double x();
+  void x(double new_x);
+  double val() const;
+  void val(double new_val);
+  double val_at(double at_x) const;
+  double grad_at(double at_x) const;
 };
 
-class CValueBkgDefault
+class Peak
 {
  private:
-  double _X{0};
-  double _dX{0};
-
+  int32_t FEP_status_{1};
  public:
-  double UncValue{0};
-  double XIndex{-1};
+  ValueDefault position;
+  ValueGam GAM;
 
-  double X() const;
-  void X(double Value);
-  double Value() const;
-  void Value(double val);
-  double ValueAt(double atX) const;
-  double GradAt(double atX) const;
+  int32_t step_type() const;
+  double peak_position() const;
+  double peak_position_unc() const;
+  double peak_energy(const Calibration& cal) const;
+  double peak_energy_unc(const Calibration& cal) const;
+  bool full_energy_peak() const;
+  void full_energy_peak(bool flag);
+  bool operator<(const Peak& other) const;
 };
 
-class CValueBkg
+class ValueBkgDefault
 {
  private:
-  double _X{0};
-  double _dX{0};
+  double x_{0};
+  double dx_{0};
 
  public:
-  double UncValue{0};
-  int32_t XIndex{-1};
-  bool ToFit{true};
+  double uncert_value{0};
+  double x_index{-1};
 
-  double X() const;
-  void X(double Value);
-  double Value() const;
-  void Value(double val);
-  double ValueAt(double atX) const;
-  double GradAt(double atX);
+  double x() const;
+  void x(double new_x);
+  double val() const;
+  void val(double new_val);
+  double val_at(double at_x) const;
+  double grad_at(double at_x) const;
+};
+
+class ValueBkg
+{
+ private:
+  double x_{0};
+  double dx_{0};
+
+ public:
+  double uncert_value{0};
+  int32_t x_index{-1};
+  bool to_fit{true};
+
+  double x() const;
+  void x(double new_x);
+  double val() const;
+  void val(double new_val);
+  double val_at(double at_x) const;
+  double grad_at(double at_x) const;
 };
 
 }

@@ -6,35 +6,35 @@
 namespace Hypermet
 {
 
-class CCalibration
+class Calibration
 {
  public:
   struct CalPoint
   {
-    float Channel;
-    float UncChannel;
-    float Value;
-    float UncValue;
+    float channel;
+    float channel_unc;
+    float value;
+    float value_unc;
   };
 
-  std::vector<CalPoint> EnergyCal{2};
-  std::vector<CalPoint> WidthCal{2};
-  NonlinearityCal Nonlinearity;
-  EfficiencyCal Efficiency;
+  std::vector<CalPoint> energy_cal{2};
+  std::vector<CalPoint> width_cal{2};
+  NonlinearityCal nonlinearity;
+  EfficiencyCal efficiency;
 
  public:
-  CCalibration();
+  Calibration();
 
-  uint8_t CalOrder() const;
-  void CalOrder(uint8_t Value);
-  double EnergyConst() const;
-  double EnergySlope() const;
-  double ChannelToEnergy(double Channel) const;
-  double EnergyToChannel(double Energy) const;
-  double Width(double Channel) const;
+  uint8_t order() const;
+  void order(uint8_t new_order);
+  double energy_const() const;
+  double energy_slope() const;
+  double channel_to_energy(double chan) const;
+  double energy_to_channel(double energy) const;
+  double width(double channel) const;
 
  private:
-  uint8_t _CalOrder;
+  uint8_t order_;
 };
 
 }

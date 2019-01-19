@@ -33,7 +33,7 @@ class EfficiencyCal
   void Init(std::string flnm);
   void Close();
   bool InitDone() const;
-  double Value(double Energy) const;
+  double val(double Energy) const;
   double SigmaRel(double ByVal) const;
 
  private:

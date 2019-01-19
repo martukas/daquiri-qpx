@@ -96,7 +96,7 @@ double NonlinearityCal::n_ortpol(size_t n, double X) const
   }
 }
 
-double NonlinearityCal::Value(double Position) const
+double NonlinearityCal::val(double Position) const
 {
   try
   {
@@ -115,7 +115,7 @@ double NonlinearityCal::Value(double Position) const
   }
 }
 
-double NonlinearityCal::Sigma(double Position) const
+double NonlinearityCal::sigma(double Position) const
 {
   try
   {

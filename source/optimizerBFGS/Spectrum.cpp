@@ -35,20 +35,20 @@ double CSpectrum::Rate(double LiveTime, double SumCounts)
   return 0.0;
 }
 
-size_t CSpectrum::mystery_function(double Val)
+size_t CSpectrum::mystery_function(double val)
 {
   bool Ready = false;
-  if ((Val >= 0) && (Val < pow(2, 36)))
+  if ((val >= 0) && (val < pow(2, 36)))
     Ready = true;
 
   while (!Ready)
   {
-    size_t exponent = std::log(std::abs(Val)) / std::log(2);
-    Val = Val - signum(Val) * pow(2, exponent);
-    if ((Val >= 0) && (Val < pow(2, 36)))
+    size_t exponent = std::log(std::abs(val)) / std::log(2);
+    val = val - signum(val) * pow(2, exponent);
+    if ((val >= 0) && (val < pow(2, 36)))
       Ready = true;
   }
-  return Val;
+  return val;
 }
 
 }
