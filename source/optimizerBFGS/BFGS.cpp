@@ -366,7 +366,7 @@ void BFGS::BFGSMin(Region& region, double tolf, size_t& iter)
 {
   try
   {
-    auto x = region.fit;
+    auto x = region.current_fit;
     auto n = x.size();
     double f, fmin, s, s1, s2;
     double fv = region.degrees_of_freedom();
@@ -443,7 +443,7 @@ void BFGS::BFGSMin(Region& region, double tolf, size_t& iter)
     {
       if (!done && Cancelfit)
         WARN("Warning: The fit was interrupted");
-      region.fit = x;
+      region.current_fit = x;
       iter = k;
     }
   }

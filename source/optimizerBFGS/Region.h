@@ -29,7 +29,7 @@ class Region
   Type region_type{Type::Normal};
   size_t first_channel, last_channel;
 
-  std::vector<double> fit;
+  std::vector<double> current_fit;
   //std::vector<double> fit_gradients; // \todo why unused?
   Eigen::SparseMatrix<double> inv_hessian;
 
@@ -59,12 +59,12 @@ class Region
   virtual size_t fit_var_count() const;
   virtual void setup_fit();
   virtual void store_fit();
-  virtual void eval_fit(double E, std::vector<double>& ret) const;
-  virtual double calc_chi_sq(const std::vector<double>& XVector) const;
+  virtual void eval_fit(double pos, std::vector<double>& ret) const;
+  virtual double calc_chi_sq(const std::vector<double>& fit) const;
   double chi_sq_normalized() const;
   size_t degrees_of_freedom() const;
-  virtual void grad_chi_sq(const std::vector<double>& XVector,
-                           std::vector<double>& XGradient, double& Chisq) const;
+  virtual void grad_chi_sq(const std::vector<double>& fit,
+                           std::vector<double>& gradients, double& Chisq) const;
 
  private:
   // \todo what does this mean?
@@ -80,6 +80,7 @@ class Region
   ValueBkgDefault background_base_;
   ValueBkg background_slope_, background_curve_;
 
+  // \todo why skew naming different?
   // peak
   ValueDefault width_;
   Value short_tail_amplitude_, short_tail_slope_;
