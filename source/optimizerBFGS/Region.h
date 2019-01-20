@@ -27,24 +27,7 @@ class Region
 
   CSpectrum& spectrum;
   Type region_type{Type::Normal};
-  double first_channel, last_channel;
-
-  // background
-  ValueBkgDefault background_base;
-  ValueBkg background_slope, background_curve;
-
-  // peak
-  ValueDefault width;
-  Value short_tail_amplitude, short_tail_slope;
-  Value right_tail_amplitude, right_tail_slope;
-
-  // step & tail
-  Value long_tail_amplitude, long_tail_slope;
-  Value step_amplitude;
-
-  std::vector<Peak> peaks;
-  //public: BoronPeak As CBoronPeak
-  //public: AnnPeak As CAnnPeak
+  size_t first_channel, last_channel;
 
   std::vector<double> fit;
   //std::vector<double> fit_gradients; // \todo why unused?
@@ -53,7 +36,7 @@ class Region
   mutable double chi_squared {0};
   //mutable double UncChisq{0};
 
-  Region(CSpectrum& spe, double from_channel, double to_channel);
+  Region(CSpectrum& spe, size_t from_channel, size_t to_channel);
 
   bool slope() const;
   void slope(bool enable);
@@ -66,13 +49,13 @@ class Region
   bool step() const;
   void step(bool enable);
 
-  void find_peaks(uint8_t Threshold = 3);
-  void add_peak(double Position, double Min, double Max, double Gamma = 10);
+  void find_peaks(uint8_t threshold = 3);
+  void add_peak(double position, double min, double max, double amplitude = 10.0);
   void remove_peak(size_t index);
-  virtual double peak_area(size_t PeakIndex) const;
-  virtual double peak_area_unc(size_t PeakIndex) const;
-  virtual double peak_area_eff(size_t PeakIndex, const Calibration& cal);
-  virtual double peak_area_eff_unc(size_t PeakIndex, const Calibration& cal);
+  virtual double peak_area(size_t index) const;
+  virtual double peak_area_unc(size_t index) const;
+  virtual double peak_area_eff(size_t index, const Calibration& cal);
+  virtual double peak_area_eff_unc(size_t index, const Calibration& cal);
   virtual size_t fit_var_count() const;
   virtual void setup_fit();
   virtual void store_fit();
@@ -87,12 +70,28 @@ class Region
   // \todo what does this mean?
   static int32_t L(int32_t i, int32_t j, int32_t m);
 
- protected:
   bool slope_enabled_{true};
   bool curve_enabled_{true};
   bool left_tail_enabled_{true};
   bool step_enabled_{true};
   bool right_tail_enabled_{true};
+
+  // background
+  ValueBkgDefault background_base_;
+  ValueBkg background_slope_, background_curve_;
+
+  // peak
+  ValueDefault width_;
+  Value short_tail_amplitude_, short_tail_slope_;
+  Value right_tail_amplitude_, right_tail_slope_;
+
+  // step & tail
+  Value long_tail_amplitude_, long_tail_slope_;
+  Value step_amplitude_;
+
+  std::vector<Peak> peaks_;
+  //public: BoronPeak As CBoronPeak
+  //public: AnnPeak As CAnnPeak
 };
 
 }

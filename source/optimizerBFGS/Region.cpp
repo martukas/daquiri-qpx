@@ -6,67 +6,60 @@
 namespace Hypermet
 {
 
-Region::Region(CSpectrum& spe, double from_channel, double to_channel)
+Region::Region(CSpectrum& spe, size_t from_channel, size_t to_channel)
     : spectrum(spe)
       , first_channel(std::min(from_channel, to_channel))
       , last_channel(std::max(from_channel, to_channel))
 {
-  try
-  {
-    width.max(4);
-    width.min(0.8);
+  // \todo validate region bounds
 
-    short_tail_amplitude.max(1.5);
-    short_tail_amplitude.min(0.02);
-    short_tail_amplitude.to_fit = true;
+  width_.max(4);
+  width_.min(0.8);
 
-    short_tail_slope.max(0.5);
-    short_tail_slope.min(0.2);
-    short_tail_slope.to_fit = true;
+  short_tail_amplitude_.max(1.5);
+  short_tail_amplitude_.min(0.02);
+  short_tail_amplitude_.to_fit = true;
 
-    long_tail_amplitude.max(0.15);
-    long_tail_amplitude.min(0.0001);
-    long_tail_amplitude.to_fit = true;
+  short_tail_slope_.max(0.5);
+  short_tail_slope_.min(0.2);
+  short_tail_slope_.to_fit = true;
 
-    long_tail_slope.max(50);
-    long_tail_slope.min(2.5);
-    long_tail_slope.to_fit = true;
+  long_tail_amplitude_.max(0.15);
+  long_tail_amplitude_.min(0.0001);
+  long_tail_amplitude_.to_fit = true;
 
-    right_tail_amplitude.max(0.9);
-    right_tail_amplitude.min(0.01);
-    right_tail_amplitude.to_fit = true;
+  long_tail_slope_.max(50);
+  long_tail_slope_.min(2.5);
+  long_tail_slope_.to_fit = true;
 
-    right_tail_slope.max(1.5);
-    right_tail_slope.min(0.3);
-    right_tail_slope.to_fit = true;
+  right_tail_amplitude_.max(0.9);
+  right_tail_amplitude_.min(0.01);
+  right_tail_amplitude_.to_fit = true;
 
-    step_amplitude.max(0.05);
-    step_amplitude.min(0.000001);
-    step_amplitude.to_fit = true;
+  right_tail_slope_.max(1.5);
+  right_tail_slope_.min(0.3);
+  right_tail_slope_.to_fit = true;
 
-    background_slope.to_fit = true;
-    background_curve.to_fit = true;
+  step_amplitude_.max(0.05);
+  step_amplitude_.min(0.000001);
+  step_amplitude_.to_fit = true;
 
-    //  SearchPeaks();
+  background_slope_.to_fit = true;
+  background_curve_.to_fit = true;
 
-  }
-  catch (...)
-  {
-    std::throw_with_nested(std::runtime_error("Object Region failed!"));
-  }
+  //  SearchPeaks(); avoid this for the sake of batch fitting
 }
 
 bool Region::left_tail() const
 {
-  //Get/Set Left Long Tail Status
   return left_tail_enabled_;
 }
 
 void Region::left_tail(bool enable)
 {
   left_tail_enabled_ = enable;
-  long_tail_amplitude.to_fit = enable;
-  long_tail_slope.to_fit = enable;
+  long_tail_amplitude_.to_fit = enable;
+  long_tail_slope_.to_fit = enable;
 }
 
 bool Region::right_tail() const
@@ -76,8 +69,8 @@ bool Region::right_tail() const
 void Region::right_tail(bool enable)
 {
   right_tail_enabled_ = enable;
-  right_tail_amplitude.to_fit = enable;
-  right_tail_slope.to_fit = enable;
+  right_tail_amplitude_.to_fit = enable;
+  right_tail_slope_.to_fit = enable;
 }
 
 bool Region::slope() const
@@ -88,7 +81,7 @@ bool Region::slope() const
 void Region::slope(bool enable)
 {
   slope_enabled_ = enable;
-  background_slope.to_fit = enable;
+  background_slope_.to_fit = enable;
 }
 
 bool Region::curve() const
@@ -99,24 +92,24 @@ bool Region::curve() const
 void Region::curve(bool enable)
 {
   curve_enabled_ = enable;
-  background_curve.to_fit = enable;
+  background_curve_.to_fit = enable;
 }
 
 bool Region::step() const
 {
-  //Get/Set Step Status
   return step_enabled_;
 }
 
 void Region::step(bool enable)
 {
   step_enabled_ = enable;
-  step_amplitude.to_fit = enable;
+  step_amplitude_.to_fit = enable;
 }
 
 int32_t Region::L(int32_t i, int32_t j, int32_t m)
 {
-  //M = FWHM
+  // \todo what does this do?
+  //m = FWHM
   int32_t ret{0};
 
   if (j - m <= i && i <= j - 1)
@@ -129,17 +122,11 @@ int32_t Region::L(int32_t i, int32_t j, int32_t m)
   return ret;
 }
 
-void Region::find_peaks(uint8_t Threshold)
+void Region::find_peaks(uint8_t threshold)
 {
-  int32_t m;
-  try
-  {
-    m = static_cast<int32_t>(1.6551 * width.val());
-  }
-  catch (...)
-  {
+  auto m = static_cast<int32_t>(1.6551 * width_.val());
+  if (m <= 0)
     m = 3;
-  }
 
   size_t i;
   try
@@ -147,11 +134,11 @@ void Region::find_peaks(uint8_t Threshold)
     for (size_t j = first_channel; j <= last_channel; ++j)
     {
       double val = 0;
-      double Var = 0;
+      double var = 0;
       for (i = j - m; i <= (j + 2 * m - 1); ++j)
         if (i > 1)
           val = val + L(i, j, m) * spectrum.channels[i];
-      Var += square(L(i, j, m)) * spectrum.channels[i];
+      var += square(L(i, j, m)) * spectrum.channels[i];
 
       //Conv(j - FirstChannel) = val / std::sqrt(Var)
       //if(((Conv(j - FirstChannel - 2) < Conv(j - FirstChannel - 1)) && _
@@ -166,67 +153,54 @@ void Region::find_peaks(uint8_t Threshold)
   }
 }
 
-void Region::add_peak(double Position, double Min, double Max, double Gamma)
+void Region::add_peak(double position, double min, double max, double amplitude)
 {
-  try
-  {
-    peaks.emplace_back();
+  // \todo this will be wrong in case of first peak
+  int32_t base_index = 0;
+  if (peaks_.size())
+    base_index = peaks_.back().amplitude.x_index;
 
-    peaks.back().GAM.x_index = peaks[std::max(peaks.size() - 2, size_t(0))].GAM.x_index + 2;
-    peaks.back().position.x_index = peaks[std::max(peaks.size() - 2, size_t(0))].position.x_index + 2;
+  peaks_.emplace_back();
 
-    peaks.back().position.min(Min);
-    peaks.back().position.max(Max);
-    peaks.back().position.val(Position);
-    peaks.back().position.uncert_value = 0;
+  peaks_.back().amplitude.x_index = base_index + 2;
+  peaks_.back().amplitude.val(amplitude);
+  peaks_.back().amplitude.uncert_value = 0;
 
-    peaks.back().GAM.val(Gamma);
-    peaks.back().GAM.uncert_value = 0;
-
-  }
-  catch (...)
-  {
-    ERR("Add Peak failed!");
-  }
+  peaks_.back().position.x_index = base_index + 3;
+  peaks_.back().position.val(position);
+  peaks_.back().position.min(min);
+  peaks_.back().position.max(max);
+  peaks_.back().position.uncert_value = 0;
 }
 
 void Region::remove_peak(size_t index)
 {
-  try
+  if (index >= peaks_.size())
+    throw std::runtime_error("Can't delete the peak! (invalid index)");
+  if (peaks_.size() == 1)
+    throw std::runtime_error("Can't delete the only peak!");
+
+  for (size_t i = index; i < peaks_.size() - 1; ++i)
   {
-    if (index >= peaks.size())
-    {
-      ERR("Can't delete the peak! (invalid index)");
-      return;
-    }
-    if (peaks.size() == 1)
-    {
-      ERR("Can't delete the only peak!");
-      return;
-    }
-    for (size_t i = index; i < peaks.size() - 1; ++i)
-    {
-      peaks[i].position = peaks[i + 1].position;
-      peaks[i].GAM = peaks[i + 1].GAM;
-    } //i
-    peaks.resize(peaks.size() - 1);
-  }
-  catch (...)
-  {
-    ERR("Delete Peak failed!");
-  }
+    peaks_[i].position = peaks_[i + 1].position;
+    peaks_[i].amplitude = peaks_[i + 1].amplitude;
+  } //i
+  peaks_.resize(peaks_.size() - 1);
 }
 
-double Region::peak_area(size_t PeakIndex) const
+double Region::peak_area(size_t index) const
 {
-  return peaks[PeakIndex].GAM.val() * width.val() * (std::sqrt(M_PI) +
-      short_tail_amplitude.val() * short_tail_slope.val() * std::exp(-0.25 / square(short_tail_slope.val())) +
-      right_tail_amplitude.val() * right_tail_slope.val() * std::exp(-0.25 / square(right_tail_slope.val())));
+  return peaks_[index].amplitude.val() * width_.val() * (std::sqrt(M_PI) +
+      short_tail_amplitude_.val() * short_tail_slope_.val() *
+          std::exp(-0.25 / square(short_tail_slope_.val())) +
+      right_tail_amplitude_.val() * right_tail_slope_.val() *
+          std::exp(-0.25 / square(right_tail_slope_.val())));
 }
 
-double Region::peak_area_unc(size_t PeakIndex) const
+double Region::peak_area_unc(size_t index) const
 {
-  double t = peak_area(PeakIndex);
+  // \todo make this more rigorous
+  double t = peak_area(index);
   //, i, j As Integer
   //Dim cs As Double = ChisqNorm() * 0.5
   //for( i = 0 To FitVars - 1
@@ -251,34 +225,35 @@ double Region::peak_area_unc(size_t PeakIndex) const
   return std::sqrt(t) * std::max(1.0, chi_sq_normalized());
 }
 
-double Region::peak_area_eff(size_t PeakIndex, const Calibration& cal)
+double Region::peak_area_eff(size_t index, const Calibration& cal)
 {
-  double
-      eff = cal.efficiency.val(cal.channel_to_energy(peaks[PeakIndex].position.val()));
-  //eff = 1 if uninitialized
-  return (peaks[PeakIndex].GAM.val() * width.val() * (std::sqrt(M_PI) +
-      short_tail_amplitude.val() * short_tail_slope.val() * std::exp(-0.25 / square(short_tail_slope.val())) +
-      right_tail_amplitude.val() * right_tail_slope.val() * std::exp(-0.25 / square(right_tail_slope.val())))) / eff;
+  double eff{1.0};
+  if (cal.efficiency.initialized())
+    eff = cal.efficiency.val(peaks_[index].peak_energy(cal));
+  return peak_area(index) / eff;
 }
 
-double Region::peak_area_eff_unc(size_t PeakIndex, const Calibration& cal)
+double Region::peak_area_eff_unc(size_t index, const Calibration& cal)
 {
-  double t = peak_area(PeakIndex);
-  double
-      eff = cal.efficiency.val(cal.channel_to_energy(peaks[PeakIndex].position.val()));
-  double sigrel_eff =
-      cal.efficiency.sigma_rel(cal.channel_to_energy(peaks[PeakIndex].position.val()));
-  //sigrel_eff = 0 if uninitialized
-  return (square(std::sqrt(std::sqrt(t) / t)) + square(sigrel_eff)) *
-      (t / eff) * std::max(1.0, chi_sq_normalized());
+  double area = peak_area(index);
+  double eff{0.0};
+  double sigrel_eff{0.0};
+  if (cal.efficiency.initialized())
+  {
+    auto energy = peaks_[index].peak_energy(cal);
+    eff = cal.efficiency.val(energy);
+    sigrel_eff = cal.efficiency.sigma_rel(energy);
+  }
+  return (square(std::sqrt(std::sqrt(area) / area)) + square(sigrel_eff)) *
+      (area / eff) * std::max(1.0, chi_sq_normalized());
 }
 
 size_t Region::fit_var_count() const
 {
   size_t n = 2;    //BLN,DEL: always on!
-  if (short_tail_amplitude.to_fit)
+  if (short_tail_amplitude_.to_fit)
     n += 1; //AST,BST
-  if (short_tail_slope.to_fit)
+  if (short_tail_slope_.to_fit)
     n += 1;
   if (left_tail_enabled_)
     n += 2; //ALT,BLT
@@ -290,7 +265,7 @@ size_t Region::fit_var_count() const
     n += 1;
   if (curve_enabled_)
     n += 1;
-  n += 2 * peaks.size(); //GAM, POS
+  n += 2 * peaks_.size(); //GAM, POS
   return n;
 }
 
@@ -304,68 +279,68 @@ void Region::setup_fit()
 
   int32_t shift = 0;
 
-  fit[0] = background_base.x();
-  background_base.x_index = 0;
-  fit[1] = width.x();
-  width.x_index = 1;
+  fit[0] = background_base_.x();
+  background_base_.x_index = 0;
+  fit[1] = width_.x();
+  width_.x_index = 1;
 
-  if (short_tail_amplitude.to_fit)
+  if (short_tail_amplitude_.to_fit)
   {
-    fit[2] = short_tail_amplitude.x();
-    short_tail_amplitude.x_index = 2;
+    fit[2] = short_tail_amplitude_.x();
+    short_tail_amplitude_.x_index = 2;
     shift += 1;
   }
 
-  if (short_tail_slope.to_fit)
+  if (short_tail_slope_.to_fit)
   {
-    fit[2 + shift] = short_tail_slope.x();
-    short_tail_slope.x_index = 2 + shift;
+    fit[2 + shift] = short_tail_slope_.x();
+    short_tail_slope_.x_index = 2 + shift;
     shift += 1;
   }
 
   if (left_tail_enabled_)
   {
-    fit[2 + shift] = long_tail_amplitude.x();
-    long_tail_amplitude.x_index = 2 + shift;
-    fit[3 + shift] = long_tail_slope.x();
-    long_tail_slope.x_index = 3 + shift;
+    fit[2 + shift] = long_tail_amplitude_.x();
+    long_tail_amplitude_.x_index = 2 + shift;
+    fit[3 + shift] = long_tail_slope_.x();
+    long_tail_slope_.x_index = 3 + shift;
     shift += 2;
   }
 
   if (right_tail_enabled_)
   {
-    fit[2 + shift] = right_tail_amplitude.x();
-    right_tail_amplitude.x_index = 2 + shift;
-    fit[3 + shift] = right_tail_slope.x();
-    right_tail_slope.x_index = 3 + shift;
+    fit[2 + shift] = right_tail_amplitude_.x();
+    right_tail_amplitude_.x_index = 2 + shift;
+    fit[3 + shift] = right_tail_slope_.x();
+    right_tail_slope_.x_index = 3 + shift;
     shift += 2;
   }
 
   if (step_enabled_)
   {
-    fit[2 + shift] = step_amplitude.x();
-    step_amplitude.x_index = 2 + shift;
+    fit[2 + shift] = step_amplitude_.x();
+    step_amplitude_.x_index = 2 + shift;
     shift += 1;
   }
 
   if (slope_enabled_)
   {
-    fit[2 + shift] = background_slope.x();
-    background_slope.x_index = 2 + shift;
+    fit[2 + shift] = background_slope_.x();
+    background_slope_.x_index = 2 + shift;
     shift += 1;
   }
 
   if (curve_enabled_)
   {
-    fit[2 + shift] = background_curve.x();
-    background_curve.x_index = 2 + shift;
+    fit[2 + shift] = background_curve_.x();
+    background_curve_.x_index = 2 + shift;
     shift += 1;
   }
 
-  for (auto& p : peaks)
+  for (auto& p : peaks_)
   {
-    fit[2 + shift] = p.GAM.x();
-    p.GAM.x_index = 2 + shift;
+    fit[2 + shift] = p.amplitude.x();
+    p.amplitude.x_index = 2 + shift;
     fit[3 + shift] = p.position.x();
     p.position.x_index = 3 + shift;
     shift += 2;
@@ -374,7 +349,7 @@ void Region::setup_fit()
 
 void Region::store_fit()
 {
-  double Chisq_norm = std::max(chi_sq_normalized(), 1.0) * 0.5;
+  double chisq_norm = std::max(chi_sq_normalized(), 1.0) * 0.5;
   int32_t shift{0};
 
   double df = degrees_of_freedom();
@@ -382,85 +357,93 @@ void Region::store_fit()
     for (size_t j = 0; j < fit_var_count(); ++j)
       inv_hessian.coeffRef(i, j) *= df;
 
-  background_base.x(fit[0]);
-  background_base.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(0, 0) *
-      background_base.grad_at(square(fit[0])) * Chisq_norm));
-  width.x(fit[1]);
-  width.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(1, 1) *
-      width.grad_at(square(fit[1])) * Chisq_norm));
+  background_base_.x(fit[0]);
+  background_base_.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(0, 0) *
+      background_base_.grad_at(square(fit[0])) * chisq_norm));
+  width_.x(fit[1]);
+  width_.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(1, 1) *
+      width_.grad_at(square(fit[1])) * chisq_norm));
 
-  if (short_tail_amplitude.to_fit)
+  if (short_tail_amplitude_.to_fit)
   {
-    short_tail_amplitude.x(fit[2]);
-    short_tail_amplitude.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(2, 2) *
-        short_tail_amplitude.grad_at(square(fit[2])) * Chisq_norm));
+    short_tail_amplitude_.x(fit[2]);
+    short_tail_amplitude_.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(2, 2) *
+        short_tail_amplitude_.grad_at(square(fit[2])) * chisq_norm));
     shift += 1;
   }
 
-  if (short_tail_slope.to_fit)
+  if (short_tail_slope_.to_fit)
   {
-    short_tail_slope.x(fit[2 + shift]);
-    short_tail_slope.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(2 + shift, 2 + shift)
-                                              * short_tail_slope.grad_at(square(fit[2 + shift])) * Chisq_norm));
+    short_tail_slope_.x(fit[2 + shift]);
+    short_tail_slope_.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(2 + shift, 2 + shift)
+                                                            * short_tail_slope_.grad_at(square(fit[2 + shift]))
+                                                            * chisq_norm));
     shift += 1;
   }
 
   if (left_tail_enabled_)
   {
-    long_tail_amplitude.x(fit[2 + shift]);
-    long_tail_amplitude.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(2 + shift, 2 + shift)
-                                              * long_tail_amplitude.grad_at(square(fit[2 + shift])) * Chisq_norm));
-    long_tail_slope.x(fit[3 + shift]);
-    long_tail_slope.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(3 + shift, 3 + shift)
-                                              * long_tail_slope.grad_at(square(fit[3 + shift])) * Chisq_norm));
+    long_tail_amplitude_.x(fit[2 + shift]);
+    long_tail_amplitude_.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(2 + shift, 2 + shift)
+                                                               * long_tail_amplitude_.grad_at(square(fit[2 + shift]))
+                                                               * chisq_norm));
+    long_tail_slope_.x(fit[3 + shift]);
+    long_tail_slope_.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(3 + shift, 3 + shift)
+                                                           * long_tail_slope_.grad_at(square(fit[3 + shift]))
+                                                           * chisq_norm));
     shift += 2;
   }
 
   if (right_tail_enabled_)
   {
-    right_tail_amplitude.x(fit[2 + shift]);
-    right_tail_amplitude.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(2 + shift, 2 + shift)
-                                              * right_tail_amplitude.grad_at(square(fit[2 + shift])) * Chisq_norm));
-    right_tail_slope.x(fit[3 + shift]);
-    right_tail_slope.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(3 + shift, 3 + shift)
-                                              * right_tail_slope.grad_at(square(fit[3 + shift])) * Chisq_norm));
+    right_tail_amplitude_.x(fit[2 + shift]);
+    right_tail_amplitude_.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(2 + shift, 2 + shift)
+                                                                * right_tail_amplitude_.grad_at(square(fit[2 + shift]))
+                                                                * chisq_norm));
+    right_tail_slope_.x(fit[3 + shift]);
+    right_tail_slope_.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(3 + shift, 3 + shift)
+                                                            * right_tail_slope_.grad_at(square(fit[3 + shift]))
+                                                            * chisq_norm));
     shift += 2;
   }
 
   if (step_enabled_)
   {
-    step_amplitude.x(fit[2 + shift]);
-    step_amplitude.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(2 + shift, 2 + shift)
-                                              * step_amplitude.grad_at(square(fit[2 + shift])) * Chisq_norm));
+    step_amplitude_.x(fit[2 + shift]);
+    step_amplitude_.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(2 + shift, 2 + shift)
+                                                          * step_amplitude_.grad_at(square(fit[2 + shift]))
+                                                          * chisq_norm));
     shift += 1;
   }
 
   if (slope_enabled_)
   {
-    background_slope.x(fit[2 + shift]);
-    background_slope.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(2 + shift, 2 + shift)
-                                              * background_slope.grad_at(square(fit[2 + shift])) * Chisq_norm));
+    background_slope_.x(fit[2 + shift]);
+    background_slope_.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(2 + shift, 2 + shift)
+                                                            * background_slope_.grad_at(square(fit[2 + shift]))
+                                                            * chisq_norm));
     shift += 1;
   }
 
   if (curve_enabled_)
   {
-    background_curve.x(fit[2 + shift]);
-    background_curve.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(2 + shift, 2 + shift)
-                                              * background_curve.grad_at(square(fit[2 + shift])) * Chisq_norm));
+    background_curve_.x(fit[2 + shift]);
+    background_curve_.uncert_value = std::sqrt(std::abs(inv_hessian.coeff(2 + shift, 2 + shift)
+                                                            * background_curve_.grad_at(square(fit[2 + shift]))
+                                                            * chisq_norm));
     shift += 1;
   }
 
-  for (auto& p : peaks)
+  for (auto& p : peaks_)
   {
-    p.GAM.x(fit[2 + shift]);
-    p.GAM.uncert_value =
+    p.amplitude.x(fit[2 + shift]);
+    p.amplitude.uncert_value =
         std::sqrt(std::abs(inv_hessian.coeff(2 + shift, 2 + shift) *
-            p.GAM.grad_at(square(fit[2 + shift])) * Chisq_norm));
+            p.amplitude.grad_at(square(fit[2 + shift])) * chisq_norm));
     p.position.x(fit[3 + shift]);
     p.position.uncert_value =
         std::sqrt(std::abs(inv_hessian.coeff(3 + shift, 3 + shift) *
-            p.position.grad_at(square(fit[3 + shift])) * Chisq_norm));
+            p.position.grad_at(square(fit[3 + shift])) * chisq_norm));
     shift += 2;
   }
 }
@@ -469,52 +452,51 @@ void Region::eval_fit(double E, std::vector<double>& ret) const
 {
   //returns the value of the fitted curve and the background at Energy E
   //Dim FTotal, FBkg0, FBkg, FPeak As Double
-  ret.resize(peaks.size() + 2);
-  double _DE, _GAM, _DEL, _BST, _BRT, _BLT;
+  ret.resize(peaks_.size() + 2);
   try
   {
     //val(1):bkg
-    ret[1] = background_base.val();
+    ret[1] = background_base_.val();
     if (slope())
-      ret[1] += background_slope.val() * (E - first_channel);
+      ret[1] += background_slope_.val() * (E - first_channel);
     if (curve())
-      ret[1] += background_curve.val() * square(E - first_channel);
+      ret[1] += background_curve_.val() * square(E - first_channel);
 
-    _BRT = right_tail_slope.val();
-    _BST = short_tail_slope.val();
-    _DEL = width.val();
-    _BLT = long_tail_slope.val();
+    double right_slope = right_tail_slope_.val();
+    double short_slope = short_tail_slope_.val();
+    double width = width_.val();
+    double left_slope = long_tail_slope_.val();
 
-    for (size_t i = 0; i < peaks.size(); ++i)
+    for (size_t i = 0; i < peaks_.size(); ++i)
     {
-      _DE = E - peaks[i].position.val();
-      _GAM = peaks[i].GAM.val();
+      double _DE = E - peaks_[i].position.val();
+      double ampl = peaks_[i].amplitude.val();
 
       if (left_tail())
-        ret[1] += _GAM * 0.5 * long_tail_amplitude.val() *
-            std::exp(_DE / (_BLT * _DEL)) *
-            std::erfc(_DE / _DEL + 0.5 / _BLT);
+        ret[1] += ampl * 0.5 * long_tail_amplitude_.val() *
+            std::exp(_DE / (left_slope * width)) *
+            std::erfc(_DE / width + 0.5 / left_slope);
       if (step())
-        ret[1] += step_amplitude.val() * 0.5 * _GAM *
-            std::erfc(peaks[i].step_type() * _DE / _DEL);
+        ret[1] += step_amplitude_.val() * 0.5 * ampl *
+            std::erfc(peaks_[i].step_type() * _DE / width);
 
-      ret[i + 2] = _GAM * std::exp(-1.0 * (square(_DE) / square(_DEL)));
-      ret[i + 2] += _GAM * 0.5 * short_tail_amplitude.val() *
-          std::exp(_DE / (_BST * _DEL)) *
-          std::erfc(_DE / _DEL + 0.5 / _BST);
+      ret[i + 2] = ampl * std::exp(-1.0 * (square(_DE) / square(width)));
+      ret[i + 2] += ampl * 0.5 * short_tail_amplitude_.val() *
+          std::exp(_DE / (short_slope * width)) *
+          std::erfc(_DE / width + 0.5 / short_slope);
       if (right_tail())
-        ret[i + 2] += _GAM * 0.5 * right_tail_amplitude.val() *
-            std::exp(-1.0 * _DE / (_BRT * _DEL)) *
-            std::erfc(-1.0 * _DE / _DEL + 0.5 / _BRT);
+        ret[i + 2] += ampl * 0.5 * right_tail_amplitude_.val() *
+            std::exp(-1.0 * _DE / (right_slope * width)) *
+            std::erfc(-1.0 * _DE / width + 0.5 / right_slope);
     }
     //val(0):FTotal
     ret[0] = ret[1];
-    for (size_t i = 0; i < peaks.size(); ++i)
+    for (size_t i = 0; i < peaks_.size(); ++i)
       ret[0] += ret[i + 2];
   }
   catch (...)
   {
-    ERR("Expection");
+    ERR("Failed to eval fit");
   }
 }
 
@@ -525,52 +507,66 @@ double Region::calc_chi_sq(const std::vector<double>& XVector) const
   {
     chi_squared = 0;
 
-    double _AST = short_tail_amplitude.to_fit ? short_tail_amplitude.val_at(XVector[short_tail_amplitude.x_index]) : short_tail_amplitude.val();
-    double _BST = short_tail_slope.to_fit ? short_tail_slope.val_at(XVector[short_tail_slope.x_index]) : short_tail_slope.val();
-    double _DEL = width.val_at(XVector[width.x_index]);
-    double _ALT = left_tail_enabled_ ? long_tail_amplitude.val_at(XVector[long_tail_amplitude.x_index]) : 0.0;
-    double _BLT = left_tail_enabled_ ? long_tail_slope.val_at(XVector[long_tail_slope.x_index]) : 0.0;
-    double _SIG = step_enabled_ ? step_amplitude.val_at(XVector[step_amplitude.x_index]) : 0.0;
-    double _ART = right_tail_enabled_ ? right_tail_amplitude.val_at(XVector[right_tail_amplitude.x_index]) : 0.0;
-    double _BRT = right_tail_enabled_ ? right_tail_slope.val_at(XVector[right_tail_slope.x_index]) : 0.0;
+    double short_ampl = short_tail_amplitude_.to_fit ?
+                        short_tail_amplitude_.val_at(XVector[short_tail_amplitude_.x_index]) :
+                        short_tail_amplitude_.val();
+    double short_slope = short_tail_slope_.to_fit ?
+                         short_tail_slope_.val_at(XVector[short_tail_slope_.x_index]) :
+                         short_tail_slope_.val();
+    double width = width_.val_at(XVector[width_.x_index]);
+    double left_ampl = left_tail_enabled_ ?
+                       long_tail_amplitude_.val_at(XVector[long_tail_amplitude_.x_index]) :
+                       0.0;
+    double left_slope = left_tail_enabled_ ?
+                        long_tail_slope_.val_at(XVector[long_tail_slope_.x_index]) :
+                        0.0;
+    double step_ampl = step_enabled_ ?
+                       step_amplitude_.val_at(XVector[step_amplitude_.x_index]) :
+                       0.0;
+    double right_ampl = right_tail_enabled_ ?
+                        right_tail_amplitude_.val_at(XVector[right_tail_amplitude_.x_index]) :
+                        0.0;
+    double right_slope = right_tail_enabled_ ?
+                         right_tail_slope_.val_at(XVector[right_tail_slope_.x_index]) :
+                         0.0;
 
     for (size_t j = first_channel; j <= last_channel; ++j)
     {
       // Background
-      double FTotal = background_base.val_at(XVector[background_base.x_index]);
+      double FTotal = background_base_.val_at(XVector[background_base_.x_index]);
       if (slope_enabled_)
-        FTotal += background_slope.val_at(XVector[background_slope.x_index]) * (j - first_channel);
+        FTotal += background_slope_.val_at(XVector[background_slope_.x_index]) * (j - first_channel);
       if (curve_enabled_)
-        FTotal += background_curve.val_at(XVector[background_curve.x_index]) * square(j - first_channel);
+        FTotal += background_curve_.val_at(XVector[background_curve_.x_index]) * square(j - first_channel);
 
-      for (auto& p : peaks)
+      for (auto& p : peaks_)
       {
-        double DE = j - p.position.val_at(XVector[p.position.x_index]);
-        double _GAM = p.GAM.val_at(XVector[p.GAM.x_index]);
+        double x_rel = j - p.position.val_at(XVector[p.position.x_index]);
+        double ampl = p.amplitude.val_at(XVector[p.amplitude.x_index]);
         if (left_tail_enabled_)
         {
-          FTotal += _GAM * 0.5 * _ALT *
-              std::exp(DE / (_BLT * _DEL)) *
-              std::erfc(DE / _DEL + 0.5 / _BLT);
+          FTotal += ampl * 0.5 * left_ampl *
+              std::exp(x_rel / (left_slope * width)) *
+              std::erfc(x_rel / width + 0.5 / left_slope);
         }
         if (step_enabled_)
         {
-          FTotal += _GAM * 0.5 * _SIG *
-              std::erfc(p.step_type() * DE / _DEL);
+          FTotal += ampl * 0.5 * step_ampl *
+              std::erfc(p.step_type() * x_rel / width);
         }
         FTotal = std::max(FTotal, 0.0);
         //--- Peak components ---
         // Gaussian
-        FTotal += _GAM * std::exp(-1.0 * square(DE / _DEL));
+        FTotal += ampl * std::exp(-1.0 * square(x_rel / width));
         // Short tail
-        FTotal += _GAM * 0.5 * _AST *
-            std::exp(DE / (_BST * _DEL)) *
-            std::erfc(DE / _DEL + 0.5 / _BST);
+        FTotal += ampl * 0.5 * short_ampl *
+            std::exp(x_rel / (short_slope * width)) *
+            std::erfc(x_rel / width + 0.5 / short_slope);
         if (right_tail_enabled_)
         {
-          FTotal += _GAM * 0.5 * _ART *
-              std::exp(-1.0 * DE / (_BRT * _DEL)) *
-              std::erfc(0.5 / _BRT - DE / _DEL);
+          FTotal += ampl * 0.5 * right_ampl *
+              std::exp(-1.0 * x_rel / (right_slope * width)) *
+              std::erfc(0.5 / right_slope - x_rel / width);
         }
       }
       chi_squared += square((spectrum.channels[j] - FTotal) /
@@ -587,7 +583,7 @@ double Region::calc_chi_sq(const std::vector<double>& XVector) const
 
 double Region::chi_sq_normalized() const
 {
-  return chi_squared / ((last_channel - first_channel) - fit_var_count());
+  return chi_squared / static_cast<double>(degrees_of_freedom());
 }
 
 size_t Region::degrees_of_freedom() const
@@ -624,142 +620,156 @@ void Region::grad_chi_sq(const std::vector<double>& XVector,
 
     Chisq = 0;
 
-    double _AST = short_tail_amplitude.to_fit ? short_tail_amplitude.val_at(XVector[short_tail_amplitude.x_index]) : short_tail_amplitude.val();
-    double _BST = short_tail_slope.to_fit ? short_tail_slope.val_at(XVector[short_tail_slope.x_index]) : short_tail_slope.val();
-    double _DEL = width.val_at(XVector[width.x_index]);
-    double _ALT = left_tail_enabled_ ? long_tail_amplitude.val_at(XVector[long_tail_amplitude.x_index]) : 0.0;
-    double _BLT = left_tail_enabled_ ? long_tail_slope.val_at(XVector[long_tail_slope.x_index]) : 0.0;
-    double _SIG = step_enabled_ ? step_amplitude.val_at(XVector[step_amplitude.x_index]) : 0.0;
-    double _ART = right_tail_enabled_ ? right_tail_amplitude.val_at(XVector[right_tail_amplitude.x_index]) : 0.0;
-    double _BRT = right_tail_enabled_ ? right_tail_slope.val_at(XVector[right_tail_slope.x_index]) : 0.0;
+    double short_ampl = short_tail_amplitude_.to_fit ?
+                        short_tail_amplitude_.val_at(XVector[short_tail_amplitude_.x_index]) :
+                        short_tail_amplitude_.val();
+    double short_slope = short_tail_slope_.to_fit ?
+                         short_tail_slope_.val_at(XVector[short_tail_slope_.x_index]) :
+                         short_tail_slope_.val();
+    double width = width_.val_at(XVector[width_.x_index]);
+    double left_ampl = left_tail_enabled_ ?
+                       long_tail_amplitude_.val_at(XVector[long_tail_amplitude_.x_index]) :
+                       0.0;
+    double left_slope = left_tail_enabled_ ?
+                        long_tail_slope_.val_at(XVector[long_tail_slope_.x_index]) :
+                        0.0;
+    double step_ampl = step_enabled_ ?
+                       step_amplitude_.val_at(XVector[step_amplitude_.x_index]) :
+                       0.0;
+    double right_ampl = right_tail_enabled_ ?
+                        right_tail_amplitude_.val_at(XVector[right_tail_amplitude_.x_index]) :
+                        0.0;
+    double right_slope = right_tail_enabled_ ?
+                         right_tail_slope_.val_at(XVector[right_tail_slope_.x_index]) :
+                         0.0;
 
     for (size_t j = first_channel; j <= last_channel; ++j)
     {
       //--- Poly Background ---
-      double FTotal = background_base.val_at(XVector[background_base.x_index]);
-      XXGradient[background_base.x_index] = background_base.grad_at(XVector[background_base.x_index]);
+      double FTotal = background_base_.val_at(XVector[background_base_.x_index]);
+      XXGradient[background_base_.x_index] = background_base_.grad_at(XVector[background_base_.x_index]);
       if (slope_enabled_)
       {
-        FTotal += background_slope.val_at(XVector[background_slope.x_index]) *
+        FTotal += background_slope_.val_at(XVector[background_slope_.x_index]) *
             (j - first_channel);
-        XXGradient[background_slope.x_index] = (j - first_channel);
+        XXGradient[background_slope_.x_index] = (j - first_channel);
       }
 
       if (curve_enabled_)
       {
-        FTotal += background_curve.val_at(XVector[background_curve.x_index]) *
+        FTotal += background_curve_.val_at(XVector[background_curve_.x_index]) *
             square(j - first_channel);
-        XXGradient[background_curve.x_index] = square(j - first_channel);
+        XXGradient[background_curve_.x_index] = square(j - first_channel);
       }
 
-      for (auto& p : peaks)
+      for (auto& p : peaks_)
       {
 
-        double DE = j - p.position.val_at(XVector[p.position.x_index]);
-        double _GAM = p.GAM.val_at(XVector[p.GAM.x_index]);
-        double t1 = DE / _DEL;
+        double x_rel = j - p.position.val_at(XVector[p.position.x_index]);
+        double ampl = p.amplitude.val_at(XVector[p.amplitude.x_index]);
+        double t1 = x_rel / width;
         //---Left Tail---
         if (left_tail_enabled_)
         {
-          double _LongTail = _GAM * 0.5 * _ALT * std::exp(t1 / _BLT) *
-              std::erfc(t1 + 0.5 / _BLT);
+          double _LongTail = ampl * 0.5 * left_ampl * std::exp(t1 / left_slope) *
+              std::erfc(t1 + 0.5 / left_slope);
 
           FTotal += _LongTail;
 
-          //t2 = (_GAM * _ALT * std::exp(t1 / _BLT) / M_PI ^ (0.5) * std::exp(-(1.0 / (2.0 * _BLT) + t1) ^ 2) * t1 / _DEL)
-          t2 = (_GAM * _ALT * std::exp(t1 / _BLT) / std::sqrt(M_PI) *
-              std::exp(-square(1.0 / (2.0 * _BLT) + t1)) / _DEL);
-          XXGradient[width.x_index] += width.grad_at(XVector[width.x_index])
-              * (-1.0 * t1 / (_DEL * _BLT) * _LongTail + t2 * t1);
-          XXGradient[p.position.x_index] += -1.0 / (_BLT * _DEL) *
+          //t2 = (ampl * left_ampl * std::exp(t1 / left_slope) / M_PI ^ (0.5) * std::exp(-(1.0 / (2.0 * left_slope) + t1) ^ 2) * t1 / width)
+          t2 = (ampl * left_ampl * std::exp(t1 / left_slope) / std::sqrt(M_PI) *
+              std::exp(-square(1.0 / (2.0 * left_slope) + t1)) / width);
+          XXGradient[width_.x_index] += width_.grad_at(XVector[width_.x_index])
+              * (-1.0 * t1 / (width * left_slope) * _LongTail + t2 * t1);
+          XXGradient[p.position.x_index] += -1.0 / (left_slope * width) *
               _LongTail + t2;
-          XXGradient[p.GAM.x_index] += _LongTail / _GAM;
+          XXGradient[p.amplitude.x_index] += _LongTail / ampl;
 
-          XXGradient[long_tail_amplitude.x_index] += _LongTail / _ALT *
-              long_tail_amplitude.grad_at(XVector[long_tail_amplitude.x_index]);
-          XXGradient[long_tail_slope.x_index] += long_tail_slope.grad_at(XVector[long_tail_slope.x_index])
-              * ((-1.0 * t1 / square(_BLT)) *
-                  _LongTail + (_DEL / (2.0 * square(_BLT)) * t2));
+          XXGradient[long_tail_amplitude_.x_index] += _LongTail / left_ampl *
+              long_tail_amplitude_.grad_at(XVector[long_tail_amplitude_.x_index]);
+          XXGradient[long_tail_slope_.x_index] += long_tail_slope_.grad_at(XVector[long_tail_slope_.x_index])
+              * ((-1.0 * t1 / square(left_slope)) *
+                  _LongTail + (width / (2.0 * square(left_slope)) * t2));
 
         }
         //---Step---
         if (step_enabled_)
         {
-          double _StepBkg = _SIG * 0.5 * _GAM *
+          double _StepBkg = step_ampl * 0.5 * ampl *
               std::erfc(p.step_type() * t1);
           FTotal += _StepBkg;
 
-          XXGradient[width.x_index] += width.grad_at(XVector[width.x_index]) *
-              (_GAM * _SIG * p.step_type() / std::sqrt(M_PI) *
-                  std::exp(-DE / _DEL * t1) * t1 / _DEL);
-          XXGradient[p.GAM.x_index] += _StepBkg / _GAM;
-          XXGradient[step_amplitude.x_index] += _StepBkg / _SIG *
-              step_amplitude.grad_at(XVector[step_amplitude.x_index]);
+          XXGradient[width_.x_index] += width_.grad_at(XVector[width_.x_index]) *
+              (ampl * step_ampl * p.step_type() / std::sqrt(M_PI) *
+                  std::exp(-x_rel / width * t1) * t1 / width);
+          XXGradient[p.amplitude.x_index] += _StepBkg / ampl;
+          XXGradient[step_amplitude_.x_index] += _StepBkg / step_ampl *
+              step_amplitude_.grad_at(XVector[step_amplitude_.x_index]);
         }
         FTotal = std::max(FTotal, 0.0);
 
         //---Gaussian---
-        double _Gauss = _GAM * std::exp(-1.0 * square(t1));
+        double _Gauss = ampl * std::exp(-1.0 * square(t1));
         FTotal += _Gauss;
 
-        XXGradient[width.x_index] += width.grad_at(XVector[width.x_index]) *
-            (2.0 * square(t1) / _DEL * _Gauss);
+        XXGradient[width_.x_index] += width_.grad_at(XVector[width_.x_index]) *
+            (2.0 * square(t1) / width * _Gauss);
 
-        XXGradient[p.position.x_index] += 2.0 * t1 / _DEL * _Gauss;
-        XXGradient[p.GAM.x_index] += _Gauss / _GAM;
+        XXGradient[p.position.x_index] += 2.0 * t1 / width * _Gauss;
+        XXGradient[p.amplitude.x_index] += _Gauss / ampl;
 
         //---Short Tail---
 
-        double _ShortTail = _GAM * 0.5 * _AST * std::exp(t1 / _BST) *
-            std::erfc(t1 + 0.5 / _BST);
+        double _ShortTail = ampl * 0.5 * short_ampl * std::exp(t1 / short_slope) *
+            std::erfc(t1 + 0.5 / short_slope);
         FTotal += _ShortTail;
 
-        //t2 = (_GAM * _AST * std::exp(t1 / _BST) / M_PI ^ (0.5) * std::exp(-1.0 * (1.0 / (2.0 * _BST) + t1) ^ 2) * t1 / _DEL)
-        t2 = (_GAM * _AST * std::exp(t1 / _BST) / std::sqrt(M_PI) *
-            std::exp(-1.0 * square(1.0 / (2.0 * _BST) + t1)) / _DEL);
-        XXGradient[width.x_index] += width.grad_at(XVector[width.x_index]) *
-            (-1.0 * t1 / (_DEL * _BST) * _ShortTail + t2 * t1);
+        //t2 = (ampl * short_ampl * std::exp(t1 / short_slope) / M_PI ^ (0.5) * std::exp(-1.0 * (1.0 / (2.0 * short_slope) + t1) ^ 2) * t1 / width)
+        t2 = (ampl * short_ampl * std::exp(t1 / short_slope) / std::sqrt(M_PI) *
+            std::exp(-1.0 * square(1.0 / (2.0 * short_slope) + t1)) / width);
+        XXGradient[width_.x_index] += width_.grad_at(XVector[width_.x_index]) *
+            (-1.0 * t1 / (width * short_slope) * _ShortTail + t2 * t1);
 
-        XXGradient[p.position.x_index] += -1.0 / (_BST * _DEL) *
+        XXGradient[p.position.x_index] += -1.0 / (short_slope * width) *
             _ShortTail + t2;
-        XXGradient[p.GAM.x_index] += _ShortTail / _GAM;
+        XXGradient[p.amplitude.x_index] += _ShortTail / ampl;
 
-        if (short_tail_amplitude.to_fit)
-          XXGradient[short_tail_amplitude.x_index] += _ShortTail / _AST *
-              short_tail_amplitude.grad_at(XVector[short_tail_amplitude.x_index]);
-        if (short_tail_slope.to_fit)
-          XXGradient[short_tail_slope.x_index] += short_tail_slope.grad_at(XVector[short_tail_slope.x_index]) *
-              ((-1.0 * t1 / square(_BST)) *
-                  _ShortTail + (_DEL / (2.0 * square(_BST)) * t2));
+        if (short_tail_amplitude_.to_fit)
+          XXGradient[short_tail_amplitude_.x_index] += _ShortTail / short_ampl *
+              short_tail_amplitude_.grad_at(XVector[short_tail_amplitude_.x_index]);
+        if (short_tail_slope_.to_fit)
+          XXGradient[short_tail_slope_.x_index] += short_tail_slope_.grad_at(XVector[short_tail_slope_.x_index]) *
+              ((-1.0 * t1 / square(short_slope)) *
+                  _ShortTail + (width / (2.0 * square(short_slope)) * t2));
 
         //---Right Tail---
         if (right_tail_enabled_)
         {
-          double _RightTail = _GAM * 0.5 * _ART *
-              std::exp(-1.0 * t1 / _BRT) *
-              std::erfc(0.5 / _BRT - t1);
+          double _RightTail = ampl * 0.5 * right_ampl *
+              std::exp(-1.0 * t1 / right_slope) *
+              std::erfc(0.5 / right_slope - t1);
           FTotal += _RightTail;
 
-          //t2 = (_GAM * _ART * std::exp(-1.0 * t1 / _BRT) / M_PI ^ (0.5) * std::exp(-(1.0 / (2.0 * _BRT) - t1) ^ 2) * t1 / _DEL)
-          t2 = (_GAM * _ART * std::exp(-1.0 * t1 / _BRT) / std::sqrt(M_PI) *
-              std::exp(-square(1.0 / (2.0 * _BRT) - t1)) / _DEL);
-          XXGradient[width.x_index] += width.grad_at(XVector[width.x_index]) *
-              ((t1 / (_DEL * _BRT) * _RightTail - t2 * t1));
+          //t2 = (ampl * right_ampl * std::exp(-1.0 * t1 / right_slope) / M_PI ^ (0.5) * std::exp(-(1.0 / (2.0 * right_slope) - t1) ^ 2) * t1 / width)
+          t2 = (ampl * right_ampl * std::exp(-1.0 * t1 / right_slope) / std::sqrt(M_PI) *
+              std::exp(-square(1.0 / (2.0 * right_slope) - t1)) / width);
+          XXGradient[width_.x_index] += width_.grad_at(XVector[width_.x_index]) *
+              ((t1 / (width * right_slope) * _RightTail - t2 * t1));
 
-          XXGradient[p.position.x_index] += 1.0 / (_BRT * _DEL) *
+          XXGradient[p.position.x_index] += 1.0 / (right_slope * width) *
               _RightTail - t2;
-          XXGradient[p.GAM.x_index] +=
-              _RightTail / _GAM;
+          XXGradient[p.amplitude.x_index] +=
+              _RightTail / ampl;
 
-          XXGradient[right_tail_amplitude.x_index] += _RightTail / _ART *
-              right_tail_amplitude.grad_at(XVector[right_tail_amplitude.x_index]);
-          XXGradient[right_tail_slope.x_index] += right_tail_slope.grad_at(XVector[right_tail_slope.x_index])
-              * ((t1 / square(_BRT)) * _RightTail + (_DEL / (2.0 *
-                  square(_BRT)) * t2));
+          XXGradient[right_tail_amplitude_.x_index] += _RightTail / right_ampl *
+              right_tail_amplitude_.grad_at(XVector[right_tail_amplitude_.x_index]);
+          XXGradient[right_tail_slope_.x_index] += right_tail_slope_.grad_at(XVector[right_tail_slope_.x_index])
+              * ((t1 / square(right_slope)) * _RightTail + (width / (2.0 *
+                  square(right_slope)) * t2));
         }
 
         //XXGradient(DEL.x_index) *= DEL.GradAt(XVector(DEL.x_index))
-        XXGradient[p.GAM.x_index] *= p.GAM.grad_at(XVector[p.GAM.x_index]);
+        XXGradient[p.amplitude.x_index] *= p.amplitude.grad_at(XVector[p.amplitude.x_index]);
         XXGradient[p.position.x_index] *= p.position.grad_at(XVector[p.position.x_index]);
       } //Peak
 

@@ -68,7 +68,7 @@ class Peak
   int32_t FEP_status_{1};
  public:
   ValueDefault position;
-  ValueGam GAM;
+  ValueGam amplitude;
 
   int32_t step_type() const;
   double peak_position() const;
