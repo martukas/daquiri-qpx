@@ -375,7 +375,8 @@ void BFGS::BFGSMin(Region& region, double tolf, size_t& iter)
 
     region.grad_chi_sq(x, g, f);
 
-    Eigen::SparseMatrix<double> A(n, n);
+    auto& A = region.inv_hessian;
+    A.resize(n, n);
     A.setIdentity();
 
     size_t k;

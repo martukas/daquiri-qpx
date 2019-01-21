@@ -275,7 +275,6 @@ void Region::setup_fit()
   current_fit.resize(vars);
   //fit_gradients.resize(vars);
   //ReDim ChisqGradient(FitVars - 1)
-  inv_hessian.resize(vars, vars);
 
   int32_t shift = 0;
 
@@ -476,6 +475,7 @@ void Region::eval_fit(double pos, std::vector<double>& ret) const
       double half_ampl = 0.5 * ampl;
       double spread = x_rel / width;
 
+      // background
       if (left_tail())
         ret[1] += half_ampl * long_tail_amplitude_.val() *
             std::exp(spread / left_slope) *
@@ -484,6 +484,7 @@ void Region::eval_fit(double pos, std::vector<double>& ret) const
         ret[1] += step_amplitude_.val() * 0.5 * ampl *
             std::erfc(peaks_[i].step_type() * spread);
 
+      // peak
       ret[i + 2] = ampl * std::exp(-1.0 * square(spread));
       ret[i + 2] += half_ampl * short_tail_amplitude_.val() *
           std::exp(spread / short_slope) *
@@ -723,25 +724,21 @@ void Region::grad_chi_sq(const std::vector<double>& fit,
         //---Gaussian---
         double gauss = ampl * std::exp(-1.0 * square(spread));
         FTotal += gauss;
-
         chan_gradients[width_.x_index] += width_.grad_at(fit[width_.x_index]) *
             (2.0 * square(spread) / width * gauss);
-
         chan_gradients[p.position.x_index] += 2.0 * spread / width * gauss;
         chan_gradients[p.amplitude.x_index] += gauss / ampl;
 
         //---Short Tail---
-
         double short_tail = half_ampl * short_ampl * std::exp(spread / short_slope) *
             std::erfc(spread + 0.5 / short_slope);
         FTotal += short_tail;
-
-        //t2 = (ampl * short_ampl * std::exp(t1 / short_slope) / M_PI ^ (0.5) * std::exp(-1.0 * (1.0 / (2.0 * short_slope) + t1) ^ 2) * t1 / width)
+        //t2 = (ampl * short_ampl * std::exp(spread / short_slope) / std::sqrt(M_PI) *
+        //    std::exp(-1.0 * square(1.0 / (2.0 * short_slope) + spread)) * spread / width)
         t2 = (ampl * short_ampl * std::exp(spread / short_slope) / std::sqrt(M_PI) *
             std::exp(-1.0 * square(1.0 / (2.0 * short_slope) + spread)) / width);
         chan_gradients[width_.x_index] += width_.grad_at(fit[width_.x_index]) *
             (-1.0 * spread / (width * short_slope) * short_tail + t2 * spread);
-
         chan_gradients[p.position.x_index] += -1.0 / (short_slope * width) *
             short_tail + t2;
         chan_gradients[p.amplitude.x_index] += short_tail / ampl;
@@ -762,7 +759,8 @@ void Region::grad_chi_sq(const std::vector<double>& fit,
               std::erfc(0.5 / right_slope - spread);
           FTotal += right_tail;
 
-          //t2 = (ampl * right_ampl * std::exp(-1.0 * t1 / right_slope) / M_PI ^ (0.5) * std::exp(-(1.0 / (2.0 * right_slope) - t1) ^ 2) * t1 / width)
+          //t2 = (ampl * right_ampl * std::exp(-1.0 * spread / right_slope) / std::sqrt(M_PI) *
+          //  std::exp(-square(1.0 / (2.0 * right_slope) - spread)) * spread / width)
           t2 = (ampl * right_ampl * std::exp(-1.0 * spread / right_slope) / std::sqrt(M_PI) *
               std::exp(-square(1.0 / (2.0 * right_slope) - spread)) / width);
           chan_gradients[width_.x_index] += width_.grad_at(fit[width_.x_index]) *
