@@ -676,7 +676,6 @@ void Region::grad_chi_sq(const std::vector<double>& fit,
 
       for (auto& p : peaks_)
       {
-
         double x_rel = pos - p.position.val_at(fit[p.position.x_index]);
         double ampl = p.amplitude.val_at(fit[p.amplitude.x_index]);
         double half_ampl = 0.5 * ampl;
@@ -686,7 +685,7 @@ void Region::grad_chi_sq(const std::vector<double>& fit,
         {
           double long_tail = half_ampl * left_ampl *
               std::exp(spread / left_slope) *
-              std::erfc(spread + 0.5 / left_slope);
+              std::erfc(0.5 / left_slope + spread);
 
           FTotal += long_tail;
 
@@ -709,7 +708,8 @@ void Region::grad_chi_sq(const std::vector<double>& fit,
         //---Step---
         if (step_enabled_)
         {
-          double step =  half_ampl * step_ampl * std::erfc(p.step_type() * spread);
+          double step =  half_ampl * step_ampl *
+              std::erfc(p.step_type() * spread);
           FTotal += step;
 
           chan_gradients[width_.x_index] += width_.grad_at(fit[width_.x_index]) *
@@ -730,8 +730,9 @@ void Region::grad_chi_sq(const std::vector<double>& fit,
         chan_gradients[p.amplitude.x_index] += gauss / ampl;
 
         //---Short Tail---
-        double short_tail = half_ampl * short_ampl * std::exp(spread / short_slope) *
-            std::erfc(spread + 0.5 / short_slope);
+        double short_tail = half_ampl * short_ampl *
+            std::exp(spread / short_slope) *
+            std::erfc(0.5 / short_slope + spread);
         FTotal += short_tail;
         //t2 = (ampl * short_ampl * std::exp(spread / short_slope) / std::sqrt(M_PI) *
         //    std::exp(-1.0 * square(1.0 / (2.0 * short_slope) + spread)) * spread / width)

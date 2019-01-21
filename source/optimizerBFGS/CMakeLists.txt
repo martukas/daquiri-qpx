@@ -6,20 +6,22 @@ set(SOURCES
   ${dir}/EfficiencyCal.cpp
   ${dir}/NonlinearityCal.cpp
   ${dir}/Calibration.cpp
-  ${dir}/BFGS.cpp
   ${dir}/Spectrum.cpp
+  ${dir}/Value.cpp
   ${dir}/Peak.cpp
   ${dir}/Region.cpp
+  ${dir}/BFGS.cpp
   )
 
 set(HEADERS
   ${dir}/EfficiencyCal.h
   ${dir}/NonlinearityCal.h
   ${dir}/Calibration.h
-  ${dir}/BFGS.h
   ${dir}/Spectrum.h
+  ${dir}/Value.h
   ${dir}/Peak.h
   ${dir}/Region.h
+  ${dir}/BFGS.h
   ${dir}/more_math.h
   )
 
