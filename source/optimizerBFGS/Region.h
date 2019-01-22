@@ -66,6 +66,9 @@ class Region
   virtual void grad_chi_sq(const std::vector<double>& fit,
                            std::vector<double>& gradients, double& Chisq) const;
 
+  double grad_chi_sq(std::vector<double>& gradients) const;
+  double calc_chi_sq() const;
+
  private:
   // \todo what does this mean?
   static int32_t L(int32_t i, int32_t j, int32_t m);

@@ -129,6 +129,11 @@ double ValueBkgDefault::val() const
   return val_at(x_);
 }
 
+double ValueBkgDefault::grad() const
+{
+  return grad_at(x_);
+}
+
 void ValueBkgDefault::val(double new_val)
 {
   x_ = std::sqrt(new_val);

@@ -14,33 +14,65 @@ struct PrecalcVals
   double spread;
 };
 
+enum class Side {
+  left,
+  right
+};
 
 struct Tail
 {
+  Tail() = default;
+  Tail(Side s) : side(s) {}
+
   bool override{false};
   bool enabled{true};
   Value amplitude, slope;
+  Side side {Side::left};
 
-  static double eval_with(const PrecalcVals& pre, double ampl, double slp);
-  static double eval_flipped_with(const PrecalcVals& pre, double ampl, double slp);
+  inline double flip(double spread) const
+  {
+    if (side == Side::right)
+      return -spread;
+    return spread;
+  }
+
+  double eval_with(const PrecalcVals& pre, double ampl, double slp) const;
 
   double eval(const PrecalcVals& pre) const;
-  double eval_flipped(const PrecalcVals& pre) const;
 
   double eval_grad(const PrecalcVals& pre,
                    std::vector<double>& grads,
-                   size_t i_width, size_t i_pos, size_t i_amp);
+                   size_t i_width, size_t i_pos, size_t i_amp) const;
+};
 
-  double eval_flipped_grad(const PrecalcVals& pre,
-                            std::vector<double>& grads,
-                            size_t i_width, size_t i_pos, size_t i_amp);
+struct Step
+{
+  Step() = default;
+  Step(Side s) : side(s) {}
+
+  bool override{false};
+  bool enabled{true};
+  Value amplitude;
+  Side side {Side::left};
+
+  inline double flip(double spread) const
+  {
+    if (side == Side::right)
+      return -spread;
+    return spread;
+  }
+
+  double eval_with(const PrecalcVals& pre, double ampl) const;
+
+  double eval(const PrecalcVals& pre) const;
+
+  double eval_grad(const PrecalcVals& pre,
+                   std::vector<double>& grads,
+                   size_t i_width, size_t i_pos, size_t i_amp) const;
 };
 
 class Peak
 {
- private:
-  int32_t FEP_status_{1};
-
  public:
   struct Components
   {
@@ -60,15 +92,13 @@ class Peak
   Value width_;
 
   // skews
-  Tail short_tail;
-  Tail right_tail;
+  Tail short_tail {Side::left};
+  Tail right_tail {Side::right};
 
   // step & tail
-  Tail long_tail;
+  Tail long_tail {Side::left};
 
-  bool step_override{false};
-  bool step_enabled_{true};
-  Value step_amplitude_;
+  Step step;
 
   int32_t step_type() const;
   double peak_position() const;
@@ -80,11 +110,9 @@ class Peak
   bool operator<(const Peak& other) const;
 
   Components eval(double chan) const;
-  Components eval_grad(double chan, std::vector<double>& grads, size_t offset);
+  Components eval_grad(double chan, std::vector<double>& grads) const;
 
   PrecalcVals precalc_vals(double chan) const;
-
-  static double eval_skew(double ampl, double spread, double slope);
 };
 
 }

@@ -716,7 +716,7 @@ void Region::grad_chi_sq(const std::vector<double>& fit,
         //---Step---
         if (step_enabled_)
         {
-          double step =  half_ampl * step_ampl *
+          double step = half_ampl * step_ampl *
               std::erfc(p.step_type() * spread);
           FTotal += step;
 
@@ -805,6 +805,93 @@ void Region::grad_chi_sq(const std::vector<double>& fit,
   {
     ERR("Error in GradChiSq");
   }
+}
+
+double Region::grad_chi_sq(std::vector<double>& gradients) const
+{
+  //Calculates the Chi-square and its gradient
+
+  /*if(DiffType = 2)
+  {
+      Call dfunc2(reg, XVector, XGradient, Chisq)
+      Exit Sub
+  }
+
+  if(DiffType = 3)
+  {
+      Call dfunc3(reg, XVector, XGradient, Chisq)
+      Exit Sub
+  }*/
+
+  //Dim XGradient2(XGradient.GetLength(0) - 1) As Double, Chisq2 As Double
+  //dfunc2(reg, XVector, XGradient2, Chisq2)
+
+  // zero-out arrays
+  gradients.assign(gradients.size(), 0.0);
+  auto chan_gradients = gradients;
+
+  double Chisq = 0;
+
+  for (size_t pos = first_channel; pos <= last_channel; ++pos)
+  {
+    chan_gradients.assign(chan_gradients.size(), 0.0);
+
+    //--- Poly Background ---
+    double FTotal = background_base_.val();
+    chan_gradients[background_base_.x_index] = background_base_.grad();
+    if (slope_enabled_)
+    {
+      FTotal += background_slope_.val() * (pos - first_channel);
+      chan_gradients[background_slope_.x_index] = (pos - first_channel);
+    }
+
+    if (curve_enabled_)
+    {
+      FTotal += background_curve_.val() * square(pos - first_channel);
+      chan_gradients[background_curve_.x_index] = square(pos - first_channel);
+    }
+
+    for (auto& p : peaks_)
+    {
+      auto ret = p.eval_grad(pos, chan_gradients);
+      FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
+    } //Peak
+
+    double t3 = -2.0 * (spectrum.channels[pos] - FTotal) / square(spectrum.weight(pos));
+
+    for (size_t var = 0; var < fit_var_count(); ++var)
+      gradients[var] += chan_gradients[var] * t3;
+    Chisq += square((spectrum.channels[pos] - FTotal) / spectrum.weight(pos));
+  }
+  //Chisq /= df
+
+  return Chisq;
+}
+
+double Region::calc_chi_sq() const
+{
+  //Calculates the Chi-square over a region
+  double ChiSq = 0;
+
+  for (size_t pos = first_channel; pos <= last_channel; ++pos)
+  {
+    // Background
+    double FTotal = background_base_.val();
+    if (slope_enabled_)
+      FTotal += background_slope_.val() * (pos - first_channel);
+    if (curve_enabled_)
+      FTotal += background_curve_.val() * square(pos - first_channel);
+
+    for (auto& p : peaks_)
+    {
+      auto ret = p.eval(pos);
+      FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
+    }
+    ChiSq += square((spectrum.channels[pos] - FTotal) /
+        spectrum.weight(pos));
+  } //Channel
+
+  return ChiSq;
 }
 
 }

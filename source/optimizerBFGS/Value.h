@@ -76,6 +76,7 @@ class ValueBkgDefault
   double x() const;
   void x(double new_x);
   double val() const;
+  double grad() const;
   void val(double new_val);
   double val_at(double at_x) const;
   double grad_at(double at_x) const;
