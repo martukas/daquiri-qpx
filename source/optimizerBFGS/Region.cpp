@@ -250,23 +250,72 @@ double Region::peak_area_eff_unc(size_t index, const Calibration& cal)
 
 size_t Region::fit_var_count() const
 {
-  size_t n = 2;    //BLN,DEL: always on!
-  if (short_tail_amplitude_.to_fit)
-    n += 1; //AST,BST
-  if (short_tail_slope_.to_fit)
-    n += 1;
-  if (left_tail_enabled_)
-    n += 2; //ALT,BLT
-  if (right_tail_enabled_)
-    n += 2; //ART,BRT
-  if (step())
-    n += 1;
+  return current_fit.size();
+}
+
+void Region::map_fit()
+{
+  current_fit.clear();
+
+  size_t unique_widths {0};
+  size_t unique_short_tails {0};
+  size_t unique_right_tails {0};
+  size_t unique_long_tails {0};
+  size_t unique_steps {0};
+  for (auto& p : peaks_)
+  {
+    if (p.width_override)
+      unique_widths++;
+    if (p.short_tail.override)
+      unique_short_tails++;
+    if (p.right_tail.override)
+      unique_right_tails++;
+    if (p.long_tail.override)
+      unique_long_tails++;
+    if (p.step.override)
+      unique_steps++;
+  }
+
+  int32_t i = 0;
+  background_base_.x_index = i++;
+
   if (slope_enabled_)
-    n += 1;
+    background_slope_.x_index = i++;
+  else
+    background_slope_.x_index = -1;
+
   if (curve_enabled_)
-    n += 1;
-  n += 2 * peaks_.size(); //GAM, POS
-  return n;
+    background_curve_.x_index = i++;
+  else
+    background_curve_.x_index = -1;
+
+  if (unique_widths < peaks_.size())
+    default_peak_.width_.x_index = i++;
+  else
+    default_peak_.width_.x_index = -1;
+
+  if (default_peak_.short_tail.enabled &&
+      (unique_short_tails < peaks_.size()))
+    default_peak_.short_tail.update_indices(i);
+
+  if (default_peak_.right_tail.enabled &&
+      (unique_right_tails < peaks_.size()))
+    default_peak_.right_tail.update_indices(i);
+
+  if (default_peak_.long_tail.enabled &&
+      (unique_long_tails < peaks_.size()))
+    default_peak_.long_tail.update_indices(i);
+
+  if (default_peak_.step.enabled &&
+      (unique_steps < peaks_.size()))
+    default_peak_.step.update_indices(i);
+
+  for (auto& p : peaks_)
+    p.update_indices(i);
+
+  current_fit.resize(static_cast<size_t>(i), 0.0);
+  //fit_gradients.resize(vars);
+  //ReDim ChisqGradient(FitVars - 1)
 }
 
 void Region::setup_fit()
@@ -345,6 +394,58 @@ void Region::setup_fit()
     shift += 2;
   }
 }
+
+void Region::load_fit()
+{
+  background_base_.put(current_fit);
+
+  background_slope_.put(current_fit);
+  background_curve_.put(current_fit);
+
+  default_peak_.put(current_fit);
+
+  // \todo copy defaults
+  for (auto& p : peaks_)
+    p.put(current_fit);
+}
+
+void Region::save_fit()
+{
+  background_base_.get(current_fit);
+
+  background_slope_.get(current_fit);
+  background_curve_.get(current_fit);
+
+  default_peak_.get(current_fit);
+
+  for (auto& p : peaks_)
+    p.get(current_fit);
+}
+
+void Region::save_fit_uncerts()
+{
+  save_fit();
+
+  std::vector<double> diagonals;
+  diagonals.reserve(current_fit.size());
+
+  double df = degrees_of_freedom();
+  for (size_t i = 0; i < current_fit.size(); ++i)
+    diagonals.push_back(inv_hessian.coeff(i,i) * df);
+
+  double chisq_norm = std::max(chi_sq_normalized(), 1.0) * 0.5;
+
+  background_base_.get_uncert(current_fit, chisq_norm);
+
+  background_slope_.get_uncert(current_fit, chisq_norm);
+  background_curve_.get_uncert(current_fit, chisq_norm);
+
+  default_peak_.get_uncerts(current_fit, chisq_norm);
+
+  for (auto& p : peaks_)
+    p.get_uncerts(current_fit, chisq_norm);
+}
+
 
 void Region::store_fit()
 {
@@ -598,11 +699,13 @@ double Region::calc_chi_sq(const std::vector<double>& fit) const
 
 double Region::chi_sq_normalized() const
 {
-  return chi_squared / static_cast<double>(degrees_of_freedom());
+  return calc_chi_sq() / static_cast<double>(degrees_of_freedom());
 }
 
 size_t Region::degrees_of_freedom() const
 {
+  // \todo should it not be (last - first +1)?
+  // \todo what if channel range is < fit_var_count?
   return ((last_channel - first_channel) - fit_var_count());
 }
 

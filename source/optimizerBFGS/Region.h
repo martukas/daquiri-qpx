@@ -69,6 +69,12 @@ class Region
   double grad_chi_sq(std::vector<double>& gradients) const;
   double calc_chi_sq() const;
 
+  void map_fit();
+  void load_fit();
+  void save_fit();
+
+  void save_fit_uncerts();
+
  private:
   // \todo what does this mean?
   static int32_t L(int32_t i, int32_t j, int32_t m);
@@ -84,6 +90,7 @@ class Region
 
   // \todo why skew naming different?
   // peak
+  Peak default_peak_;
   Value width_;
 
   Value short_tail_amplitude_, short_tail_slope_;

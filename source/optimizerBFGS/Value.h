@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cinttypes>
+#include <vector>
 
 namespace Hypermet
 {
@@ -26,16 +27,20 @@ class Value
 
   double max() const;
   void max(double new_max);
-  double min();
+  double min() const;
   void min(double new_min);
   void bound(double v1, double v2);
-  double x();
+  double x() const;
   void x(double new_x);
   double val() const;
   void val(double new_val);
   double grad() const;
   double val_at(double at_x) const;
   double grad_at(double at_x) const;
+
+  void put(std::vector<double>& fit) const;
+  void get(const std::vector<double>& fit);
+  void get_uncert(const std::vector<double>& diagonals, double chisq_norm);
 
  private:
   double x_{0};
@@ -54,13 +59,18 @@ class ValueGam
   int32_t x_index{-1};
 
  public:
-  double x();
+  double x() const;
   void x(double new_x);
   double val() const;
   double grad() const;
   void val(double new_val);
   double val_at(double at_x) const;
   double grad_at(double at_x) const;
+
+  void put(std::vector<double>& fit) const;
+  void get(const std::vector<double>& fit);
+  void get_uncert(const std::vector<double>& diagonals, double chisq_norm);
+
 };
 
 class ValueBkgDefault
@@ -80,6 +90,11 @@ class ValueBkgDefault
   void val(double new_val);
   double val_at(double at_x) const;
   double grad_at(double at_x) const;
+
+  void put(std::vector<double>& fit) const;
+  void get(const std::vector<double>& fit);
+  void get_uncert(const std::vector<double>& diagonals, double chisq_norm);
+
 };
 
 class ValueBkg
@@ -96,9 +111,14 @@ class ValueBkg
   double x() const;
   void x(double new_x);
   double val() const;
+  double grad() const;
   void val(double new_val);
   double val_at(double at_x) const;
   double grad_at(double at_x) const;
+
+  void put(std::vector<double>& fit) const;
+  void get(const std::vector<double>& fit);
+  void get_uncert(const std::vector<double>& diagonals, double chisq_norm);
 };
 
 }

@@ -43,6 +43,11 @@ struct Tail
   double eval_grad(const PrecalcVals& pre,
                    std::vector<double>& grads,
                    size_t i_width, size_t i_pos, size_t i_amp) const;
+
+  void update_indices(int32_t& i);
+  void put(std::vector<double>& fit) const;
+  void get(const std::vector<double>& fit);
+  void get_uncerts(const std::vector<double>& diagonals, double chisq_norm);
 };
 
 struct Step
@@ -69,6 +74,11 @@ struct Step
   double eval_grad(const PrecalcVals& pre,
                    std::vector<double>& grads,
                    size_t i_width, size_t i_pos, size_t i_amp) const;
+
+  void update_indices(int32_t& i);
+  void put(std::vector<double>& fit) const;
+  void get(const std::vector<double>& fit);
+  void get_uncerts(const std::vector<double>& diagonals, double chisq_norm);
 };
 
 class Peak
@@ -91,13 +101,12 @@ class Peak
   bool width_override{false};
   Value width_;
 
-  // skews
+  // skews (part of peak)
   Tail short_tail {Side::left};
   Tail right_tail {Side::right};
 
-  // step & tail
+  // step & tail (background)
   Tail long_tail {Side::left};
-
   Step step;
 
   int32_t step_type() const;
@@ -113,6 +122,12 @@ class Peak
   Components eval_grad(double chan, std::vector<double>& grads) const;
 
   PrecalcVals precalc_vals(double chan) const;
+
+  void update_indices(int32_t& i);
+
+  void put(std::vector<double>& fit) const;
+  void get(const std::vector<double>& fit);
+  void get_uncerts(const std::vector<double>& diagonals, double chisq_norm);
 };
 
 }

@@ -37,6 +37,41 @@ double Tail::eval_grad(const PrecalcVals& pre, std::vector<double>& grads,
         ret + (pre.width / (2.0 * square(slp)) * t2));
 }
 
+void Tail::update_indices(int32_t& i)
+{
+  if (amplitude.to_fit)
+    amplitude.x_index = i++;
+  else
+    amplitude.x_index = -1;
+
+  if (slope.to_fit)
+    slope.x_index = i++;
+  else
+    slope.x_index = -1;
+}
+
+void Tail::put(std::vector<double>& fit) const
+{
+  amplitude.put(fit);
+  slope.put(fit);
+}
+
+void Tail::get(const std::vector<double>& fit)
+{
+  amplitude.get(fit);
+  slope.get(fit);
+}
+
+void Tail::get_uncerts(const std::vector<double>& diagonals, double chisq_norm)
+{
+  amplitude.get_uncert(diagonals, chisq_norm);
+  slope.get_uncert(diagonals, chisq_norm);
+}
+
+
+
+
+
 double Step::eval_with(const PrecalcVals& pre, double ampl) const
 {
   return pre.half_ampl * amplitude.val() * std::erfc(flip(pre.spread));
@@ -60,6 +95,31 @@ double Step::eval_grad(const PrecalcVals& pre, std::vector<double>& grads,
   if (amplitude.to_fit)
     grads[amplitude.x_index] += ret / ampl * amplitude.grad();
 }
+
+void Step::update_indices(int32_t& i)
+{
+  if (amplitude.to_fit)
+    amplitude.x_index = i++;
+  else
+    amplitude.x_index = -1;
+}
+
+void Step::put(std::vector<double>& fit) const
+{
+  amplitude.put(fit);
+}
+
+void Step::get(const std::vector<double>& fit)
+{
+  amplitude.get(fit);
+}
+
+void Step::get_uncerts(const std::vector<double>& diagonals, double chisq_norm)
+{
+  amplitude.get_uncert(diagonals, chisq_norm);
+}
+
+
 
 int32_t Peak::step_type() const
 {
@@ -166,5 +226,63 @@ Peak::Components Peak::eval_grad(double chan, std::vector<double>& grads) const
 
   return ret;
 }
+
+void Peak::update_indices(int32_t& i)
+{
+  amplitude.x_index = i++;
+  position.x_index = i++;
+
+  if (width_override)
+    width_.x_index = i++;
+  else
+    width_.x_index = -1;
+
+  if (short_tail.override && short_tail.enabled)
+    short_tail.update_indices(i);
+
+  if (right_tail.override && right_tail.enabled)
+    right_tail.update_indices(i);
+
+  if (long_tail.override && long_tail.enabled)
+    long_tail.update_indices(i);
+
+  if (step.override && step.enabled)
+    step.update_indices(i);
+}
+
+void Peak::put(std::vector<double>& fit) const
+{
+  position.put(fit);
+  amplitude.put(fit);
+  width_.put(fit);
+  short_tail.put(fit);
+  right_tail.put(fit);
+  long_tail.put(fit);
+  step.put(fit);
+}
+
+void Peak::get(const std::vector<double>& fit)
+{
+  position.get(fit);
+  amplitude.get(fit);
+  width_.get(fit);
+  short_tail.get(fit);
+  right_tail.get(fit);
+  long_tail.get(fit);
+  step.get(fit);
+}
+
+void Peak::get_uncerts(const std::vector<double>& diagonals, double chisq_norm)
+{
+  position.get_uncert(diagonals, chisq_norm);
+  amplitude.get_uncert(diagonals, chisq_norm);
+  width_.get_uncert(diagonals, chisq_norm);
+  short_tail.get_uncerts(diagonals, chisq_norm);
+  right_tail.get_uncerts(diagonals, chisq_norm);
+  long_tail.get_uncerts(diagonals, chisq_norm);
+  step.get_uncerts(diagonals, chisq_norm);
+}
+
+
 
 }
