@@ -193,6 +193,43 @@ Peak::Components Peak::eval(double chan) const
   return ret;
 }
 
+double Peak::area() const
+{
+  return amplitude.val() * width_.val() * (std::sqrt(M_PI) +
+      short_tail.amplitude.val() * short_tail.slope.val() *
+          std::exp(-0.25 / square(short_tail.slope.val())) +
+      right_tail.amplitude.val() * right_tail.slope.val() *
+          std::exp(-0.25 / square(right_tail.slope.val())));
+}
+
+double Peak::area_uncert(double chisq_norm) const
+{
+  // \todo make this more rigorous
+  double t = area();
+  //, i, j As Integer
+  //Dim cs As Double = ChisqNorm() * 0.5
+  //for( i = 0 To FitVars - 1
+  //for( j = 0 To i - 1
+  //t += fit_gradients(i) * fit_gradients(j) * Hessinv.coeff(i, j) * cs
+  //} //j
+  //} //i
+  //
+  //Dim Bracket As Double = (std::sqrt(M_PI) + AST.val() * BST.val() * std::exp(-0.25 / BST.val() ^ 2) + ART.val() * BRT.val() * std::exp(-0.25 / BRT.val() ^ 2))
+  //(dGAM/dX*dArea/dGAM)^2*Var(X)*Chisq
+  //t = (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.val() * Bracket) ^ 2 * Hessinv.coeff(DEL.x_index, DEL.x_index) * cs
+  //(dGAM/dX*dArea/dGAM)*(dDEL/dY*dArea/dDEL)*Covar(X,Y)*Chisq
+  //t += (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.val() * Bracket) * (DEL.GradAt(DEL.X) * Peak(PeakIndex).GAM.val() * Bracket) * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, DEL.x_index) * cs
+  //if(AST.to_fit = true) {
+  ////(dGAM/dX*dArea/dGAM)*(dAST/dY*dArea/dAST)*Covar(X,Y)*Chisq
+  //t += (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.val() * Bracket) * (AST.GradAt(AST.X) * Peak(PeakIndex).GAM.val() * DEL.val() * BST.val() * std::exp(-0.25 / BST.val() ^ 2)) * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, AST.x_index) * cs
+  //}
+  //if(BST.to_fit = true) {
+  //(dGAM/dX*dArea/dGAM)*(dBST/dY*dArea/dBST)*Covar(X,Y)*Chisq
+  //t += (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.val() * Bracket) * (BST.GradAt(BST.X) * Peak(PeakIndex).GAM.val() * DEL.val() * AST.val() * (1 + 0.5 / BST.val() ^ 2) * std::exp(-0.25 / BST.val() ^ 2)) * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, AST.x_index) * cs
+  //}
+  return std::sqrt(t) * std::max(1.0, chisq_norm);
+}
+
 Peak::Components Peak::eval_grad(double chan, std::vector<double>& grads) const
 {
   Peak::Components ret;

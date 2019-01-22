@@ -118,6 +118,9 @@ class Peak
   void full_energy_peak(bool flag);
   bool operator<(const Peak& other) const;
 
+  double area() const;
+  double area_uncert(double chisq_norm) const;
+
   Components eval(double chan) const;
   Components eval_grad(double chan, std::vector<double>& grads) const;
 
