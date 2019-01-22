@@ -70,24 +70,29 @@ class Region
   // \todo what does this mean?
   static int32_t L(int32_t i, int32_t j, int32_t m);
 
-  bool slope_enabled_{true};
-  bool curve_enabled_{true};
-  bool left_tail_enabled_{true};
-  bool step_enabled_{true};
-  bool right_tail_enabled_{true};
-
   // background
   ValueBkgDefault background_base_;
-  ValueBkg background_slope_, background_curve_;
+
+  bool slope_enabled_{true};
+  ValueBkg background_slope_;
+
+  bool curve_enabled_{true};
+  ValueBkg background_curve_;
 
   // \todo why skew naming different?
   // peak
-  ValueDefault width_;
+  Value width_;
+
   Value short_tail_amplitude_, short_tail_slope_;
+
+  bool right_tail_enabled_{true};
   Value right_tail_amplitude_, right_tail_slope_;
 
   // step & tail
+  bool left_tail_enabled_{true};
   Value long_tail_amplitude_, long_tail_slope_;
+
+  bool step_enabled_{true};
   Value step_amplitude_;
 
   std::vector<Peak> peaks_;

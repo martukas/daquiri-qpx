@@ -512,13 +512,18 @@ double Region::calc_chi_sq(const std::vector<double>& fit) const
   {
     chi_squared = 0;
 
+    // this is always fit
+    double width = width_.val_at(fit[width_.x_index]);
+
+    // this may be fixed
     double short_ampl = short_tail_amplitude_.to_fit ?
                         short_tail_amplitude_.val_at(fit[short_tail_amplitude_.x_index]) :
                         short_tail_amplitude_.val();
     double short_slope = short_tail_slope_.to_fit ?
                          short_tail_slope_.val_at(fit[short_tail_slope_.x_index]) :
                          short_tail_slope_.val();
-    double width = width_.val_at(fit[width_.x_index]);
+
+    // these can be disabled
     double left_ampl = left_tail_enabled_ ?
                        long_tail_amplitude_.val_at(fit[long_tail_amplitude_.x_index]) :
                        0.0;
@@ -626,17 +631,20 @@ void Region::grad_chi_sq(const std::vector<double>& fit,
     gradients.assign(gradients.size(), 0.0);
     auto chan_gradients = gradients;
 
-    double t2;
-
     Chisq = 0;
 
+    // this is always fit
+    double width = width_.val_at(fit[width_.x_index]);
+
+    // this may be fixed
     double short_ampl = short_tail_amplitude_.to_fit ?
                         short_tail_amplitude_.val_at(fit[short_tail_amplitude_.x_index]) :
                         short_tail_amplitude_.val();
     double short_slope = short_tail_slope_.to_fit ?
                          short_tail_slope_.val_at(fit[short_tail_slope_.x_index]) :
                          short_tail_slope_.val();
-    double width = width_.val_at(fit[width_.x_index]);
+
+    // these can be disabled
     double left_ampl = left_tail_enabled_ ?
                        long_tail_amplitude_.val_at(fit[long_tail_amplitude_.x_index]) :
                        0.0;
@@ -690,7 +698,7 @@ void Region::grad_chi_sq(const std::vector<double>& fit,
           FTotal += long_tail;
 
           //t2 = (ampl * left_ampl * std::exp(spread / left_slope) / ::sqrt(M_PI) * std::exp(-(1.0 / (2.0 * left_slope) + spread) ^ 2) * spread / width)
-          t2 = (ampl * left_ampl * std::exp(spread / left_slope) / std::sqrt(M_PI) *
+          double t2 = (ampl * left_ampl * std::exp(spread / left_slope) / std::sqrt(M_PI) *
               std::exp(-square(1.0 / (2.0 * left_slope) + spread)) / width);
           chan_gradients[width_.x_index] += width_.grad_at(fit[width_.x_index])
               * (-1.0 * spread / (width * left_slope) * long_tail + t2 * spread);
@@ -736,7 +744,7 @@ void Region::grad_chi_sq(const std::vector<double>& fit,
         FTotal += short_tail;
         //t2 = (ampl * short_ampl * std::exp(spread / short_slope) / std::sqrt(M_PI) *
         //    std::exp(-1.0 * square(1.0 / (2.0 * short_slope) + spread)) * spread / width)
-        t2 = (ampl * short_ampl * std::exp(spread / short_slope) / std::sqrt(M_PI) *
+        double t2 = (ampl * short_ampl * std::exp(spread / short_slope) / std::sqrt(M_PI) *
             std::exp(-1.0 * square(1.0 / (2.0 * short_slope) + spread)) / width);
         chan_gradients[width_.x_index] += width_.grad_at(fit[width_.x_index]) *
             (-1.0 * spread / (width * short_slope) * short_tail + t2 * spread);
@@ -762,7 +770,7 @@ void Region::grad_chi_sq(const std::vector<double>& fit,
 
           //t2 = (ampl * right_ampl * std::exp(-1.0 * spread / right_slope) / std::sqrt(M_PI) *
           //  std::exp(-square(1.0 / (2.0 * right_slope) - spread)) * spread / width)
-          t2 = (ampl * right_ampl * std::exp(-1.0 * spread / right_slope) / std::sqrt(M_PI) *
+          double t2 = (ampl * right_ampl * std::exp(-1.0 * spread / right_slope) / std::sqrt(M_PI) *
               std::exp(-square(1.0 / (2.0 * right_slope) - spread)) / width);
           chan_gradients[width_.x_index] += width_.grad_at(fit[width_.x_index]) *
               ((spread / (width * right_slope) * right_tail - t2 * spread));

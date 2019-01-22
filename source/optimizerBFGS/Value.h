@@ -5,16 +5,14 @@
 namespace Hypermet
 {
 
-class ValueDefault
+class Value
 {
- private:
-  double x_{0};
-  double dx_{0};
-  double max_{1};
-  double min_{0};
  public:
+  Value() = default;
+
   double uncert_value{0};
   int32_t x_index{-1};
+  bool to_fit{true};
 
   //void SetRange(double NewMin, double NewMax) {
   //    if(Not NewMin < NewMax) { return; }
@@ -30,18 +28,20 @@ class ValueDefault
   void max(double new_max);
   double min();
   void min(double new_min);
+  void bound(double v1, double v2);
   double x();
   void x(double new_x);
   double val() const;
   void val(double new_val);
+  double grad() const;
   double val_at(double at_x) const;
   double grad_at(double at_x) const;
-};
 
-class Value : public ValueDefault
-{
- public:
-  bool to_fit{true};
+ private:
+  double x_{0};
+  double dx_{0};
+  double max_{1};
+  double min_{0};
 };
 
 class ValueGam
@@ -57,6 +57,7 @@ class ValueGam
   double x();
   void x(double new_x);
   double val() const;
+  double grad() const;
   void val(double new_val);
   double val_at(double at_x) const;
   double grad_at(double at_x) const;
