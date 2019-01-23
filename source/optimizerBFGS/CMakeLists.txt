@@ -12,7 +12,7 @@ set(SOURCES
   ${dir}/Step.cpp
   ${dir}/Peak.cpp
   ${dir}/Region.cpp
-#  ${dir}/BFGS.cpp
+  ${dir}/BFGS.cpp
   )
 
 set(HEADERS
@@ -25,7 +25,7 @@ set(HEADERS
   ${dir}/Step.h
   ${dir}/Peak.h
   ${dir}/Region.h
-#  ${dir}/BFGS.h
+  ${dir}/BFGS.h
   ${dir}/more_math.h
   )
 

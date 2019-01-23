@@ -302,7 +302,7 @@ double BFGS::fgv(const Region& region, double lambda, std::vector<double> gx, st
     std::vector<double> xlocal(n);
     for (size_t i = 0; i < n; ++i)
       xlocal[i] = gx[i] + lambda * gh[i];
-    return region.calc_chi_sq(xlocal);
+    return region.calc_chi_sq_at(xlocal);
   }
   catch (...)
   {
@@ -312,16 +312,15 @@ double BFGS::fgv(const Region& region, double lambda, std::vector<double> gx, st
 
 double BFGS::dfgv(const Region& region, double lambda, std::vector<double> gx, std::vector<double> gh)
 {
-  auto n = gx.size();
-  std::vector<double> xlocal(n);
-  std::vector<double> dflocal(n);
-  double s, junk;
   try
   {
+    auto n = gx.size();
+    std::vector<double> xlocal(n);
+    std::vector<double> dflocal(n);
     for (size_t i = 0; i < n; ++i)
       xlocal[i] = gx[i] + lambda * gh[i];
-    region.grad_chi_sq(xlocal, dflocal, junk);
-    s = 0;
+    region.grad_chi_sq_at(xlocal, dflocal);
+    double s = 0;
     for (size_t i = 0; i < n; ++i)
       s += dflocal[i] * gh[i];
     return s;
@@ -373,7 +372,7 @@ void BFGS::BFGSMin(Region& region, double tolf, size_t& iter)
     std::vector<double> h(n), g(n), u(n), Adg(n);
     bool done{false};
 
-    region.grad_chi_sq(x, g, f);
+    f = region.grad_chi_sq_at(x, g);
 
     auto& A = region.inv_hessian;
     A.resize(n, n);
@@ -390,7 +389,7 @@ void BFGS::BFGSMin(Region& region, double tolf, size_t& iter)
       for (size_t i = 0; i < n; ++i)
         u[i] = g[i];
 
-      region.grad_chi_sq(x, g, fmin);
+      fmin = region.grad_chi_sq_at(x, g);
       INFO("Fitting... Iteration = {}, Chisq = {}", k, fmin / fv);
 
       for (size_t i = 0; i < n; ++i)
