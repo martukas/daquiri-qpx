@@ -46,14 +46,18 @@ class Region
   double chi_sq_normalized() const;
   size_t degrees_of_freedom() const;
 
-  double grad_chi_sq(std::vector<double>& gradients) const;
-  double calc_chi_sq() const;
-
   void map_fit();
   void load_fit();
   void save_fit();
 
   void save_fit_uncerts();
+
+  double calc_chi_sq() const;
+  double grad_chi_sq(std::vector<double>& gradients) const;
+
+  double calc_chi_sq_at(const std::vector<double>& fit) const;
+  double grad_chi_sq_at(const std::vector<double>& fit,
+                        std::vector<double>& gradients) const;
 
  private:
   // \todo what does this mean?
