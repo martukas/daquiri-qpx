@@ -60,7 +60,7 @@ class Region
   static int32_t L(int32_t i, int32_t j, int32_t m);
 
   // background
-  ValueBkgDefault background_base_;
+  ValueGam background_base_;
 
   bool slope_enabled_{true};
   ValueBkg background_slope_;

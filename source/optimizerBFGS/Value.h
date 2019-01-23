@@ -6,119 +6,99 @@
 namespace Hypermet
 {
 
-class Value
+class AbstractValue
+{
+ public:
+  AbstractValue() = default;
+  virtual ~AbstractValue() = default;
+
+  double uncert_value{0};
+  int32_t x_index{-1};
+  bool to_fit{true};
+
+  double x() const;
+  void x(double new_x);
+  double val() const;
+  double grad() const;
+
+  virtual void val(double new_val) = 0;
+  virtual double val_at(double at_x) const = 0;
+  virtual double grad_at(double at_x) const = 0;
+
+  void put(std::vector<double>& fit) const;
+  void get(const std::vector<double>& fit);
+  void get_uncert(const std::vector<double>& diagonals, double chisq_norm);
+
+ private:
+  double x_{0};
+  double dx_{0};
+};
+
+
+class Value : public AbstractValue
 {
  public:
   Value() = default;
 
-  double uncert_value{0};
-  int32_t x_index{-1};
-  bool to_fit{true};
-
-  //void SetRange(double NewMin, double NewMax) {
-  //    if(Not NewMin < NewMax) { return; }
-  //    double val = _Min + (_Max - _Min) / 2 * (1 + std::sin(x_));
-  //    Value = std::min(NewMin, val);
-  //    Value = std::max(NewMax, val);
-  //    _Min = NewMin;
-  //    _Max = NewMax;
-  //    x_ = std::asin((_Min + _Max - 2 * val) / (-1 * _Max + _Min));
-  //}
+  using AbstractValue::x;
+  using AbstractValue::val;
+  using AbstractValue::grad;
 
   double max() const;
-  void max(double new_max);
   double min() const;
+
+  void max(double new_max);
   void min(double new_min);
   void bound(double v1, double v2);
-  double x() const;
-  void x(double new_x);
-  double val() const;
-  void val(double new_val);
-  double grad() const;
-  double val_at(double at_x) const;
-  double grad_at(double at_x) const;
 
-  void put(std::vector<double>& fit) const;
-  void get(const std::vector<double>& fit);
-  void get_uncert(const std::vector<double>& diagonals, double chisq_norm);
+  void val(double new_val) override;
+  double val_at(double at_x) const override;
+  double grad_at(double at_x) const override;
 
  private:
-  double x_{0};
-  double dx_{0};
-  double max_{1};
-  double min_{0};
+  double max_{1.0};
+  double min_{0.0};
 };
 
-class ValueGam
+class ValueGam : public AbstractValue
 {
- private:
-  double x_{0};
-  double dx_{0};
  public:
-  double uncert_value{0};
-  int32_t x_index{-1};
+  ValueGam() = default;
 
- public:
-  double x() const;
-  void x(double new_x);
-  double val() const;
-  double grad() const;
-  void val(double new_val);
-  double val_at(double at_x) const;
-  double grad_at(double at_x) const;
+  using AbstractValue::x;
+  using AbstractValue::val;
+  using AbstractValue::grad;
 
-  void put(std::vector<double>& fit) const;
-  void get(const std::vector<double>& fit);
-  void get_uncert(const std::vector<double>& diagonals, double chisq_norm);
-
+  void val(double new_val) override;
+  double val_at(double at_x) const override;
+  double grad_at(double at_x) const override;
 };
 
-class ValueBkgDefault
+class ValueBkg : public AbstractValue
 {
- private:
-  double x_{0};
-  double dx_{0};
-
  public:
-  double uncert_value{0};
-  double x_index{-1};
+  ValueBkg() = default;
 
-  double x() const;
-  void x(double new_x);
-  double val() const;
-  double grad() const;
-  void val(double new_val);
-  double val_at(double at_x) const;
-  double grad_at(double at_x) const;
+  using AbstractValue::x;
+  using AbstractValue::val;
+  using AbstractValue::grad;
 
-  void put(std::vector<double>& fit) const;
-  void get(const std::vector<double>& fit);
-  void get_uncert(const std::vector<double>& diagonals, double chisq_norm);
-
+  void val(double new_val) override;
+  double val_at(double at_x) const override;
+  double grad_at(double at_x) const override;
 };
 
-class ValueBkg
+struct PrecalcVals
 {
- private:
-  double x_{0};
-  double dx_{0};
+  double width;
+  double ampl;
+  double half_ampl;
+  double spread;
+};
 
- public:
-  double uncert_value{0};
-  int32_t x_index{-1};
-  bool to_fit{true};
-
-  double x() const;
-  void x(double new_x);
-  double val() const;
-  double grad() const;
-  void val(double new_val);
-  double val_at(double at_x) const;
-  double grad_at(double at_x) const;
-
-  void put(std::vector<double>& fit) const;
-  void get(const std::vector<double>& fit);
-  void get_uncert(const std::vector<double>& diagonals, double chisq_norm);
+enum class Side {
+  left,
+  right
 };
 
 }

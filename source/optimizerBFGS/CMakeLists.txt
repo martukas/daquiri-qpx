@@ -8,6 +8,8 @@ set(SOURCES
   ${dir}/Calibration.cpp
   ${dir}/Spectrum.cpp
   ${dir}/Value.cpp
+  ${dir}/Tail.cpp
+  ${dir}/Step.cpp
   ${dir}/Peak.cpp
   ${dir}/Region.cpp
 #  ${dir}/BFGS.cpp
@@ -19,6 +21,8 @@ set(HEADERS
   ${dir}/Calibration.h
   ${dir}/Spectrum.h
   ${dir}/Value.h
+  ${dir}/Tail.h
+  ${dir}/Step.h
   ${dir}/Peak.h
   ${dir}/Region.h
 #  ${dir}/BFGS.h
