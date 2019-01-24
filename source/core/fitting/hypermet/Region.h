@@ -1,7 +1,8 @@
 #pragma once
 
 #include <core/fitting/hypermet/Peak.h>
-#include <core/fitting/hypermet/Spectrum.h>
+#include <core/fitting/finder.h>
+
 #include <core/fitting/BFGS/Fittable.h>
 
 namespace Hypermet
@@ -20,10 +21,9 @@ class Region : public Fittable
   };
   Type region_type{Type::Normal};
 
-  CSpectrum& spectrum;
-  size_t first_channel, last_channel;
+  DAQuiri::Finder finder_;           // gets x & y data from fitter
 
-  Region(CSpectrum& spe, size_t from_channel, size_t to_channel);
+  Region(const DAQuiri::Finder& finder);
 
   void add_peak(double position, double min, double max, double amplitude = 10.0);
   void remove_peak(size_t index);
@@ -31,16 +31,10 @@ class Region : public Fittable
   double peak_area_unc(size_t index) const;
   double peak_area_eff(size_t index, const Calibration& cal);
   double peak_area_eff_unc(size_t index, const Calibration& cal);
-  size_t fit_var_count() const;
-  double chi_sq_normalized() const;
+
 
   void map_fit();
-  void save_fit(const std::vector<double>& variables);
-
   void save_fit_uncerts(const FitResult& result);
-
-  double chi_sq() const;
-  double grad_chi_sq(std::vector<double>& gradients) const;
 
   // Fittable implementation
   std::vector<double> variables() const override;
@@ -66,6 +60,13 @@ class Region : public Fittable
   std::vector<Peak> peaks_;
   //public: BoronPeak As CBoronPeak
   //public: AnnPeak As CAnnPeak
+
+  size_t fit_var_count() const;
+  double chi_sq_normalized() const;
+  void save_fit(const std::vector<double>& variables);
+  double chi_sq() const;
+  double grad_chi_sq(std::vector<double>& gradients) const;
+
 };
 
 }

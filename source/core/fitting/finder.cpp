@@ -1,27 +1,31 @@
 #include <core/fitting/finder.h>
 
-namespace DAQuiri {
+namespace DAQuiri
+{
 
-Finder::Finder(const std::vector<double> &x, const std::vector<double> &y, const FitSettings &settings)
+Finder::Finder(const std::vector<double>& x, const std::vector<double>& y, const FitSettings& settings)
 {
   settings_ = settings;
   setNewData(x, y);
 }
 
-void Finder::setNewData(const std::vector<double> &x, const std::vector<double> &y)
+void Finder::setNewData(const std::vector<double>& x, const std::vector<double>& y)
 {
   clear();
-  if (x.size() == y.size()) {
+  if (x.size() == y.size())
+  {
     x_ = x;
     y_ = y;
     reset();
+    calc_uncertainties();
 
     calc_kon();
     find_peaks();
   }
 }
 
-void Finder::clear() {
+void Finder::clear()
+{
   x_.clear();
   y_.clear();
   y_fit_.clear();
@@ -30,19 +34,37 @@ void Finder::clear() {
   y_resid_on_background_.clear();
 //  settings_.clear();
 
+  y_weight_true.clear();
+  y_weight_phillips_marlow.clear();
+  y_weight_revay.clear();
+
   prelim.clear();
   filtered.clear();
   lefts.clear();
   rights.clear();
 
-  x_kon.clear();
-  x_conv.clear();
+  y_kon.clear();
+  y_convolution.clear();
 }
 
-void Finder::reset() {
+void Finder::reset()
+{
   y_resid_on_background_ = y_resid_ = y_;
   y_fit_.resize(x_.size(), 0);
   y_background_.resize(x_.size(), 0);
+  y_weight_true.resize(x_.size(), 0);
+  y_weight_phillips_marlow.resize(x_.size(), 0);
+  y_weight_revay.resize(x_.size(), 0);
+}
+
+void Finder::calc_uncertainties()
+{
+  for (size_t i = 0; i < y_.size(); ++i)
+  {
+    y_weight_true[i] = weight_true(i);
+    y_weight_phillips_marlow[i] = weight_phillips_marlow(i);
+    y_weight_revay[i] = weight_revay_student(i);
+  }
 }
 
 bool Finder::empty() const
@@ -50,7 +72,7 @@ bool Finder::empty() const
   return x_.empty();
 }
 
-bool Finder::cloneRange(const Finder &other, double l, double r)
+bool Finder::cloneRange(const Finder& other, double l, double r)
 {
   if (other.x_.empty()
       || other.y_.empty()
@@ -61,9 +83,9 @@ bool Finder::cloneRange(const Finder &other, double l, double r)
   size_t max = other.find_index(r);
 
   if (min >= other.x_.size())
-      min = other.x_.size() - 1;
+    min = other.x_.size() - 1;
   if (max >= other.x_.size())
-      max = other.x_.size() - 1;
+    max = other.x_.size() - 1;
 
   std::vector<double> x_local, y_local;
   for (size_t i = min; i < max; ++i)
@@ -75,9 +97,9 @@ bool Finder::cloneRange(const Finder &other, double l, double r)
   return true;
 }
 
-void Finder::setFit(const std::vector<double> &x_fit,
-                    const std::vector<double> &y_fit,
-                    const std::vector<double> &y_background)
+void Finder::setFit(const std::vector<double>& x_fit,
+                    const std::vector<double>& y_fit,
+                    const std::vector<double>& y_background)
 {
   if ((x_fit.size() != y_fit.size())
       || (x_fit.size() != y_background.size())
@@ -87,16 +109,16 @@ void Finder::setFit(const std::vector<double> &x_fit,
   size_t l = find_index(x_fit.front());
   size_t r = find_index(x_fit.back());
 
-  if ((r-l+1) != x_fit.size())
-      return;
+  if ((r - l + 1) != x_fit.size())
+    return;
 
-  for (size_t i=0; i < x_fit.size(); ++i)
+  for (size_t i = 0; i < x_fit.size(); ++i)
   {
-    y_fit_[l+i] = y_fit[i];
-    y_background_[l+i] = y_background[i];
-    double resid = y_[l+i] - y_fit[i];
-    y_resid_[l+i] = resid;
-    y_resid_on_background_[l+i] = y_background[i] + resid;
+    y_fit_[l + i] = y_fit[i];
+    y_background_[l + i] = y_background[i];
+    double resid = y_[l + i] - y_fit[i];
+    y_resid_[l + i] = resid;
+    y_resid_on_background_[l + i] = y_background[i] + resid;
   }
 
   calc_kon();
@@ -166,13 +188,13 @@ void Finder::calc_kon()
 
   if (!fw_theoretical_bin.empty())
   {
-    for (size_t i=0; i < fw_theoretical_bin.size(); ++i)
+    for (size_t i = 0; i < fw_theoretical_bin.size(); ++i)
       if (ceil(fw_theoretical_bin[i]) < i)
       {
         start = i;
         break;
       }
-    for (int i=fw_theoretical_bin.size() -1 ; i >= 0; --i)
+    for (int i = fw_theoretical_bin.size() - 1; i >= 0; --i)
       if (2 * ceil(fw_theoretical_bin[i]) + i + 1 < fw_theoretical_bin.size())
       {
         end = i;
@@ -180,9 +202,8 @@ void Finder::calc_kon()
       }
   }
 
-
-  x_kon.resize(y_resid_.size(), 0);
-  x_conv.resize(y_resid_.size(), 0);
+  y_kon.resize(y_resid_.size(), 0);
+  y_convolution.resize(y_resid_.size(), 0);
   prelim.clear();
 
   for (int j = start; j < end; ++j)
@@ -195,19 +216,19 @@ void Finder::calc_kon()
 
     double kon = 0;
     double avg = 0;
-    for (int i=j; i <= (j+width+1); ++i) {
-      kon += 2*y_resid_[i] - y_resid_[i-width] - y_resid_[i+width];
+    for (int i = j; i <= (j + width + 1); ++i)
+    {
+      kon += 2 * y_resid_[i] - y_resid_[i - width] - y_resid_[i + width];
       avg += y_resid_[i];
     }
     avg = avg / width;
-    x_kon[j + shift] = kon;
-    x_conv[j + shift] = kon / sqrt(6* width * avg);
+    y_kon[j + shift] = kon;
+    y_convolution[j + shift] = kon / sqrt(6 * width * avg);
 
-    if (x_conv[j + shift] > sigma)
+    if (y_convolution[j + shift] > sigma)
       prelim.push_back(j + shift);
   }
 }
-
 
 void Finder::find_peaks()
 {
@@ -222,9 +243,11 @@ void Finder::find_peaks()
   //find edges of contiguous peak areas
   lefts.push_back(prelim[0]);
   size_t prev = prelim[0];
-  for (size_t i=0; i < prelim.size(); ++i) {
+  for (size_t i = 0; i < prelim.size(); ++i)
+  {
     size_t current = prelim[i];
-    if ((current - prev) > 1) {
+    if ((current - prev) > 1)
+    {
       rights.push_back(prev);
       lefts.push_back(current);
     }
@@ -233,11 +256,12 @@ void Finder::find_peaks()
   rights.push_back(prev);
 
   //assume center is bentween edges
-  for (size_t i=0; i < lefts.size(); ++i)
-    filtered.push_back((rights[i] + lefts[i])/2);
+  for (size_t i = 0; i < lefts.size(); ++i)
+    filtered.push_back((rights[i] + lefts[i]) / 2);
 
-  for (size_t i=0; i < filtered.size(); ++i) {
-    lefts[i]  = left_edge(lefts[i]);
+  for (size_t i = 0; i < filtered.size(); ++i)
+  {
+    lefts[i] = left_edge(lefts[i]);
     rights[i] = right_edge(rights[i]);
 //    DBG << "<Finder> Peak " << lefts[i] << "-"  << filtered[i] << "-"  << rights[i];
   }
@@ -251,17 +275,18 @@ double Finder::find_left(double chan) const
   //assume x is monotone increasing
 
   double sigma = settings_.KON_sigma_spectrum;
-  if (y_resid_ != y_) {
+  if (y_resid_ != y_)
+  {
 //    DBG << "<Finder> Using sigma resid";
     sigma = settings_.KON_sigma_resid;
   }
 
   double edge_threshold = -0.5 * sigma;
 
-  if ((chan < x_[0]) || (chan >= x_[x_.size()-1]))
+  if ((chan < x_[0]) || (chan >= x_[x_.size() - 1]))
     return x_.front();
 
-  int i = x_.size()-1;
+  int i = x_.size() - 1;
   while ((i > 0) && (x_[i] > chan))
     i--;
 
@@ -274,7 +299,8 @@ double Finder::find_right(double chan) const
     return 0;
 
   double sigma = settings_.KON_sigma_spectrum;
-  if (y_resid_ != y_) {
+  if (y_resid_ != y_)
+  {
 //    DBG << "<Finder> Using sigma resid";
     sigma = settings_.KON_sigma_resid;
   }
@@ -283,7 +309,7 @@ double Finder::find_right(double chan) const
 
   double edge_threshold = -0.5 * sigma;
 
-  if ((chan < x_[0]) || (chan >= x_[x_.size()-1]))
+  if ((chan < x_[0]) || (chan >= x_[x_.size() - 1]))
     return x_.back();
 
   size_t i = 0;
@@ -293,13 +319,13 @@ double Finder::find_right(double chan) const
   return x_[right_edge(i)];
 }
 
-
 size_t Finder::left_edge(size_t idx) const
 {
-  if (x_conv.empty() || idx >= x_conv.size())
+  if (y_convolution.empty() || idx >= y_convolution.size())
     return 0;
 
-  if (!fw_theoretical_bin.empty()) {
+  if (!fw_theoretical_bin.empty())
+  {
     double width = floor(fw_theoretical_bin[idx]);
     double goal = x_[idx] - width * settings_.ROI_extend_peaks / 2;
     while ((idx > 0) && (x_[idx] > goal))
@@ -307,20 +333,20 @@ size_t Finder::left_edge(size_t idx) const
     return idx;
   }
 
-
   double sigma = settings_.KON_sigma_spectrum;
-  if (y_resid_ != y_) {
+  if (y_resid_ != y_)
+  {
 //    DBG << "<Finder> Using sigma resid";
     sigma = settings_.KON_sigma_resid;
   }
 
   double edge_threshold = -0.5 * sigma;
 
-  while ((idx > 0) && (x_conv[idx] >= 0))
+  while ((idx > 0) && (y_convolution[idx] >= 0))
     idx--;
   if (idx > 0)
     idx--;
-  while ((idx > 0) && (x_conv[idx] < edge_threshold))
+  while ((idx > 0) && (y_convolution[idx] < edge_threshold))
     idx--;
 
   return idx;
@@ -328,10 +354,11 @@ size_t Finder::left_edge(size_t idx) const
 
 size_t Finder::right_edge(size_t idx) const
 {
-  if (x_conv.empty() || idx >= x_conv.size())
+  if (y_convolution.empty() || idx >= y_convolution.size())
     return 0;
 
-  if (!fw_theoretical_bin.empty()) {
+  if (!fw_theoretical_bin.empty())
+  {
     double width = floor(fw_theoretical_bin[idx]);
     double goal = x_[idx] + width * settings_.ROI_extend_peaks / 2;
     while ((idx < x_.size()) && (x_[idx] < goal))
@@ -340,22 +367,23 @@ size_t Finder::right_edge(size_t idx) const
   }
 
   double sigma = settings_.KON_sigma_spectrum;
-  if (y_resid_ != y_) {
+  if (y_resid_ != y_)
+  {
 //    DBG << "<Finder> Using sigma resid";
     sigma = settings_.KON_sigma_resid;
   }
 
   double edge_threshold = -0.5 * sigma;
 
-  while ((idx < x_conv.size()) && (x_conv[idx] >= 0))
+  while ((idx < y_convolution.size()) && (y_convolution[idx] >= 0))
     idx++;
-  if (idx < x_conv.size())
+  if (idx < y_convolution.size())
     idx++;
-  while ((idx < x_conv.size()) && (x_conv[idx] < edge_threshold))
+  while ((idx < y_convolution.size()) && (y_convolution[idx] < edge_threshold))
     idx++;
 
-  if (idx >= x_conv.size())
-    idx = x_conv.size() - 1;
+  if (idx >= y_convolution.size())
+    idx = y_convolution.size() - 1;
 
   return idx;
 }
@@ -368,8 +396,8 @@ int32_t Finder::find_index(double chan_val) const
   if (chan_val <= x_[0])
     return 0;
 
-  if (chan_val >= x_[x_.size()-1])
-    return x_.size()-1;
+  if (chan_val >= x_[x_.size() - 1])
+    return x_.size() - 1;
 
   size_t i = 0;
   while ((i < x_.size()) && (x_[i] < chan_val))
@@ -421,5 +449,31 @@ void Region::find_peaks(uint8_t threshold)
   }
 }
 */
+
+double Finder::weight_true(size_t i) const
+{
+  return std::sqrt(y_[i]);
+}
+
+double Finder::weight_phillips_marlow(size_t i) const
+{
+  double k0 = y_[i];
+
+  if (k0 >= 25)
+    return std::sqrt(k0);
+  else
+  {
+    k0 = 1.0;
+    if ((i > 0) && ((i + 1) < y_.size()))
+      k0 = y_[i - 1] + y_[i] + y_[i + 1] / 3.0;
+    return std::max(std::sqrt(k0), 1.0);
+  }
+}
+
+double Finder::weight_revay_student(size_t i) const
+{
+  double k0 = y_[i] + 1;
+  return std::sqrt(k0);
+}
 
 }

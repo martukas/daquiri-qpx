@@ -26,6 +26,18 @@ double Peak::peak_energy_unc(const Calibration& cal) const
   return cal.energy_slope() * position.uncert_value;
 }
 
+double Peak::peak_energy(const DAQuiri::Calibration& cal) const
+{
+  return cal.transform(position.val());
+}
+
+double Peak::peak_energy_unc(const DAQuiri::Calibration& cal) const
+{
+  // \todo wrong!
+  return 1;
+}
+
+
 bool Peak::full_energy_peak() const
 {
   return (step.flip(1.0) > 0);

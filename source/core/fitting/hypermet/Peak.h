@@ -3,6 +3,7 @@
 #include <core/fitting/hypermet/Step.h>
 #include <core/fitting/hypermet/Tail.h>
 #include <core/fitting/hypermet/Calibration.h>
+#include <core/calibration/calibration.h>
 
 namespace Hypermet
 {
@@ -50,6 +51,10 @@ class Peak
   double peak_position_unc() const;
   double peak_energy(const Calibration& cal) const;
   double peak_energy_unc(const Calibration& cal) const;
+
+  double peak_energy(const DAQuiri::Calibration& cal) const;
+  double peak_energy_unc(const DAQuiri::Calibration& cal) const;
+
   double area() const;
   double area_uncert(double chisq_norm) const;
 

@@ -6,13 +6,42 @@
 namespace Hypermet
 {
 
-Region::Region(CSpectrum& spe, size_t from_channel, size_t to_channel)
-    : spectrum(spe)
-      , first_channel(std::min(from_channel, to_channel))
-      , last_channel(std::max(from_channel, to_channel))
-{
-  // \todo validate region bounds
+//Region::Region(CSpectrum& spe, size_t from_channel, size_t to_channel)
+//    : spectrum(spe)
+//      , first_channel(std::min(from_channel, to_channel))
+//      , last_channel(std::max(from_channel, to_channel))
+//{
+//  // \todo validate region bounds
+//
+//  background_slope_.to_fit = true;
+//  background_curve_.to_fit = true;
+//
+//  default_peak_.width_.bound(0.8, 4.0);
+//
+//  default_peak_.short_tail.amplitude.bound(0.02, 1.5);
+//  default_peak_.short_tail.amplitude.to_fit = true;
+//  default_peak_.short_tail.slope.bound(0.2, 0.5);
+//  default_peak_.short_tail.slope.to_fit = true;
+//
+//  default_peak_.right_tail.amplitude.bound(0.01, 0.9);
+//  default_peak_.right_tail.amplitude.to_fit = true;
+//  default_peak_.right_tail.slope.bound(0.3, 1.5);
+//  default_peak_.right_tail.slope.to_fit = true;
+//
+//  default_peak_.long_tail.amplitude.bound(0.0001, 0.15);
+//  default_peak_.long_tail.amplitude.to_fit = true;
+//  default_peak_.long_tail.slope.bound(2.5, 50);
+//  default_peak_.long_tail.slope.to_fit = true;
+//
+//  default_peak_.step.amplitude.bound(0.000001, 0.05);
+//  default_peak_.step.amplitude.to_fit = true;
+//
+//  //  SearchPeaks(); avoid this for the sake of batch fitting
+//}
 
+Region::Region(const DAQuiri::Finder& finder)
+  : finder_(finder)
+{
   background_slope_.to_fit = true;
   background_curve_.to_fit = true;
 
@@ -35,9 +64,8 @@ Region::Region(CSpectrum& spe, size_t from_channel, size_t to_channel)
 
   default_peak_.step.amplitude.bound(0.000001, 0.05);
   default_peak_.step.amplitude.to_fit = true;
-
-  //  SearchPeaks(); avoid this for the sake of batch fitting
 }
+
 
 //bool Region::step() const
 //{
@@ -247,9 +275,8 @@ double Region::chi_sq_normalized() const
 
 double Region::degrees_of_freedom() const
 {
-  // \todo should it not be (last - first +1)?
   // \todo what if channel range is < fit_var_count?
-  return ((last_channel - first_channel) - fit_var_count());
+  return (finder_.x_.size() - fit_var_count());
 }
 
 double Region::chi_sq() const
@@ -257,22 +284,21 @@ double Region::chi_sq() const
   //Calculates the Chi-square over a region
   double ChiSq = 0;
 
-  for (size_t pos = first_channel; pos <= last_channel; ++pos)
+  for (size_t pos = 0; pos < finder_.x_.size(); ++pos)
   {
     // Background
     double FTotal = background_base_.val();
     if (slope_enabled_)
-      FTotal += background_slope_.val() * (pos - first_channel);
+      FTotal += background_slope_.val() * (pos - finder_.x_.front());
     if (curve_enabled_)
-      FTotal += background_curve_.val() * square(pos - first_channel);
+      FTotal += background_curve_.val() * square(pos - finder_.x_.front());
 
     for (auto& p : peaks_)
     {
       auto ret = p.eval(pos);
       FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
     }
-    ChiSq += square((spectrum.channels[pos] - FTotal) /
-        spectrum.weight_true(pos));
+    ChiSq += square((finder_.y_[pos] - FTotal) / finder_.y_weight_true[pos]);
   } //Channel
 
   return ChiSq;
@@ -304,7 +330,7 @@ double Region::grad_chi_sq(std::vector<double>& gradients) const
 
   double Chisq = 0;
 
-  for (size_t pos = first_channel; pos <= last_channel; ++pos)
+  for (size_t pos = 0; pos < finder_.x_.size(); ++pos)
   {
     chan_gradients.assign(chan_gradients.size(), 0.0);
 
@@ -313,14 +339,14 @@ double Region::grad_chi_sq(std::vector<double>& gradients) const
     chan_gradients[background_base_.x_index] = background_base_.grad();
     if (slope_enabled_)
     {
-      FTotal += background_slope_.val() * (pos - first_channel);
-      chan_gradients[background_slope_.x_index] = (pos - first_channel);
+      FTotal += background_slope_.val() * (pos - finder_.x_.front());
+      chan_gradients[background_slope_.x_index] = (pos - finder_.x_.front());
     }
 
     if (curve_enabled_)
     {
-      FTotal += background_curve_.val() * square(pos - first_channel);
-      chan_gradients[background_curve_.x_index] = square(pos - first_channel);
+      FTotal += background_curve_.val() * square(pos - finder_.x_.front());
+      chan_gradients[background_curve_.x_index] = square(pos - finder_.x_.front());
     }
 
     for (auto& p : peaks_)
@@ -329,10 +355,10 @@ double Region::grad_chi_sq(std::vector<double>& gradients) const
       FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
     } //Peak
 
-    double t3 = -2.0 * (spectrum.channels[pos] - FTotal) / square(spectrum.weight_phillips_marlow(pos));
+    double t3 = -2.0 * (finder_.y_[pos] - FTotal) / square(finder_.y_weight_true[pos]);
     for (size_t var = 0; var < fit_var_count(); ++var)
       gradients[var] += chan_gradients[var] * t3;
-    Chisq += square((spectrum.channels[pos] - FTotal) / spectrum.weight_phillips_marlow(pos));
+    Chisq += square((finder_.y_[pos] - FTotal) / finder_.y_weight_true[pos]);
   }
   //Chisq /= df
 
@@ -344,22 +370,21 @@ double Region::chi_sq(const std::vector<double>& fit) const
   //Calculates the Chi-square over a region
   double ChiSq = 0;
 
-  for (size_t pos = first_channel; pos <= last_channel; ++pos)
+  for (size_t pos = 0; pos < finder_.x_.size(); ++pos)
   {
     // Background
     double FTotal = background_base_.val_at(fit[background_base_.x_index]);
     if (slope_enabled_)
-      FTotal += background_slope_.val_at(fit[background_slope_.x_index]) * (pos - first_channel);
+      FTotal += background_slope_.val_at(fit[background_slope_.x_index]) * (pos - finder_.x_.front());
     if (curve_enabled_)
-      FTotal += background_curve_.val_at(fit[background_curve_.x_index]) * square(pos - first_channel);
+      FTotal += background_curve_.val_at(fit[background_curve_.x_index]) * square(pos - finder_.x_.front());
 
     for (auto& p : peaks_)
     {
       auto ret = p.eval_at(pos, fit);
       FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
     }
-    ChiSq += square((spectrum.channels[pos] - FTotal) /
-        spectrum.weight_phillips_marlow(pos));
+    ChiSq += square((finder_.y_[pos] - FTotal) / finder_.y_weight_phillips_marlow[pos]);
   } //Channel
 
   return ChiSq;
@@ -391,7 +416,7 @@ double Region::grad_chi_sq(const std::vector<double>& fit,
 
   double Chisq = 0;
 
-  for (size_t pos = first_channel; pos <= last_channel; ++pos)
+  for (size_t pos = 0; pos < finder_.x_.size(); ++pos)
   {
     chan_gradients.assign(chan_gradients.size(), 0.0);
 
@@ -400,14 +425,14 @@ double Region::grad_chi_sq(const std::vector<double>& fit,
     chan_gradients[background_base_.x_index] = background_base_.grad_at(fit[background_base_.x_index]);
     if (slope_enabled_)
     {
-      FTotal += background_slope_.val_at(fit[background_slope_.x_index]) * (pos - first_channel);
-      chan_gradients[background_slope_.x_index] = (pos - first_channel);
+      FTotal += background_slope_.val_at(fit[background_slope_.x_index]) * (pos - finder_.x_.front());
+      chan_gradients[background_slope_.x_index] = (pos - finder_.x_.front());
     }
 
     if (curve_enabled_)
     {
-      FTotal += background_curve_.val_at(fit[background_curve_.x_index]) * square(pos - first_channel);
-      chan_gradients[background_curve_.x_index] = square(pos - first_channel);
+      FTotal += background_curve_.val_at(fit[background_curve_.x_index]) * square(pos - finder_.x_.front());
+      chan_gradients[background_curve_.x_index] = square(pos - finder_.x_.front());
     }
 
     for (auto& p : peaks_)
@@ -416,10 +441,10 @@ double Region::grad_chi_sq(const std::vector<double>& fit,
       FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
     } //Peak
 
-    double t3 = -2.0 * (spectrum.channels[pos] - FTotal) / square(spectrum.weight_phillips_marlow(pos));
+    double t3 = -2.0 * (finder_.y_[pos] - FTotal) / square(finder_.y_weight_phillips_marlow[pos]);
     for (size_t var = 0; var < fit_var_count(); ++var)
       gradients[var] += chan_gradients[var] * t3;
-    Chisq += square((spectrum.channels[pos] - FTotal) / spectrum.weight_phillips_marlow(pos));
+    Chisq += square((finder_.y_[pos] - FTotal) / finder_.y_weight_phillips_marlow[pos]);
   }
   //Chisq /= df
 
