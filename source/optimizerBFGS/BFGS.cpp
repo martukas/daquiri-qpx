@@ -19,50 +19,38 @@ double BFGS::Sign(double a, double b)
   if (b >= 0)
     return std::abs(a);
   else
-    return -1 * std::abs(a);
+    return -std::abs(a);
 }
 
-static constexpr int32_t brent_iter{500};
-static constexpr double zeps{0.0000000001};
-
-double BFGS::BrentDeriv(const Region& region,
+double BFGS::BrentDeriv(const Fittable *const fittable,
                         double a,
                         double b,
                         double c,
                         double tol,
                         double& xmin,
-                        const std::vector<double>& gx,
-                        const std::vector<double>& gh)
+                        const std::vector<double>& variables,
+                        const std::vector<double>& hessian)
 {
-  double sa, sb, d, d1, d2, du, dv, dw, dx;
-  double e, fu, fv, fw, fx;
-  int32_t k;
-  bool ok1, ok2, done;
-  double olde, tol1, tol2, u, u1, u2, v, w, x, xm;
+  static constexpr int32_t brent_iter{500};
+  static constexpr double zeps{0.0000000001};
+
   try
   {
-    if (a < c)
-      sa = a;
-    else
-      sa = c;
+    double d, d1, d2, du, dv, dw, dx;
+    double fu, fv, fw, fx;
+    int32_t iteration;
+    bool ok1, ok2, done;
+    double olde, tol1, tol2, u, u1, u2, v, w, x, xm;
 
-    if (a > c)
-      sb = a;
-    else
-      sb = c;
+    double sa = (a < c) ? a : c;
+    double sb = (a > c) ? a : c;
 
-    v = b;
-    w = v;
-    x = v;
-    e = 0;
-    fx = fgv(region, x, gx, gh);
-    fv = fx;
-    fw = fx;
-    dx = dfgv(region, x, gx, gh);
-    dv = dx;
-    dw = dx;
+    w = x = v = b;
+    fw = fv = fx = fgv(fittable, x, variables, hessian);
+    dw = dv = dx = dfgv(fittable, x, variables, hessian);
 
-    for (k = 0; k <= brent_iter; ++k)
+    double e{0.0};
+    for (iteration = 0; iteration <= brent_iter; ++iteration)
     {
       xm = 0.5 * (sa + sb);
       tol1 = tol * std::abs(x) + zeps;
@@ -73,8 +61,7 @@ double BFGS::BrentDeriv(const Region& region,
         ok1 = false;
         if (std::abs(e) > tol1)
         {
-          d1 = 2 * (sb - sa);
-          d2 = d1;
+          d2 = d1 = 2 * (sb - sa);
           if (dw != dx)
             d1 = (w - x) * dx / (dx - dw);
           if (dv != dx)
@@ -86,54 +73,47 @@ double BFGS::BrentDeriv(const Region& region,
           olde = e;
           e = d;
           if (ok1 && ok2)
-          {
-            if (std::abs(d1) < std::abs(d2))
-              d = d1;
-            else
-              d = d2;
-          }
-          if (ok1 && !ok2)
+            d = (std::abs(d1) < std::abs(d2)) ? d1 : d2;
+          else if (ok1 && !ok2)
             d = d1;
-          if (!ok1 && ok2)
+          else if (!ok1 && ok2)
           {
             d = d2;
             ok1 = true;
           }
+
           if (std::abs(d) > std::abs(0.5 * olde))
             ok1 = false;
+
           if (ok1)
           {
             u = x + d;
             if (((u - sa) < tol2) || ((sb - u) < tol2))
-            {
               d = Sign(tol1, xm - x);
-            }
           }
         }
 
         if (!ok1)
         {
-          if (dx > 0)
-            e = sa - x;
-          else
-            e = sb - x;
+          e = (dx > 0) ? (sa - x) : (sb - x);
           d = 0.5 * e;
         }
 
         if (std::abs(d) >= tol1)
         {
           u = x + d;
-          fu = fgv(region, u, gx, gh);
+          fu = fgv(fittable, u, variables, hessian);
         }
         else
         {
           u = x + Sign(tol1, d);
-          fu = fgv(region, u, gx, gh);
+          fu = fgv(fittable, u, variables, hessian);
           done = (fu > fx);
         }
+
         if (!done)
         {
-          du = dfgv(region, u, gx, gh);
+          du = dfgv(fittable, u, variables, hessian);
           if (fu < fx)
           {
             if (u >= x)
@@ -157,7 +137,7 @@ double BFGS::BrentDeriv(const Region& region,
             else
               sb = u;
 
-            if ((fu <= fw) || (v = x))
+            if ((fu <= fw) || (v == x))
             {
               v = w;
               fv = fw;
@@ -166,7 +146,7 @@ double BFGS::BrentDeriv(const Region& region,
               fw = fu;
               dw = du;
             }
-            else if ((fu < fv) || (v = x) || (v = w))
+            else if ((fu < fv) || (v == x) || (v == w))
             {
               v = u;
               fv = fu;
@@ -191,19 +171,21 @@ double BFGS::BrentDeriv(const Region& region,
   }
 }
 
-static constexpr double gold{1.618034};
-static constexpr double glimit{100.0};
-static constexpr double tiny{1.0E-20};
-
-void BFGS::Bracket(const Region& region, double& a, double& b, double& c, double& fa, double& fb, double& fc,
-                   const std::vector<double>& gx, const std::vector<double>& gh)
+void BFGS::Bracket(const Fittable *const fittable,
+                   double& a, double& b, double& c, double& fa, double& fb, double& fc,
+                   const std::vector<double>& variables, const std::vector<double>& hessian)
 {
-  double ulim, u, r, q, fu, dum;
-  bool n;
+  static constexpr double gold{1.618034};
+  static constexpr double glimit{100.0};
+  static constexpr double tiny{1.0E-20};
+
   try
   {
-    fa = fgv(region, a, gx, gh);
-    fb = fgv(region, b, gx, gh);
+    double ulim, u, r, q, fu, dum;
+    bool n;
+
+    fa = fgv(fittable, a, variables, hessian);
+    fb = fgv(fittable, b, variables, hessian);
 
     if (fb > fa)
     {
@@ -216,7 +198,7 @@ void BFGS::Bracket(const Region& region, double& a, double& b, double& c, double
     }
 
     c = b + gold * (b - a);
-    fc = fgv(region, c, gx, gh);
+    fc = fgv(fittable, c, variables, hessian);
 
     while (fb > fc)
     {
@@ -232,7 +214,7 @@ void BFGS::Bracket(const Region& region, double& a, double& b, double& c, double
       ulim = b + glimit * (c - b);
       if ((b - u) * (u - c) > 0)
       {
-        fu = fgv(region, u, gx, gh);
+        fu = fgv(fittable, u, variables, hessian);
         if (fu < fc)
         {
           a = b;
@@ -250,12 +232,12 @@ void BFGS::Bracket(const Region& region, double& a, double& b, double& c, double
         else
         {
           u = c + gold * (c - b);
-          fu = fgv(region, u, gx, gh);
+          fu = fgv(fittable, u, variables, hessian);
         }
       }
       else if ((c - u) * (u - ulim) > 0)
       {
-        fu = fgv(region, u, gx, gh);
+        fu = fgv(fittable, u, variables, hessian);
         if (fu < fc)
         {
           b = c;
@@ -263,18 +245,18 @@ void BFGS::Bracket(const Region& region, double& a, double& b, double& c, double
           u = c + gold * (c - b);
           fb = fc;
           fc = fu;
-          fu = fgv(region, u, gx, gh);
+          fu = fgv(fittable, u, variables, hessian);
         }
       }
       else if ((u - ulim) * (ulim - c) >= 0)
       {
         u = ulim;
-        fu = fgv(region, u, gx, gh);
+        fu = fgv(fittable, u, variables, hessian);
       }
       else
       {
         u = c + gold * (c - b);
-        fu = fgv(region, u, gx, gh);
+        fu = fgv(fittable, u, variables, hessian);
       }
 
       if (n)
@@ -294,15 +276,15 @@ void BFGS::Bracket(const Region& region, double& a, double& b, double& c, double
   }
 }
 
-double BFGS::fgv(const Region& region, double lambda, std::vector<double> gx, std::vector<double> gh)
+double BFGS::fgv(const Fittable *const fittable, double lambda, std::vector<double> variables, std::vector<double> hessian)
 {
   try
   {
-    auto n = gx.size();
+    auto n = variables.size();
     std::vector<double> xlocal(n);
     for (size_t i = 0; i < n; ++i)
-      xlocal[i] = gx[i] + lambda * gh[i];
-    return region.calc_chi_sq_at(xlocal);
+      xlocal[i] = variables[i] + lambda * hessian[i];
+    return fittable->chi_sq(xlocal);
   }
   catch (...)
   {
@@ -310,19 +292,19 @@ double BFGS::fgv(const Region& region, double lambda, std::vector<double> gx, st
   }
 }
 
-double BFGS::dfgv(const Region& region, double lambda, std::vector<double> gx, std::vector<double> gh)
+double BFGS::dfgv(const Fittable *const fittable, double lambda, std::vector<double> variables, std::vector<double> hessian)
 {
   try
   {
-    auto n = gx.size();
+    auto n = variables.size();
     std::vector<double> xlocal(n);
     std::vector<double> dflocal(n);
     for (size_t i = 0; i < n; ++i)
-      xlocal[i] = gx[i] + lambda * gh[i];
-    region.grad_chi_sq_at(xlocal, dflocal);
+      xlocal[i] = variables[i] + lambda * hessian[i];
+    fittable->grad_chi_sq(xlocal, dflocal);
     double s = 0;
     for (size_t i = 0; i < n; ++i)
-      s += dflocal[i] * gh[i];
+      s += dflocal[i] * hessian[i];
     return s;
   }
   catch (...)
@@ -331,26 +313,26 @@ double BFGS::dfgv(const Region& region, double lambda, std::vector<double> gx, s
   }
 }
 
-static constexpr float linmin_tol{0.0001};
-
-void BFGS::LinMin(const Region& region, std::vector<double>& x, std::vector<double> h, double& fmin)
+double BFGS::LinMin(const Fittable *const fittable, std::vector<double>& variables, std::vector<double> hessian)
 {
-  double lambdak, xk, fxk, fa, fb, a, b;
-  auto n = x.size();
+  static constexpr float linmin_tol{0.0001};
   try
   {
+    double lambdak, xk, fxk, fa, fb, a, b;
+    auto n = variables.size();
     a = 0.0;
     xk = 1.0;
     b = 2.0;
-    Bracket(region, a, xk, b, fa, fxk, fb, x, h);
-    fmin = BrentDeriv(region, a, xk, b, linmin_tol, lambdak, x, h);
+    Bracket(fittable, a, xk, b, fa, fxk, fb, variables, hessian);
+    double fmin = BrentDeriv(fittable, a, xk, b, linmin_tol, lambdak, variables, hessian);
     DBG("lambda={}", lambdak);
     for (size_t j = 0; j < n; ++j)
     {
 
-      h[j] *= lambdak;
-      x[j] += h[j];
+      hessian[j] *= lambdak;
+      variables[j] += hessian[j];
     }
+    return fmin;
   }
   catch (...)
   {
@@ -358,99 +340,88 @@ void BFGS::LinMin(const Region& region, std::vector<double>& x, std::vector<doub
   }
 }
 
-static constexpr double eps{0.0000000001};
-static constexpr size_t maxit{500};
-
-void BFGS::BFGSMin(Region& region, double tolf, size_t& iter)
+FitResult BFGS::BFGSMin(const Fittable *const fittable, double tolf, std::atomic<bool>& cancel)
 {
-  try
+  static constexpr double eps{0.0000000001};
+  static constexpr size_t maxit{500};
+
+  FitResult ret;
+
+  ret.variables = fittable->variables();
+  auto var_count = ret.variables.size();
+  double free_vars = fittable->degrees_of_freedom();
+  std::vector<double>
+      hessian(var_count),
+      gradient(var_count),
+      prev_val(var_count),
+      Adg(var_count);
+
+  double f = fittable->grad_chi_sq(ret.variables, gradient);
+
+  ret.inv_hessian.resize(var_count, var_count);
+  ret.inv_hessian.setIdentity();
+
+  for (; ret.iterations <= maxit; ++ret.iterations)
   {
-    auto x = region.current_fit;
-    auto n = x.size();
-    double f, fmin, s, s1, s2;
-    double fv = region.degrees_of_freedom();
-    std::vector<double> h(n), g(n), u(n), Adg(n);
-    bool done{false};
+    double fmin = LinMin(fittable, ret.variables, hessian);
+    //if (std::abs(f - fmin) < 0.000001) { done = true; }
+    ret.converged = (2 * std::abs(fmin - f)) <= (tolf * (std::abs(fmin) + std::abs(f) + eps));
+    f = fmin;
 
-    f = region.grad_chi_sq_at(x, g);
+    for (size_t i = 0; i < var_count; ++i)
+      prev_val[i] = gradient[i];
 
-    auto& A = region.inv_hessian;
-    A.resize(n, n);
-    A.setIdentity();
+    fmin = fittable->grad_chi_sq(ret.variables, gradient);
+    INFO("Fitting... Iteration = {}, Chisq = {}", ret.iterations, fmin / free_vars);
 
-    size_t k;
-    for (k = 0; k <= maxit; ++k)
+    for (size_t i = 0; i < var_count; ++i)
+      prev_val[i] = gradient[i] - prev_val[i];
+
+    for (size_t i = 0; i < var_count; ++i)
     {
-      LinMin(region, x, h, fmin);
-      //if (std::abs(f - fmin) < 0.000001) { done = true; }
-      done = (2 * std::abs(fmin - f)) <= (tolf * (std::abs(fmin) + std::abs(f) + eps));
-      f = fmin;
-
-      for (size_t i = 0; i < n; ++i)
-        u[i] = g[i];
-
-      fmin = region.grad_chi_sq_at(x, g);
-      INFO("Fitting... Iteration = {}, Chisq = {}", k, fmin / fv);
-
-      for (size_t i = 0; i < n; ++i)
-        u[i] = g[i] - u[i];
-
-      for (size_t i = 0; i < n; ++i)
-      {
-        s = 0;
-        for (size_t j = 0; j < n; ++j)
-          s += A.coeff(i, j) * u[j];
-        Adg[i] = s;
-      }
-      s1 = 0;
-      s = 0;
-
-      for (size_t i = 0; i < n; ++i)
-      {
-        s1 += u[i] * h[i];
-        s += u[i] * Adg[i];
-      }
-
-      if (s1 != 0)
-        s1 = 1 / s1;
-      if (s != 0)
-        s2 = 1 / s;
-      else
-        s2 = 0;
-
-      for (size_t i = 0; i < n; ++i)
-        u[i] = s1 * h[i] - s2 * Adg[i];
-
-      for (size_t i = 0; i < n; ++i)
-        for (size_t j = 0; j < n; ++j)
-          A.coeffRef(i, j) += s1 * h[i] * h[j] - s2 * Adg[i] * Adg[j] + s * u[i] * u[j];
-
-      for (size_t i = 0; i < n; ++i)
-      {
-        h[i] = 0;
-        for (size_t j = 0; j < n; ++j)
-          h[i] -= A.coeff(i, j) * g[j];
-      }
-
-      if (done || Cancelfit)
-        break;
+      auto& Adgi = Adg[i];
+      Adgi = 0.0;
+      for (size_t j = 0; j < var_count; ++j)
+        Adgi += ret.inv_hessian.coeff(i, j) * prev_val[j];
     }
-    if (!done && !Cancelfit)
+
+    double s{0.0};
+    double s1{0.0};
+    for (size_t i = 0; i < var_count; ++i)
     {
-      WARN("Warning: The number of iterations reached the limit without convergence");
+      s1 += prev_val[i] * hessian[i];
+      s += prev_val[i] * Adg[i];
     }
-    else
+
+    if (s1 != 0.0)
+      s1 = 1.0 / s1;
+
+    double s2{0.0};
+    if (s != 0)
+      s2 = 1.0 / s;
+
+    for (size_t i = 0; i < var_count; ++i)
+      prev_val[i] = s1 * hessian[i] - s2 * Adg[i];
+
+    for (size_t i = 0; i < var_count; ++i)
+      for (size_t j = 0; j < var_count; ++j)
+        ret.inv_hessian.coeffRef(i, j) +=
+            s1 * square(hessian[i])
+                - s2 * square(Adg[i])
+                + s * square(prev_val[i]);
+
+    for (size_t i = 0; i < var_count; ++i)
     {
-      if (!done && Cancelfit)
-        WARN("Warning: The fit was interrupted");
-      region.current_fit = x;
-      iter = k;
+      hessian[i] = 0;
+      for (size_t j = 0; j < var_count; ++j)
+        hessian[i] -= ret.inv_hessian.coeff(i, j) * gradient[j];
     }
+
+    if (ret.converged || cancel)
+      break;
   }
-  catch (...)
-  {
-    std::throw_with_nested(std::runtime_error(""));
-  }
+
+  return ret;
 }
 
 }

@@ -166,15 +166,8 @@ double Region::peak_area_eff_unc(size_t index, const Calibration& cal)
       (area / eff) * std::max(1.0, chi_sq_normalized());
 }
 
-size_t Region::fit_var_count() const
-{
-  return current_fit.size();
-}
-
 void Region::map_fit()
 {
-  current_fit.clear();
-
   size_t unique_widths {0};
   size_t unique_short_tails {0};
   size_t unique_right_tails {0};
@@ -194,105 +187,111 @@ void Region::map_fit()
       unique_steps++;
   }
 
-  int32_t i = 0;
-  background_base_.x_index = i++;
+  var_count_ = 0;
+  background_base_.x_index = var_count_++;
 
   if (slope_enabled_)
-    background_slope_.x_index = i++;
+    background_slope_.x_index = var_count_++;
   else
     background_slope_.x_index = -1;
 
   if (curve_enabled_)
-    background_curve_.x_index = i++;
+    background_curve_.x_index = var_count_++;
   else
     background_curve_.x_index = -1;
 
   if (unique_widths < peaks_.size())
-    default_peak_.width_.x_index = i++;
+    default_peak_.width_.x_index = var_count_++;
   else
     default_peak_.width_.x_index = -1;
 
   if (default_peak_.short_tail.enabled &&
       (unique_short_tails < peaks_.size()))
-    default_peak_.short_tail.update_indices(i);
+    default_peak_.short_tail.update_indices(var_count_);
 
   if (default_peak_.right_tail.enabled &&
       (unique_right_tails < peaks_.size()))
-    default_peak_.right_tail.update_indices(i);
+    default_peak_.right_tail.update_indices(var_count_);
 
   if (default_peak_.long_tail.enabled &&
       (unique_long_tails < peaks_.size()))
-    default_peak_.long_tail.update_indices(i);
+    default_peak_.long_tail.update_indices(var_count_);
 
   if (default_peak_.step.enabled &&
       (unique_steps < peaks_.size()))
-    default_peak_.step.update_indices(i);
+    default_peak_.step.update_indices(var_count_);
 
   for (auto& p : peaks_)
-    p.update_indices(i);
-
-  current_fit.resize(static_cast<size_t>(i), 0.0);
-  //fit_gradients.resize(vars);
-  //ReDim ChisqGradient(FitVars - 1)
+    p.update_indices(var_count_);
 }
 
-void Region::load_fit()
+size_t Region::fit_var_count() const
 {
-  background_base_.put(current_fit);
+  return static_cast<size_t>(var_count_);
+}
 
-  background_slope_.put(current_fit);
-  background_curve_.put(current_fit);
+std::vector<double> Region::variables() const
+{
+  std::vector<double> ret;
+  ret.resize(fit_var_count(), 0.0);
 
-  default_peak_.put(current_fit);
+  background_base_.put(ret);
+
+  background_slope_.put(ret);
+  background_curve_.put(ret);
+
+  default_peak_.put(ret);
 
   // \todo copy defaults
   for (auto& p : peaks_)
-    p.put(current_fit);
+    p.put(ret);
+
+  return ret;
 }
 
-void Region::save_fit()
+void Region::save_fit(const std::vector<double>& variables)
 {
-  background_base_.get(current_fit);
+  background_base_.get(variables);
 
-  background_slope_.get(current_fit);
-  background_curve_.get(current_fit);
+  background_slope_.get(variables);
+  background_curve_.get(variables);
 
-  default_peak_.get(current_fit);
+  default_peak_.get(variables);
 
   for (auto& p : peaks_)
-    p.get(current_fit);
+    p.get(variables);
 }
 
-void Region::save_fit_uncerts()
+void Region::save_fit_uncerts(const FitResult& result)
 {
-  save_fit();
+  save_fit(result.variables);
 
   std::vector<double> diagonals;
-  diagonals.reserve(current_fit.size());
+  diagonals.reserve(result.variables.size());
 
   double df = degrees_of_freedom();
-  for (size_t i = 0; i < current_fit.size(); ++i)
-    diagonals.push_back(inv_hessian.coeff(i,i) * df);
+  for (size_t i = 0; i < result.variables.size(); ++i)
+    diagonals.push_back(result.inv_hessian.coeff(i,i) * df);
 
   double chisq_norm = std::max(chi_sq_normalized(), 1.0) * 0.5;
 
-  background_base_.get_uncert(current_fit, chisq_norm);
+  background_base_.get_uncert(result.variables, chisq_norm);
 
-  background_slope_.get_uncert(current_fit, chisq_norm);
-  background_curve_.get_uncert(current_fit, chisq_norm);
+  background_slope_.get_uncert(result.variables, chisq_norm);
+  background_curve_.get_uncert(result.variables, chisq_norm);
 
-  default_peak_.get_uncerts(current_fit, chisq_norm);
+  default_peak_.get_uncerts(result.variables, chisq_norm);
 
   for (auto& p : peaks_)
-    p.get_uncerts(current_fit, chisq_norm);
+    p.get_uncerts(result.variables, chisq_norm);
 }
 
 double Region::chi_sq_normalized() const
 {
-  return calc_chi_sq() / static_cast<double>(degrees_of_freedom());
+  return calc_chi_sq() / degrees_of_freedom();
 }
 
-size_t Region::degrees_of_freedom() const
+double Region::degrees_of_freedom() const
 {
   // \todo should it not be (last - first +1)?
   // \todo what if channel range is < fit_var_count?
@@ -359,7 +358,7 @@ double Region::grad_chi_sq(std::vector<double>& gradients) const
   return Chisq;
 }
 
-double Region::calc_chi_sq_at(const std::vector<double>& fit) const
+double Region::chi_sq(const std::vector<double>& fit) const
 {
   //Calculates the Chi-square over a region
   double ChiSq = 0;
@@ -385,7 +384,7 @@ double Region::calc_chi_sq_at(const std::vector<double>& fit) const
   return ChiSq;
 }
 
-double Region::grad_chi_sq_at(const std::vector<double>& fit,
+double Region::grad_chi_sq(const std::vector<double>& fit,
     std::vector<double>& gradients) const
 {
   //Calculates the Chi-square and its gradient

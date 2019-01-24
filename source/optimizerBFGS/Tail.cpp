@@ -74,6 +74,7 @@ double Tail::eval_grad(const PrecalcVals& pre, std::vector<double>& grads,
   if (slope.to_fit)
     grads[slope.x_index] += slope.grad() * ((-spread / square(slp)) *
         ret + (pre.width / (2.0 * square(slp)) * t2));
+  return ret;
 }
 
 double Tail::eval_grad_at(const PrecalcVals& pre, const std::vector<double> fit,
@@ -95,6 +96,7 @@ double Tail::eval_grad_at(const PrecalcVals& pre, const std::vector<double> fit,
   if (slope.to_fit)
     grads[slope.x_index] += slope.grad_at(fit[slope.x_index]) * ((-spread / square(slp)) *
         ret + (pre.width / (2.0 * square(slp)) * t2));
+  return ret;
 }
 
 

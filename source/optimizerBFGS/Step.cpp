@@ -57,6 +57,7 @@ double Step::eval_grad(const PrecalcVals& pre, std::vector<double>& grads,
     grads[amplitude.x_index] += ret / ampl * amplitude.grad();
 
   // \todo pos unused?
+  return ret;
 }
 
 double Step::eval_grad_at(const PrecalcVals& pre, const std::vector<double> fit,
@@ -73,6 +74,7 @@ double Step::eval_grad_at(const PrecalcVals& pre, const std::vector<double> fit,
     grads[amplitude.x_index] += ret / ampl * amplitude.grad_at(fit[amplitude.x_index]);
 
   // \todo pos unused?
+  return ret;
 }
 
 }

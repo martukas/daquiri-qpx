@@ -2,18 +2,12 @@
 
 #include <optimizerBFGS/Peak.h>
 #include <optimizerBFGS/Spectrum.h>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wint-in-bool-context"
-#pragma GCC diagnostic ignored "-Wmisleading-indentation"
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <Eigen/Sparse>
-#pragma GCC diagnostic pop
+#include <optimizerBFGS/Fittable.h>
 
 namespace Hypermet
 {
 
-class Region
+class Region : public Fittable
 {
  public:
   enum class Type : uint16_t
@@ -24,14 +18,10 @@ class Region
     GeTriangle = 3,
     IntPeakShape = 4
   };
+  Type region_type{Type::Normal};
 
   CSpectrum& spectrum;
-  Type region_type{Type::Normal};
   size_t first_channel, last_channel;
-
-  std::vector<double> current_fit;
-  //std::vector<double> fit_gradients; // \todo why unused?
-  Eigen::SparseMatrix<double> inv_hessian;
 
   Region(CSpectrum& spe, size_t from_channel, size_t to_channel);
 
@@ -44,22 +34,25 @@ class Region
   double peak_area_eff_unc(size_t index, const Calibration& cal);
   size_t fit_var_count() const;
   double chi_sq_normalized() const;
-  size_t degrees_of_freedom() const;
 
   void map_fit();
-  void load_fit();
-  void save_fit();
+  void save_fit(const std::vector<double>& variables);
 
-  void save_fit_uncerts();
+  void save_fit_uncerts(const FitResult& result);
 
   double calc_chi_sq() const;
   double grad_chi_sq(std::vector<double>& gradients) const;
 
-  double calc_chi_sq_at(const std::vector<double>& fit) const;
-  double grad_chi_sq_at(const std::vector<double>& fit,
-                        std::vector<double>& gradients) const;
+  // Fittable implementation
+  std::vector<double> variables() const override;
+  double degrees_of_freedom() const  override;
+  double chi_sq(const std::vector<double>& fit) const override;
+  double grad_chi_sq(const std::vector<double>& fit,
+                     std::vector<double>& gradients) const override;
 
  private:
+  int32_t var_count_{0};
+
   // \todo what does this mean?
   static int32_t L(int32_t i, int32_t j, int32_t m);
 

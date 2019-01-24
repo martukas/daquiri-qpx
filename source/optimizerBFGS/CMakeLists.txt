@@ -25,6 +25,7 @@ set(HEADERS
   ${dir}/Step.h
   ${dir}/Peak.h
   ${dir}/Region.h
+  ${dir}/Fittable.h
   ${dir}/BFGS.h
   ${dir}/more_math.h
   )
