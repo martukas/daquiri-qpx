@@ -27,6 +27,8 @@ class Peak
   bool width_override{false};
   Value width_;
 
+  // \todo why skew naming different?
+
   // skews (part of peak)
   Tail short_tail {Side::left};
   Tail right_tail {Side::right};

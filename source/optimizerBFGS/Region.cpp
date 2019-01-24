@@ -50,52 +50,6 @@ Region::Region(CSpectrum& spe, size_t from_channel, size_t to_channel)
 //  step_amplitude_.to_fit = enable;
 //}
 
-int32_t Region::L(int32_t i, int32_t j, int32_t m)
-{
-  // \todo what does this do?
-  //m = FWHM
-  int32_t ret{0};
-
-  if (j - m <= i && i <= j - 1)
-    ret = -1;
-  if (j <= i && i <= j + m - 1)
-    ret = 2;
-  if (j + m <= i && i <= j + 2 * m - 1)
-    ret = -1;
-
-  return ret;
-}
-
-void Region::find_peaks(uint8_t threshold)
-{
-  auto m = static_cast<int32_t>(1.6551 * default_peak_.width_.val());
-  if (m <= 0)
-    m = 3;
-
-  size_t i;
-  try
-  {
-    for (size_t j = first_channel; j <= last_channel; ++j)
-    {
-      double val = 0;
-      double var = 0;
-      for (i = j - m; i <= (j + 2 * m - 1); ++j)
-        if (i > 1)
-          val = val + L(i, j, m) * spectrum.channels[i];
-      var += square(L(i, j, m)) * spectrum.channels[i];
-
-      //Conv(j - FirstChannel) = val / std::sqrt(Var)
-      //if(((Conv(j - FirstChannel - 2) < Conv(j - FirstChannel - 1)) &&
-      //(Conv(j - FirstChannel) < Conv(j - FirstChannel - 1)) &&
-      //(Conv(j - FirstChannel - 1) > Threshold))) {
-      //AddPeak(j - 1, j - 2, j, std::sqrt(spectrum.Channel[j]))
-    }
-  }
-  catch (...)
-  {
-    ERR("Search Peaks failed!");
-  }
-}
 
 void Region::add_peak(double position, double min, double max, double amplitude)
 {
@@ -168,11 +122,11 @@ double Region::peak_area_eff_unc(size_t index, const Calibration& cal)
 
 void Region::map_fit()
 {
-  size_t unique_widths {0};
-  size_t unique_short_tails {0};
-  size_t unique_right_tails {0};
-  size_t unique_long_tails {0};
-  size_t unique_steps {0};
+  size_t unique_widths{0};
+  size_t unique_short_tails{0};
+  size_t unique_right_tails{0};
+  size_t unique_long_tails{0};
+  size_t unique_steps{0};
   for (auto& p : peaks_)
   {
     if (p.width_override)
@@ -271,7 +225,7 @@ void Region::save_fit_uncerts(const FitResult& result)
 
   double df = degrees_of_freedom();
   for (size_t i = 0; i < result.variables.size(); ++i)
-    diagonals.push_back(result.inv_hessian.coeff(i,i) * df);
+    diagonals.push_back(result.inv_hessian.coeff(i, i) * df);
 
   double chisq_norm = std::max(chi_sq_normalized(), 1.0) * 0.5;
 
@@ -288,7 +242,7 @@ void Region::save_fit_uncerts(const FitResult& result)
 
 double Region::chi_sq_normalized() const
 {
-  return calc_chi_sq() / degrees_of_freedom();
+  return chi_sq() / degrees_of_freedom();
 }
 
 double Region::degrees_of_freedom() const
@@ -297,6 +251,33 @@ double Region::degrees_of_freedom() const
   // \todo what if channel range is < fit_var_count?
   return ((last_channel - first_channel) - fit_var_count());
 }
+
+double Region::chi_sq() const
+{
+  //Calculates the Chi-square over a region
+  double ChiSq = 0;
+
+  for (size_t pos = first_channel; pos <= last_channel; ++pos)
+  {
+    // Background
+    double FTotal = background_base_.val();
+    if (slope_enabled_)
+      FTotal += background_slope_.val() * (pos - first_channel);
+    if (curve_enabled_)
+      FTotal += background_curve_.val() * square(pos - first_channel);
+
+    for (auto& p : peaks_)
+    {
+      auto ret = p.eval(pos);
+      FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
+    }
+    ChiSq += square((spectrum.channels[pos] - FTotal) /
+        spectrum.weight_true(pos));
+  } //Channel
+
+  return ChiSq;
+}
+
 
 double Region::grad_chi_sq(std::vector<double>& gradients) const
 {
@@ -348,10 +329,10 @@ double Region::grad_chi_sq(std::vector<double>& gradients) const
       FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
     } //Peak
 
-    double t3 = -2.0 * (spectrum.channels[pos] - FTotal) / square(spectrum.weight(pos));
+    double t3 = -2.0 * (spectrum.channels[pos] - FTotal) / square(spectrum.weight_phillips_marlow(pos));
     for (size_t var = 0; var < fit_var_count(); ++var)
       gradients[var] += chan_gradients[var] * t3;
-    Chisq += square((spectrum.channels[pos] - FTotal) / spectrum.weight(pos));
+    Chisq += square((spectrum.channels[pos] - FTotal) / spectrum.weight_phillips_marlow(pos));
   }
   //Chisq /= df
 
@@ -378,14 +359,14 @@ double Region::chi_sq(const std::vector<double>& fit) const
       FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
     }
     ChiSq += square((spectrum.channels[pos] - FTotal) /
-        spectrum.weight(pos));
+        spectrum.weight_phillips_marlow(pos));
   } //Channel
 
   return ChiSq;
 }
 
 double Region::grad_chi_sq(const std::vector<double>& fit,
-    std::vector<double>& gradients) const
+                           std::vector<double>& gradients) const
 {
   //Calculates the Chi-square and its gradient
 
@@ -435,10 +416,10 @@ double Region::grad_chi_sq(const std::vector<double>& fit,
       FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
     } //Peak
 
-    double t3 = -2.0 * (spectrum.channels[pos] - FTotal) / square(spectrum.weight(pos));
+    double t3 = -2.0 * (spectrum.channels[pos] - FTotal) / square(spectrum.weight_phillips_marlow(pos));
     for (size_t var = 0; var < fit_var_count(); ++var)
       gradients[var] += chan_gradients[var] * t3;
-    Chisq += square((spectrum.channels[pos] - FTotal) / spectrum.weight(pos));
+    Chisq += square((spectrum.channels[pos] - FTotal) / spectrum.weight_phillips_marlow(pos));
   }
   //Chisq /= df
 

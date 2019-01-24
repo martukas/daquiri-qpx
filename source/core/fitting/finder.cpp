@@ -378,5 +378,48 @@ int32_t Finder::find_index(double chan_val) const
   return i;
 }
 
+/*
+//Laszlo's implementation
+
+int32_t Region::L(int32_t i, int32_t j, int32_t m)
+{
+  // \todo what does this do?
+  //m = FWHM
+  int32_t ret{0};
+
+  if (j - m <= i && i <= j - 1)
+    ret = -1;
+  if (j <= i && i <= j + m - 1)
+    ret = 2;
+  if (j + m <= i && i <= j + 2 * m - 1)
+    ret = -1;
+
+  return ret;
+}
+
+void Region::find_peaks(uint8_t threshold)
+{
+  auto m = static_cast<int32_t>(1.6551 * default_peak_.width_.val());
+  if (m <= 0)
+    m = 3;
+
+  size_t i;
+  for (size_t j = first_channel; j <= last_channel; ++j)
+  {
+    double val = 0;
+    double var = 0;
+    for (i = j - m; i <= (j + 2 * m - 1); ++j)
+      if (i > 1)
+        val = val + L(i, j, m) * spectrum.channels[i];
+    var += square(L(i, j, m)) * spectrum.channels[i];
+
+    //Conv(j - FirstChannel) = val / std::sqrt(Var)
+    //if(((Conv(j - FirstChannel - 2) < Conv(j - FirstChannel - 1)) &&
+    //(Conv(j - FirstChannel) < Conv(j - FirstChannel - 1)) &&
+    //(Conv(j - FirstChannel - 1) > Threshold))) {
+    //AddPeak(j - 1, j - 2, j, std::sqrt(spectrum.Channel[j]))
+  }
+}
+*/
 
 }

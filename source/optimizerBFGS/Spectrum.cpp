@@ -6,7 +6,13 @@
 namespace Hypermet
 {
 
-double CSpectrum::weight(size_t i) const
+double CSpectrum::weight_true(size_t i) const
+{
+  double k0 = channels[i];
+  return std::sqrt(k0);
+}
+
+double CSpectrum::weight_phillips_marlow(size_t i) const
 {
   double k0 = channels[i];
 
@@ -21,21 +27,31 @@ double CSpectrum::weight(size_t i) const
   }
 }
 
-double CSpectrum::dead_time(double real_time, double live_time)
+double CSpectrum::weight_revay_student(size_t i) const
+{
+  double k0 = channels[i] + 1;
+  return std::sqrt(k0);
+}
+
+
+// \todo these go somewhere else
+
+
+double dead_time(double real_time, double live_time)
 {
   if (real_time > 0.0)
     return (real_time - live_time) / real_time * 100.0;
   return 0.0;
 }
 
-double CSpectrum::rate(double live_time, double sum_counts)
+double rate(double live_time, double sum_counts)
 {
   if (live_time > 0.0)
     return sum_counts / live_time * 100;
   return 0.0;
 }
 
-size_t CSpectrum::mystery_function(double val)
+size_t mystery_function(double val)
 {
   bool Ready = false;
   if ((val >= 0) && (val < pow(2, 36)))

@@ -25,7 +25,6 @@ class Region : public Fittable
 
   Region(CSpectrum& spe, size_t from_channel, size_t to_channel);
 
-  void find_peaks(uint8_t threshold = 3);
   void add_peak(double position, double min, double max, double amplitude = 10.0);
   void remove_peak(size_t index);
   double peak_area(size_t index) const;
@@ -40,7 +39,7 @@ class Region : public Fittable
 
   void save_fit_uncerts(const FitResult& result);
 
-  double calc_chi_sq() const;
+  double chi_sq() const;
   double grad_chi_sq(std::vector<double>& gradients) const;
 
   // Fittable implementation
@@ -53,9 +52,6 @@ class Region : public Fittable
  private:
   int32_t var_count_{0};
 
-  // \todo what does this mean?
-  static int32_t L(int32_t i, int32_t j, int32_t m);
-
   // background
   ValueGam background_base_;
 
@@ -65,7 +61,6 @@ class Region : public Fittable
   bool curve_enabled_{true};
   ValueBkg background_curve_;
 
-  // \todo why skew naming different?
   // peak
   Peak default_peak_;
   std::vector<Peak> peaks_;
