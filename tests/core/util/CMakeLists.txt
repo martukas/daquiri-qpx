@@ -6,6 +6,7 @@ set(SOURCES
   ${dir}/h5json.cpp
   ${dir}/json_file.cpp
   ${dir}/lexical_extensions.cpp
+  ${dir}/more_math.cpp
   ${dir}/timer.cpp
   ${dir}/string_extensions.cpp
   ${dir}/time_extensions.cpp

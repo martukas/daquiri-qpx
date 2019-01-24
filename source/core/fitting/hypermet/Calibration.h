@@ -1,7 +1,7 @@
 #pragma once
 
-#include <optimizerBFGS/EfficiencyCal.h>
-#include <optimizerBFGS/NonlinearityCal.h>
+#include <core/fitting/hypermet/EfficiencyCal.h>
+#include <core/fitting/hypermet/NonlinearityCal.h>
 
 namespace Hypermet
 {

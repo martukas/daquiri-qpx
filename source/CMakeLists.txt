@@ -21,8 +21,5 @@ if(ROOT_FOUND)
   set(optimizer_LIBRARIES daquiri_optimizerROOT)
 endif()
 
-add_subdirectory(optimizerBFGS)
-#set(optimizer_LIBRARIES daquiri_optimizerROOT)
-
 add_subdirectory(cmd)
 add_subdirectory(gui)

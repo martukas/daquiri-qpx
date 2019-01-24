@@ -1,5 +1,5 @@
-#include <optimizerBFGS/NonlinearityCal.h>
-#include <optimizerBFGS/more_math.h>
+#include <core/fitting/hypermet/NonlinearityCal.h>
+#include <core/util/more_math.h>
 
 #include <fstream>
 

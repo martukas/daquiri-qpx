@@ -16,6 +16,7 @@ set(HEADERS
   ${dir}/h5json.h
   ${dir}/json_file.h
   ${dir}/lexical_extensions.h
+  ${dir}/more_math.h
   ${dir}/print_exception.h
   ${dir}/string_extensions.h
   ${dir}/sync_queue.h

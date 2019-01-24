@@ -1,6 +1,6 @@
-#include <optimizerBFGS/BFGS.h>
+#include <core/fitting/BFGS/BFGS.h>
 
-#include <optimizerBFGS/more_math.h>
+#include <core/util/more_math.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"

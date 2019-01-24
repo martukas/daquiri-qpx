@@ -1,6 +1,6 @@
 #pragma once
 
-#include <optimizerBFGS/Fittable.h>
+#include <core/fitting/BFGS/Fittable.h>
 #include <atomic>
 
 namespace Hypermet

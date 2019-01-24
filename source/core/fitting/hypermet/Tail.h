@@ -1,6 +1,6 @@
 #pragma once
 
-#include <optimizerBFGS/Value.h>
+#include <core/fitting/hypermet/Value.h>
 
 namespace Hypermet
 {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <optimizerBFGS/Step.h>
-#include <optimizerBFGS/Tail.h>
-#include <optimizerBFGS/Calibration.h>
+#include <core/fitting/hypermet/Step.h>
+#include <core/fitting/hypermet/Tail.h>
+#include <core/fitting/hypermet/Calibration.h>
 
 namespace Hypermet
 {

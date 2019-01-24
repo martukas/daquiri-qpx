@@ -1,8 +1,8 @@
 #pragma once
 
-#include <optimizerBFGS/Peak.h>
-#include <optimizerBFGS/Spectrum.h>
-#include <optimizerBFGS/Fittable.h>
+#include <core/fitting/hypermet/Peak.h>
+#include <core/fitting/hypermet/Spectrum.h>
+#include <core/fitting/BFGS/Fittable.h>
 
 namespace Hypermet
 {

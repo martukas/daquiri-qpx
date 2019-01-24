@@ -1,5 +1,5 @@
-#include <optimizerBFGS/Region.h>
-#include <optimizerBFGS/more_math.h>
+#include <core/fitting/hypermet/Region.h>
+#include <core/util/more_math.h>
 
 #include <core/util/custom_logger.h>
 

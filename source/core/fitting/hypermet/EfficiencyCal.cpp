@@ -1,5 +1,5 @@
-#include <optimizerBFGS/EfficiencyCal.h>
-#include <optimizerBFGS/more_math.h>
+#include <core/fitting/hypermet/EfficiencyCal.h>
+#include <core/util/more_math.h>
 
 #include <fstream>
 
