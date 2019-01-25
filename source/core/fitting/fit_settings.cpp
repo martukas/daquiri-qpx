@@ -3,40 +3,41 @@
 namespace DAQuiri
 {
 
-void FitSettings::clear()
+
+void to_json(nlohmann::json& j, const KONSettings& s)
 {
-  cali_nrg_ = Calibration();
-  cali_fwhm_ = Calibration();
-  //bits_ = 0;
-  live_time = hr_duration_t();
-}
-void FitSettings::clone(FitSettings other)
-{
-  other.cali_nrg_ = cali_nrg_;
-  other.cali_fwhm_ = cali_fwhm_;
-  //other.bits_ = bits_;
-  other.live_time = live_time;
-  (*this) = other;
+  j["width"] = s.width;
+  j["sigma_spectrum"] = s.sigma_spectrum;
+  j["sigma_resid"] = s.sigma_resid;
+  j["edge_width_factor"] = s.edge_width_factor;
 }
 
-double FitSettings::nrg_to_bin(double energy) const
+void from_json(const nlohmann::json& j, KONSettings& s)
+{
+  s.width = j["width"];
+  s.sigma_spectrum = j["sigma_spectrum"];
+  s.sigma_resid = j["sigma_resid"];
+  s.edge_width_factor = j["edge_width_factor"];
+}
+
+double FCalibration::nrg_to_bin(double energy) const
 {
   return cali_nrg_.inverse(energy, 0.1);
 }
 
-double FitSettings::bin_to_nrg(double bin) const
+double FCalibration::bin_to_nrg(double bin) const
 {
   return cali_nrg_.transform(bin);
 }
 
-double FitSettings::bin_to_width(double bin) const
+double FCalibration::bin_to_width(double bin) const
 {
   double nrg = bin_to_nrg(bin);
   double fwhm = nrg_to_fwhm(nrg);
   return (nrg_to_bin(nrg + fwhm / 2.0) - nrg_to_bin(nrg - fwhm / 2.0));
 }
 
-double FitSettings::nrg_to_fwhm(double energy) const
+double FCalibration::nrg_to_fwhm(double energy) const
 {
   if (cali_fwhm_.valid())
     return cali_fwhm_.transform(energy);
@@ -44,14 +45,24 @@ double FitSettings::nrg_to_fwhm(double energy) const
     return 1;
 }
 
+void FitSettings::clear()
+{
+  //bits_ = 0;
+  live_time = hr_duration_t();
+}
+void FitSettings::clone(FitSettings other)
+{
+  other.calib = calib;
+  //other.bits_ = bits_;
+  other.live_time = live_time;
+  (*this) = other;
+}
+
 void to_json(nlohmann::json& j, const FitSettings& s)
 {
-  j["KON"]["width"] = s.KON_width;
-  j["KON"]["sigma_spectrum"] = s.KON_sigma_spectrum;
-  j["KON"]["sigma_resid"] = s.KON_sigma_resid;
+  j["KON"] = s.kon_settings;
 
   j["ROI"]["max_peaks"] = s.ROI_max_peaks;
-  j["ROI"]["extend_peaks"] = s.ROI_extend_peaks;
   j["ROI"]["extend_background"] = s.ROI_extend_background;
   j["ROI"]["edge_samples"] = s.background_edge_samples;
   j["ROI"]["sum4_only"] = s.sum4_only;
@@ -84,12 +95,9 @@ void to_json(nlohmann::json& j, const FitSettings& s)
 
 void from_json(const nlohmann::json& j, FitSettings& s)
 {
-  s.KON_width = j["KON"]["width"];
-  s.KON_sigma_spectrum = j["KON"]["sigma_spectrum"];
-  s.KON_sigma_resid = j["KON"]["sigma_resid"];
+  s.kon_settings = j["KON"];
 
   s.ROI_max_peaks = j["ROI"]["max_peaks"];
-  s.ROI_extend_peaks = j["ROI"]["extend_peaks"];
   s.ROI_extend_background = j["ROI"]["extend_background"];
   s.background_edge_samples = j["ROI"]["edge_samples"];
   s.sum4_only = j["ROI"]["sum4_only"];
@@ -118,7 +126,6 @@ void from_json(const nlohmann::json& j, FitSettings& s)
   s.Lskew_slope = j["hypermet"]["Lskew_slope"];
   s.Rskew_amplitude = j["hypermet"]["Rskew_amplitude"];
   s.Rskew_slope = j["hypermet"]["Rskew_slope"];
-
 }
 
 }

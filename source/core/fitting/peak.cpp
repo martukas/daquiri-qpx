@@ -3,23 +3,24 @@
 namespace DAQuiri
 {
 
-Peak::Peak(const nlohmann::json& j, const Finder& f, const SUM4Edge& LB, const SUM4Edge& RB)
+Peak::Peak(const nlohmann::json& j, const FCalibration& cal,
+    const Finder& f, const SUM4Edge& LB, const SUM4Edge& RB)
 {
   if (j.count("hypermet"))
     hypermet_ = j["hypermet"];
   if (j.count("SUM4"))
     sum4_ = SUM4(j["SUM4"], f, LB, RB);
-  reconstruct(f.settings_);
+  reconstruct(cal);
 }
 
-Peak::Peak(const Hypermet& hyp, const SUM4& s4, const FitSettings& fs)
+Peak::Peak(const Hypermet& hyp, const SUM4& s4, const FCalibration& cal)
     : hypermet_(hyp)
-      , sum4_(s4)
+    , sum4_(s4)
 {
-  reconstruct(fs);
+  reconstruct(cal);
 }
 
-void Peak::reconstruct(FitSettings fs)
+void Peak::reconstruct(const FCalibration& fs)
 {
   if (std::isfinite(hypermet_.amplitude.val()) && (hypermet_.amplitude.val() > 0))
     center_ = hypermet_.amplitude.val();
@@ -32,7 +33,7 @@ void Peak::reconstruct(FitSettings fs)
 //  }
 
 
-  double energyval = fs.cali_nrg_.transform(center_);
+  double energyval = fs.bin_to_nrg(center_);
 //  double emin = fs.cali_nrg_.transform(center_ - center_.uncertainty());
 //  double emax = fs.cali_nrg_.transform(center_ + center_.uncertainty());
   energy_ = energyval; // \todo uncert = 0.5 * (emax - emin));
@@ -70,17 +71,17 @@ void Peak::reconstruct(FitSettings fs)
 
   cps_best_ = cps_hyp_ = cps_sum4_ = 0.0;
 
-  double live_seconds = fs.live_time.count() * 0.001;
-
-  if (live_seconds > 0)
-  {
-    cps_hyp_ = area_hyp_ / live_seconds;
-    cps_sum4_ = area_sum4_ / live_seconds;
-    if (std::isfinite(hypermet_.amplitude.val()) && (hypermet_.amplitude.val() > 0))
-      cps_best_ = cps_hyp_;
-    else
-      cps_best_ = cps_sum4_;
-  }
+//  double live_seconds = fs.live_time.count() * 0.001;
+//
+//  if (live_seconds > 0)
+//  {
+//    cps_hyp_ = area_hyp_ / live_seconds;
+//    cps_sum4_ = area_sum4_ / live_seconds;
+//    if (std::isfinite(hypermet_.amplitude.val()) && (hypermet_.amplitude.val() > 0))
+//      cps_best_ = cps_hyp_;
+//    else
+//      cps_best_ = cps_sum4_;
+//  }
 }
 
 bool Peak::good() const

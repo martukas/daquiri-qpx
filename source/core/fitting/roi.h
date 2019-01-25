@@ -47,8 +47,10 @@ class Fit {
 
 struct ROI {
   ROI() = default;
-  ROI(const nlohmann::json& j, const Finder &finder);
-  ROI(const Finder &parentfinder, double min, double max);
+  ROI(const nlohmann::json& j,
+      const Finder &finder,
+      const FitSettings& fs);
+  ROI(const FitSettings& fs, const Finder &parentfinder, double min, double max);
 
   //bounds
   double ID() const;
@@ -71,7 +73,7 @@ struct ROI {
   //access other
   SUM4Edge LB() const {return LB_;}
   SUM4Edge RB() const {return RB_;}
-  FitSettings fit_settings() const { return finder_.settings_; }
+  //FitSettings fit_settings() const { return finder_.settings_; }
   const Finder &finder() const { return finder_; }
 
   //access history
@@ -108,6 +110,8 @@ struct ROI {
       hr_sum4_background_;
 
 private:
+  FitSettings settings_;
+
   //intrinsic, these are saved
   SUM4Edge LB_, RB_;
   PolyBackground background_;

@@ -11,7 +11,7 @@ class Finder
   Finder() = default;
   Finder(const std::vector<double>& x,
          const std::vector<double>& y,
-         const FitSettings& settings);
+         const KONSettings& settings);
 
   // \todo constructors for ZDT spectra
 
@@ -45,7 +45,7 @@ class Finder
 
   std::vector<size_t> prelim, filtered, lefts, rights;
 
-  FitSettings settings_;
+  KONSettings settings_;
 
  private:
   void calc_kon();

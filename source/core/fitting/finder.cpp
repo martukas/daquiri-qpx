@@ -3,9 +3,9 @@
 namespace DAQuiri
 {
 
-Finder::Finder(const std::vector<double>& x, const std::vector<double>& y, const FitSettings& settings)
+Finder::Finder(const std::vector<double>& x, const std::vector<double>& y, const KONSettings& settings)
+: settings_(settings)
 {
-  settings_ = settings;
   setNewData(x, y);
 }
 
@@ -167,20 +167,20 @@ void Finder::calc_kon()
     }
   }*/
 
-  uint16_t width = settings_.KON_width;
+  uint16_t width = settings_.width;
 
   if (width < 2)
     width = 2;
 
-  double sigma = settings_.KON_sigma_spectrum;
+  double sigma = settings_.sigma_spectrum;
   if (y_resid_ != y_)
   {
 //    DBG << "<Finder> Using sigma resid";
-    sigma = settings_.KON_sigma_resid;
+    sigma = settings_.sigma_resid;
   }
 
 
-//  DBG << "<Finder> width " << settings_.KON_width;
+//  DBG << "<Finder> width " << settings_.width;
 
   int start = width;
   int end = x_.size() - 1 - 2 * width;
@@ -274,11 +274,11 @@ double Finder::find_left(double chan) const
 
   //assume x is monotone increasing
 
-  double sigma = settings_.KON_sigma_spectrum;
+  double sigma = settings_.sigma_spectrum;
   if (y_resid_ != y_)
   {
 //    DBG << "<Finder> Using sigma resid";
-    sigma = settings_.KON_sigma_resid;
+    sigma = settings_.sigma_resid;
   }
 
   double edge_threshold = -0.5 * sigma;
@@ -298,11 +298,11 @@ double Finder::find_right(double chan) const
   if (x_.empty())
     return 0;
 
-  double sigma = settings_.KON_sigma_spectrum;
+  double sigma = settings_.sigma_spectrum;
   if (y_resid_ != y_)
   {
 //    DBG << "<Finder> Using sigma resid";
-    sigma = settings_.KON_sigma_resid;
+    sigma = settings_.sigma_resid;
   }
 
   //assume x is monotone increasing
@@ -327,17 +327,17 @@ size_t Finder::left_edge(size_t idx) const
   if (!fw_theoretical_bin.empty())
   {
     double width = floor(fw_theoretical_bin[idx]);
-    double goal = x_[idx] - width * settings_.ROI_extend_peaks / 2;
+    double goal = x_[idx] - width * settings_.edge_width_factor / 2;
     while ((idx > 0) && (x_[idx] > goal))
       idx--;
     return idx;
   }
 
-  double sigma = settings_.KON_sigma_spectrum;
+  double sigma = settings_.sigma_spectrum;
   if (y_resid_ != y_)
   {
 //    DBG << "<Finder> Using sigma resid";
-    sigma = settings_.KON_sigma_resid;
+    sigma = settings_.sigma_resid;
   }
 
   double edge_threshold = -0.5 * sigma;
@@ -360,17 +360,17 @@ size_t Finder::right_edge(size_t idx) const
   if (!fw_theoretical_bin.empty())
   {
     double width = floor(fw_theoretical_bin[idx]);
-    double goal = x_[idx] + width * settings_.ROI_extend_peaks / 2;
+    double goal = x_[idx] + width * settings_.edge_width_factor / 2;
     while ((idx < x_.size()) && (x_[idx] < goal))
       idx++;
     return idx;
   }
 
-  double sigma = settings_.KON_sigma_spectrum;
+  double sigma = settings_.sigma_spectrum;
   if (y_resid_ != y_)
   {
 //    DBG << "<Finder> Using sigma resid";
-    sigma = settings_.KON_sigma_resid;
+    sigma = settings_.sigma_resid;
   }
 
   double edge_threshold = -0.5 * sigma;

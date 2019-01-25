@@ -36,9 +36,11 @@ Fit::Fit(const SUM4Edge &lb, const SUM4Edge &rb,
   }
 }
 
-ROI::ROI(const Finder &parentfinder, double min, double max)
+ROI::ROI(const FitSettings& fs,
+    const Finder &parentfinder, double min, double max)
+    : settings_(fs)
 {
-  finder_.settings_ = parentfinder.settings_;
+  settings_ = fs;
   set_data(parentfinder, min, max);
 }
 
@@ -132,7 +134,7 @@ bool ROI::auto_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
     init_background();
   }
 
-  if (!finder_.settings_.sum4_only)
+  if (!settings_.sum4_only)
   {
     std::vector<double> y_nobkg = remove_background();
 
@@ -152,12 +154,12 @@ bool ROI::auto_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
       if (gaussian.sanity_check(finder_.x_[finder().lefts[i]], finder_.x_[finder_.rights[i]]))
       {
         gaussian.force_defaults(default_peak_);
-        Peak fitted(gaussian, {}, finder_.settings_);
+        Peak fitted(gaussian, {}, settings_.calib);
         peaks_[fitted.center()] = fitted;
       }
     }
     if (peaks_.empty())
-      finder_.settings_.sum4_only = true;
+      settings_.sum4_only = true;
   }
 
   if (!rebuild(optimizer, interruptor))
@@ -165,7 +167,7 @@ bool ROI::auto_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
 
   save_current_fit("Autofit");
 
-  if (finder_.settings_.resid_auto)
+  if (settings_.resid_auto)
     iterative_fit(optimizer, interruptor);
 
   return true;
@@ -173,12 +175,12 @@ bool ROI::auto_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
 
 void ROI::iterative_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
 {
-  if (!finder_.settings_.cali_fwhm_.valid() || peaks_.empty())
+  if (!settings_.calib.cali_fwhm_.valid() || peaks_.empty())
     return;
 
   //double prev_chi_sq = peaks_.begin()->second.hypermet().chi2();
 
-  for (int i=0; i < finder_.settings_.resid_max_iterations; ++i)
+  for (int i=0; i < settings_.resid_max_iterations; ++i)
   {
     ROI new_fit = *this;
 
@@ -225,7 +227,7 @@ bool ROI::add_from_resid(BFGS& optimizer, std::atomic<bool>& interruptor, int32_
 
       bool too_close = false;
 
-      double lateral_slack = finder_.settings_.resid_too_close * gaussian.width_.val() * 2;
+      double lateral_slack = settings_.resid_too_close * gaussian.width_.val() * 2;
       for (auto &p : peaks_)
       {
         if ((p.second.center() > (gaussian.position.val() - lateral_slack))
@@ -238,7 +240,7 @@ bool ROI::add_from_resid(BFGS& optimizer, std::atomic<bool>& interruptor, int32_
 
       if (!too_close &&
       gaussian.sanity_check(finder_.x_[finder_.lefts[j]], finder_.x_[finder_.rights[j]])
-      && (gaussian.amplitude.val() > finder_.settings_.resid_min_amplitude) &&
+      && (gaussian.amplitude.val() > settings_.resid_min_amplitude) &&
            (gaussian.area() > biggest)
            )
       {
@@ -272,7 +274,7 @@ bool ROI::add_from_resid(BFGS& optimizer, std::atomic<bool>& interruptor, int32_
       finder_.x_[finder_.rights[target_peak]]))
   {
     gaussian.apply_defaults(default_peak_);
-    Peak fitted(gaussian, {}, finder_.settings_);
+    Peak fitted(gaussian, {}, settings_.calib);
     peaks_[fitted.center()] = fitted;
     rebuild(optimizer, interruptor);
     return true;
@@ -339,7 +341,7 @@ bool ROI::adjust_sum4(double &peakID, double left, double right)
 
   Peak pk = peaks_.at(peakID);
   SUM4 new_sum4(left, right, finder_, LB_, RB_);
-  pk = Peak(pk.hypermet(), new_sum4, finder_.settings_);
+  pk = Peak(pk.hypermet(), new_sum4, settings_.calib);
   remove_peak(peakID);
   peakID = pk.center();
   peaks_[peakID] = pk;
@@ -355,7 +357,7 @@ bool ROI::replace_hypermet(double &peakID, Hypermet hyp)
     return false;
 
   Peak pk = peaks_.at(peakID);
-  pk = Peak(hyp, pk.sum4(), finder_.settings_);
+  pk = Peak(hyp, pk.sum4(), settings_.calib);
   remove_peak(peakID);
   peakID = pk.center();
   peaks_[peakID] = pk;
@@ -390,7 +392,7 @@ bool ROI::add_peak(const Finder &parentfinder,
   if (overlaps(left) && overlaps(right)) {
     ROI new_fit = *this;
 
-    if (!finder_.settings_.sum4_only && new_fit.add_from_resid(optimizer, interruptor, center_prelim))
+    if (!settings_.sum4_only && new_fit.add_from_resid(optimizer, interruptor, center_prelim))
     {
       *this = new_fit;
       save_current_fit("Added from residuals");
@@ -398,7 +400,7 @@ bool ROI::add_peak(const Finder &parentfinder,
     }
     else
     {
-      Peak fitted(Hypermet(), SUM4(left, right, finder_, LB_, RB_), finder_.settings_);
+      Peak fitted(Hypermet(), SUM4(left, right, finder_, LB_, RB_), settings_.calib);
       peaks_[fitted.center()] = fitted;
       render();
       save_current_fit("Manually added " + std::to_string(fitted.energy()));
@@ -422,9 +424,9 @@ bool ROI::add_peak(const Finder &parentfinder,
     finder_.find_peaks();  //assumes default params!!!
 
     ROI new_fit = *this;
-    if (finder_.settings_.sum4_only)
+    if (settings_.sum4_only)
     {
-      Peak fitted(Hypermet(), SUM4(left, right, finder_, LB_, RB_), finder_.settings_);
+      Peak fitted(Hypermet(), SUM4(left, right, finder_, LB_, RB_), settings_.calib);
       peaks_[fitted.center()] = fitted;
       render();
       save_current_fit("Manually added " + std::to_string(fitted.energy()));
@@ -473,8 +475,8 @@ bool ROI::remove_peak(double bin)
 
 bool ROI::override_settings(const FitSettings &fs, std::atomic<bool>& interruptor)
 {
-  finder_.settings_ = fs;
-  finder_.settings_.overriden = true; //do this in fitter if different?
+  settings_ = fs;
+  settings_.overriden = true; //do this in fitter if different?
   save_current_fit("Fit settings overriden");
 
   //propagate to peaks
@@ -531,10 +533,9 @@ bool ROI::rebuild_as_hypermet(BFGS& optimizer, std::atomic<bool>& interruptor)
       old_hype.push_back(q.second.hypermet());
     else if (q.second.sum4().peak_width())
     {
-      Peak s4only(Hypermet(),
-                  SUM4(q.second.sum4().left(), q.second.sum4().right(),
-                       finder_, LB_, RB_),
-                  finder_.settings_);
+      Peak s4only({},
+                  SUM4(q.second.sum4().left(), q.second.sum4().right(), finder_, LB_, RB_),
+                  settings_.calib);
       new_peaks[s4only.center()] = s4only;
     }
   }
@@ -544,13 +545,13 @@ bool ROI::rebuild_as_hypermet(BFGS& optimizer, std::atomic<bool>& interruptor)
 
 //  std::vector<Hypermet> hype = optimizer->fit_multiplet(finder_.x_, finder_.y_,
 //                                                        old_hype, background_,
-//                                                        finder_.settings_);
+//                                                        settings_);
 //
 //  for (size_t i=0; i < hype.size(); ++i) {
 //    double edge =  hype[i].width().value() * sqrt(log(2)) * 3; //use const from settings
 //    double left = hype[i].center().value() - edge;
 //    double right = hype[i].center().value() + edge;
-//    Peak one(hype[i], SUM4(left, right, finder_, LB_, RB_), finder_.settings_);
+//    Peak one(hype[i], SUM4(left, right, finder_, LB_, RB_), settings_);
 //    new_peaks[one.center()] = one;
 //  }
 
@@ -571,10 +572,9 @@ bool ROI::rebuild_as_gaussian(BFGS& optimizer, std::atomic<bool>& interruptor)
       old_gauss.push_back(q.second.hypermet().gaussian_only());
     else if (q.second.sum4().peak_width())
     {
-      Peak s4only({}, SUM4(q.second.sum4().left(),
-                  q.second.sum4().right(),
-                  finder_, LB_, RB_),
-                  finder_.settings_);
+      Peak s4only({},
+                  SUM4(q.second.sum4().left(), q.second.sum4().right(), finder_, LB_, RB_),
+                  settings_.calib);
       //      q.second.construct(settings_);
       new_peaks[s4only.center()] = s4only;
     }
@@ -585,16 +585,16 @@ bool ROI::rebuild_as_gaussian(BFGS& optimizer, std::atomic<bool>& interruptor)
 
 //  std::vector<Gaussian> gauss = optimizer->fit_multiplet(finder_.x_, finder_.y_,
 //                                                         old_gauss, background_,
-//                                                         finder_.settings_);
+//                                                         settings_);
 //
 //  for (size_t i=0; i < gauss.size(); ++i)
 //  {
 //    double edge =  gauss[i].hwhm().value() * 3; //use const from settings
 //    double left = gauss[i].center().value() - edge;
 //    double right = gauss[i].center().value() + edge;
-//    Peak one(Hypermet(gauss[i], finder_.settings_),
+//    Peak one(Hypermet(gauss[i], settings_),
 //             SUM4(left, right, finder_, LB_, RB_),
-//             finder_.settings_);
+//             settings_);
 //    new_peaks[one.center()] = one;
 //  }
 
@@ -618,7 +618,7 @@ void ROI::render()
   }
   background_.eval_add(hr_x, hr_background);
   hr_sum4_background_ = sum4back.eval(hr_x);
-  hr_x_nrg = finder_.settings_.cali_nrg_.transform(hr_x);
+  hr_x_nrg = settings_.calib.cali_nrg_.transform(hr_x);
 
   std::vector<double> lowres_backsteps = sum4back.eval(finder_.x_);
   std::vector<double> lowres_fullfit   = sum4back.eval(finder_.x_);
@@ -626,7 +626,7 @@ void ROI::render()
   for (auto &p : peaks_)
     p.second.hr_fullfit_ = p.second.hr_peak_ = hr_fullfit;
 
-  if (!finder_.settings_.sum4_only) {
+  if (!settings_.sum4_only) {
     hr_fullfit    = hr_background;
     hr_back_steps = hr_background;
     background_.eval_add(finder_.x_, lowres_backsteps);
@@ -725,7 +725,7 @@ void ROI::init_edges()
 void ROI::init_LB()
 {
   int32_t LBend = 0;
-  uint16_t samples = finder_.settings_.background_edge_samples;
+  uint16_t samples = settings_.background_edge_samples;
 
   if ((samples > 0) && (finder_.y_.size() > samples*3))
     LBend += samples;
@@ -736,7 +736,7 @@ void ROI::init_LB()
 void ROI::init_RB()
 {
   int32_t RBstart = finder_.y_.size() - 1;
-  uint16_t samples = finder_.settings_.background_edge_samples;
+  uint16_t samples = settings_.background_edge_samples;
   if ((samples > 0) && (finder_.y_.size() > samples*3))
     RBstart -= samples;
 
@@ -750,8 +750,6 @@ void ROI::init_background()
 
   background_ = PolyBackground();
   background_.x_offset = finder_.x_.front();
-
-  auto xoffset = background_.x_offset;
 
   //by default, linear
   double run = RB_.left() - LB_.right();
@@ -808,7 +806,7 @@ bool ROI::rollback(const Finder &parent_finder, size_t i)
   if (i >= fits_.size())
     return false;
 
-  //finder_.settings_ = fits_[i].settings_;
+  //settings_ = fits_[i].settings_;
   set_data(parent_finder, fits_[i].LB_.left(), fits_[i].RB_.right());
   background_ = fits_[i].background;
   LB_ = fits_[i].LB_;
@@ -850,8 +848,8 @@ nlohmann::json ROI::to_json(const Finder &parent_finder) const
     jj["description"] = temp.fits_[i].description.description;
     temp.rollback(parent_finder, i);
 
-    if (finder_.settings_.overriden)
-      jj["settings"] = finder_.settings_;
+    if (settings_.overriden)
+      jj["settings"] = settings_;
 
     jj["background_left"] = temp.LB();
     jj["background_right"] = temp.RB();
@@ -866,8 +864,9 @@ nlohmann::json ROI::to_json(const Finder &parent_finder) const
   return j;
 }
 
-ROI::ROI(const nlohmann::json& j, const Finder &finder)
+ROI::ROI(const nlohmann::json& j, const Finder &finder, const FitSettings& fs)
 {
+  settings_ = fs;
   if (finder.x_.empty() || (finder.x_.size() != finder.y_.size()))
     return;
 
@@ -883,9 +882,9 @@ ROI::ROI(const nlohmann::json& j, const Finder &finder)
         return;
 
       if (it.value().count("settings"))
-        finder_.settings_ = it.value()["settings"];
-      else
-        finder_.settings_ = finder.settings_;
+        settings_ = it.value()["settings"];
+//      else
+//        settings_ = finder.settings_;
 
       //validate background and edges?
       set_data(finder, LB.left(), RB.left());
@@ -898,7 +897,7 @@ ROI::ROI(const nlohmann::json& j, const Finder &finder)
         nlohmann::json p = it.value()["peaks"];
         for (nlohmann::json::iterator it2 = p.begin(); it2 != p.end(); ++it2)
         {
-          Peak newpeak(it2.value(), finder_, LB_, RB_);
+          Peak newpeak(it2.value(), settings_.calib, finder_, LB_, RB_);
           peaks_[newpeak.center()] = newpeak;
         }
       }

@@ -14,12 +14,12 @@ class Peak {
 public:
   Peak(){}
 
-  Peak(const nlohmann::json& j, const Finder &fs,
-       const SUM4Edge& LB, const SUM4Edge& RB);
+  Peak(const nlohmann::json& j, const FCalibration& cal,
+      const Finder &fs, const SUM4Edge& LB, const SUM4Edge& RB);
 
-  Peak(const Hypermet &hyp, const SUM4 &s4, const FitSettings &fs);
+  Peak(const Hypermet &hyp, const SUM4 &s4, const FCalibration& cal);
 
-  void reconstruct(FitSettings fs);
+  void reconstruct(const FCalibration& fs);
 
   //get rid of these
   std::vector<double> hr_peak_, hr_fullfit_;

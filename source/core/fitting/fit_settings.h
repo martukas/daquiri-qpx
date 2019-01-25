@@ -5,19 +5,40 @@
 namespace DAQuiri
 {
 
+struct KONSettings
+{
+  uint16_t width{4};
+  double sigma_spectrum{3.0};
+  double sigma_resid{3.0};
+  double edge_width_factor{3.5};
+};
+
+void to_json(nlohmann::json& j, const KONSettings& s);
+void from_json(const nlohmann::json& j, KONSettings& s);
+
+struct FCalibration
+{
+  //specific to spectrum
+  Calibration cali_nrg_, cali_fwhm_;
+
+  double nrg_to_bin(double energy) const;
+  double bin_to_nrg(double bin) const;
+  double bin_to_width(double bin) const;
+  double nrg_to_fwhm(double energy) const;
+};
+
+
 class FitSettings
 {
  public:
   bool overriden{false};
 
+  // \todo should be in KON settings? not serialized; not really used
   double finder_cutoff_kev{100};
 
-  uint16_t KON_width{4};
-  double KON_sigma_spectrum{3.0};
-  double KON_sigma_resid{3.0};
+  KONSettings kon_settings;
 
   uint16_t ROI_max_peaks{10};
-  double ROI_extend_peaks{3.5};
   double ROI_extend_background{0.6};
   uint16_t background_edge_samples{7};
   bool sum4_only{false};
@@ -54,18 +75,13 @@ class FitSettings
   uint16_t fitter_max_iter{3000};
 
   //specific to spectrum
-  Calibration cali_nrg_, cali_fwhm_;
+  FCalibration calib;
 //  uint16_t bits_ {0};
   hr_duration_t real_time, live_time;
 
   FitSettings() = default;
   void clone(FitSettings other);
   void clear();
-
-  double nrg_to_bin(double energy) const;
-  double bin_to_nrg(double bin) const;
-  double bin_to_width(double bin) const;
-  double nrg_to_fwhm(double energy) const;
 };
 
 void to_json(nlohmann::json& j, const FitSettings& s);
