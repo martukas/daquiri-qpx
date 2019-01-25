@@ -8,7 +8,7 @@ set(SOURCES
   ${dir}/sum4.cpp
   ${dir}/peak.cpp
 #  ${dir}/optimizer.cpp
-#  ${dir}/roi.cpp
+  ${dir}/roi.cpp
 #  ${dir}/fitter.cpp
   )
 
@@ -20,7 +20,7 @@ set(HEADERS
   ${dir}/sum4.h
   ${dir}/peak.h
 #  ${dir}/optimizer.h
-#  ${dir}/roi.h
+  ${dir}/roi.h
 #  ${dir}/fitter.h
   )
 

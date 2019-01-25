@@ -5,9 +5,8 @@
 //#include <core/fitting/optimizer.h>
 #include <atomic>
 
-#include <core/fitting/BFGS/Fittable.h>
 #include <core/fitting/BFGS/BFGS.h>
-
+#include <core/fitting/hypermet/PolyBackground.h>
 
 namespace DAQuiri {
 
@@ -22,59 +21,27 @@ struct FitDescription
     : peaknum(0), rsq(0), sum4aggregate(0) {}
 };
 
-class Fit : public Fittable {
+class Fit {
  public:
   Fit(const SUM4Edge &lb, const SUM4Edge &rb,
+      PolyBackground bkg,
       const std::map<double, Peak> &peaks,
-      const Finder &finder,
+//      const Finder &finder,
       std::string descr);
 
-  const DAQuiri::Finder &finder_;
+//  const DAQuiri::Finder &finder_;
 
   FitDescription description;
 
-  std::map<double, Peak> peaks_;
+  //FitSettings settings_;
+
   SUM4Edge  LB_, RB_;
+  PolyBackground background;
 //  Polynomial background_;
-  FitSettings settings_;
 
 
-  int32_t var_count_{0};
-
-  // background
-  ValueGam background_base_;
-  bool slope_enabled_{true};
-  ValueBkg background_slope_;
-  bool curve_enabled_{true};
-  ValueBkg background_curve_;
-
-  // peak
   Peak default_peak_;
-
-//  void add_peak(double position, double min, double max, double amplitude = 10.0);
-  double peak_area(size_t index) const;
-  double peak_area_unc(size_t index) const;
-  double peak_area_eff(size_t index, const Calibration& cal);
-  double peak_area_eff_unc(size_t index, const Calibration& cal);
-
-
-  void map_fit();
-  void save_fit_uncerts(const FitResult& result);
-
-  // Fittable implementation
-  std::vector<double> variables() const override;
-  double degrees_of_freedom() const  override;
-  double chi_sq(const std::vector<double>& fit) const override;
-  double grad_chi_sq(const std::vector<double>& fit,
-                     std::vector<double>& gradients) const override;
-
- private:
-  size_t fit_var_count() const;
-  double chi_sq_normalized() const;
-  void save_fit(const std::vector<double>& variables);
-  double chi_sq() const;
-  double grad_chi_sq(std::vector<double>& gradients) const;
-
+  std::map<double, Peak> peaks_;
 };
 
 
@@ -109,7 +76,6 @@ struct ROI {
 
   //access history
   size_t current_fit() const;
-  size_t history_size() const;
   std::vector<FitDescription> history() const;
 
   //manipulation, no optimizer
@@ -144,10 +110,12 @@ struct ROI {
 private:
   //intrinsic, these are saved
   SUM4Edge LB_, RB_;
-  Polynomial background_;
+  PolyBackground background_;
   std::map<double, Peak> peaks_;
 
   Finder finder_;           // gets x & y data from fitter
+
+  Hypermet default_peak_;
 
   //history
   std::vector<Fit> fits_;

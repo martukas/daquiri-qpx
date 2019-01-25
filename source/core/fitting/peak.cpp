@@ -1,8 +1,9 @@
 #include <core/fitting/peak.h>
 
-namespace DAQuiri {
+namespace DAQuiri
+{
 
-Peak::Peak(const nlohmann::json& j, const Finder &f, const SUM4Edge &LB, const SUM4Edge &RB)
+Peak::Peak(const nlohmann::json& j, const Finder& f, const SUM4Edge& LB, const SUM4Edge& RB)
 {
   if (j.count("hypermet"))
     hypermet_ = j["hypermet"];
@@ -11,18 +12,17 @@ Peak::Peak(const nlohmann::json& j, const Finder &f, const SUM4Edge &LB, const S
   reconstruct(f.settings_);
 }
 
-Peak::Peak(const Hypermet &hyp, const SUM4 &s4, const FitSettings &fs)
-  : hypermet_(hyp)
-  , sum4_(s4)
+Peak::Peak(const Hypermet& hyp, const SUM4& s4, const FitSettings& fs)
+    : hypermet_(hyp)
+      , sum4_(s4)
 {
   reconstruct(fs);
 }
 
 void Peak::reconstruct(FitSettings fs)
 {
-  if (std::isfinite(hypermet_.amplitude.val()) && (hypermet_.amplitude.val() > 0)) {
+  if (std::isfinite(hypermet_.amplitude.val()) && (hypermet_.amplitude.val() > 0))
     center_ = hypermet_.amplitude.val();
-  }
   else
     center_ = sum4_.centroid();
 
@@ -52,14 +52,16 @@ void Peak::reconstruct(FitSettings fs)
 //    double max = fs.cali_nrg_.transform(Rmax) - fs.cali_nrg_.transform(Lmax);
 //    double min = fs.cali_nrg_.transform(Rmin) - fs.cali_nrg_.transform(Lmin);
     fwhm_ = val; // \todo uncert = (max - min);
-  } else {
+  }
+  else
+  {
     double L = sum4_.centroid() - 0.5 * sum4_.fwhm();
     double R = sum4_.centroid() + 0.5 * sum4_.fwhm();
     fwhm_ = fs.cali_nrg_.transform(R) - fs.cali_nrg_.transform(L);
     // \todo uncert = std::numeric_limits<double>::quiet_NaN()
   }
 
-  area_hyp_ =  hypermet_.area();
+  area_hyp_ = hypermet_.area();
   area_sum4_ = sum4_.peak_area();
 
 //  DBG << "<Peak> hyparea = " << area_hyp.debug();
@@ -70,12 +72,13 @@ void Peak::reconstruct(FitSettings fs)
 
   double live_seconds = fs.live_time.count() * 0.001;
 
-  if (live_seconds > 0) {
-    cps_hyp_  = area_hyp_ / live_seconds;
+  if (live_seconds > 0)
+  {
+    cps_hyp_ = area_hyp_ / live_seconds;
     cps_sum4_ = area_sum4_ / live_seconds;
-//    if (hypermet_.height_.value.finite() && (hypermet_.height_.val() > 0))
-//      cps_best = cps_hyp;
-//    else
+    if (std::isfinite(hypermet_.amplitude.val()) && (hypermet_.amplitude.val() > 0))
+      cps_best_ = cps_hyp_;
+    else
       cps_best_ = cps_sum4_;
   }
 }
@@ -83,8 +86,8 @@ void Peak::reconstruct(FitSettings fs)
 bool Peak::good() const
 {
   return ((sum4_.quality() == 1)
-          && (quality_energy() == 1)
-          && (quality_fwhm() == 1));
+      && (quality_energy() == 1)
+      && (quality_fwhm() == 1));
 }
 
 int Peak::quality_energy() const
@@ -94,7 +97,7 @@ int Peak::quality_energy() const
 //  else if (!std::isfinite(energy_.uncertainty()) || !energy_.uncertainty())
 //    return 2;
 //  else
-    return 1;
+  return 1;
 }
 
 int Peak::quality_fwhm() const
@@ -104,7 +107,7 @@ int Peak::quality_fwhm() const
 //  else if (!std::isfinite(fwhm_.uncertainty()) || !fwhm_.uncertainty())
 //    return 2;
 //  else
-    return 1;
+  return 1;
 }
 
 void Peak::override_energy(double newval)
@@ -112,27 +115,27 @@ void Peak::override_energy(double newval)
   energy_ = newval;
 }
 
-bool Peak::operator<(const Peak &other) const
+bool Peak::operator<(const Peak& other) const
 {
   return (center_ < other.center_);
 }
 
-bool Peak::operator==(const Peak &other) const
+bool Peak::operator==(const Peak& other) const
 {
   return (center_ == other.center_);
 }
 
-bool Peak::operator!=(const Peak &other) const
+bool Peak::operator!=(const Peak& other) const
 {
   return (center_ != other.center_);
 }
 
-bool Peak::operator>(const Peak &other) const
+bool Peak::operator>(const Peak& other) const
 {
   return (center_ > other.center_);
 }
 
-void to_json(nlohmann::json& j, const Peak &s)
+void to_json(nlohmann::json& j, const Peak& s)
 {
   if (s.sum4_.peak_width())
     j["SUM4"] = s.sum4_;

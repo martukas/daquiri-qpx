@@ -8,74 +8,74 @@ namespace DAQuiri
 
 void PolyBackground::update_indices(int32_t& i)
 {
-  background_base_.x_index = i++;
+  base.x_index = i++;
 
-  if (slope_enabled_)
-    background_slope_.x_index = i++;
+  if (slope_enabled)
+    slope.x_index = i++;
   else
-    background_slope_.x_index = -1;
+    slope.x_index = -1;
 
-  if (curve_enabled_)
-    background_curve_.x_index = i++;
+  if (curve_enabled)
+    curve.x_index = i++;
   else
-    background_curve_.x_index = -1;
+    curve.x_index = -1;
 }
 
 void PolyBackground::put(std::vector<double>& fit) const
 {
-  background_base_.put(fit);
-  background_slope_.put(fit);
-  background_curve_.put(fit);
+  base.put(fit);
+  slope.put(fit);
+  curve.put(fit);
 }
 
 void PolyBackground::get(const std::vector<double>& fit)
 {
-  background_base_.get(fit);
-  background_slope_.get(fit);
-  background_curve_.get(fit);
+  base.get(fit);
+  slope.get(fit);
+  curve.get(fit);
 }
 
 void PolyBackground::get_uncerts(const std::vector<double>& diagonals, double chisq_norm)
 {
-  background_base_.get_uncert(diagonals, chisq_norm);
-  background_slope_.get_uncert(diagonals, chisq_norm);
-  background_curve_.get_uncert(diagonals, chisq_norm);
+  base.get_uncert(diagonals, chisq_norm);
+  slope.get_uncert(diagonals, chisq_norm);
+  curve.get_uncert(diagonals, chisq_norm);
 }
 
 double PolyBackground::eval(double bin) const
 {
-  double ret = background_base_.val();
-  if (slope_enabled_)
-    ret += background_slope_.val() * (bin - bin_offset);
-  if (curve_enabled_)
-    ret += background_curve_.val() * square(bin - bin_offset);
+  double ret = base.val();
+  if (slope_enabled)
+    ret += slope.val() * (bin - x_offset);
+  if (curve_enabled)
+    ret += curve.val() * square(bin - x_offset);
   return ret;
 }
 
 double PolyBackground::eval_at(double bin, const std::vector<double>& fit) const
 {
-  double ret = background_base_.val_at(fit[background_base_.x_index]);
-  if (slope_enabled_)
-    ret += background_slope_.val_at(fit[background_slope_.x_index]) * (bin - bin_offset);
-  if (curve_enabled_)
-    ret += background_curve_.val_at(fit[background_curve_.x_index]) * square(bin - bin_offset);
+  double ret = base.val_at(fit[base.x_index]);
+  if (slope_enabled)
+    ret += slope.val_at(fit[slope.x_index]) * (bin - x_offset);
+  if (curve_enabled)
+    ret += curve.val_at(fit[curve.x_index]) * square(bin - x_offset);
   return ret;
 }
 
 double PolyBackground::eval_grad(double bin, std::vector<double>& gradients) const
 {
-  double ret = background_base_.val();
-  gradients[background_base_.x_index] = background_base_.grad();
-  if (slope_enabled_)
+  double ret = base.val();
+  gradients[base.x_index] = base.grad();
+  if (slope_enabled)
   {
-    ret += background_slope_.val() * (bin - bin_offset);
-    gradients[background_slope_.x_index] = (bin - bin_offset);
+    ret += slope.val() * (bin - x_offset);
+    gradients[slope.x_index] = (bin - x_offset);
   }
 
-  if (curve_enabled_)
+  if (curve_enabled)
   {
-    ret += background_curve_.val() * square(bin - bin_offset);
-    gradients[background_curve_.x_index] = square(bin - bin_offset);
+    ret += curve.val() * square(bin - x_offset);
+    gradients[curve.x_index] = square(bin - x_offset);
   }
   return ret;
 }
@@ -84,52 +84,67 @@ double PolyBackground::eval_grad_at(double bin,
                                     const std::vector<double>& fit,
                                     std::vector<double>& gradients) const
 {
-  double ret = background_base_.val_at(fit[background_base_.x_index]);
-  gradients[background_base_.x_index] = background_base_.grad_at(fit[background_base_.x_index]);
-  if (slope_enabled_)
+  double ret = base.val_at(fit[base.x_index]);
+  gradients[base.x_index] = base.grad_at(fit[base.x_index]);
+  if (slope_enabled)
   {
-    ret += background_slope_.val_at(fit[background_slope_.x_index]) * (bin - bin_offset);
-    gradients[background_slope_.x_index] = (bin - bin_offset);
+    ret += slope.val_at(fit[slope.x_index]) * (bin - x_offset);
+    gradients[slope.x_index] = (bin - x_offset);
   }
 
-  if (curve_enabled_)
+  if (curve_enabled)
   {
-    ret += background_curve_.val_at(fit[background_curve_.x_index]) * square(bin - bin_offset);
-    gradients[background_curve_.x_index] = square(bin - bin_offset);
+    ret += curve.val_at(fit[curve.x_index]) * square(bin - x_offset);
+    gradients[curve.x_index] = square(bin - x_offset);
   }
+  return ret;
+}
+
+double PolyBackground::eval_add(const std::vector<double>& bins, std::vector<double>& vals) const
+{
+  if (vals.size() != bins.size())
+    vals.resize(bins.size(), 0.0);
+  for (size_t i=0; i < bins.size(); ++i)
+    vals[i] += eval(bins[i]);
+}
+
+std::vector<double> PolyBackground::eval(const std::vector<double>& bins) const
+{
+  std::vector<double> ret;
+  eval_add(bins, ret);
   return ret;
 }
 
 std::string PolyBackground::to_string() const
 {
   std::stringstream ss;
-  ss << "x=bin-" << bin_offset << "    ";
-  ss << "base=" << background_base_.to_string();
-  if (slope_enabled_)
-    ss << "   base=" << background_slope_.to_string();
-  if (curve_enabled_)
-    ss << "   base=" << background_curve_.to_string();
+  ss << "x=bin-" << x_offset << "    ";
+  ss << "base=" << base.to_string();
+  if (slope_enabled)
+    ss << "   base=" << slope.to_string();
+  if (curve_enabled)
+    ss << "   base=" << curve.to_string();
   return ss.str();
 }
 
 void to_json(nlohmann::json& j, const PolyBackground& s)
 {
-  j["bin_offset"] = s.bin_offset;
-  j["base"] = s.background_base_;
-  if (s.slope_enabled_)
-    j["slope"] = s.background_slope_;
-  if (s.curve_enabled_)
-    j["curve"] = s.background_curve_;
+  j["bin_offset"] = s.x_offset;
+  j["base"] = s.base;
+  if (s.slope_enabled)
+    j["slope"] = s.slope;
+  if (s.curve_enabled)
+    j["curve"] = s.curve;
 }
 
 void from_json(const nlohmann::json& j, PolyBackground& s)
 {
-  s.bin_offset = j["bin_offset"];
-  s.background_base_ = j["base"];
+  s.x_offset = j["bin_offset"];
+  s.base = j["base"];
   if (j.count("slope"))
-    s.background_slope_ = j["slope"];
+    s.slope = j["slope"];
   if (j.count("curve"))
-    s.background_curve_ = j["curve"];
+    s.curve = j["curve"];
 }
 
 }

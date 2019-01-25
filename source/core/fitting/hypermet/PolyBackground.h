@@ -8,14 +8,15 @@ namespace DAQuiri
 struct PolyBackground
 {
   PolyBackground() = default;
+  // \todo construct with default vals
 
-  double bin_offset {0};
-  ValueGam background_base_;
-  bool slope_enabled_{true};
-  ValueBkg background_slope_;
-  bool curve_enabled_{true};
-  ValueBkg background_curve_;
-
+  // \todo why are these unbounded?
+  double x_offset {0};
+  ValueGam base;
+  bool slope_enabled{true};
+  ValueBkg slope;
+  bool curve_enabled{true};
+  ValueBkg curve;
 
   void update_indices(int32_t& i);
   void put(std::vector<double>& fit) const;
@@ -23,14 +24,14 @@ struct PolyBackground
   void get_uncerts(const std::vector<double>& diagonals, double chisq_norm);
 
   double eval(double bin) const;
-
   double eval_at(double bin, const std::vector<double>& fit) const;
-
   double eval_grad(double bin, std::vector<double>& grads) const;
-
   double eval_grad_at(double bin,
       const std::vector<double>& fit,
                       std::vector<double>& grads) const;
+
+  double eval_add(const std::vector<double>& bins, std::vector<double>& vals) const;
+  std::vector<double> eval(const std::vector<double>& bins) const;
 
   std::string to_string() const;
 };

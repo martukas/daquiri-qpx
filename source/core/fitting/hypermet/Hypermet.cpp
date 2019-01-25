@@ -21,7 +21,70 @@ double Hypermet::Components::all() const
   return peak_skews() + step_tail();
 }
 
+Hypermet::Hypermet()
+{
+  width_.bound(0.8, 4.0);
 
+  short_tail.amplitude.bound(0.02, 1.5);
+  short_tail.slope.bound(0.2, 0.5);
+
+  right_tail.amplitude.bound(0.01, 0.9);
+  right_tail.slope.bound(0.3, 1.5);
+
+  long_tail.amplitude.bound(0.0001, 0.15);
+  long_tail.slope.bound(2.5, 50);
+
+  step.amplitude.bound(0.000001, 0.05);
+}
+
+void Hypermet::apply_defaults(const Hypermet& other)
+{
+  if (!width_override)
+    width_ = other.width_;
+  if (!short_tail.override)
+    short_tail = other.short_tail;
+  if (!right_tail.override)
+    right_tail = other.right_tail;
+  if (!long_tail.override)
+    long_tail = other.long_tail;
+}
+
+void Hypermet::force_defaults(const Hypermet& other)
+{
+  width_ = other.width_;
+  short_tail = other.short_tail;
+  right_tail = other.right_tail;
+  long_tail = other.long_tail;
+}
+
+Hypermet Hypermet::gaussian_only() const
+{
+  Hypermet ret = *this;
+  ret.short_tail.override = true;
+  ret.short_tail.enabled = false;
+  ret.right_tail.override = true;
+  ret.right_tail.enabled = false;
+  ret.long_tail.override = true;
+  ret.long_tail.enabled = false;
+  ret.step.override = true;
+  ret.step.enabled = false;
+  return ret;
+}
+
+bool Hypermet::is_gaussian_only() const
+{
+  return (!short_tail.enabled && !right_tail.enabled && !long_tail.enabled && !step.enabled);
+}
+
+bool Hypermet::sanity_check(double min_x, double max_x) const
+{
+  auto amp = amplitude.val();
+  auto wid = width_.val();
+  auto pos = position.val();
+  return std::isfinite(amp) && (amp > 0.0) &&
+      std::isfinite(wid) && (wid > 0.0) &&
+      std::isfinite(pos) && (min_x < pos) && (pos < max_x);
+}
 
 double Hypermet::peak_position() const
 {
@@ -53,7 +116,6 @@ double Hypermet::peak_energy_unc(const DAQuiri::Calibration& cal) const
   // \todo wrong!
   return 1;
 }
-
 
 bool Hypermet::full_energy_peak() const
 {
@@ -166,7 +228,6 @@ void Hypermet::get_uncerts(const std::vector<double>& diagonals, double chisq_no
   step.get_uncerts(diagonals, chisq_norm);
 }
 
-
 PrecalcVals Hypermet::precalc_vals(double chan) const
 {
   PrecalcVals ret;
@@ -225,7 +286,6 @@ Hypermet::Components Hypermet::eval_at(double chan, const std::vector<double>& f
   return ret;
 }
 
-
 Hypermet::Components Hypermet::eval_grad(double chan, std::vector<double>& grads) const
 {
   Hypermet::Components ret;
@@ -260,9 +320,8 @@ Hypermet::Components Hypermet::eval_grad(double chan, std::vector<double>& grads
   return ret;
 }
 
-
 Hypermet::Components Hypermet::eval_grad_at(double chan, const std::vector<double>& fit,
-    std::vector<double>& grads) const
+                                            std::vector<double>& grads) const
 {
   Hypermet::Components ret;
 
@@ -276,19 +335,19 @@ Hypermet::Components Hypermet::eval_grad_at(double chan, const std::vector<doubl
 
   if (short_tail.enabled)
     ret.short_tail = short_tail.eval_grad_at(pre, fit, grads,
-                                          width_.x_index, position.x_index, amplitude.x_index);
+                                             width_.x_index, position.x_index, amplitude.x_index);
 
   if (right_tail.enabled)
     ret.right_tail = short_tail.eval_grad_at(pre, fit, grads,
-                                          width_.x_index, position.x_index, amplitude.x_index);
+                                             width_.x_index, position.x_index, amplitude.x_index);
 
   if (long_tail.enabled)
     ret.long_tail = long_tail.eval_grad_at(pre, fit, grads,
-                                        width_.x_index, position.x_index, amplitude.x_index);
+                                           width_.x_index, position.x_index, amplitude.x_index);
 
   if (step.enabled)
     ret.step = step.eval_grad_at(pre, fit, grads,
-        width_.x_index, position.x_index, amplitude.x_index);
+                                 width_.x_index, position.x_index, amplitude.x_index);
 
   grads[width_.x_index] *= width_.grad_at(fit[width_.x_index]);
   grads[amplitude.x_index] *= amplitude.grad_at(fit[amplitude.x_index]);
@@ -334,8 +393,6 @@ void from_json(const nlohmann::json& j, Hypermet& s)
   s.long_tail = j["long_tail"];
   s.step = j["step"];
 }
-
-
 
 }
 

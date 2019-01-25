@@ -12,7 +12,7 @@ Region::Region(const DAQuiri::Finder& finder)
   if (finder_.x_.empty())
     throw std::runtime_error("Attempting to construct Region from empty sample");
 
-  background.bin_offset = finder_.x_.front();
+  background.x_offset = finder_.x_.front();
 
   default_peak_.width_.bound(0.8, 4.0);
 

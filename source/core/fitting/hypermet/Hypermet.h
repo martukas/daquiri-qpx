@@ -24,23 +24,14 @@ class Hypermet
     double all() const;
   };
 
-  // These are unique to peak
-  Value position;
-  ValueGam amplitude;
+  Hypermet();
+  void apply_defaults(const Hypermet& other);
+  void force_defaults(const Hypermet& other);
 
-  // By default these are not unique to peak
-  bool width_override{false};
-  Value width_;
+  Hypermet gaussian_only() const;
+  bool is_gaussian_only() const;
 
-  // \todo why skew naming different?
-
-  // skews (part of peak)
-  Tail short_tail {Side::left};
-  Tail right_tail {Side::right};
-
-  // step & tail (background)
-  Tail long_tail {Side::left};
-  Step step;
+  bool sanity_check(double min_x, double max_x) const;
 
   bool full_energy_peak() const;
   void full_energy_peak(bool flag);
@@ -67,12 +58,29 @@ class Hypermet
 
   Components eval(double chan) const;
   Components eval_at(double chan, const std::vector<double>& fit) const;
-
   Components eval_grad(double chan, std::vector<double>& grads) const;
   Components eval_grad_at(double chan, const std::vector<double>& fit,
       std::vector<double>& grads) const;
 
   std::string to_string() const;
+
+  // These are unique to peak
+  Value position;
+  ValueGam amplitude;
+
+  // By default these are not unique to peak
+  bool width_override{false};
+  Value width_;
+
+  // \todo why skew naming different?
+
+  // skews (part of peak)
+  Tail short_tail {Side::left};
+  Tail right_tail {Side::right};
+
+  // step & tail (background)
+  Tail long_tail {Side::left};
+  Step step;
 };
 
 void to_json(nlohmann::json& j, const Hypermet& s);
