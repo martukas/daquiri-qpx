@@ -1,8 +1,11 @@
 #pragma once
 
 #include <core/calibration/polynomial.h>
-#include <core/fitting/hypermet.h>
 #include <core/fitting/sum4.h>
+
+//#include <core/fitting/hypermet.h>
+#include <core/fitting/hypermet/Peak.h>
+
 #include <set>
 
 namespace DAQuiri {
@@ -14,7 +17,7 @@ public:
   Peak(const nlohmann::json& j, const Finder &fs,
        const SUM4Edge& LB, const SUM4Edge& RB);
 
-  Peak(const Hypermet &hyp, const SUM4 &s4, const FitSettings &fs);
+  Peak(const Hypermet::Peak &hyp, const SUM4 &s4, const FitSettings &fs);
 
   void reconstruct(FitSettings fs);
 
@@ -24,7 +27,7 @@ public:
   double efficiency_relative_ {0.0};
 
   const SUM4     &sum4() const { return sum4_;}
-  const Hypermet &hypermet() const { return hypermet_;}
+  const Hypermet::Peak &hypermet() const { return hypermet_;}
 
   const double &center() const {return center_;}
   const double &energy() const {return energy_;}
@@ -49,9 +52,11 @@ public:
 
   friend void to_json(nlohmann::json& j, const Peak &s);
 
-private:
+  Hypermet::Peak hypermet_;
+
+ private:
   SUM4 sum4_;
-  Hypermet hypermet_;
+//  Hypermet hypermet_;
 
   // \todo use uncertain type
   double center_, energy_;

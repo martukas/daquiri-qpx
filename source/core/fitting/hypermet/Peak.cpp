@@ -280,6 +280,45 @@ Peak::Components Peak::eval_grad_at(double chan, const std::vector<double>& fit,
   return ret;
 }
 
+std::string Peak::to_string() const
+{
+  std::stringstream ss;
+  ss << "pos = " << position.to_string() << "\n";
+  ss << "amp = " << amplitude.to_string() << "\n";
+  ss << "width" << (width_override ? "(OVERRIDEN) = " : " = ")
+     << position.to_string() << "\n";
+  ss << "left_skew = " << short_tail.to_string() << "\n";
+  ss << "right_skew = " << right_tail.to_string() << "\n";
+  ss << "long_tail = " << long_tail.to_string() << "\n";
+  ss << "step = " << step.to_string() << "\n";
+  return ss.str();
+}
+
+void to_json(nlohmann::json& j, const Peak& s)
+{
+  j["position"] = s.position;
+  j["amplitude"] = s.amplitude;
+  j["width_override"] = s.width_override;
+  j["width"] = s.width_;
+  j["short_tail"] = s.short_tail;
+  j["right_tail"] = s.right_tail;
+  j["long_tail"] = s.long_tail;
+  j["step"] = s.step;
+}
+
+void from_json(const nlohmann::json& j, Peak& s)
+{
+  s.position = j["position"];
+  s.amplitude = j["amplitude"];
+  s.width_override = j["width_override"];
+  s.width_ = j["width"];
+  s.short_tail = j["short_tail"];
+  s.right_tail = j["right_tail"];
+  s.long_tail = j["long_tail"];
+  s.step = j["step"];
+}
+
+
 
 }
 

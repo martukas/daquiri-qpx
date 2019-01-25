@@ -6,44 +6,13 @@
 namespace Hypermet
 {
 
-//Region::Region(CSpectrum& spe, size_t from_channel, size_t to_channel)
-//    : spectrum(spe)
-//      , first_channel(std::min(from_channel, to_channel))
-//      , last_channel(std::max(from_channel, to_channel))
-//{
-//  // \todo validate region bounds
-//
-//  background_slope_.to_fit = true;
-//  background_curve_.to_fit = true;
-//
-//  default_peak_.width_.bound(0.8, 4.0);
-//
-//  default_peak_.short_tail.amplitude.bound(0.02, 1.5);
-//  default_peak_.short_tail.amplitude.to_fit = true;
-//  default_peak_.short_tail.slope.bound(0.2, 0.5);
-//  default_peak_.short_tail.slope.to_fit = true;
-//
-//  default_peak_.right_tail.amplitude.bound(0.01, 0.9);
-//  default_peak_.right_tail.amplitude.to_fit = true;
-//  default_peak_.right_tail.slope.bound(0.3, 1.5);
-//  default_peak_.right_tail.slope.to_fit = true;
-//
-//  default_peak_.long_tail.amplitude.bound(0.0001, 0.15);
-//  default_peak_.long_tail.amplitude.to_fit = true;
-//  default_peak_.long_tail.slope.bound(2.5, 50);
-//  default_peak_.long_tail.slope.to_fit = true;
-//
-//  default_peak_.step.amplitude.bound(0.000001, 0.05);
-//  default_peak_.step.amplitude.to_fit = true;
-//
-//  //  SearchPeaks(); avoid this for the sake of batch fitting
-//}
-
 Region::Region(const DAQuiri::Finder& finder)
   : finder_(finder)
 {
-  background_slope_.to_fit = true;
-  background_curve_.to_fit = true;
+  if (finder_.x_.empty())
+    throw std::runtime_error("Attempting to construct Region from empty sample");
+
+  background.bin_offset = finder_.x_.front();
 
   default_peak_.width_.bound(0.8, 4.0);
 
@@ -65,19 +34,6 @@ Region::Region(const DAQuiri::Finder& finder)
   default_peak_.step.amplitude.bound(0.000001, 0.05);
   default_peak_.step.amplitude.to_fit = true;
 }
-
-
-//bool Region::step() const
-//{
-//  return step_enabled_;
-//}
-//
-//void Region::step(bool enable)
-//{
-//  step_enabled_ = enable;
-//  step_amplitude_.to_fit = enable;
-//}
-
 
 void Region::add_peak(double position, double min, double max, double amplitude)
 {
@@ -170,17 +126,7 @@ void Region::map_fit()
   }
 
   var_count_ = 0;
-  background_base_.x_index = var_count_++;
-
-  if (slope_enabled_)
-    background_slope_.x_index = var_count_++;
-  else
-    background_slope_.x_index = -1;
-
-  if (curve_enabled_)
-    background_curve_.x_index = var_count_++;
-  else
-    background_curve_.x_index = -1;
+  background.update_indices(var_count_);
 
   if (unique_widths < peaks_.size())
     default_peak_.width_.x_index = var_count_++;
@@ -217,11 +163,7 @@ std::vector<double> Region::variables() const
   std::vector<double> ret;
   ret.resize(fit_var_count(), 0.0);
 
-  background_base_.put(ret);
-
-  background_slope_.put(ret);
-  background_curve_.put(ret);
-
+  background.put(ret);
   default_peak_.put(ret);
 
   // \todo copy defaults
@@ -233,11 +175,7 @@ std::vector<double> Region::variables() const
 
 void Region::save_fit(const std::vector<double>& variables)
 {
-  background_base_.get(variables);
-
-  background_slope_.get(variables);
-  background_curve_.get(variables);
-
+  background.get(variables);
   default_peak_.get(variables);
 
   for (auto& p : peaks_)
@@ -257,15 +195,11 @@ void Region::save_fit_uncerts(const FitResult& result)
 
   double chisq_norm = std::max(chi_sq_normalized(), 1.0) * 0.5;
 
-  background_base_.get_uncert(result.variables, chisq_norm);
-
-  background_slope_.get_uncert(result.variables, chisq_norm);
-  background_curve_.get_uncert(result.variables, chisq_norm);
-
-  default_peak_.get_uncerts(result.variables, chisq_norm);
+  background.get_uncerts(diagonals, chisq_norm);
+  default_peak_.get_uncerts(diagonals, chisq_norm);
 
   for (auto& p : peaks_)
-    p.get_uncerts(result.variables, chisq_norm);
+    p.get_uncerts(diagonals, chisq_norm);
 }
 
 double Region::chi_sq_normalized() const
@@ -279,19 +213,14 @@ double Region::degrees_of_freedom() const
   return (finder_.x_.size() - fit_var_count());
 }
 
+//Calculates the Chi-square over a region
 double Region::chi_sq() const
 {
-  //Calculates the Chi-square over a region
   double ChiSq = 0;
 
   for (size_t pos = 0; pos < finder_.x_.size(); ++pos)
   {
-    // Background
-    double FTotal = background_base_.val();
-    if (slope_enabled_)
-      FTotal += background_slope_.val() * (pos - finder_.x_.front());
-    if (curve_enabled_)
-      FTotal += background_curve_.val() * square(pos - finder_.x_.front());
+    double FTotal = background.eval(pos);
 
     for (auto& p : peaks_)
     {
@@ -305,26 +234,9 @@ double Region::chi_sq() const
 }
 
 
+//Calculates the Chi-square and its gradient
 double Region::grad_chi_sq(std::vector<double>& gradients) const
 {
-  //Calculates the Chi-square and its gradient
-
-  /*if(DiffType = 2)
-  {
-      Call dfunc2(reg, XVector, XGradient, Chisq)
-      Exit Sub
-  }
-
-  if(DiffType = 3)
-  {
-      Call dfunc3(reg, XVector, XGradient, Chisq)
-      Exit Sub
-  }*/
-
-  //Dim XGradient2(XGradient.GetLength(0) - 1) As Double, Chisq2 As Double
-  //dfunc2(reg, XVector, XGradient2, Chisq2)
-
-  // zero-out arrays
   gradients.assign(gradients.size(), 0.0);
   auto chan_gradients = gradients;
 
@@ -334,26 +246,12 @@ double Region::grad_chi_sq(std::vector<double>& gradients) const
   {
     chan_gradients.assign(chan_gradients.size(), 0.0);
 
-    //--- Poly Background ---
-    double FTotal = background_base_.val();
-    chan_gradients[background_base_.x_index] = background_base_.grad();
-    if (slope_enabled_)
-    {
-      FTotal += background_slope_.val() * (pos - finder_.x_.front());
-      chan_gradients[background_slope_.x_index] = (pos - finder_.x_.front());
-    }
-
-    if (curve_enabled_)
-    {
-      FTotal += background_curve_.val() * square(pos - finder_.x_.front());
-      chan_gradients[background_curve_.x_index] = square(pos - finder_.x_.front());
-    }
-
+    double FTotal = background.eval_grad(pos, chan_gradients);
     for (auto& p : peaks_)
     {
       auto ret = p.eval_grad(pos, chan_gradients);
       FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
-    } //Peak
+    }
 
     double t3 = -2.0 * (finder_.y_[pos] - FTotal) / square(finder_.y_weight_true[pos]);
     for (size_t var = 0; var < fit_var_count(); ++var)
@@ -365,52 +263,29 @@ double Region::grad_chi_sq(std::vector<double>& gradients) const
   return Chisq;
 }
 
+//Calculates the Chi-square over a region
 double Region::chi_sq(const std::vector<double>& fit) const
 {
-  //Calculates the Chi-square over a region
   double ChiSq = 0;
 
   for (size_t pos = 0; pos < finder_.x_.size(); ++pos)
   {
-    // Background
-    double FTotal = background_base_.val_at(fit[background_base_.x_index]);
-    if (slope_enabled_)
-      FTotal += background_slope_.val_at(fit[background_slope_.x_index]) * (pos - finder_.x_.front());
-    if (curve_enabled_)
-      FTotal += background_curve_.val_at(fit[background_curve_.x_index]) * square(pos - finder_.x_.front());
-
+    double FTotal = background.eval_at(pos, fit);
     for (auto& p : peaks_)
     {
       auto ret = p.eval_at(pos, fit);
       FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
     }
     ChiSq += square((finder_.y_[pos] - FTotal) / finder_.y_weight_phillips_marlow[pos]);
-  } //Channel
+  }
 
   return ChiSq;
 }
 
+//Calculates the Chi-square and its gradient
 double Region::grad_chi_sq(const std::vector<double>& fit,
                            std::vector<double>& gradients) const
 {
-  //Calculates the Chi-square and its gradient
-
-  /*if(DiffType = 2)
-  {
-      Call dfunc2(reg, XVector, XGradient, Chisq)
-      Exit Sub
-  }
-
-  if(DiffType = 3)
-  {
-      Call dfunc3(reg, XVector, XGradient, Chisq)
-      Exit Sub
-  }*/
-
-  //Dim XGradient2(XGradient.GetLength(0) - 1) As Double, Chisq2 As Double
-  //dfunc2(reg, XVector, XGradient2, Chisq2)
-
-  // zero-out arrays
   gradients.assign(gradients.size(), 0.0);
   auto chan_gradients = gradients;
 
@@ -420,26 +295,12 @@ double Region::grad_chi_sq(const std::vector<double>& fit,
   {
     chan_gradients.assign(chan_gradients.size(), 0.0);
 
-    //--- Poly Background ---
-    double FTotal = background_base_.val_at(fit[background_base_.x_index]);
-    chan_gradients[background_base_.x_index] = background_base_.grad_at(fit[background_base_.x_index]);
-    if (slope_enabled_)
-    {
-      FTotal += background_slope_.val_at(fit[background_slope_.x_index]) * (pos - finder_.x_.front());
-      chan_gradients[background_slope_.x_index] = (pos - finder_.x_.front());
-    }
-
-    if (curve_enabled_)
-    {
-      FTotal += background_curve_.val_at(fit[background_curve_.x_index]) * square(pos - finder_.x_.front());
-      chan_gradients[background_curve_.x_index] = square(pos - finder_.x_.front());
-    }
-
+    double FTotal = background.eval_grad_at(pos, fit, chan_gradients);
     for (auto& p : peaks_)
     {
       auto ret = p.eval_grad_at(pos, fit, chan_gradients);
       FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
-    } //Peak
+    }
 
     double t3 = -2.0 * (finder_.y_[pos] - FTotal) / square(finder_.y_weight_phillips_marlow[pos]);
     for (size_t var = 0; var < fit_var_count(); ++var)

@@ -31,15 +31,21 @@ struct Tail
 
   double eval(const PrecalcVals& pre) const;
 
-  double eval_at(const PrecalcVals& pre, const std::vector<double> fit) const;
+  double eval_at(const PrecalcVals& pre, const std::vector<double>& fit) const;
 
   double eval_grad(const PrecalcVals& pre,
                    std::vector<double>& grads,
                    size_t i_width, size_t i_pos, size_t i_amp) const;
 
-  double eval_grad_at(const PrecalcVals& pre, const std::vector<double> fit,
+  double eval_grad_at(const PrecalcVals& pre, const std::vector<double>& fit,
                       std::vector<double>& grads,
                       size_t i_width, size_t i_pos, size_t i_amp) const;
+
+  std::string to_string() const;
 };
+
+void to_json(nlohmann::json& j, const Tail& s);
+void from_json(const nlohmann::json& j, Tail& s);
+
 
 }

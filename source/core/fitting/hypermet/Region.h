@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/fitting/hypermet/Peak.h>
+#include <core/fitting/hypermet/PolyBackground.h>
 #include <core/fitting/finder.h>
 
 #include <core/fitting/BFGS/Fittable.h>
@@ -46,14 +47,7 @@ class Region : public Fittable
  private:
   int32_t var_count_{0};
 
-  // background
-  ValueGam background_base_;
-
-  bool slope_enabled_{true};
-  ValueBkg background_slope_;
-
-  bool curve_enabled_{true};
-  ValueBkg background_curve_;
+  PolyBackground background;
 
   // peak
   Peak default_peak_;
@@ -66,7 +60,6 @@ class Region : public Fittable
   void save_fit(const std::vector<double>& variables);
   double chi_sq() const;
   double grad_chi_sq(std::vector<double>& gradients) const;
-
 };
 
 }

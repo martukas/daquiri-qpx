@@ -2,7 +2,7 @@
 
 #include <core/calibration/coef_function.h>
 #include <core/fitting/gaussian.h>
-#include <core/fitting/hypermet.h>
+//#include <core/fitting/hypermet.h>
 #include <memory>
 
 namespace DAQuiri

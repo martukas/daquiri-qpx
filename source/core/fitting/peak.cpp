@@ -11,7 +11,7 @@ Peak::Peak(const nlohmann::json& j, const Finder &f, const SUM4Edge &LB, const S
   reconstruct(f.settings_);
 }
 
-Peak::Peak(const Hypermet &hyp, const SUM4 &s4, const FitSettings &fs)
+Peak::Peak(const Hypermet::Peak &hyp, const SUM4 &s4, const FitSettings &fs)
   : hypermet_(hyp)
   , sum4_(s4)
 {
@@ -20,8 +20,8 @@ Peak::Peak(const Hypermet &hyp, const SUM4 &s4, const FitSettings &fs)
 
 void Peak::reconstruct(FitSettings fs)
 {
-  if (std::isfinite(hypermet_.height().value()) && (hypermet_.height().value() > 0)) {
-    center_ = hypermet_.center().value();
+  if (std::isfinite(hypermet_.amplitude.val()) && (hypermet_.amplitude.val() > 0)) {
+    center_ = hypermet_.amplitude.val();
   }
   else
     center_ = sum4_.centroid();
@@ -38,16 +38,16 @@ void Peak::reconstruct(FitSettings fs)
   energy_ = energyval; // \todo uncert = 0.5 * (emax - emin));
   //energy_.setSigFigs(center_.sigfigs());
 
-  if (std::isfinite(hypermet_.width().value()))
+  if (std::isfinite(hypermet_.width_.val()))
   {
-    double L = hypermet_.center().value() - hypermet_.width().value() * sqrt(log(2));
-    double R = hypermet_.center().value() + hypermet_.width().value() * sqrt(log(2));
-//    double dmax = (hypermet_.width().value() + hypermet_.width().value().uncertainty()) * sqrt(log(2));
-//    double dmin = (hypermet_.width().value() - hypermet_.width().value().uncertainty()) * sqrt(log(2));
-//    double Lmax = hypermet_.center().value() - dmax;
-//    double Rmax = hypermet_.center().value() + dmax;
-//    double Lmin = hypermet_.center().value() - dmin;
-//    double Rmin = hypermet_.center().value() + dmin;
+    double L = hypermet_.position.val() - hypermet_.width_.val() * sqrt(log(2));
+    double R = hypermet_.position.val() + hypermet_.width_.val() * sqrt(log(2));
+//    double dmax = (hypermet_.width_.val() + hypermet_.width_.val().uncertainty()) * sqrt(log(2));
+//    double dmin = (hypermet_.width_.val() - hypermet_.width_.val().uncertainty()) * sqrt(log(2));
+//    double Lmax = hypermet_.position.val() - dmax;
+//    double Rmax = hypermet_.position.val() + dmax;
+//    double Lmin = hypermet_.position.val() - dmin;
+//    double Rmin = hypermet_.position.val() + dmin;
     double val = fs.cali_nrg_.transform(R) - fs.cali_nrg_.transform(L);
 //    double max = fs.cali_nrg_.transform(Rmax) - fs.cali_nrg_.transform(Lmax);
 //    double min = fs.cali_nrg_.transform(Rmin) - fs.cali_nrg_.transform(Lmin);
@@ -73,7 +73,7 @@ void Peak::reconstruct(FitSettings fs)
   if (live_seconds > 0) {
     cps_hyp_  = area_hyp_ / live_seconds;
     cps_sum4_ = area_sum4_ / live_seconds;
-//    if (hypermet_.height_.value.finite() && (hypermet_.height_.value() > 0))
+//    if (hypermet_.height_.value.finite() && (hypermet_.height_.val() > 0))
 //      cps_best = cps_hyp;
 //    else
       cps_best_ = cps_sum4_;
@@ -136,7 +136,7 @@ void to_json(nlohmann::json& j, const Peak &s)
 {
   if (s.sum4_.peak_width())
     j["SUM4"] = s.sum4_;
-  if (s.hypermet_.height().value() > 0)
+  if (s.hypermet_.amplitude.val() > 0)
     j["hypermet"] = s.hypermet_;
 }
 

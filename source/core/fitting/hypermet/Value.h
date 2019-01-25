@@ -2,6 +2,8 @@
 
 #include <cinttypes>
 #include <vector>
+#include <nlohmann/json.hpp>
+
 
 namespace Hypermet
 {
@@ -12,7 +14,7 @@ class AbstractValue
   AbstractValue() = default;
   virtual ~AbstractValue() = default;
 
-  double uncert_value{0};
+  double uncert_value{0.0};
   int32_t x_index{-1};
   bool to_fit{true};
 
@@ -29,11 +31,14 @@ class AbstractValue
   void get(const std::vector<double>& fit);
   void get_uncert(const std::vector<double>& diagonals, double chisq_norm);
 
- private:
-  double x_{0};
-  double dx_{0};
-};
+  virtual std::string to_string() const;
+  friend void to_json(nlohmann::json& j, const AbstractValue& s);
+  friend void from_json(const nlohmann::json& j, AbstractValue& s);
 
+ private:
+  double x_{0.0};
+  double dx_{0.0};
+};
 
 class Value : public AbstractValue
 {
@@ -54,6 +59,10 @@ class Value : public AbstractValue
   void val(double new_val) override;
   double val_at(double at_x) const override;
   double grad_at(double at_x) const override;
+
+  std::string to_string() const override;
+  friend void to_json(nlohmann::json& j, const Value& s);
+  friend void from_json(const nlohmann::json& j, Value& s);
 
  private:
   double max_{1.0};
@@ -96,9 +105,14 @@ struct PrecalcVals
   double spread;
 };
 
-enum class Side {
+enum class Side
+{
   left,
   right
 };
+
+std::string side_to_string(const Side& s);
+Side side_from_string(const std::string& s);
+
 
 }

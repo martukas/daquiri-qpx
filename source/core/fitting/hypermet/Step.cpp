@@ -39,7 +39,7 @@ double Step::eval(const PrecalcVals& pre) const
   return eval_with(pre, amplitude.val());
 }
 
-double Step::eval_at(const PrecalcVals& pre, const std::vector<double> fit) const
+double Step::eval_at(const PrecalcVals& pre, const std::vector<double>& fit) const
 {
   return eval_with(pre, amplitude.val_at(fit[amplitude.x_index]));
 }
@@ -60,7 +60,7 @@ double Step::eval_grad(const PrecalcVals& pre, std::vector<double>& grads,
   return ret;
 }
 
-double Step::eval_grad_at(const PrecalcVals& pre, const std::vector<double> fit,
+double Step::eval_grad_at(const PrecalcVals& pre, const std::vector<double>& fit,
                           std::vector<double>& grads,
                           size_t i_width, size_t i_pos, size_t i_amp) const
 {
@@ -75,6 +75,32 @@ double Step::eval_grad_at(const PrecalcVals& pre, const std::vector<double> fit,
 
   // \todo pos unused?
   return ret;
+}
+
+std::string Step::to_string() const
+{
+  return fmt::format("{}{} {}  amp={}",
+                     enabled ? "ON" : "OFF",
+                     override ? " OVERRIDE" : "",
+                     side_to_string(side),
+                     amplitude.to_string());
+
+}
+
+void to_json(nlohmann::json& j, const Step& s)
+{
+  j["enabled"] = s.enabled;
+  j["override"] = s.override;
+  j["side"] = side_to_string(s.side);
+  j["amplitude"] = s.amplitude;
+}
+
+void from_json(const nlohmann::json& j, Step& s)
+{
+  s.enabled = j["enabled"];
+  s.override = j["override"];
+  s.side = side_from_string(j["side"]);
+  s.amplitude = j["amplitude"];
 }
 
 }

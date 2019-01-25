@@ -1,8 +1,432 @@
 #include <core/fitting/roi.h>
 #include <core/util/custom_logger.h>
 #include <core/util/timer.h>
+#include <core/util/more_math.h>
+
+#include <core/util/custom_logger.h>
 
 namespace DAQuiri {
+
+Fit::Fit(const SUM4Edge &lb, const SUM4Edge &rb,
+         const std::map<double, Peak> &peaks,
+         const Finder &finder,
+         std::string descr)
+         : finder_(finder)
+{
+  settings_ = finder.settings_;
+  //background_ = backg;
+  LB_ = lb;
+  RB_ = rb;
+  peaks_ = peaks;
+
+  description.description = descr;
+  description.peaknum = peaks_.size();
+  if (peaks_.size()) {
+    description.rsq = chi_sq_normalized();
+    // \todo use uncertan for these 2
+    double tot_gross {0.0};
+    double tot_back {0.0};
+    for (auto &p : peaks_)
+    {
+      tot_gross += p.second.sum4().gross_area();
+      tot_back  += p.second.sum4().background_area();
+      p.second.hr_peak_.clear();
+      p.second.hr_fullfit_.clear();
+    }
+    auto tot_net = tot_gross - tot_back;
+    // \todo reenable this
+    //description.sum4aggregate = tot_net.error();
+  }
+
+  // \todo only upon default creation!
+  background_slope_.to_fit = true;
+  background_curve_.to_fit = true;
+
+  default_peak_.hypermet_.width_.bound(0.8, 4.0);
+
+  default_peak_.hypermet_.short_tail.amplitude.bound(0.02, 1.5);
+  default_peak_.hypermet_.short_tail.amplitude.to_fit = true;
+  default_peak_.hypermet_.short_tail.slope.bound(0.2, 0.5);
+  default_peak_.hypermet_.short_tail.slope.to_fit = true;
+
+  default_peak_.hypermet_.right_tail.amplitude.bound(0.01, 0.9);
+  default_peak_.hypermet_.right_tail.amplitude.to_fit = true;
+  default_peak_.hypermet_.right_tail.slope.bound(0.3, 1.5);
+  default_peak_.hypermet_.right_tail.slope.to_fit = true;
+
+  default_peak_.hypermet_.long_tail.amplitude.bound(0.0001, 0.15);
+  default_peak_.hypermet_.long_tail.amplitude.to_fit = true;
+  default_peak_.hypermet_.long_tail.slope.bound(2.5, 50);
+  default_peak_.hypermet_.long_tail.slope.to_fit = true;
+
+  default_peak_.hypermet_.step.amplitude.bound(0.000001, 0.05);
+  default_peak_.hypermet_.step.amplitude.to_fit = true;
+}
+
+
+//bool Fit::step() const
+//{
+//  return step_enabled_;
+//}
+//
+//void Fit::step(bool enable)
+//{
+//  step_enabled_ = enable;
+//  step_amplitude_.to_fit = enable;
+//}
+
+
+//void Fit::add_peak(double position, double min, double max, double amplitude)
+//{
+//  peaks_.emplace_back();
+//
+//  peaks_.back().amplitude.val(amplitude);
+//  peaks_.back().amplitude.uncert_value = 0;
+//
+//  peaks_.back().position.val(position);
+//  peaks_.back().position.min(min);
+//  peaks_.back().position.max(max);
+//  peaks_.back().position.uncert_value = 0;
+//}
+
+double Fit::peak_area(size_t index) const
+{
+  return peaks_[index].area();
+}
+
+double Fit::peak_area_unc(size_t index) const
+{
+  // \todo make this more rigorous
+  return peaks_[index].area_uncert(chi_sq_normalized());
+}
+
+double Fit::peak_area_eff(size_t index, const Hypermet::Calibration& cal)
+{
+  double eff{1.0};
+  if (cal.efficiency.initialized())
+    eff = cal.efficiency.val(peaks_[index].hypermet().peak_energy(cal));
+  return peak_area(index) / eff;
+}
+
+double Fit::peak_area_eff_unc(size_t index, const Hypermet::Calibration& cal)
+{
+  double area = peak_area(index);
+  double eff{0.0};
+  double sigrel_eff{0.0};
+  if (cal.efficiency.initialized())
+  {
+    auto energy = peaks_[index].hypermet().peak_energy(cal);
+    eff = cal.efficiency.val(energy);
+    sigrel_eff = cal.efficiency.sigma_rel(energy);
+  }
+  return (square(std::sqrt(std::sqrt(area) / area)) + square(sigrel_eff)) *
+      (area / eff) * std::max(1.0, chi_sq_normalized());
+}
+
+void Fit::map_fit()
+{
+  size_t unique_widths{0};
+  size_t unique_short_tails{0};
+  size_t unique_right_tails{0};
+  size_t unique_long_tails{0};
+  size_t unique_steps{0};
+  for (auto& p : peaks_)
+  {
+    if (p.second.hypermet_.width_override)
+      unique_widths++;
+    if (p.second.hypermet_.short_tail.override)
+      unique_short_tails++;
+    if (p.second.hypermet_.right_tail.override)
+      unique_right_tails++;
+    if (p.second.hypermet_.long_tail.override)
+      unique_long_tails++;
+    if (p.second.hypermet_.step.override)
+      unique_steps++;
+  }
+
+  var_count_ = 0;
+  background_base_.x_index = var_count_++;
+
+  if (slope_enabled_)
+    background_slope_.x_index = var_count_++;
+  else
+    background_slope_.x_index = -1;
+
+  if (curve_enabled_)
+    background_curve_.x_index = var_count_++;
+  else
+    background_curve_.x_index = -1;
+
+  if (unique_widths < peaks_.size())
+    default_peak_.hypermet_.width_.x_index = var_count_++;
+  else
+    default_peak_.hypermet_.width_.x_index = -1;
+
+  if (default_peak_.hypermet_.short_tail.enabled &&
+      (unique_short_tails < peaks_.size()))
+    default_peak_.hypermet_.short_tail.update_indices(var_count_);
+
+  if (default_peak_.hypermet_.right_tail.enabled &&
+      (unique_right_tails < peaks_.size()))
+    default_peak_.hypermet_.right_tail.update_indices(var_count_);
+
+  if (default_peak_.hypermet_.long_tail.enabled &&
+      (unique_long_tails < peaks_.size()))
+    default_peak_.hypermet_.long_tail.update_indices(var_count_);
+
+  if (default_peak_.hypermet_.step.enabled &&
+      (unique_steps < peaks_.size()))
+    default_peak_.hypermet_.step.update_indices(var_count_);
+
+  for (auto& p : peaks_)
+    p.second.hypermet_.update_indices(var_count_);
+}
+
+size_t Fit::fit_var_count() const
+{
+  return static_cast<size_t>(var_count_);
+}
+
+std::vector<double> Fit::variables() const
+{
+  std::vector<double> ret;
+  ret.resize(fit_var_count(), 0.0);
+
+  background_base_.put(ret);
+
+  background_slope_.put(ret);
+  background_curve_.put(ret);
+
+  default_peak_.hypermet_.put(ret);
+
+  // \todo copy defaults
+  for (auto& p : peaks_)
+    p.second.hypermet_.put(ret);
+
+  return ret;
+}
+
+void Fit::save_fit(const std::vector<double>& variables)
+{
+  background_base_.get(variables);
+
+  background_slope_.get(variables);
+  background_curve_.get(variables);
+
+  default_peak_.hypermet_.get(variables);
+
+  for (auto& p : peaks_)
+    p.second.hypermet_.get(variables);
+}
+
+void Fit::save_fit_uncerts(const Hypermet::FitResult& result)
+{
+  save_fit(result.variables);
+
+  std::vector<double> diagonals;
+  diagonals.reserve(result.variables.size());
+
+  double df = degrees_of_freedom();
+  for (size_t i = 0; i < result.variables.size(); ++i)
+    diagonals.push_back(result.inv_hessian.coeff(i, i) * df);
+
+  double chisq_norm = std::max(chi_sq_normalized(), 1.0) * 0.5;
+
+  background_base_.get_uncert(result.variables, chisq_norm);
+
+  background_slope_.get_uncert(result.variables, chisq_norm);
+  background_curve_.get_uncert(result.variables, chisq_norm);
+
+  default_peak_.hypermet_.get_uncerts(result.variables, chisq_norm);
+
+  for (auto& p : peaks_)
+    p.second.hypermet_.get_uncerts(result.variables, chisq_norm);
+}
+
+double Fit::chi_sq_normalized() const
+{
+  return chi_sq() / degrees_of_freedom();
+}
+
+double Fit::degrees_of_freedom() const
+{
+  // \todo what if channel range is < fit_var_count?
+  return (finder_.x_.size() - fit_var_count());
+}
+
+double Fit::chi_sq() const
+{
+  //Calculates the Chi-square over a region
+  double ChiSq = 0;
+
+  for (size_t pos = 0; pos < finder_.x_.size(); ++pos)
+  {
+    // Background
+    double FTotal = background_base_.val();
+    if (slope_enabled_)
+      FTotal += background_slope_.val() * (pos - finder_.x_.front());
+    if (curve_enabled_)
+      FTotal += background_curve_.val() * square(pos - finder_.x_.front());
+
+    for (auto& p : peaks_)
+    {
+      auto ret = p.second.hypermet_.eval(pos);
+      FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
+    }
+    ChiSq += square((finder_.y_[pos] - FTotal) / finder_.y_weight_true[pos]);
+  } //Channel
+
+  return ChiSq;
+}
+
+
+double Fit::grad_chi_sq(std::vector<double>& gradients) const
+{
+  //Calculates the Chi-square and its gradient
+
+  /*if(DiffType = 2)
+  {
+      Call dfunc2(reg, XVector, XGradient, Chisq)
+      Exit Sub
+  }
+
+  if(DiffType = 3)
+  {
+      Call dfunc3(reg, XVector, XGradient, Chisq)
+      Exit Sub
+  }*/
+
+  //Dim XGradient2(XGradient.GetLength(0) - 1) As Double, Chisq2 As Double
+  //dfunc2(reg, XVector, XGradient2, Chisq2)
+
+  // zero-out arrays
+  gradients.assign(gradients.size(), 0.0);
+  auto chan_gradients = gradients;
+
+  double Chisq = 0;
+
+  for (size_t pos = 0; pos < finder_.x_.size(); ++pos)
+  {
+    chan_gradients.assign(chan_gradients.size(), 0.0);
+
+    //--- Poly Background ---
+    double FTotal = background_base_.val();
+    chan_gradients[background_base_.x_index] = background_base_.grad();
+    if (slope_enabled_)
+    {
+      FTotal += background_slope_.val() * (pos - finder_.x_.front());
+      chan_gradients[background_slope_.x_index] = (pos - finder_.x_.front());
+    }
+
+    if (curve_enabled_)
+    {
+      FTotal += background_curve_.val() * square(pos - finder_.x_.front());
+      chan_gradients[background_curve_.x_index] = square(pos - finder_.x_.front());
+    }
+
+    for (auto& p : peaks_)
+    {
+      auto ret = p.second.hypermet_.eval_grad(pos, chan_gradients);
+      FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
+    } //Peak
+
+    double t3 = -2.0 * (finder_.y_[pos] - FTotal) / square(finder_.y_weight_true[pos]);
+    for (size_t var = 0; var < fit_var_count(); ++var)
+      gradients[var] += chan_gradients[var] * t3;
+    Chisq += square((finder_.y_[pos] - FTotal) / finder_.y_weight_true[pos]);
+  }
+  //Chisq /= df
+
+  return Chisq;
+}
+
+double Fit::chi_sq(const std::vector<double>& fit) const
+{
+  //Calculates the Chi-square over a region
+  double ChiSq = 0;
+
+  for (size_t pos = 0; pos < finder_.x_.size(); ++pos)
+  {
+    // Background
+    double FTotal = background_base_.val_at(fit[background_base_.x_index]);
+    if (slope_enabled_)
+      FTotal += background_slope_.val_at(fit[background_slope_.x_index]) * (pos - finder_.x_.front());
+    if (curve_enabled_)
+      FTotal += background_curve_.val_at(fit[background_curve_.x_index]) * square(pos - finder_.x_.front());
+
+    for (auto& p : peaks_)
+    {
+      auto ret = p.second.hypermet_.eval_at(pos, fit);
+      FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
+    }
+    ChiSq += square((finder_.y_[pos] - FTotal) / finder_.y_weight_phillips_marlow[pos]);
+  } //Channel
+
+  return ChiSq;
+}
+
+double Fit::grad_chi_sq(const std::vector<double>& fit,
+                           std::vector<double>& gradients) const
+{
+  //Calculates the Chi-square and its gradient
+
+  /*if(DiffType = 2)
+  {
+      Call dfunc2(reg, XVector, XGradient, Chisq)
+      Exit Sub
+  }
+
+  if(DiffType = 3)
+  {
+      Call dfunc3(reg, XVector, XGradient, Chisq)
+      Exit Sub
+  }*/
+
+  //Dim XGradient2(XGradient.GetLength(0) - 1) As Double, Chisq2 As Double
+  //dfunc2(reg, XVector, XGradient2, Chisq2)
+
+  // zero-out arrays
+  gradients.assign(gradients.size(), 0.0);
+  auto chan_gradients = gradients;
+
+  double Chisq = 0;
+
+  for (size_t pos = 0; pos < finder_.x_.size(); ++pos)
+  {
+    chan_gradients.assign(chan_gradients.size(), 0.0);
+
+    //--- Poly Background ---
+    double FTotal = background_base_.val_at(fit[background_base_.x_index]);
+    chan_gradients[background_base_.x_index] = background_base_.grad_at(fit[background_base_.x_index]);
+    if (slope_enabled_)
+    {
+      FTotal += background_slope_.val_at(fit[background_slope_.x_index]) * (pos - finder_.x_.front());
+      chan_gradients[background_slope_.x_index] = (pos - finder_.x_.front());
+    }
+
+    if (curve_enabled_)
+    {
+      FTotal += background_curve_.val_at(fit[background_curve_.x_index]) * square(pos - finder_.x_.front());
+      chan_gradients[background_curve_.x_index] = square(pos - finder_.x_.front());
+    }
+
+    for (auto& p : peaks_)
+    {
+      auto ret = p.second.hypermet_.eval_grad_at(pos, fit, chan_gradients);
+      FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
+    } //Peak
+
+    double t3 = -2.0 * (finder_.y_[pos] - FTotal) / square(finder_.y_weight_phillips_marlow[pos]);
+    for (size_t var = 0; var < fit_var_count(); ++var)
+      gradients[var] += chan_gradients[var] * t3;
+    Chisq += square((finder_.y_[pos] - FTotal) / finder_.y_weight_phillips_marlow[pos]);
+  }
+  //Chisq /= df
+
+  return Chisq;
+}
+
+
 
 ROI::ROI(const Finder &parentfinder, double min, double max)
 {
@@ -72,7 +496,7 @@ void ROI::set_data(const Finder &parentfinder, double l, double r)
   render();
 }
 
-bool ROI::refit(OptimizerPtr optimizer, std::atomic<bool>& interruptor)
+bool ROI::refit(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   if (peaks_.empty())
     return auto_fit(optimizer, interruptor);
@@ -85,7 +509,7 @@ bool ROI::refit(OptimizerPtr optimizer, std::atomic<bool>& interruptor)
 }
 
 
-bool ROI::auto_fit(OptimizerPtr optimizer, std::atomic<bool>& interruptor)
+bool ROI::auto_fit(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   peaks_.clear();
   finder_.y_resid_ = finder_.y_;
@@ -138,7 +562,7 @@ bool ROI::auto_fit(OptimizerPtr optimizer, std::atomic<bool>& interruptor)
   return true;
 }
 
-void ROI::iterative_fit(OptimizerPtr optimizer, std::atomic<bool>& interruptor)
+void ROI::iterative_fit(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   if (!finder_.settings_.cali_fwhm_.valid() || peaks_.empty())
     return;
@@ -173,7 +597,7 @@ void ROI::iterative_fit(OptimizerPtr optimizer, std::atomic<bool>& interruptor)
   }
 }
 
-bool ROI::add_from_resid(OptimizerPtr optimizer, std::atomic<bool>& interruptor, int32_t centroid_hint)
+bool ROI::add_from_resid(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor, int32_t centroid_hint)
 {
   if (finder_.filtered.empty())
     return false;
@@ -323,7 +747,7 @@ bool ROI::adjust_sum4(double &peakID, double left, double right)
 }
 
 
-bool ROI::replace_hypermet(double &peakID, Hypermet hyp)
+bool ROI::replace_hypermet(double &peakID, Hypermet::Peak hyp)
 {
   if (!contains(peakID))
     return false;
@@ -356,7 +780,7 @@ bool ROI::override_energy(double peakID, double energy)
 
 bool ROI::add_peak(const Finder &parentfinder,
                    double left, double right,
-                   OptimizerPtr optimizer,
+                   Hypermet::BFGS& optimizer,
                    std::atomic<bool>& interruptor)
 {
   uint16_t center_prelim = (left+right) * 0.5; //assume down the middle
@@ -418,7 +842,7 @@ bool ROI::add_peak(const Finder &parentfinder,
   return false;
 }
 
-bool ROI::remove_peaks(const std::set<double> &pks, OptimizerPtr optimizer, std::atomic<bool>& interruptor)
+bool ROI::remove_peaks(const std::set<double> &pks, Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   bool found = false;
   for (auto &q : pks)
@@ -449,45 +873,12 @@ bool ROI::override_settings(const FitSettings &fs, std::atomic<bool>& interrupto
 {
   finder_.settings_ = fs;
   finder_.settings_.overriden = true; //do this in fitter if different?
-  save_current_fit("Region settings overriden");
+  save_current_fit("Fit settings overriden");
 
   //propagate to peaks
 
   //render if calibs changed?
   return true;
-}
-
-
-Fit::Fit(const SUM4Edge &lb, const SUM4Edge &rb,
-         const Polynomial &backg,
-         const std::map<double, Peak> &peaks,
-         const Finder &finder,
-         std::string descr)
-{
-  settings_ = finder.settings_;
-  background_ = backg;
-  LB_ = lb;
-  RB_ = rb;
-  peaks_ = peaks;
-
-  description.description = descr;
-  description.peaknum = peaks_.size();
-  if (peaks_.size()) {
-    description.rsq = peaks_.begin()->second.hypermet().chi2();
-    // \todo use uncertan for these 2
-    double tot_gross {0.0};
-    double tot_back {0.0};
-    for (auto &p : peaks_)
-    {
-      tot_gross += p.second.sum4().gross_area();
-      tot_back  += p.second.sum4().background_area();
-      p.second.hr_peak_.clear();
-      p.second.hr_fullfit_.clear();
-    }
-    auto tot_net = tot_gross - tot_back;
-    // \todo reenable this
-    //description.sum4aggregate = tot_net.error();
-  }
 }
 
 void ROI::save_current_fit(std::string description)
@@ -498,7 +889,7 @@ void ROI::save_current_fit(std::string description)
   current_fit_ = fits_.size() - 1;
 }
 
-bool ROI::rebuild(OptimizerPtr optimizer, std::atomic<bool>& interruptor)
+bool ROI::rebuild(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   hr_x.clear();
   hr_x_nrg.clear();
@@ -527,7 +918,7 @@ bool ROI::rebuild(OptimizerPtr optimizer, std::atomic<bool>& interruptor)
   return true;
 }
 
-bool ROI::rebuild_as_hypermet(OptimizerPtr optimizer, std::atomic<bool>& interruptor)
+bool ROI::rebuild_as_hypermet(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   Timer timer(true);
 
@@ -570,7 +961,7 @@ bool ROI::rebuild_as_hypermet(OptimizerPtr optimizer, std::atomic<bool>& interru
   return true;
 }
 
-bool ROI::rebuild_as_gaussian(OptimizerPtr optimizer, std::atomic<bool>& interruptor)
+bool ROI::rebuild_as_gaussian(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   Timer timer(true);
 
@@ -683,7 +1074,7 @@ std::vector<double> ROI::remove_background()
 }
 
 bool ROI::adjust_LB(const Finder &parentfinder, double left, double right,
-                     OptimizerPtr optimizer, std::atomic<bool>& interruptor)
+                     Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   size_t Lidx = parentfinder.find_index(left);
   size_t Ridx = parentfinder.find_index(right);
@@ -707,7 +1098,7 @@ bool ROI::adjust_LB(const Finder &parentfinder, double left, double right,
 }
 
 bool ROI::adjust_RB(const Finder &parentfinder, double left, double right,
-                    OptimizerPtr optimizer, std::atomic<bool>& interruptor) {
+                    Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor) {
   size_t Lidx = parentfinder.find_index(left);
   size_t Ridx = parentfinder.find_index(right);
   if (Lidx >= Ridx)

@@ -44,6 +44,30 @@ void AbstractValue::get_uncert(const std::vector<double>& diagonals, double chis
     uncert_value = std::sqrt(std::abs(diagonals[x_index] * this->grad() * chisq_norm));
 }
 
+std::string AbstractValue::to_string() const
+{
+  return fmt::format("{}+-{}(x={},i={}{})",
+      val(), uncert_value, x_, x_index,
+      to_fit ? " fit" : "");
+}
+
+void to_json(nlohmann::json& j, const AbstractValue& s)
+{
+  j["x"] = s.x_;
+  j["x_index"] = s.x_index;
+  j["to_fit"] = s.to_fit;
+  j["uncert_value"] = s.uncert_value;
+}
+
+void from_json(const nlohmann::json& j, AbstractValue& s)
+{
+  s.x_ = j["x"];
+  s.x_index = j["x_index"];
+  s.to_fit = j["to_fit"];
+  s.uncert_value = j["uncert_value"];
+}
+
+
 
 
 double Value::max() const
@@ -109,6 +133,31 @@ double Value::grad_at(double at_x) const
   return (max_ - min_) * std::cos(at_x) / 2.0;
 }
 
+std::string Value::to_string() const
+{
+  return fmt::format("{} [{},{}]", AbstractValue::to_string(), min_, max_);
+}
+
+void to_json(nlohmann::json& j, const Value& s)
+{
+  j["x"] = s.x();
+  j["x_index"] = s.x_index;
+  j["to_fit"] = s.to_fit;
+  j["uncert_value"] = s.uncert_value;
+  j["min"] = s.min();
+  j["max"] = s.max();
+}
+
+void from_json(const nlohmann::json& j, Value& s)
+{
+  s.x(j["x"]);
+  s.x_index = j["x_index"];
+  s.to_fit = j["to_fit"];
+  s.uncert_value = j["uncert_value"];
+  s.min(j["min"]);
+  s.max(j["max"]);
+}
+
 
 
 void ValueGam::val(double new_val)
@@ -143,5 +192,22 @@ double ValueBkg::grad_at(double at_x) const
   (void) at_x;
   return 1.0;
 }
+
+std::string side_to_string(const Side& s)
+{
+  if (s == Side::right)
+    return "right";
+  else
+    return "left";
+}
+
+Side side_from_string(const std::string& s)
+{
+  if (s == "right")
+    return Side::right;
+  else
+    return Side::left;
+}
+
 
 }

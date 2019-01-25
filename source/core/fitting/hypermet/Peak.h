@@ -67,6 +67,11 @@ class Peak
   Components eval_grad(double chan, std::vector<double>& grads) const;
   Components eval_grad_at(double chan, const std::vector<double>& fit,
       std::vector<double>& grads) const;
+
+  std::string to_string() const;
 };
+
+void to_json(nlohmann::json& j, const Peak& s);
+void from_json(const nlohmann::json& j, Peak& s);
 
 }
