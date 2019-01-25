@@ -18,6 +18,10 @@ class Peak
     double right_tail{0};
     double long_tail{0};
     double step{0};
+
+    double peak_skews() const;
+    double step_tail() const;
+    double all() const;
   };
 
   // These are unique to peak

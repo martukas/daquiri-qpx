@@ -6,6 +6,23 @@
 namespace Hypermet
 {
 
+double Peak::Components::peak_skews() const
+{
+  return gaussian + short_tail + right_tail;
+}
+
+double Peak::Components::step_tail() const
+{
+  return long_tail + step;
+}
+
+double Peak::Components::all() const
+{
+  return peak_skews() + step_tail();
+}
+
+
+
 double Peak::peak_position() const
 {
   return position.val();

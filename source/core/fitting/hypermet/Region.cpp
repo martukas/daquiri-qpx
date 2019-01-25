@@ -37,22 +37,11 @@ Region::Region(const DAQuiri::Finder& finder)
 
 void Region::add_peak(double position, double min, double max, double amplitude)
 {
-  // \todo this will be wrong in case of first peak
-  int32_t base_index = 0;
-  if (peaks_.size())
-    base_index = peaks_.back().amplitude.x_index;
-
   peaks_.emplace_back();
-
-  peaks_.back().amplitude.x_index = base_index + 2;
   peaks_.back().amplitude.val(amplitude);
-  peaks_.back().amplitude.uncert_value = 0;
-
-  peaks_.back().position.x_index = base_index + 3;
   peaks_.back().position.val(position);
   peaks_.back().position.min(min);
   peaks_.back().position.max(max);
-  peaks_.back().position.uncert_value = 0;
 }
 
 void Region::remove_peak(size_t index)
@@ -217,19 +206,13 @@ double Region::degrees_of_freedom() const
 double Region::chi_sq() const
 {
   double ChiSq = 0;
-
   for (size_t pos = 0; pos < finder_.x_.size(); ++pos)
   {
     double FTotal = background.eval(pos);
-
     for (auto& p : peaks_)
-    {
-      auto ret = p.eval(pos);
-      FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
-    }
+      FTotal += p.eval(pos).all();
     ChiSq += square((finder_.y_[pos] - FTotal) / finder_.y_weight_true[pos]);
-  } //Channel
-
+  }
   return ChiSq;
 }
 
@@ -248,10 +231,7 @@ double Region::grad_chi_sq(std::vector<double>& gradients) const
 
     double FTotal = background.eval_grad(pos, chan_gradients);
     for (auto& p : peaks_)
-    {
-      auto ret = p.eval_grad(pos, chan_gradients);
-      FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
-    }
+      FTotal += p.eval_grad(pos, chan_gradients).all();
 
     double t3 = -2.0 * (finder_.y_[pos] - FTotal) / square(finder_.y_weight_true[pos]);
     for (size_t var = 0; var < fit_var_count(); ++var)
@@ -267,18 +247,13 @@ double Region::grad_chi_sq(std::vector<double>& gradients) const
 double Region::chi_sq(const std::vector<double>& fit) const
 {
   double ChiSq = 0;
-
   for (size_t pos = 0; pos < finder_.x_.size(); ++pos)
   {
     double FTotal = background.eval_at(pos, fit);
     for (auto& p : peaks_)
-    {
-      auto ret = p.eval_at(pos, fit);
-      FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
-    }
+      FTotal += p.eval_at(pos, fit).all();
     ChiSq += square((finder_.y_[pos] - FTotal) / finder_.y_weight_phillips_marlow[pos]);
   }
-
   return ChiSq;
 }
 
@@ -297,10 +272,7 @@ double Region::grad_chi_sq(const std::vector<double>& fit,
 
     double FTotal = background.eval_grad_at(pos, fit, chan_gradients);
     for (auto& p : peaks_)
-    {
-      auto ret = p.eval_grad_at(pos, fit, chan_gradients);
-      FTotal += ret.gaussian + ret.step + ret.short_tail + ret.right_tail + ret.long_tail;
-    }
+      FTotal += p.eval_grad_at(pos, fit, chan_gradients).all();
 
     double t3 = -2.0 * (finder_.y_[pos] - FTotal) / square(finder_.y_weight_phillips_marlow[pos]);
     for (size_t var = 0; var < fit_var_count(); ++var)
