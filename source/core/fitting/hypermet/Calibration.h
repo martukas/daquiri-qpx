@@ -3,10 +3,10 @@
 #include <core/fitting/hypermet/EfficiencyCal.h>
 #include <core/fitting/hypermet/NonlinearityCal.h>
 
-namespace Hypermet
+namespace DAQuiri
 {
 
-class Calibration
+class HCalibration
 {
  public:
   struct CalPoint
@@ -23,7 +23,7 @@ class Calibration
   EfficiencyCal efficiency;
 
  public:
-  Calibration();
+  HCalibration();
 
   uint8_t order() const;
   void order(uint8_t new_order);

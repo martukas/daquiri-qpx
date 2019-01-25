@@ -2,7 +2,7 @@
 
 #include <core/fitting/hypermet/Value.h>
 
-namespace Hypermet
+namespace DAQuiri
 {
 
 struct PolyBackground

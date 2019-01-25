@@ -5,7 +5,7 @@
 
 #include <core/util/custom_logger.h>
 
-namespace Hypermet
+namespace DAQuiri
 {
 
 void NonlinearityCal::load(std::string flnm)

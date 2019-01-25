@@ -5,10 +5,10 @@
 #include <core/fitting/hypermet/Calibration.h>
 #include <core/calibration/calibration.h>
 
-namespace Hypermet
+namespace DAQuiri
 {
 
-class Peak
+class Hypermet
 {
  public:
   struct Components
@@ -44,7 +44,7 @@ class Peak
 
   bool full_energy_peak() const;
   void full_energy_peak(bool flag);
-  bool operator<(const Peak& other) const;
+  bool operator<(const Hypermet& other) const;
 
   void update_indices(int32_t& i);
   void put(std::vector<double>& fit) const;
@@ -53,11 +53,11 @@ class Peak
 
   double peak_position() const;
   double peak_position_unc() const;
+  double peak_energy(const HCalibration& cal) const;
+  double peak_energy_unc(const HCalibration& cal) const;
+
   double peak_energy(const Calibration& cal) const;
   double peak_energy_unc(const Calibration& cal) const;
-
-  double peak_energy(const DAQuiri::Calibration& cal) const;
-  double peak_energy_unc(const DAQuiri::Calibration& cal) const;
 
   double area() const;
   double area_uncert(double chisq_norm) const;
@@ -75,7 +75,7 @@ class Peak
   std::string to_string() const;
 };
 
-void to_json(nlohmann::json& j, const Peak& s);
-void from_json(const nlohmann::json& j, Peak& s);
+void to_json(nlohmann::json& j, const Hypermet& s);
+void from_json(const nlohmann::json& j, Hypermet& s);
 
 }

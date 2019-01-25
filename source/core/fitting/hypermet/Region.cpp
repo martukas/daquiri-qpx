@@ -3,7 +3,7 @@
 
 #include <core/util/custom_logger.h>
 
-namespace Hypermet
+namespace DAQuiri
 {
 
 Region::Region(const DAQuiri::Finder& finder)
@@ -70,7 +70,7 @@ double Region::peak_area_unc(size_t index) const
   return peaks_[index].area_uncert(chi_sq_normalized());
 }
 
-double Region::peak_area_eff(size_t index, const Calibration& cal)
+double Region::peak_area_eff(size_t index, const HCalibration& cal)
 {
   double eff{1.0};
   if (cal.efficiency.initialized())
@@ -78,7 +78,7 @@ double Region::peak_area_eff(size_t index, const Calibration& cal)
   return peak_area(index) / eff;
 }
 
-double Region::peak_area_eff_unc(size_t index, const Calibration& cal)
+double Region::peak_area_eff_unc(size_t index, const HCalibration& cal)
 {
   double area = peak_area(index);
   double eff{0.0};

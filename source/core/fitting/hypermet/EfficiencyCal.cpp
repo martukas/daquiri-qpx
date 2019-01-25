@@ -5,7 +5,7 @@
 
 #include <core/util/custom_logger.h>
 
-namespace Hypermet
+namespace DAQuiri
 {
 
 void EfficiencyCal::load(std::string flnm)

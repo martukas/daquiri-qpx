@@ -11,7 +11,7 @@ Peak::Peak(const nlohmann::json& j, const Finder &f, const SUM4Edge &LB, const S
   reconstruct(f.settings_);
 }
 
-Peak::Peak(const Hypermet::Peak &hyp, const SUM4 &s4, const FitSettings &fs)
+Peak::Peak(const Hypermet &hyp, const SUM4 &s4, const FitSettings &fs)
   : hypermet_(hyp)
   , sum4_(s4)
 {

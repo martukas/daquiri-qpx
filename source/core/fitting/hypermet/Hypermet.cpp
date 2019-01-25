@@ -1,66 +1,66 @@
-#include <core/fitting/hypermet/Peak.h>
+#include <core/fitting/hypermet/Hypermet.h>
 #include <core/util/more_math.h>
 
 #include <core/util/custom_logger.h>
 
-namespace Hypermet
+namespace DAQuiri
 {
 
-double Peak::Components::peak_skews() const
+double Hypermet::Components::peak_skews() const
 {
   return gaussian + short_tail + right_tail;
 }
 
-double Peak::Components::step_tail() const
+double Hypermet::Components::step_tail() const
 {
   return long_tail + step;
 }
 
-double Peak::Components::all() const
+double Hypermet::Components::all() const
 {
   return peak_skews() + step_tail();
 }
 
 
 
-double Peak::peak_position() const
+double Hypermet::peak_position() const
 {
   return position.val();
 }
 
-double Peak::peak_position_unc() const
+double Hypermet::peak_position_unc() const
 {
   return position.uncert_value;
 }
 
-double Peak::peak_energy(const Calibration& cal) const
+double Hypermet::peak_energy(const HCalibration& cal) const
 {
   return cal.channel_to_energy(position.val());
 }
 
-double Peak::peak_energy_unc(const Calibration& cal) const
+double Hypermet::peak_energy_unc(const HCalibration& cal) const
 {
   return cal.energy_slope() * position.uncert_value;
 }
 
-double Peak::peak_energy(const DAQuiri::Calibration& cal) const
+double Hypermet::peak_energy(const DAQuiri::Calibration& cal) const
 {
   return cal.transform(position.val());
 }
 
-double Peak::peak_energy_unc(const DAQuiri::Calibration& cal) const
+double Hypermet::peak_energy_unc(const DAQuiri::Calibration& cal) const
 {
   // \todo wrong!
   return 1;
 }
 
 
-bool Peak::full_energy_peak() const
+bool Hypermet::full_energy_peak() const
 {
   return (step.flip(1.0) > 0);
 }
 
-void Peak::full_energy_peak(bool flag)
+void Hypermet::full_energy_peak(bool flag)
 {
   if (flag)
     step.side = Side::left;
@@ -68,12 +68,12 @@ void Peak::full_energy_peak(bool flag)
     step.side = Side::right;
 }
 
-bool Peak::operator<(const Peak& other) const
+bool Hypermet::operator<(const Hypermet& other) const
 {
   return position.val() < other.position.val();
 }
 
-double Peak::area() const
+double Hypermet::area() const
 {
   return amplitude.val() * width_.val() * (std::sqrt(M_PI) +
       short_tail.amplitude.val() * short_tail.slope.val() *
@@ -82,7 +82,7 @@ double Peak::area() const
           std::exp(-0.25 / square(right_tail.slope.val())));
 }
 
-double Peak::area_uncert(double chisq_norm) const
+double Hypermet::area_uncert(double chisq_norm) const
 {
   // \todo make this more rigorous
   double t = area();
@@ -110,7 +110,7 @@ double Peak::area_uncert(double chisq_norm) const
   return std::sqrt(t) * std::max(1.0, chisq_norm);
 }
 
-void Peak::update_indices(int32_t& i)
+void Hypermet::update_indices(int32_t& i)
 {
   amplitude.x_index = i++;
   position.x_index = i++;
@@ -133,7 +133,7 @@ void Peak::update_indices(int32_t& i)
     step.update_indices(i);
 }
 
-void Peak::put(std::vector<double>& fit) const
+void Hypermet::put(std::vector<double>& fit) const
 {
   position.put(fit);
   amplitude.put(fit);
@@ -144,7 +144,7 @@ void Peak::put(std::vector<double>& fit) const
   step.put(fit);
 }
 
-void Peak::get(const std::vector<double>& fit)
+void Hypermet::get(const std::vector<double>& fit)
 {
   position.get(fit);
   amplitude.get(fit);
@@ -155,7 +155,7 @@ void Peak::get(const std::vector<double>& fit)
   step.get(fit);
 }
 
-void Peak::get_uncerts(const std::vector<double>& diagonals, double chisq_norm)
+void Hypermet::get_uncerts(const std::vector<double>& diagonals, double chisq_norm)
 {
   position.get_uncert(diagonals, chisq_norm);
   amplitude.get_uncert(diagonals, chisq_norm);
@@ -167,7 +167,7 @@ void Peak::get_uncerts(const std::vector<double>& diagonals, double chisq_norm)
 }
 
 
-PrecalcVals Peak::precalc_vals(double chan) const
+PrecalcVals Hypermet::precalc_vals(double chan) const
 {
   PrecalcVals ret;
   ret.ampl = amplitude.val();
@@ -177,7 +177,7 @@ PrecalcVals Peak::precalc_vals(double chan) const
   return ret;
 }
 
-PrecalcVals Peak::precalc_vals_at(double chan, const std::vector<double>& fit) const
+PrecalcVals Hypermet::precalc_vals_at(double chan, const std::vector<double>& fit) const
 {
   PrecalcVals ret;
   ret.ampl = amplitude.val_at(fit[amplitude.x_index]);
@@ -187,9 +187,9 @@ PrecalcVals Peak::precalc_vals_at(double chan, const std::vector<double>& fit) c
   return ret;
 }
 
-Peak::Components Peak::eval(double chan) const
+Hypermet::Components Hypermet::eval(double chan) const
 {
-  Peak::Components ret;
+  Hypermet::Components ret;
 
   auto pre = precalc_vals(chan);
 
@@ -206,9 +206,9 @@ Peak::Components Peak::eval(double chan) const
   return ret;
 }
 
-Peak::Components Peak::eval_at(double chan, const std::vector<double>& fit) const
+Hypermet::Components Hypermet::eval_at(double chan, const std::vector<double>& fit) const
 {
-  Peak::Components ret;
+  Hypermet::Components ret;
 
   auto pre = precalc_vals_at(chan, fit);
 
@@ -226,9 +226,9 @@ Peak::Components Peak::eval_at(double chan, const std::vector<double>& fit) cons
 }
 
 
-Peak::Components Peak::eval_grad(double chan, std::vector<double>& grads) const
+Hypermet::Components Hypermet::eval_grad(double chan, std::vector<double>& grads) const
 {
-  Peak::Components ret;
+  Hypermet::Components ret;
 
   auto pre = precalc_vals(chan);
 
@@ -261,10 +261,10 @@ Peak::Components Peak::eval_grad(double chan, std::vector<double>& grads) const
 }
 
 
-Peak::Components Peak::eval_grad_at(double chan, const std::vector<double>& fit,
+Hypermet::Components Hypermet::eval_grad_at(double chan, const std::vector<double>& fit,
     std::vector<double>& grads) const
 {
-  Peak::Components ret;
+  Hypermet::Components ret;
 
   auto pre = precalc_vals_at(chan, fit);
 
@@ -297,7 +297,7 @@ Peak::Components Peak::eval_grad_at(double chan, const std::vector<double>& fit,
   return ret;
 }
 
-std::string Peak::to_string() const
+std::string Hypermet::to_string() const
 {
   std::stringstream ss;
   ss << "pos = " << position.to_string() << "\n";
@@ -311,7 +311,7 @@ std::string Peak::to_string() const
   return ss.str();
 }
 
-void to_json(nlohmann::json& j, const Peak& s)
+void to_json(nlohmann::json& j, const Hypermet& s)
 {
   j["position"] = s.position;
   j["amplitude"] = s.amplitude;
@@ -323,7 +323,7 @@ void to_json(nlohmann::json& j, const Peak& s)
   j["step"] = s.step;
 }
 
-void from_json(const nlohmann::json& j, Peak& s)
+void from_json(const nlohmann::json& j, Hypermet& s)
 {
   s.position = j["position"];
   s.amplitude = j["amplitude"];

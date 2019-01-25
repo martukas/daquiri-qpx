@@ -11,7 +11,7 @@
 
 #include <core/util/custom_logger.h>
 
-namespace Hypermet
+namespace DAQuiri
 {
 
 double BFGS::Sign(double a, double b)

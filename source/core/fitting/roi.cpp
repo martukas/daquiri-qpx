@@ -100,7 +100,7 @@ double Fit::peak_area_unc(size_t index) const
   return peaks_[index].area_uncert(chi_sq_normalized());
 }
 
-double Fit::peak_area_eff(size_t index, const Hypermet::Calibration& cal)
+double Fit::peak_area_eff(size_t index, const Calibration& cal)
 {
   double eff{1.0};
   if (cal.efficiency.initialized())
@@ -108,7 +108,7 @@ double Fit::peak_area_eff(size_t index, const Hypermet::Calibration& cal)
   return peak_area(index) / eff;
 }
 
-double Fit::peak_area_eff_unc(size_t index, const Hypermet::Calibration& cal)
+double Fit::peak_area_eff_unc(size_t index, const Calibration& cal)
 {
   double area = peak_area(index);
   double eff{0.0};
@@ -219,7 +219,7 @@ void Fit::save_fit(const std::vector<double>& variables)
     p.second.hypermet_.get(variables);
 }
 
-void Fit::save_fit_uncerts(const Hypermet::FitResult& result)
+void Fit::save_fit_uncerts(const FitResult& result)
 {
   save_fit(result.variables);
 
@@ -496,7 +496,7 @@ void ROI::set_data(const Finder &parentfinder, double l, double r)
   render();
 }
 
-bool ROI::refit(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
+bool ROI::refit(BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   if (peaks_.empty())
     return auto_fit(optimizer, interruptor);
@@ -509,7 +509,7 @@ bool ROI::refit(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
 }
 
 
-bool ROI::auto_fit(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
+bool ROI::auto_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   peaks_.clear();
   finder_.y_resid_ = finder_.y_;
@@ -562,7 +562,7 @@ bool ROI::auto_fit(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
   return true;
 }
 
-void ROI::iterative_fit(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
+void ROI::iterative_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   if (!finder_.settings_.cali_fwhm_.valid() || peaks_.empty())
     return;
@@ -597,7 +597,7 @@ void ROI::iterative_fit(Hypermet::BFGS& optimizer, std::atomic<bool>& interrupto
   }
 }
 
-bool ROI::add_from_resid(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor, int32_t centroid_hint)
+bool ROI::add_from_resid(BFGS& optimizer, std::atomic<bool>& interruptor, int32_t centroid_hint)
 {
   if (finder_.filtered.empty())
     return false;
@@ -747,7 +747,7 @@ bool ROI::adjust_sum4(double &peakID, double left, double right)
 }
 
 
-bool ROI::replace_hypermet(double &peakID, Hypermet::Peak hyp)
+bool ROI::replace_hypermet(double &peakID, Peak hyp)
 {
   if (!contains(peakID))
     return false;
@@ -780,7 +780,7 @@ bool ROI::override_energy(double peakID, double energy)
 
 bool ROI::add_peak(const Finder &parentfinder,
                    double left, double right,
-                   Hypermet::BFGS& optimizer,
+                   BFGS& optimizer,
                    std::atomic<bool>& interruptor)
 {
   uint16_t center_prelim = (left+right) * 0.5; //assume down the middle
@@ -842,7 +842,7 @@ bool ROI::add_peak(const Finder &parentfinder,
   return false;
 }
 
-bool ROI::remove_peaks(const std::set<double> &pks, Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
+bool ROI::remove_peaks(const std::set<double> &pks, BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   bool found = false;
   for (auto &q : pks)
@@ -889,7 +889,7 @@ void ROI::save_current_fit(std::string description)
   current_fit_ = fits_.size() - 1;
 }
 
-bool ROI::rebuild(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
+bool ROI::rebuild(BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   hr_x.clear();
   hr_x_nrg.clear();
@@ -918,7 +918,7 @@ bool ROI::rebuild(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
   return true;
 }
 
-bool ROI::rebuild_as_hypermet(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
+bool ROI::rebuild_as_hypermet(BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   Timer timer(true);
 
@@ -941,7 +941,7 @@ bool ROI::rebuild_as_hypermet(Hypermet::BFGS& optimizer, std::atomic<bool>& inte
   if (old_hype.empty())
     return false;
 
-//  std::vector<Hypermet> hype = Hypermet::fit_multi(finder_.x_, finder_.y_,
+//  std::vector<Hypermet> hype = fit_multi(finder_.x_, finder_.y_,
 //                                                   old_hype, background_,
 //                                                   finder_.settings_);
 
@@ -961,7 +961,7 @@ bool ROI::rebuild_as_hypermet(Hypermet::BFGS& optimizer, std::atomic<bool>& inte
   return true;
 }
 
-bool ROI::rebuild_as_gaussian(Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
+bool ROI::rebuild_as_gaussian(BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   Timer timer(true);
 
@@ -1074,7 +1074,7 @@ std::vector<double> ROI::remove_background()
 }
 
 bool ROI::adjust_LB(const Finder &parentfinder, double left, double right,
-                     Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor)
+                     BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   size_t Lidx = parentfinder.find_index(left);
   size_t Ridx = parentfinder.find_index(right);
@@ -1098,7 +1098,7 @@ bool ROI::adjust_LB(const Finder &parentfinder, double left, double right,
 }
 
 bool ROI::adjust_RB(const Finder &parentfinder, double left, double right,
-                    Hypermet::BFGS& optimizer, std::atomic<bool>& interruptor) {
+                    BFGS& optimizer, std::atomic<bool>& interruptor) {
   size_t Lidx = parentfinder.find_index(left);
   size_t Ridx = parentfinder.find_index(right);
   if (Lidx >= Ridx)

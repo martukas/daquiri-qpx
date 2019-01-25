@@ -10,7 +10,7 @@
 #include <Eigen/Sparse>
 #pragma GCC diagnostic pop
 
-namespace Hypermet
+namespace DAQuiri
 {
 
 class NonlinearityCal

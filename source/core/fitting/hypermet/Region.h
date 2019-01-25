@@ -1,12 +1,12 @@
 #pragma once
 
-#include <core/fitting/hypermet/Peak.h>
+#include <core/fitting/hypermet/Hypermet.h>
 #include <core/fitting/hypermet/PolyBackground.h>
 #include <core/fitting/finder.h>
 
 #include <core/fitting/BFGS/Fittable.h>
 
-namespace Hypermet
+namespace DAQuiri
 {
 
 class Region : public Fittable
@@ -30,8 +30,8 @@ class Region : public Fittable
   void remove_peak(size_t index);
   double peak_area(size_t index) const;
   double peak_area_unc(size_t index) const;
-  double peak_area_eff(size_t index, const Calibration& cal);
-  double peak_area_eff_unc(size_t index, const Calibration& cal);
+  double peak_area_eff(size_t index, const HCalibration& cal);
+  double peak_area_eff_unc(size_t index, const HCalibration& cal);
 
 
   void map_fit();
@@ -50,8 +50,8 @@ class Region : public Fittable
   PolyBackground background;
 
   // peak
-  Peak default_peak_;
-  std::vector<Peak> peaks_;
+  Hypermet default_peak_;
+  std::vector<Hypermet> peaks_;
   //public: BoronPeak As CBoronPeak
   //public: AnnPeak As CAnnPeak
 

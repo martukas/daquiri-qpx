@@ -3,10 +3,10 @@
 
 #include <core/util/custom_logger.h>
 
-namespace Hypermet
+namespace DAQuiri
 {
 
-Calibration::Calibration()
+HCalibration::HCalibration()
 {
   //EnergyCal[0].Channel = 0;
   //EnergyCal[0].val = 0;
@@ -14,11 +14,11 @@ Calibration::Calibration()
   //EnergyCal[1].val = 1;
 }
 
-uint8_t Calibration::order() const
+uint8_t HCalibration::order() const
 {
   return order_;
 }
-void Calibration::order(uint8_t new_order)
+void HCalibration::order(uint8_t new_order)
 {
   if (new_order <= 2)
   {
@@ -28,7 +28,7 @@ void Calibration::order(uint8_t new_order)
   }
 }
 
-double Calibration::energy_const() const
+double HCalibration::energy_const() const
 {
   return -1 / (energy_cal[1].channel - energy_cal[0].channel) *
       energy_cal[0].channel * energy_cal[1].value + 1 /
@@ -36,14 +36,14 @@ double Calibration::energy_const() const
       energy_cal[0].channel * energy_cal[0].value + energy_cal[0].value;
 }
 
-double Calibration::energy_slope() const
+double HCalibration::energy_slope() const
 {
   return (1 / (energy_cal[1].channel - energy_cal[0].channel)
       * energy_cal[1].value - 1 /
       (energy_cal[1].channel - energy_cal[0].channel) * energy_cal[0].value);
 }
 
-double Calibration::channel_to_energy(double chan) const
+double HCalibration::channel_to_energy(double chan) const
 {
   chan += nonlinearity.val(chan);
   double c0 = -1 / (energy_cal[1].channel - energy_cal[0].channel) *
@@ -56,7 +56,7 @@ double Calibration::channel_to_energy(double chan) const
   return c0 + c1 * chan;
 }
 
-double Calibration::energy_to_channel(double energy) const
+double HCalibration::energy_to_channel(double energy) const
 {
   double c0 = -1 / (energy_cal[1].channel - energy_cal[0].channel) *
       energy_cal[0].channel * energy_cal[1].value + 1 /
@@ -72,7 +72,7 @@ double Calibration::energy_to_channel(double energy) const
   return energy;
 }
 
-double Calibration::width(double channel) const
+double HCalibration::width(double channel) const
 {
   //fwhm_b = (-fwhm2 ^ 2 + fwhm1 ^ 2) / (-Energy(chfwhm2) + Energy(chfwhm1))
   //fwhm_a = -(Energy(chfwhm2) * fwhm1 ^ 2 - fwhm2 ^ 2 * Energy(chfwhm1)) / (-Energy(chfwhm2) + Energy(chfwhm1))

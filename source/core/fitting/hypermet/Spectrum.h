@@ -3,7 +3,7 @@
 #include <core/fitting/hypermet/Calibration.h>
 #include <vector>
 
-namespace Hypermet
+namespace DAQuiri
 {
 
 // \todo these go somewhere else

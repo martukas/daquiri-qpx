@@ -3,7 +3,7 @@
 #include <core/fitting/BFGS/Fittable.h>
 #include <atomic>
 
-namespace Hypermet
+namespace DAQuiri
 {
 
 class BFGS

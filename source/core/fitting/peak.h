@@ -4,7 +4,7 @@
 #include <core/fitting/sum4.h>
 
 //#include <core/fitting/hypermet.h>
-#include <core/fitting/hypermet/Peak.h>
+#include <core/fitting/hypermet/Hypermet.h>
 
 #include <set>
 
@@ -17,7 +17,7 @@ public:
   Peak(const nlohmann::json& j, const Finder &fs,
        const SUM4Edge& LB, const SUM4Edge& RB);
 
-  Peak(const Hypermet::Peak &hyp, const SUM4 &s4, const FitSettings &fs);
+  Peak(const Hypermet &hyp, const SUM4 &s4, const FitSettings &fs);
 
   void reconstruct(FitSettings fs);
 
@@ -27,7 +27,7 @@ public:
   double efficiency_relative_ {0.0};
 
   const SUM4     &sum4() const { return sum4_;}
-  const Hypermet::Peak &hypermet() const { return hypermet_;}
+  const Hypermet &hypermet() const { return hypermet_;}
 
   const double &center() const {return center_;}
   const double &energy() const {return energy_;}
@@ -52,7 +52,7 @@ public:
 
   friend void to_json(nlohmann::json& j, const Peak &s);
 
-  Hypermet::Peak hypermet_;
+  Hypermet hypermet_;
 
  private:
   SUM4 sum4_;

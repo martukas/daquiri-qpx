@@ -3,7 +3,7 @@
 
 #include <core/util/custom_logger.h>
 
-namespace Hypermet
+namespace DAQuiri
 {
 
 void PolyBackground::update_indices(int32_t& i)

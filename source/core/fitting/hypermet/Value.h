@@ -5,7 +5,7 @@
 #include <nlohmann/json.hpp>
 
 
-namespace Hypermet
+namespace DAQuiri
 {
 
 class AbstractValue
