@@ -53,6 +53,9 @@ class Hypermet
   double area() const;
   double area_uncert(double chisq_norm) const;
 
+  double peak_area_eff(const HCalibration& cal) const;
+  double peak_area_eff_unc(const HCalibration& cal, double chisq_norm) const;
+
   PrecalcVals precalc_vals(double chan) const;
   PrecalcVals precalc_vals_at(double chan, const std::vector<double>& fit) const;
 

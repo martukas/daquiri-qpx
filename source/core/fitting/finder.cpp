@@ -34,9 +34,7 @@ void Finder::clear()
   y_resid_on_background_.clear();
 //  settings_.clear();
 
-  y_weight_true.clear();
-  y_weight_phillips_marlow.clear();
-  y_weight_revay.clear();
+  weighted_data.clear();
 
   prelim.clear();
   filtered.clear();
@@ -52,18 +50,19 @@ void Finder::reset()
   y_resid_on_background_ = y_resid_ = y_;
   y_fit_.resize(x_.size(), 0);
   y_background_.resize(x_.size(), 0);
-  y_weight_true.resize(x_.size(), 0);
-  y_weight_phillips_marlow.resize(x_.size(), 0);
-  y_weight_revay.resize(x_.size(), 0);
+  weighted_data.resize(x_.size());
 }
 
 void Finder::calc_uncertainties()
 {
-  for (size_t i = 0; i < y_.size(); ++i)
+  for (size_t i = 0; i < x_.size(); ++i)
   {
-    y_weight_true[i] = weight_true(i);
-    y_weight_phillips_marlow[i] = weight_phillips_marlow(i);
-    y_weight_revay[i] = weight_revay_student(i);
+    auto& p = weighted_data[i];
+    p.x = x_[i];
+    p.y = y_[i];
+    p.weight_true = weight_true(i);
+    p.weight_phillips_marlow = weight_phillips_marlow(i);
+    p.weight_revay = weight_revay_student(i);
   }
 }
 

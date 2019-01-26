@@ -5,6 +5,17 @@
 namespace DAQuiri
 {
 
+struct SpectrumDataPoint
+{
+  double x {0};
+  double y {0};
+  double weight_true {0};
+  double weight_phillips_marlow {0};
+  double weight_revay {0};
+};
+
+using SpectrumData = std::vector<SpectrumDataPoint>;
+
 class Finder
 {
  public:
@@ -35,9 +46,9 @@ class Finder
 
   std::vector<double> x_;
   std::vector<double> y_;
-  std::vector<double> y_weight_true;
-  std::vector<double> y_weight_phillips_marlow;
-  std::vector<double> y_weight_revay;
+
+  SpectrumData weighted_data;
+
   std::vector<double> y_fit_, y_background_, y_resid_, y_resid_on_background_;
   std::vector<double> fw_theoretical_nrg;
   std::vector<double> fw_theoretical_bin;

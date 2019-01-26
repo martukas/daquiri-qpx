@@ -117,6 +117,30 @@ double Hypermet::peak_energy_unc(const DAQuiri::Calibration& cal) const
   return 1;
 }
 
+double Hypermet::peak_area_eff(const HCalibration& cal) const
+{
+  double eff{1.0};
+  if (cal.efficiency.initialized())
+    eff = cal.efficiency.val(peak_energy(cal));
+  return area() / eff;
+}
+
+double Hypermet::peak_area_eff_unc(const HCalibration& cal, double chisq_norm) const
+{
+  double eff{0.0};
+  double sigrel_eff{0.0};
+  if (cal.efficiency.initialized())
+  {
+    auto energy = peak_energy(cal);
+    eff = cal.efficiency.val(energy);
+    sigrel_eff = cal.efficiency.sigma_rel(energy);
+  }
+  double a = area();
+  return (square(std::sqrt(std::sqrt(a) / a)) + square(sigrel_eff)) *
+      (a / eff) * std::max(1.0, chisq_norm);
+}
+
+
 bool Hypermet::full_energy_peak() const
 {
   return (step.flip(1.0) > 0);

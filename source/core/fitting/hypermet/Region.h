@@ -3,6 +3,7 @@
 #include <core/fitting/hypermet/Hypermet.h>
 #include <core/fitting/hypermet/PolyBackground.h>
 #include <core/fitting/finder.h>
+#include <map>
 
 #include <core/fitting/BFGS/Fittable.h>
 
@@ -22,17 +23,9 @@ class Region : public Fittable
   };
   Type region_type{Type::Normal};
 
-  DAQuiri::Finder finder_;           // gets x & y data from fitter
+  SpectrumData data_;           // gets x & y data from fitter
 
-  Region(const DAQuiri::Finder& finder);
-
-  void add_peak(double position, double min, double max, double amplitude = 10.0);
-  void remove_peak(size_t index);
-  double peak_area(size_t index) const;
-  double peak_area_unc(size_t index) const;
-  double peak_area_eff(size_t index, const HCalibration& cal);
-  double peak_area_eff_unc(size_t index, const HCalibration& cal);
-
+  Region(const SpectrumData& data);
 
   void map_fit();
   void save_fit_uncerts(const FitResult& result);
@@ -51,7 +44,7 @@ class Region : public Fittable
 
   // peak
   Hypermet default_peak_;
-  std::vector<Hypermet> peaks_;
+  std::map<double, Hypermet> peaks_;
   //public: BoronPeak As CBoronPeak
   //public: AnnPeak As CAnnPeak
 
