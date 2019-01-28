@@ -54,7 +54,7 @@ RollbackDialog::RollbackDialog(DAQuiri::ROI roi, QWidget *parent) :
 
     label = new QLabel();
     label->setFixedHeight(25);
-    label->setText(QString::number(history[i].rsq));
+    label->setText(QString::number(history[i].chi_sq_norm));
     vl_rsq->addWidget(label);
 
     label = new QLabel();

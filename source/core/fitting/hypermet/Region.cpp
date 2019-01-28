@@ -44,15 +44,15 @@ void Region::map_fit()
   size_t unique_steps{0};
   for (auto& p : peaks_)
   {
-    if (p.second.width_override)
+    if (p.width_override)
       unique_widths++;
-    if (p.second.short_tail.override)
+    if (p.short_tail.override)
       unique_short_tails++;
-    if (p.second.right_tail.override)
+    if (p.right_tail.override)
       unique_right_tails++;
-    if (p.second.long_tail.override)
+    if (p.long_tail.override)
       unique_long_tails++;
-    if (p.second.step.override)
+    if (p.step.override)
       unique_steps++;
   }
 
@@ -82,8 +82,8 @@ void Region::map_fit()
 
   for (auto& p : peaks_)
   {
-    p.second.apply_defaults(default_peak_);
-    p.second.update_indices(var_count_);
+    p.apply_defaults(default_peak_);
+    p.update_indices(var_count_);
   }
 }
 
@@ -101,7 +101,7 @@ std::vector<double> Region::variables() const
   default_peak_.put(ret);
 
   for (auto& p : peaks_)
-    p.second.put(ret);
+    p.put(ret);
 
   return ret;
 }
@@ -112,7 +112,7 @@ void Region::save_fit(const std::vector<double>& variables)
   default_peak_.get(variables);
 
   for (auto& p : peaks_)
-    p.second.get(variables);
+    p.get(variables);
 }
 
 void Region::save_fit_uncerts(const FitResult& result)
@@ -132,7 +132,7 @@ void Region::save_fit_uncerts(const FitResult& result)
   default_peak_.get_uncerts(diagonals, chisq_norm);
 
   for (auto& p : peaks_)
-    p.second.get_uncerts(diagonals, chisq_norm);
+    p.get_uncerts(diagonals, chisq_norm);
 }
 
 double Region::chi_sq_normalized() const
@@ -154,7 +154,7 @@ double Region::chi_sq() const
   {
     double FTotal = background.eval(data.x);
     for (auto& p : peaks_)
-      FTotal += p.second.eval(data.x).all();
+      FTotal += p.eval(data.x).all();
     ChiSq += square((data.y - FTotal) / data.weight_true);
   }
   return ChiSq;
@@ -175,7 +175,7 @@ double Region::grad_chi_sq(std::vector<double>& gradients) const
 
     double FTotal = background.eval_grad(data.x, chan_gradients);
     for (auto& p : peaks_)
-      FTotal += p.second.eval_grad(data.x, chan_gradients).all();
+      FTotal += p.eval_grad(data.x, chan_gradients).all();
 
     double t3 = -2.0 * (data.y - FTotal) / square(data.weight_true);
     for (size_t var = 0; var < fit_var_count(); ++var)
@@ -195,7 +195,7 @@ double Region::chi_sq(const std::vector<double>& fit) const
   {
     double FTotal = background.eval_at(data.x, fit);
     for (auto& p : peaks_)
-      FTotal += p.second.eval_at(data.x, fit).all();
+      FTotal += p.eval_at(data.x, fit).all();
     ChiSq += square((data.y - FTotal) / data.weight_phillips_marlow);
   }
   return ChiSq;
@@ -216,7 +216,7 @@ double Region::grad_chi_sq(const std::vector<double>& fit,
 
     double FTotal = background.eval_grad_at(data.x, fit, chan_gradients);
     for (auto& p : peaks_)
-      FTotal += p.second.eval_grad_at(data.x, fit, chan_gradients).all();
+      FTotal += p.eval_grad_at(data.x, fit, chan_gradients).all();
 
     double t3 = -2.0 * (data.y - FTotal) / square(data.weight_phillips_marlow);
     for (size_t var = 0; var < fit_var_count(); ++var)

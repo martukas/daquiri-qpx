@@ -25,7 +25,7 @@ std::string Polynomial::debug() const
   }
   vars += "     x_offset=" + xoffset_.to_string();
 
-  ret += "   rsq=" + std::to_string(chi2_) + "    where:\n" + vars;
+  ret += "   chi_sq_norm=" + std::to_string(chi2_) + "    where:\n" + vars;
 
   return ret;
 }

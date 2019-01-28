@@ -13,12 +13,9 @@ namespace DAQuiri {
 struct FitDescription
 {
   std::string description;
-  int    peaknum;
-  double rsq;
-  double sum4aggregate;
-
-  FitDescription()
-    : peaknum(0), rsq(0), sum4aggregate(0) {}
+  size_t    peaknum {0};
+  double chi_sq_norm {0};
+  double sum4aggregate {0};
 };
 
 class Fit {
@@ -44,6 +41,45 @@ class Fit {
   std::map<double, Peak> peaks_;
 };
 
+struct PeakRendering
+{
+  std::vector<double>
+      peak,
+      full_fit;
+
+  void clear();
+  void render(const Hypermet&);
+};
+
+struct RegionRendering
+{
+  uint8_t subdivisions {10};
+
+  std::vector<double>
+      channel,
+      energy,
+      background,
+      back_steps,
+      full_fit,
+      sum4_background;
+
+  std::map<double, PeakRendering> peaks;
+
+  void reserve(size_t count);
+  void clear();
+  void sum4only(const std::vector<double>& x,
+                   const std::vector<double>& y,
+                   const Calibration& energy_calib,
+                   const Polynomial& sum4back,
+                   const std::map<double, Peak>& pks);
+
+  void with_hypermet(double start, double end,
+                     const Calibration& energy_calib,
+                     const Polynomial& sum4back,
+                     const PolyBackground& hyp_back,
+                     const std::map<double, Peak>& pks);
+};
+
 
 struct ROI {
   ROI() = default;
@@ -57,23 +93,18 @@ struct ROI {
   double left_bin() const;
   double right_bin() const;
   double width() const;
-  double left_nrg() const;  //may return NaN
-  double right_nrg() const; //may return NaN
 
   bool overlaps(double bin) const;
   bool overlaps(double Lbin, double Rbin) const;
   bool overlaps(const ROI& other) const;
 
   //access peaks
-  size_t peak_count() const;
-  bool contains(double peakID) const;
-  Peak peak(double peakID) const;
   const std::map<double, Peak> &peaks() const;
 
   //access other
   SUM4Edge LB() const {return LB_;}
   SUM4Edge RB() const {return RB_;}
-  //FitSettings fit_settings() const { return finder_.settings_; }
+  FitSettings fit_settings() const { return settings_; }
   const Finder &finder() const { return finder_; }
 
   //access history
@@ -100,31 +131,21 @@ struct ROI {
 
   nlohmann::json to_json(const Finder &parent_finder) const;
 
-  //as rendered for graphing
-  std::vector<double>
-      hr_x,
-      hr_x_nrg,
-      hr_background,
-      hr_back_steps,
-      hr_fullfit,
-      hr_sum4_background_;
-
 private:
   FitSettings settings_;
-
-  //intrinsic, these are saved
-  SUM4Edge LB_, RB_;
-  PolyBackground background_;
-  std::map<double, Peak> peaks_;
-
   Finder finder_;           // gets x & y data from fitter
-
   Hypermet default_peak_;
 
   //history
   std::vector<Fit> fits_;
   size_t current_fit_ {0};
 
+  //intrinsic, these are saved
+  SUM4Edge LB_, RB_;
+  PolyBackground background_;
+  std::map<double, Peak> peaks_;
+
+  RegionRendering rendering_;
 
   void set_data(const Finder &parentfinder, double min, double max);
 

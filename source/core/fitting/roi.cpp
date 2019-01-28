@@ -19,7 +19,7 @@ Fit::Fit(const SUM4Edge &lb, const SUM4Edge &rb,
   description.description = descr;
   description.peaknum = peaks_.size();
   if (peaks_.size()) {
-    //description.rsq = chi_sq_normalized();
+    //description.chi_sq_norm = chi_sq_normalized();
     // \todo use uncertan for these 2
     double tot_gross {0.0};
     double tot_back {0.0};
@@ -27,8 +27,6 @@ Fit::Fit(const SUM4Edge &lb, const SUM4Edge &rb,
     {
       tot_gross += p.second.sum4().gross_area();
       tot_back  += p.second.sum4().background_area();
-      p.second.hr_peak_.clear();
-      p.second.hr_fullfit_.clear();
     }
     auto tot_net = tot_gross - tot_back;
     // \todo reenable this
@@ -65,22 +63,6 @@ double ROI::right_bin() const
     return finder_.x_.back();
 }
 
-double ROI::left_nrg() const
-{
-  if (hr_x_nrg.empty())
-    return std::numeric_limits<double>::quiet_NaN();
-  else
-    return hr_x_nrg.front();
-}
-
-double ROI::right_nrg() const
-{
-  if (hr_x_nrg.empty())
-    return std::numeric_limits<double>::quiet_NaN();
-  else
-    return hr_x_nrg.back();
-}
-
 double ROI::width() const
 {
   if (finder_.x_.empty())
@@ -97,10 +79,6 @@ void ROI::set_data(const Finder &parentfinder, double l, double r)
     return;
   }
 
-  hr_x.clear();
-  hr_background.clear();
-  hr_back_steps.clear();
-  hr_fullfit.clear();
   init_edges();
   init_background();
   render();
@@ -284,18 +262,13 @@ bool ROI::add_from_resid(BFGS& optimizer, std::atomic<bool>& interruptor, int32_
 }
 
 
-bool ROI::contains(double peakID) const
-{
-  return (peaks_.count(peakID) > 0);
-}
-
-Peak ROI::peak(double peakID) const
-{
-  if (contains(peakID))
-    return peaks_.at(peakID);
-  else
-    return Peak();
-}
+//Peak ROI::peak(double peakID) const
+//{
+//  if (contains(peakID))
+//    return peaks_.at(peakID);
+//  else
+//    return Peak();
+//}
 
 
 bool ROI::overlaps(double bin) const
@@ -323,11 +296,6 @@ bool ROI::overlaps(const ROI& other) const
   return overlaps(other.left_bin(), other.right_bin());
 }
 
-size_t ROI::peak_count() const
-{
-  return peaks_.size();
-}
-
 const std::map<double, Peak> &ROI::peaks() const
 {
   return peaks_;
@@ -336,7 +304,7 @@ const std::map<double, Peak> &ROI::peaks() const
 
 bool ROI::adjust_sum4(double &peakID, double left, double right)
 {
-  if (!contains(peakID))
+  if (!peaks_.count(peakID))
     return false;
 
   Peak pk = peaks_.at(peakID);
@@ -353,7 +321,7 @@ bool ROI::adjust_sum4(double &peakID, double left, double right)
 
 bool ROI::replace_hypermet(double &peakID, Hypermet hyp)
 {
-  if (!contains(peakID))
+  if (!peaks_.count(peakID))
     return false;
 
   Peak pk = peaks_.at(peakID);
@@ -361,7 +329,7 @@ bool ROI::replace_hypermet(double &peakID, Hypermet hyp)
   remove_peak(peakID);
   peakID = pk.center();
   peaks_[peakID] = pk;
-  //set rsq to 0 for all peaks?
+  //set chi_sq_norm to 0 for all peaks?
 
   render();
   save_current_fit("Hypermet adjusted on " + std::to_string(pk.energy()));
@@ -370,7 +338,7 @@ bool ROI::replace_hypermet(double &peakID, Hypermet hyp)
 
 bool ROI::override_energy(double peakID, double energy)
 {
-  if (!contains(peakID))
+  if (!peaks_.count(peakID))
     return false;
 
    peaks_[peakID].override_energy(energy);
@@ -494,11 +462,7 @@ void ROI::save_current_fit(std::string description)
 
 bool ROI::rebuild(BFGS& optimizer, std::atomic<bool>& interruptor)
 {
-  hr_x.clear();
-  hr_x_nrg.clear();
-  hr_background.clear();
-  hr_back_steps.clear();
-  hr_fullfit.clear();
+  rendering_.clear();
 
   bool hypermet_fit = false;
   for (auto &q : peaks_)
@@ -508,11 +472,10 @@ bool ROI::rebuild(BFGS& optimizer, std::atomic<bool>& interruptor)
       break;
     }
 
-  bool success = false;
-  if (hypermet_fit)
-    success = rebuild_as_hypermet(optimizer, interruptor);
-  else
-    success = rebuild_as_gaussian(optimizer, interruptor);
+  bool success = hypermet_fit ?
+                 rebuild_as_hypermet(optimizer, interruptor)
+                              :
+                 rebuild_as_gaussian(optimizer, interruptor);
 
   if (!success)
     return false;
@@ -602,56 +565,130 @@ bool ROI::rebuild_as_gaussian(BFGS& optimizer, std::atomic<bool>& interruptor)
   return true;
 }
 
+void PeakRendering::clear()
+{
+  peak.clear();
+  full_fit.clear();
+}
+
+void PeakRendering::render(const Hypermet& h)
+{
+
+}
+
+void RegionRendering::reserve(size_t count)
+{
+  channel.assign(count, 0.0);
+  energy.assign(count, 0.0);
+  background.assign(count, 0.0);
+  back_steps.assign(count, 0.0);
+  full_fit.assign(count, 0.0);
+  sum4_background.assign(count, 0.0);
+  for (auto& p : peaks)
+  {
+    p.second.peak.assign(count, 0.0);
+    p.second.full_fit.assign(count, 0.0);
+  }
+}
+
+void RegionRendering::clear()
+{
+  channel.clear();
+  energy.clear();
+  background.clear();
+  back_steps.clear();
+  full_fit.clear();
+  sum4_background.clear();
+  peaks.clear();
+}
+
+void RegionRendering::sum4only(
+    const std::vector<double>& x,
+    const std::vector<double>& y,
+    const DAQuiri::Calibration& energy_calib,
+    const DAQuiri::Polynomial& sum4back,
+    const std::map<double, DAQuiri::Peak>& pks)
+{
+  clear();
+  channel = x;
+  full_fit = y;
+  energy = energy_calib.transform(channel);
+
+  for (auto& p : pks)
+    peaks[p.first].full_fit = peaks[p.first].peak = full_fit;
+
+  sum4_background = sum4back.eval(channel);
+}
+
+void RegionRendering::with_hypermet(
+    double start, double end,
+    const Calibration& energy_calib,
+    const Polynomial& sum4back,
+    const PolyBackground& hyp_back,
+    const std::map<double, Peak>& pks)
+{
+  clear();
+
+  auto count = static_cast<size_t>(std::ceil((end - start) * subdivisions));
+  double step = 1.0 / static_cast<double>(subdivisions);
+
+  reserve(count);
+
+  for (size_t i = 0; i < count; ++i)
+  {
+    double x = start + static_cast<double>(i) * step;
+    channel[i] = x;
+    energy[i] = energy_calib.transform(x);
+    full_fit[i] = back_steps[i] = background[i] = hyp_back.eval(x);
+    for (auto& p : pks)
+    {
+      auto vals = p.second.hypermet().eval(x);
+      back_steps[i] += vals.step_tail();
+      full_fit[i] += vals.all();
+    }
+    sum4_background[i] = sum4back(x);
+  }
+
+  for (auto& p : pks)
+  {
+    auto& peak = peaks[p.first];
+    const auto& hyp = p.second.hypermet();
+    peak.full_fit = back_steps;
+    for (size_t i = 0; i < channel.size(); ++i)
+    {
+      auto vals = hyp.eval(channel[i]);
+      peak.peak[i] += vals.peak_skews();
+      peak.full_fit[i] += vals.peak_skews();
+    }
+  }
+}
 
 void ROI::render()
 {
-  hr_x.clear();
-  hr_background.clear();
-  hr_back_steps.clear();
-  hr_fullfit.clear();
   Polynomial sum4back = SUM4::sum4_background(LB_, RB_, finder_);
+  std::vector<double> lowres_backsteps, lowres_fullfit;
 
-  for (double i = 0; i < finder_.x_.size(); i += 0.1)
+  if (settings_.sum4_only)
   {
-    hr_x.push_back(finder_.x_[0] + i);
-    hr_fullfit.push_back(finder_.y_[std::floor(i)]);
+    rendering_.sum4only(finder_.x_, finder_.y_,
+                        settings_.calib.cali_nrg_, sum4back, peaks_);
+    lowres_backsteps = sum4back.eval(finder_.x_);
+    lowres_fullfit = sum4back.eval(finder_.x_);
   }
-  background_.eval_add(hr_x, hr_background);
-  hr_sum4_background_ = sum4back.eval(hr_x);
-  hr_x_nrg = settings_.calib.cali_nrg_.transform(hr_x);
-
-  std::vector<double> lowres_backsteps = sum4back.eval(finder_.x_);
-  std::vector<double> lowres_fullfit   = sum4back.eval(finder_.x_);
-
-  for (auto &p : peaks_)
-    p.second.hr_fullfit_ = p.second.hr_peak_ = hr_fullfit;
-
-  if (!settings_.sum4_only) {
-    hr_fullfit    = hr_background;
-    hr_back_steps = hr_background;
+  else
+  {
+    rendering_.with_hypermet(finder_.x_.front(), finder_.x_.back(),
+                             settings_.calib.cali_nrg_, sum4back,
+                             background_, peaks_);
     background_.eval_add(finder_.x_, lowres_backsteps);
     background_.eval_add(finder_.x_, lowres_fullfit);
-    for (auto &p : peaks_) {
-      for (int32_t j = 0; j < static_cast<int32_t>(hr_x.size()); ++j) {
-        auto vals = p.second.hypermet().eval(hr_x[j]);
-        hr_back_steps[j] += vals.step_tail();
-        hr_fullfit[j]    += vals.all();
-      }
-
-      for (int32_t j = 0; j < static_cast<int32_t>(finder_.x_.size()); ++j) {
-        auto vals = p.second.hypermet().eval(finder_.x_[j]);
-        lowres_backsteps[j] += vals.step_tail();
-        lowres_fullfit[j]   += vals.all();
-      }
-    }
-
-    for (auto &p : peaks_) {
-      p.second.hr_fullfit_ = hr_back_steps;
-      p.second.hr_peak_ .resize(hr_back_steps.size());
-      for (int32_t j = 0; j < static_cast<int32_t>(hr_x.size()); ++j) {
-        auto vals = p.second.hypermet().eval(hr_x[j]);
-        p.second.hr_peak_[j]    += vals.peak_skews();
-        p.second.hr_fullfit_[j] += vals.all();
+    for (auto& p : peaks_)
+    {
+      for (size_t i = 0; i < finder_.x_.size(); ++i)
+      {
+        auto vals = p.second.hypermet().eval(finder_.x_[i]);
+        lowres_backsteps[i] += vals.step_tail();
+        lowres_fullfit[i] += vals.all();
       }
     }
   }

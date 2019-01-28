@@ -12,7 +12,7 @@ namespace DAQuiri {
 
 class Peak {
 public:
-  Peak(){}
+  Peak() = default;
 
   Peak(const nlohmann::json& j, const FCalibration& cal,
       const Finder &fs, const SUM4Edge& LB, const SUM4Edge& RB);
@@ -22,7 +22,6 @@ public:
   void reconstruct(const FCalibration& fs);
 
   //get rid of these
-  std::vector<double> hr_peak_, hr_fullfit_;
   double intensity_theoretical_ {0.0};
   double efficiency_relative_ {0.0};
 

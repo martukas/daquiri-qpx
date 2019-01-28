@@ -3,30 +3,35 @@
 #include <core/fitting/hypermet/Hypermet.h>
 #include <core/fitting/hypermet/PolyBackground.h>
 #include <core/fitting/finder.h>
-#include <map>
 
 #include <core/fitting/BFGS/Fittable.h>
 
 namespace DAQuiri
 {
 
+//enum class Type : uint16_t
+//{
+//  Normal = 0,
+//  Annihilation = 1,
+//  Boron = 2,
+//  GeTriangle = 3,
+//  IntPeakShape = 4
+//};
+//Type region_type{Type::Normal};
+
+
 class Region : public Fittable
 {
  public:
-  enum class Type : uint16_t
-  {
-    Normal = 0,
-    Annihilation = 1,
-    Boron = 2,
-    GeTriangle = 3,
-    IntPeakShape = 4
-  };
-  Type region_type{Type::Normal};
+  PolyBackground background;
+  Hypermet default_peak_;
+  std::vector<Hypermet> peaks_;
 
-  SpectrumData data_;           // gets x & y data from fitter
-
+ public:
   Region(const SpectrumData& data);
+  double chi_sq_normalized() const;
 
+  // Fitting related
   void map_fit();
   void save_fit_uncerts(const FitResult& result);
 
@@ -39,17 +44,12 @@ class Region : public Fittable
 
  private:
   int32_t var_count_{0};
+  SpectrumData data_;
 
-  PolyBackground background;
-
-  // peak
-  Hypermet default_peak_;
-  std::map<double, Hypermet> peaks_;
   //public: BoronPeak As CBoronPeak
   //public: AnnPeak As CAnnPeak
 
   size_t fit_var_count() const;
-  double chi_sq_normalized() const;
   void save_fit(const std::vector<double>& variables);
   double chi_sq() const;
   double grad_chi_sq(std::vector<double>& gradients) const;
