@@ -2,9 +2,8 @@
 
 #include <core/fitting/peak.h>
 #include <core/fitting/finder.h>
-//#include <core/fitting/optimizer.h>
 #include <atomic>
-
+#include <set>
 #include <core/fitting/BFGS/BFGS.h>
 #include <core/fitting/hypermet/PolyBackground.h>
 

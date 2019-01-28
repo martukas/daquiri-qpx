@@ -3,16 +3,6 @@
 namespace DAQuiri
 {
 
-Peak::Peak(const nlohmann::json& j, const FCalibration& cal,
-    const Finder& f, const SUM4Edge& LB, const SUM4Edge& RB)
-{
-  if (j.count("hypermet"))
-    hypermet_ = j["hypermet"];
-  if (j.count("SUM4"))
-    sum4_ = SUM4(j["SUM4"], f, LB, RB);
-  reconstruct(cal);
-}
-
 Peak::Peak(const Hypermet& hyp, const SUM4& s4, const FCalibration& cal)
     : hypermet_(hyp)
     , sum4_(s4)
@@ -143,5 +133,16 @@ void to_json(nlohmann::json& j, const Peak& s)
   if (s.hypermet_.amplitude.val() > 0)
     j["hypermet"] = s.hypermet_;
 }
+
+Peak::Peak(const nlohmann::json& j, const FCalibration& cal,
+           const Finder& f, const SUM4Edge& LB, const SUM4Edge& RB)
+{
+  if (j.count("hypermet"))
+    hypermet_ = j["hypermet"];
+  if (j.count("SUM4"))
+    sum4_ = SUM4(j["SUM4"], f, LB, RB);
+  reconstruct(cal);
+}
+
 
 }

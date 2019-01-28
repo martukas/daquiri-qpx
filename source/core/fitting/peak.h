@@ -1,21 +1,13 @@
 #pragma once
 
-#include <core/calibration/polynomial.h>
 #include <core/fitting/sum4.h>
-
-//#include <core/fitting/hypermet.h>
 #include <core/fitting/hypermet/Hypermet.h>
-
-#include <set>
 
 namespace DAQuiri {
 
 class Peak {
 public:
   Peak() = default;
-
-  Peak(const nlohmann::json& j, const FCalibration& cal,
-      const Finder &fs, const SUM4Edge& LB, const SUM4Edge& RB);
 
   Peak(const Hypermet &hyp, const SUM4 &s4, const FCalibration& cal);
 
@@ -50,12 +42,12 @@ public:
   bool operator>(const Peak &other) const;
 
   friend void to_json(nlohmann::json& j, const Peak &s);
-
-  Hypermet hypermet_;
+  Peak(const nlohmann::json& j, const FCalibration& cal,
+       const Finder &fs, const SUM4Edge& LB, const SUM4Edge& RB);
 
  private:
   SUM4 sum4_;
-//  Hypermet hypermet_;
+  Hypermet hypermet_;
 
   // \todo use uncertain type
   double center_, energy_;
