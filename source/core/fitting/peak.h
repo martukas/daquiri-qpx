@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/fitting/sum4.h>
+#include <core/fitting/sum4/sum4.h>
 #include <core/fitting/hypermet/Hypermet.h>
 
 namespace DAQuiri {

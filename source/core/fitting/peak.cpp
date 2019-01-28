@@ -12,7 +12,7 @@ Peak::Peak(const Hypermet& hyp, const SUM4& s4, const FCalibration& cal)
 
 void Peak::reconstruct(const FCalibration& fs)
 {
-  if (std::isfinite(hypermet_.amplitude.val()) && (hypermet_.amplitude.val() > 0))
+  if (std::isfinite(hypermet_.amplitude.val()) && (hypermet_.amplitude.val() > 0.0))
     center_ = hypermet_.amplitude.val();
   else
     center_ = sum4_.centroid();
@@ -31,8 +31,8 @@ void Peak::reconstruct(const FCalibration& fs)
 
   if (std::isfinite(hypermet_.width_.val()))
   {
-    double L = hypermet_.position.val() - hypermet_.width_.val() * sqrt(log(2));
-    double R = hypermet_.position.val() + hypermet_.width_.val() * sqrt(log(2));
+    double L = hypermet_.position.val() - hypermet_.width_.val() * sqrt(log(2.0));
+    double R = hypermet_.position.val() + hypermet_.width_.val() * sqrt(log(2.0));
 //    double dmax = (hypermet_.width_.val() + hypermet_.width_.val().uncertainty()) * sqrt(log(2));
 //    double dmin = (hypermet_.width_.val() - hypermet_.width_.val().uncertainty()) * sqrt(log(2));
 //    double Lmax = hypermet_.position.val() - dmax;

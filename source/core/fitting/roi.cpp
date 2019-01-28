@@ -14,19 +14,22 @@ Fit::Fit(const SUM4Edge &lb, const SUM4Edge &rb,
          : LB_(lb)
          , RB_(rb)
          , background(bkg)
-         , peaks_(peaks)
 {
+  for (const auto& p : peaks)
+    peaks_.push_back(p.second);
+
   description.description = descr;
   description.peaknum = peaks_.size();
-  if (peaks_.size()) {
+  if (!peaks_.empty())
+  {
     //description.chi_sq_norm = chi_sq_normalized();
     // \todo use uncertan for these 2
     double tot_gross {0.0};
     double tot_back {0.0};
     for (auto &p : peaks_)
     {
-      tot_gross += p.second.sum4().gross_area();
-      tot_back  += p.second.sum4().background_area();
+      tot_gross += p.sum4().gross_area();
+      tot_back  += p.sum4().background_area();
     }
     auto tot_net = tot_gross - tot_back;
     // \todo reenable this
@@ -848,7 +851,9 @@ bool ROI::rollback(const Finder &parent_finder, size_t i)
   background_ = fits_[i].background;
   LB_ = fits_[i].LB_;
   RB_ = fits_[i].RB_;
-  peaks_ = fits_[i].peaks_;
+  peaks_.clear();
+  for (const auto& p : fits_[i].peaks_)
+    peaks_[p.center()] = p;
   render();
 
   current_fit_ = i;

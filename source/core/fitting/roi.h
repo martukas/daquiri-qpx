@@ -22,22 +22,15 @@ class Fit {
   Fit(const SUM4Edge &lb, const SUM4Edge &rb,
       PolyBackground bkg,
       const std::map<double, Peak> &peaks,
-//      const Finder &finder,
       std::string descr);
-
-//  const DAQuiri::Finder &finder_;
 
   FitDescription description;
 
-  //FitSettings settings_;
-
   SUM4Edge  LB_, RB_;
   PolyBackground background;
-//  Polynomial background_;
-
 
   Peak default_peak_;
-  std::map<double, Peak> peaks_;
+  std::vector<Peak> peaks_;
 };
 
 struct PeakRendering
