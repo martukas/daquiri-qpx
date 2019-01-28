@@ -23,12 +23,11 @@ public:
   double peak_width() const;
   int    quality() const;
 
-  // \todo use uncertain types
-  double gross_area()      const {return gross_area_;}
-  double background_area() const {return background_area_;}
-  double peak_area()       const {return peak_area_;}
-  double centroid()        const {return centroid_;}
-  double fwhm()            const {return fwhm_;}
+  UncertainDouble gross_area()      const {return gross_area_;}
+  UncertainDouble background_area() const {return background_area_;}
+  UncertainDouble peak_area()       const {return peak_area_;}
+  UncertainDouble centroid()        const {return centroid_;}
+  UncertainDouble fwhm()            const {return fwhm_;}
 
   static int get_currie_quality_indicator(double peak_net_area, double background_variance);
 
@@ -43,12 +42,11 @@ private:
   double Lchan_ {0};
   double Rchan_ {0};
 
-  // \todo use uncertain types
-  double gross_area_;
-  double background_area_;
-  double peak_area_;
-  double centroid_;
-  double fwhm_;
+  UncertainDouble gross_area_;
+  UncertainDouble background_area_;
+  UncertainDouble peak_area_;
+  UncertainDouble centroid_;
+  UncertainDouble fwhm_;
 };
 
 }

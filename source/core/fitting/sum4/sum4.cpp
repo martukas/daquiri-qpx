@@ -12,11 +12,11 @@ Polynomial SUM4::sum4_background(const SUM4Edge& L, const SUM4Edge& R, const Fin
   if (f.x_.empty())
     return sum4back;
   double run = R.left() - L.right();
-  auto xoffset = sum4back.x_offset();
-  xoffset.constrain(L.right(), L.right());
+  auto x_offset = sum4back.x_offset();
+  x_offset.constrain(L.right(), L.right());
   double s4base = L.average();
   double s4slope = (R.average() - L.average()) / run;
-  sum4back.x_offset(xoffset);
+  sum4back.x_offset(x_offset);
   sum4back.set_coeff(0, {s4base, s4base, s4base});
   sum4back.set_coeff(1, {s4slope, s4slope, s4slope});
   return sum4back;
@@ -45,14 +45,14 @@ SUM4::SUM4(double left, double right, const Finder& f,
   Lchan_ = x[Lindex];
   Rchan_ = x[Rindex];
 
-  gross_area_ = 0.0;
+  gross_area_ = UncertainDouble::from_int(0,0);
   for (size_t i=Lindex; i <=Rindex; ++i)
-    gross_area_ += y[i]; // \todo uncertainty = sqrt(y[i]);
+    gross_area_ += UncertainDouble::from_double(y[i], sqrt(y[i]));
 
   double background_variance = pow((peak_width() / 2.0), 2) * (LB_.variance() + RB_.variance());
-  background_area_ =
-        peak_width() * (background(x[Rindex]) + background(x[Lindex])) / 2.0;
-  // \todo uncertainty = sqrt(background_variance)
+  background_area_ = UncertainDouble::from_double(
+      peak_width() * (background(x[Rindex]) + background(x[Lindex])) / 2.0,
+      sqrt(background_variance));
 
   peak_area_ = gross_area_ - background_area_;
   //peak_area_.autoSigs(1);
@@ -70,11 +70,10 @@ SUM4::SUM4(double left, double right, const Finder& f,
   //    centroidval = x.at(static_cast<size_t>(centroidval));
 
   double centroid_variance = (C2sumYnet / sumYnet) - pow(centroidval, 2);
-  centroid_ = centroidval; // \todo uncertainty = centroid_variance;
+  centroid_ = UncertainDouble::from_double(centroidval, centroid_variance);
 
   double fwhm_val = 2.0 * sqrt(centroid_variance * log(4));
-  fwhm_ = fwhm_val; // \todo uncertainty = std::numeric_limits<double>::quiet_NaN();
-
+  fwhm_ = UncertainDouble::from_double(fwhm_val, std::numeric_limits<double>::quiet_NaN());
 }
 
 double SUM4::peak_width() const
@@ -87,8 +86,7 @@ double SUM4::peak_width() const
 
 int SUM4::quality() const
 {
-  return get_currie_quality_indicator(peak_area_, 0);
-  // \todo should use variance as pow(background_area_.uncertainty(),2)
+  return get_currie_quality_indicator(peak_area_.value(), pow(background_area_.uncertainty(),2));
 }
 
 

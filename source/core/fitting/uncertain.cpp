@@ -7,8 +7,8 @@
 #include <core/util/UTF_extensions.h>
 
 UncertainDouble::UncertainDouble(double val, double sigma)
-  : value_(val)
-  , sigma_(std::abs(sigma))
+    : value_(val)
+      , sigma_(std::abs(sigma))
 {
 }
 
@@ -22,12 +22,12 @@ std::string UncertainDouble::debug() const
 
 UncertainDouble UncertainDouble::from_int(int64_t val, double sigma)
 {
-  return UncertainDouble (double(val), sigma);
+  return UncertainDouble(double(val), sigma);
 }
 
 UncertainDouble UncertainDouble::from_uint(uint64_t val, double sigma)
 {
-  return UncertainDouble (double(val), sigma);
+  return UncertainDouble(double(val), sigma);
 }
 
 UncertainDouble UncertainDouble::from_double(double val, double sigma)
@@ -39,7 +39,7 @@ UncertainDouble UncertainDouble::from_double(double val, double sigma)
 int UncertainDouble::exponent() const
 {
   int orderOfValue = order_of(value_);
-  int orderOfUncert= order_of(sigma_);
+  int orderOfUncert = order_of(sigma_);
   int targetOrder = std::max(orderOfValue, orderOfUncert);
 
   if ((targetOrder > 5) || (targetOrder < -3))
@@ -98,7 +98,7 @@ std::string UncertainDouble::to_string(bool ommit_tiny) const
     return "?";
 
   int orderOfValue = order_of(value_);
-  int orderOfUncert= order_of(sigma_);
+  int orderOfUncert = order_of(sigma_);
   int exp = exponent();
 
   int decimals = 0;
@@ -112,21 +112,23 @@ std::string UncertainDouble::to_string(bool ommit_tiny) const
   else
     result += to_str_decimals(value_ / pow(10.0, exp), decimals);
 
-  if (std::isfinite(sigma_) && (sigma_ != 0.0)) {
+  if (std::isfinite(sigma_) && (sigma_ != 0.0))
+  {
     std::string uncertstr;
     if (ommit_tiny && ((orderOfValue - orderOfUncert) > 8))
       uncertstr = "-";
-    else if ( ((orderOfValue - orderOfUncert) < -2)
-         ||((orderOfValue - orderOfUncert) > 6))
+    else if (((orderOfValue - orderOfUncert) < -2)
+        || ((orderOfValue - orderOfUncert) > 6))
       uncertstr = "HUGE"; //error_percent();
-    else {
+    else
+    {
       double unc_shifted = sigma_ / pow(10.0, exp);
       if (!decimals)
         uncertstr = to_str_decimals(unc_shifted, 0);
       else if (unc_shifted < 1.0)
         uncertstr = to_str_decimals(unc_shifted / pow(10.0, -decimals), 0);
       else
-        uncertstr = to_str_decimals(unc_shifted, orderOfUncert - exp + decimals );
+        uncertstr = to_str_decimals(unc_shifted, orderOfUncert - exp + decimals);
     }
 
     if (!uncertstr.empty())
@@ -154,7 +156,7 @@ std::string UncertainDouble::error_percent() const
   UncertainDouble p(error, 0);
 //  DBG << "perror for " << debug() << " is " << p.debug();
   if (p.exponent() != 0)
-    return "(" +  p.to_string(false) + ")%";
+    return "(" + p.to_string(false) + ")%";
   else
     return p.to_string(false) + "%";
 }
@@ -167,109 +169,108 @@ std::string UncertainDouble::error_percent() const
 //  return ret;
 //}
 
-UncertainDouble & UncertainDouble::operator*=(const UncertainDouble &other)
+UncertainDouble& UncertainDouble::operator*=(const UncertainDouble& other)
 {
   setValue(value_ * other.value_);
   if (finite() && other.finite())
-    setUncertainty(sqrt(value_*value_*other.sigma_*other.sigma_
-                        + other.value_*other.value_*sigma_*sigma_));
+    setUncertainty(sqrt(value_ * value_ * other.sigma_ * other.sigma_
+                            + other.value_ * other.value_ * sigma_ * sigma_));
   else
     setUncertainty(std::numeric_limits<double>::quiet_NaN());
   return *this;
 }
 
-UncertainDouble & UncertainDouble::operator/=(const UncertainDouble &other)
+UncertainDouble& UncertainDouble::operator/=(const UncertainDouble& other)
 {
   setValue(value_ / other.value_);
   if (finite() && other.finite())
-    setUncertainty(sqrt(value_*value_*other.sigma_*other.sigma_
-                        + other.value_*other.value_*sigma_*sigma_));
+    setUncertainty(sqrt(value_ * value_ * other.sigma_ * other.sigma_
+                            + other.value_ * other.value_ * sigma_ * sigma_));
   else
     setUncertainty(std::numeric_limits<double>::quiet_NaN());
   return *this;
 }
 
-UncertainDouble & UncertainDouble::operator*=(const double &other)
+UncertainDouble& UncertainDouble::operator*=(const double& other)
 {
   setValue(value_ * other);
   setUncertainty(std::abs(sigma_ * other));
   return *this;
 }
 
-UncertainDouble & UncertainDouble::operator/=(const double &other)
+UncertainDouble& UncertainDouble::operator/=(const double& other)
 {
   setValue(value_ / other);
   setUncertainty(std::abs(sigma_ / other));
   return *this;
 }
 
-UncertainDouble& UncertainDouble::additive_uncert(const UncertainDouble &other)
+UncertainDouble& UncertainDouble::additive_uncert(const UncertainDouble& other)
 {
   if (finite() && other.finite())
-    setUncertainty(sqrt(pow(sigma_,2) + pow(other.sigma_,2)));
+    setUncertainty(sqrt(pow(sigma_, 2) + pow(other.sigma_, 2)));
   else
     setUncertainty(std::numeric_limits<double>::quiet_NaN());
   return *this;
 }
 
-
-UncertainDouble& UncertainDouble::operator +=(const UncertainDouble &other)
+UncertainDouble& UncertainDouble::operator+=(const UncertainDouble& other)
 {
   setValue(value_ + other.value_);
   additive_uncert(other);
   return *this;
 }
 
-UncertainDouble& UncertainDouble::operator -=(const UncertainDouble &other)
+UncertainDouble& UncertainDouble::operator-=(const UncertainDouble& other)
 {
   setValue(value_ - other.value_);
   additive_uncert(other);
   return *this;
 }
 
-UncertainDouble UncertainDouble::operator +(const UncertainDouble &other) const
+UncertainDouble UncertainDouble::operator+(const UncertainDouble& other) const
 {
   UncertainDouble result(*this);
   result += other;
   return result;
 }
 
-UncertainDouble UncertainDouble::operator -(const UncertainDouble &other) const
+UncertainDouble UncertainDouble::operator-(const UncertainDouble& other) const
 {
   UncertainDouble result(*this);
   result -= other;
   return result;
 }
 
-UncertainDouble UncertainDouble::operator *(const UncertainDouble &other) const
+UncertainDouble UncertainDouble::operator*(const UncertainDouble& other) const
 {
   UncertainDouble result(*this);
   result *= other;
   return result;
 }
 
-UncertainDouble UncertainDouble::operator *(const double &other) const
+UncertainDouble UncertainDouble::operator*(const double& other) const
 {
   UncertainDouble result(*this);
   result *= other;
   return result;
 }
 
-UncertainDouble UncertainDouble::operator /(const UncertainDouble &other) const
+UncertainDouble UncertainDouble::operator/(const UncertainDouble& other) const
 {
   UncertainDouble result(*this);
   result /= other;
   return result;
 }
 
-UncertainDouble UncertainDouble::operator /(const double &other) const
+UncertainDouble UncertainDouble::operator/(const double& other) const
 {
   UncertainDouble result(*this);
   result /= other;
   return result;
 }
 
-bool UncertainDouble::almost(const UncertainDouble &other) const
+bool UncertainDouble::almost(const UncertainDouble& other) const
 {
   if (value_ == other.value_)
     return true;
@@ -281,7 +282,7 @@ bool UncertainDouble::almost(const UncertainDouble &other) const
   return false;
 }
 
-UncertainDouble UncertainDouble::average(const std::list<UncertainDouble> &list)
+UncertainDouble UncertainDouble::average(const std::list<UncertainDouble>& list)
 {
   if (list.empty())
     return UncertainDouble();
@@ -292,8 +293,10 @@ UncertainDouble UncertainDouble::average(const std::list<UncertainDouble> &list)
   double avg = (sum) / list.size();
   double min = avg;
   double max = avg;
-  for (auto& l : list) {
-    if (std::isfinite(l.sigma_)) {
+  for (auto& l : list)
+  {
+    if (std::isfinite(l.sigma_))
+    {
       min = std::min(min, l.value_ - l.sigma_);
       max = std::max(max, l.value_ + l.sigma_);
     }
@@ -303,7 +306,7 @@ UncertainDouble UncertainDouble::average(const std::list<UncertainDouble> &list)
   return ret;
 }
 
-void to_json(nlohmann::json& j, const UncertainDouble &s)
+void to_json(nlohmann::json& j, const UncertainDouble& s)
 {
   if (!std::isnan(s.value()))
     j["value"] = s.value();
@@ -311,7 +314,7 @@ void to_json(nlohmann::json& j, const UncertainDouble &s)
     j["sigma"] = s.uncertainty();
 }
 
-void from_json(const nlohmann::json& j, UncertainDouble &s)
+void from_json(const nlohmann::json& j, UncertainDouble& s)
 {
   double val = std::numeric_limits<double>::quiet_NaN();
   if (j.count("value") && j["value"].is_number_float())

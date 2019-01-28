@@ -23,17 +23,15 @@ Fit::Fit(const SUM4Edge &lb, const SUM4Edge &rb,
   if (!peaks_.empty())
   {
     //description.chi_sq_norm = chi_sq_normalized();
-    // \todo use uncertan for these 2
-    double tot_gross {0.0};
-    double tot_back {0.0};
+    UncertainDouble tot_gross = UncertainDouble::from_int(0,0);
+    UncertainDouble tot_back = UncertainDouble::from_int(0,0);
     for (auto &p : peaks_)
     {
       tot_gross += p.sum4().gross_area();
       tot_back  += p.sum4().background_area();
     }
-    auto tot_net = tot_gross - tot_back;
-    // \todo reenable this
-    //description.sum4aggregate = tot_net.error();
+    UncertainDouble tot_net = tot_gross - tot_back;
+    description.sum4aggregate = tot_net.error();
   }
 }
 
@@ -136,7 +134,7 @@ bool ROI::auto_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
       {
         gaussian.force_defaults(default_peak_);
         Peak fitted(gaussian, {}, settings_.calib);
-        peaks_[fitted.center()] = fitted;
+        peaks_[fitted.center().value()] = fitted;
       }
     }
     if (peaks_.empty())
@@ -211,8 +209,8 @@ bool ROI::add_from_resid(BFGS& optimizer, std::atomic<bool>& interruptor, int32_
       double lateral_slack = settings_.resid_too_close * gaussian.width_.val() * 2;
       for (auto &p : peaks_)
       {
-        if ((p.second.center() > (gaussian.position.val() - lateral_slack))
-            && (p.second.center() < (gaussian.position.val() + lateral_slack)))
+        if ((p.second.center().value() > (gaussian.position.val() - lateral_slack))
+            && (p.second.center().value() < (gaussian.position.val() + lateral_slack)))
           too_close = true;
       }
 
@@ -256,7 +254,7 @@ bool ROI::add_from_resid(BFGS& optimizer, std::atomic<bool>& interruptor, int32_
   {
     gaussian.apply_defaults(default_peak_);
     Peak fitted(gaussian, {}, settings_.calib);
-    peaks_[fitted.center()] = fitted;
+    peaks_[fitted.center().value()] = fitted;
     rebuild(optimizer, interruptor);
     return true;
   }
@@ -314,10 +312,10 @@ bool ROI::adjust_sum4(double &peakID, double left, double right)
   SUM4 new_sum4(left, right, finder_, LB_, RB_);
   pk = Peak(pk.hypermet(), new_sum4, settings_.calib);
   remove_peak(peakID);
-  peakID = pk.center();
+  peakID = pk.center().value();
   peaks_[peakID] = pk;
   render();
-  save_current_fit("SUM4 adjusted on " + std::to_string(pk.energy()));
+  save_current_fit("SUM4 adjusted on " + std::to_string(pk.energy().value()));
   return true;
 }
 
@@ -330,12 +328,12 @@ bool ROI::replace_hypermet(double &peakID, Hypermet hyp)
   Peak pk = peaks_.at(peakID);
   pk = Peak(hyp, pk.sum4(), settings_.calib);
   remove_peak(peakID);
-  peakID = pk.center();
+  peakID = pk.center().value();
   peaks_[peakID] = pk;
   //set chi_sq_norm to 0 for all peaks?
 
   render();
-  save_current_fit("Hypermet adjusted on " + std::to_string(pk.energy()));
+  save_current_fit("Hypermet adjusted on " + std::to_string(pk.energy().value()));
   return true;
 }
 
@@ -347,8 +345,8 @@ bool ROI::override_energy(double peakID, double energy)
    peaks_[peakID].override_energy(energy);
 
    render();
-   save_current_fit("Peak energy override " + std::to_string(peaks_.at(peakID).center())
-                    + "->" + std::to_string(peaks_.at(peakID).energy()));
+   save_current_fit("Peak energy override " + std::to_string(peaks_.at(peakID).center().value())
+                    + "->" + std::to_string(peaks_.at(peakID).energy().value()));
    return true;
 }
 
@@ -372,9 +370,9 @@ bool ROI::add_peak(const Finder &parentfinder,
     else
     {
       Peak fitted(Hypermet(), SUM4(left, right, finder_, LB_, RB_), settings_.calib);
-      peaks_[fitted.center()] = fitted;
+      peaks_[fitted.center().value()] = fitted;
       render();
-      save_current_fit("Manually added " + std::to_string(fitted.energy()));
+      save_current_fit("Manually added " + std::to_string(fitted.energy().value()));
       return true;
     }
   }
@@ -398,9 +396,9 @@ bool ROI::add_peak(const Finder &parentfinder,
     if (settings_.sum4_only)
     {
       Peak fitted(Hypermet(), SUM4(left, right, finder_, LB_, RB_), settings_.calib);
-      peaks_[fitted.center()] = fitted;
+      peaks_[fitted.center().value()] = fitted;
       render();
-      save_current_fit("Manually added " + std::to_string(fitted.energy()));
+      save_current_fit("Manually added " + std::to_string(fitted.energy().value()));
       return true;
     }
     else if (new_fit.add_from_resid(optimizer, interruptor, finder_.find_index(center_prelim)))
@@ -502,7 +500,7 @@ bool ROI::rebuild_as_hypermet(BFGS& optimizer, std::atomic<bool>& interruptor)
       Peak s4only({},
                   SUM4(q.second.sum4().left(), q.second.sum4().right(), finder_, LB_, RB_),
                   settings_.calib);
-      new_peaks[s4only.center()] = s4only;
+      new_peaks[s4only.center().value()] = s4only;
     }
   }
 
@@ -542,7 +540,7 @@ bool ROI::rebuild_as_gaussian(BFGS& optimizer, std::atomic<bool>& interruptor)
                   SUM4(q.second.sum4().left(), q.second.sum4().right(), finder_, LB_, RB_),
                   settings_.calib);
       //      q.second.construct(settings_);
-      new_peaks[s4only.center()] = s4only;
+      new_peaks[s4only.center().value()] = s4only;
     }
   }
 
@@ -853,7 +851,7 @@ bool ROI::rollback(const Finder &parent_finder, size_t i)
   RB_ = fits_[i].RB_;
   peaks_.clear();
   for (const auto& p : fits_[i].peaks_)
-    peaks_[p.center()] = p;
+    peaks_[p.center().value()] = p;
   render();
 
   current_fit_ = i;
@@ -940,7 +938,7 @@ ROI::ROI(const nlohmann::json& j, const Finder &finder, const FitSettings& fs)
         for (nlohmann::json::iterator it2 = p.begin(); it2 != p.end(); ++it2)
         {
           Peak newpeak(it2.value(), settings_.calib, finder_, LB_, RB_);
-          peaks_[newpeak.center()] = newpeak;
+          peaks_[newpeak.center().value()] = newpeak;
         }
       }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/fitting/finder.h>
+#include <core/fitting/uncertain.h>
 #include <cmath>
 
 namespace DAQuiri {
@@ -10,8 +11,8 @@ class SUM4Edge {
   double Rchan_ {0};
   double min_ {0};
   double max_ {0};
-  // \todo use uncertain types
-  double dsum_, davg_;
+  UncertainDouble dsum_ {0,0};
+  UncertainDouble davg_ {0,0};
 
 public:
   SUM4Edge() = default;
@@ -22,13 +23,10 @@ public:
 
   double left()  const {return Lchan_;}
   double right() const {return Rchan_;}
-  double sum()      const {return dsum_;}
+  double sum()      const {return dsum_.value();}
   double width()    const;
-  double average()  const {return davg_;}
-  double variance() const {
-    return 0;
-    // \todo return pow(davg_.uncertainty(),2);
-  }
+  double average()  const {return davg_.value();}
+  double variance() const {return std::pow(davg_.uncertainty(), 2);}
 
   double min()      const {return min_;}
   double max()      const {return max_;}

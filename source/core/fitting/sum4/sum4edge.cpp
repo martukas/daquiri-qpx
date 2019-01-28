@@ -12,7 +12,7 @@ SUM4Edge::SUM4Edge(const std::vector<double> &x,
                    const std::vector<double> &y,
                    uint32_t Lindex, uint32_t Rindex)
 {
-  dsum_ = 0.0;
+  dsum_ = UncertainDouble::from_int(0,0);
 
   if (y.empty()
       || (y.size() != x.size())
@@ -30,7 +30,7 @@ SUM4Edge::SUM4Edge(const std::vector<double> &x,
   for (size_t i=Lindex; i <= Rindex; ++i) {
     min_ = std::min(min_, y[i]);
     max_ = std::max(max_, y[i]);
-    dsum_ += y[i]; // \todo  uncertaintye = sqrt(y[i]));
+    dsum_ += UncertainDouble::from_int(y[i], sqrt(y[i]));
   }
 
   davg_ = dsum_ / width();
