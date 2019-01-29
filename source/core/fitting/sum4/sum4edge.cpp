@@ -1,36 +1,26 @@
 #include <core/fitting/sum4/sum4edge.h>
 
-namespace DAQuiri {
+namespace DAQuiri
+{
 
-SUM4Edge::SUM4Edge(const nlohmann::json& j, const Finder& f)
-  : SUM4Edge(f.x_, f.y_,
-             f.find_index(j["left"]),
-             f.find_index(j["right"]))
-{}
-
-SUM4Edge::SUM4Edge(const std::vector<double> &x,
-                   const std::vector<double> &y,
-                   uint32_t Lindex, uint32_t Rindex)
+SUM4Edge::SUM4Edge(const SpectrumData& d)
 {
   dsum_ = {0.0, 0.0};
 
-  if (y.empty()
-      || (y.size() != x.size())
-      || (Lindex > Rindex)
-      || (Lindex >= y.size())
-      || (Rindex >= y.size()))
+  if (d.data.empty())
     return;
 
-  Lchan_ = x.at(Lindex);
-  Rchan_ = x.at(Rindex);
+  Lchan_ = d.data.front().x;
+  Rchan_ = d.data.back().x;
 
   min_ = std::numeric_limits<double>::max();
   max_ = std::numeric_limits<double>::min();
 
-  for (size_t i=Lindex; i <= Rindex; ++i) {
-    min_ = std::min(min_, y[i]);
-    max_ = std::max(max_, y[i]);
-    dsum_ += UncertainDouble::from_int(y[i], sqrt(y[i]));
+  for (const auto& p : d.data)
+  {
+    min_ = std::min(min_, p.y);
+    max_ = std::max(max_, p.y);
+    dsum_ += {p.y, p.weight_true};
   }
 
   davg_ = dsum_ / width();
@@ -59,5 +49,24 @@ void to_json(nlohmann::json& j, const SUM4Edge& s)
   j["right"] = s.Rchan_;
 }
 
+void from_json(const nlohmann::json& j, SUM4Edge& s)
+{
+  s.Lchan_ = j["left"];
+  s.Rchan_ = j["right"];
+}
+
+Polynomial SUM4Edge::sum4_background(const SUM4Edge& L, const SUM4Edge& R)
+{
+  Polynomial sum4back;
+  double run = R.left() - L.right();
+  auto x_offset = sum4back.x_offset();
+  x_offset.constrain(L.right(), L.right());
+  double s4base = L.average();
+  double s4slope = (R.average() - L.average()) / run;
+  sum4back.x_offset(x_offset);
+  sum4back.set_coeff(0, {s4base, s4base, s4base});
+  sum4back.set_coeff(1, {s4slope, s4slope, s4slope});
+  return sum4back;
+}
 
 }

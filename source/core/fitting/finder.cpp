@@ -3,6 +3,80 @@
 namespace DAQuiri
 {
 
+void SpectrumData::set(const std::vector<double>& x,
+         const std::vector<double>& y)
+{
+  if (x.size() != y.size())
+    throw std::runtime_error("SubSpectrum::set x & y sized don't match");
+  data.resize(x.size());
+  for (size_t i = 0; i < x.size(); ++i)
+  {
+    auto& p = data[i];
+    p.x = x[i];
+    p.y = y[i];
+    p.weight_true = weight_true(y, i);
+    p.weight_phillips_marlow = weight_phillips_marlow(y, i);
+    p.weight_revay = weight_revay_student(y, i);
+  }
+}
+
+SpectrumData SpectrumData::subset(double from, double to) const
+{
+  SpectrumData ret;
+  for (const auto& p : data)
+    if ((p.x >= from) && (p.x <= to))
+      ret.data.push_back(p);
+  return ret;
+}
+
+SpectrumData SpectrumData::left(size_t size) const
+{
+  size = std::min(size, data.size());
+  SpectrumData ret;
+  ret.data = std::vector<SpectrumDataPoint>(data.begin(), data.begin() + size);
+  return ret;
+}
+
+SpectrumData SpectrumData::right(size_t size) const
+{
+  size = std::min(size, data.size());
+  SpectrumData ret;
+  ret.data = std::vector<SpectrumDataPoint>(data.begin() + (data.size() - size), data.end());
+  return ret;
+}
+
+void SpectrumData::clear()
+{
+  data.clear();
+}
+
+double SpectrumData::weight_true(const std::vector<double>& y, size_t i) const
+{
+  return std::sqrt(y[i]);
+}
+
+double SpectrumData::weight_phillips_marlow(const std::vector<double>& y, size_t i) const
+{
+  double k0 = y[i];
+
+  if (k0 >= 25)
+    return std::sqrt(k0);
+  else
+  {
+    k0 = 1.0;
+    if ((i > 0) && ((i + 1) < y.size()))
+      k0 = y[i - 1] + y[i] + y[i + 1] / 3.0;
+    return std::max(std::sqrt(k0), 1.0);
+  }
+}
+
+double SpectrumData::weight_revay_student(const std::vector<double>& y, size_t i) const
+{
+  double k0 = y[i] + 1;
+  return std::sqrt(k0);
+}
+
+
 Finder::Finder(const std::vector<double>& x, const std::vector<double>& y, const KONSettings& settings)
 : settings_(settings)
 {
@@ -16,9 +90,9 @@ void Finder::setNewData(const std::vector<double>& x, const std::vector<double>&
   {
     x_ = x;
     y_ = y;
-    reset();
-    calc_uncertainties();
+    weighted_data.set(x, y);
 
+    reset();
     calc_kon();
     find_peaks();
   }
@@ -50,20 +124,6 @@ void Finder::reset()
   y_resid_on_background_ = y_resid_ = y_;
   y_fit_.resize(x_.size(), 0);
   y_background_.resize(x_.size(), 0);
-  weighted_data.resize(x_.size());
-}
-
-void Finder::calc_uncertainties()
-{
-  for (size_t i = 0; i < x_.size(); ++i)
-  {
-    auto& p = weighted_data[i];
-    p.x = x_[i];
-    p.y = y_[i];
-    p.weight_true = weight_true(i);
-    p.weight_phillips_marlow = weight_phillips_marlow(i);
-    p.weight_revay = weight_revay_student(i);
-  }
 }
 
 bool Finder::empty() const
@@ -449,30 +509,5 @@ void Region::find_peaks(uint8_t threshold)
 }
 */
 
-double Finder::weight_true(size_t i) const
-{
-  return std::sqrt(y_[i]);
-}
-
-double Finder::weight_phillips_marlow(size_t i) const
-{
-  double k0 = y_[i];
-
-  if (k0 >= 25)
-    return std::sqrt(k0);
-  else
-  {
-    k0 = 1.0;
-    if ((i > 0) && ((i + 1) < y_.size()))
-      k0 = y_[i - 1] + y_[i] + y_[i + 1] / 3.0;
-    return std::max(std::sqrt(k0), 1.0);
-  }
-}
-
-double Finder::weight_revay_student(size_t i) const
-{
-  double k0 = y_[i] + 1;
-  return std::sqrt(k0);
-}
 
 }

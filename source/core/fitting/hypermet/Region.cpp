@@ -9,10 +9,10 @@ namespace DAQuiri
 Region::Region(const SpectrumData& data)
   : data_(data)
 {
-  if (data_.empty())
+  if (data_.data.empty())
     throw std::runtime_error("Attempting to construct Region from empty sample");
 
-  background.x_offset = data_.front().x;
+  background.x_offset = data_.data.front().x;
 
   default_peak_.width_.bound(0.8, 4.0);
 
@@ -143,14 +143,14 @@ double Region::chi_sq_normalized() const
 double Region::degrees_of_freedom() const
 {
   // \todo what if channel range is < fit_var_count?
-  return (data_.size() - fit_var_count());
+  return (data_.data.size() - fit_var_count());
 }
 
 //Calculates the Chi-square over a region
 double Region::chi_sq() const
 {
   double ChiSq = 0;
-  for (const auto& data : data_)
+  for (const auto& data : data_.data)
   {
     double FTotal = background.eval(data.x);
     for (auto& p : peaks_)
@@ -169,7 +169,7 @@ double Region::grad_chi_sq(std::vector<double>& gradients) const
 
   double Chisq = 0;
 
-  for (const auto& data : data_)
+  for (const auto& data : data_.data)
   {
     chan_gradients.assign(chan_gradients.size(), 0.0);
 
@@ -191,7 +191,7 @@ double Region::grad_chi_sq(std::vector<double>& gradients) const
 double Region::chi_sq(const std::vector<double>& fit) const
 {
   double ChiSq = 0;
-  for (const auto& data : data_)
+  for (const auto& data : data_.data)
   {
     double FTotal = background.eval_at(data.x, fit);
     for (auto& p : peaks_)
@@ -210,7 +210,7 @@ double Region::grad_chi_sq(const std::vector<double>& fit,
 
   double Chisq = 0;
 
-  for (const auto& data : data_)
+  for (const auto& data : data_.data)
   {
     chan_gradients.assign(chan_gradients.size(), 0.0);
 

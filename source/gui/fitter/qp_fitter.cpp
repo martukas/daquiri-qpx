@@ -543,7 +543,7 @@ void QpFitter::plotPeak(double region_id, double peak_id, const DAQuiri::Peak &p
     double x2 = fit_data_->settings().bin_to_nrg(peak.sum4().right() + 0.5);
 
     auto region = fit_data_->region(region_id);
-    auto s4b = DAQuiri::SUM4::sum4_background(region.LB(), region.RB(), region.finder());
+    auto s4b = DAQuiri::SUM4Edge::sum4_background(region.LB(), region.RB());
     double y1 = s4b(peak.sum4().left());
     double y2 = s4b(peak.sum4().right());
 

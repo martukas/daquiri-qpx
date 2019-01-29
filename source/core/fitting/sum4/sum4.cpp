@@ -3,67 +3,40 @@
 namespace DAQuiri
 {
 
-SUM4::SUM4(const nlohmann::json& j, const Finder& f, const SUM4Edge& LB, const SUM4Edge& RB)
-    : SUM4(j["left"], j["right"], f, LB, RB) {}
-
-Polynomial SUM4::sum4_background(const SUM4Edge& L, const SUM4Edge& R, const Finder& f)
-{
-  Polynomial sum4back;
-  if (f.x_.empty())
-    return sum4back;
-  double run = R.left() - L.right();
-  auto x_offset = sum4back.x_offset();
-  x_offset.constrain(L.right(), L.right());
-  double s4base = L.average();
-  double s4slope = (R.average() - L.average()) / run;
-  sum4back.x_offset(x_offset);
-  sum4back.set_coeff(0, {s4base, s4base, s4base});
-  sum4back.set_coeff(1, {s4slope, s4slope, s4slope});
-  return sum4back;
-}
-
-SUM4::SUM4(double left, double right, const Finder& f,
+SUM4::SUM4(const SpectrumData& d,
            const SUM4Edge& LB, const SUM4Edge& RB)
 {
-  auto x = f.x_;
-  auto y = f.y_;
-  uint32_t Lindex = f.find_index(left);
-  uint32_t Rindex = f.find_index(right);
-  Polynomial background = sum4_background(LB, RB, f);
+  Polynomial background = SUM4Edge::sum4_background(LB, RB);
 
-  if (y.empty()
-      || (y.size() != x.size())
-      || (Lindex > Rindex)
-      || (Lindex >= y.size())
-      || (Rindex >= y.size())
+  if (d.data.empty()
       || !LB.width()
       || !RB.width())
     return;
 
   LB_ = LB;
   RB_ = RB;
-  Lchan_ = x[Lindex];
-  Rchan_ = x[Rindex];
+  Lchan_ = d.data.front().x;
+  Rchan_ = d.data.back().x;
 
   gross_area_ = {0.0, 0.0};
-  for (size_t i = Lindex; i <= Rindex; ++i)
-    gross_area_ += {y[i], sqrt(y[i])};
+  for (const auto& p : d.data)
+    gross_area_ += {p.y, p.weight_true};
 
-  double background_variance = pow((peak_width() / 2.0), 2) * (LB_.variance() + RB_.variance());
+  double background_variance = pow(0.5 * peak_width(), 2) * (LB_.variance() + RB_.variance());
   background_area_ = {
-      peak_width() * (background(x[Rindex]) + background(x[Lindex])) / 2.0,
+      0.5 * peak_width() * (background(Rchan_) + background(Lchan_)),
       sqrt(background_variance)};
 
   peak_area_ = gross_area_ - background_area_;
   //peak_area_.autoSigs(1);
 
   double sumYnet(0), CsumYnet(0), C2sumYnet(0);
-  for (size_t i = Lindex; i <= Rindex; ++i)
+  for (const auto& p : d.data)
   {
-    double yn = y[i] - background(y[i]);
+    double yn = p.y - background(p.x);
     sumYnet += yn;
-    CsumYnet += x[i] * yn;
-    C2sumYnet += pow(x[i], 2) * yn;
+    CsumYnet += p.x * yn;
+    C2sumYnet += pow(p.x, 2) * yn;
   }
 
   double centroidval = CsumYnet / sumYnet;
@@ -127,5 +100,12 @@ void to_json(nlohmann::json& j, const SUM4& s)
   j["left"] = s.Lchan_;
   j["right"] = s.Rchan_;
 }
+
+void from_json(const nlohmann::json& j, SUM4& s)
+{
+  s.Lchan_ = j["left"];
+  s.Rchan_ = j["right"];
+}
+
 
 }

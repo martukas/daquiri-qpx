@@ -309,7 +309,7 @@ bool ROI::adjust_sum4(double &peakID, double left, double right)
     return false;
 
   Peak pk = peaks_.at(peakID);
-  SUM4 new_sum4(left, right, finder_, LB_, RB_);
+  SUM4 new_sum4(finder_.weighted_data.subset(left, right), LB_, RB_);
   pk = Peak(pk.hypermet(), new_sum4, settings_.calib);
   remove_peak(peakID);
   peakID = pk.center().value();
@@ -369,7 +369,7 @@ bool ROI::add_peak(const Finder &parentfinder,
     }
     else
     {
-      Peak fitted(Hypermet(), SUM4(left, right, finder_, LB_, RB_), settings_.calib);
+      Peak fitted(Hypermet(), SUM4(finder_.weighted_data.subset(left, right), LB_, RB_), settings_.calib);
       peaks_[fitted.center().value()] = fitted;
       render();
       save_current_fit("Manually added " + std::to_string(fitted.energy().value()));
@@ -395,7 +395,7 @@ bool ROI::add_peak(const Finder &parentfinder,
     ROI new_fit = *this;
     if (settings_.sum4_only)
     {
-      Peak fitted(Hypermet(), SUM4(left, right, finder_, LB_, RB_), settings_.calib);
+      Peak fitted(Hypermet(), SUM4(finder_.weighted_data.subset(left, right), LB_, RB_), settings_.calib);
       peaks_[fitted.center().value()] = fitted;
       render();
       save_current_fit("Manually added " + std::to_string(fitted.energy().value()));
@@ -498,7 +498,7 @@ bool ROI::rebuild_as_hypermet(BFGS& optimizer, std::atomic<bool>& interruptor)
     else if (q.second.sum4().peak_width())
     {
       Peak s4only({},
-                  SUM4(q.second.sum4().left(), q.second.sum4().right(), finder_, LB_, RB_),
+                  SUM4(finder_.weighted_data.subset(q.second.sum4().left(), q.second.sum4().right()), LB_, RB_),
                   settings_.calib);
       new_peaks[s4only.center().value()] = s4only;
     }
@@ -537,7 +537,7 @@ bool ROI::rebuild_as_gaussian(BFGS& optimizer, std::atomic<bool>& interruptor)
     else if (q.second.sum4().peak_width())
     {
       Peak s4only({},
-                  SUM4(q.second.sum4().left(), q.second.sum4().right(), finder_, LB_, RB_),
+                  SUM4(finder_.weighted_data.subset(q.second.sum4().left(), q.second.sum4().right()), LB_, RB_),
                   settings_.calib);
       //      q.second.construct(settings_);
       new_peaks[s4only.center().value()] = s4only;
@@ -666,7 +666,7 @@ void RegionRendering::with_hypermet(
 
 void ROI::render()
 {
-  Polynomial sum4back = SUM4::sum4_background(LB_, RB_, finder_);
+  Polynomial sum4back = SUM4Edge::sum4_background(LB_, RB_);
   std::vector<double> lowres_backsteps, lowres_fullfit;
 
   if (settings_.sum4_only)
@@ -710,12 +710,7 @@ std::vector<double> ROI::remove_background()
 bool ROI::adjust_LB(const Finder &parentfinder, double left, double right,
                      BFGS& optimizer, std::atomic<bool>& interruptor)
 {
-  size_t Lidx = parentfinder.find_index(left);
-  size_t Ridx = parentfinder.find_index(right);
-  if (Lidx >= Ridx)
-    return false;
-
-  SUM4Edge edge(parentfinder.x_, parentfinder.y_, Lidx, Ridx);
+  SUM4Edge edge(parentfinder.weighted_data.subset(left, right));
   if (!edge.width() || (edge.right() >= RB_.left()))
     return false;
 
@@ -733,12 +728,7 @@ bool ROI::adjust_LB(const Finder &parentfinder, double left, double right,
 
 bool ROI::adjust_RB(const Finder &parentfinder, double left, double right,
                     BFGS& optimizer, std::atomic<bool>& interruptor) {
-  size_t Lidx = parentfinder.find_index(left);
-  size_t Ridx = parentfinder.find_index(right);
-  if (Lidx >= Ridx)
-    return false;
-
-  SUM4Edge edge(parentfinder.x_, parentfinder.y_, Lidx, Ridx);
+  SUM4Edge edge(parentfinder.weighted_data.subset(left, right));
   if (!edge.width() || (edge.left() <= LB_.right()))
     return false;
 
@@ -762,23 +752,12 @@ void ROI::init_edges()
 
 void ROI::init_LB()
 {
-  int32_t LBend = 0;
-  uint16_t samples = settings_.background_edge_samples;
-
-  if ((samples > 0) && (finder_.y_.size() > samples*3))
-    LBend += samples;
-
-  LB_ = SUM4Edge(finder_.x_, finder_.y_, 0, LBend);
+  LB_ = SUM4Edge(finder_.weighted_data.left(settings_.background_edge_samples));
 }
 
 void ROI::init_RB()
 {
-  int32_t RBstart = finder_.y_.size() - 1;
-  uint16_t samples = settings_.background_edge_samples;
-  if ((samples > 0) && (finder_.y_.size() > samples*3))
-    RBstart -= samples;
-
-  RB_ = SUM4Edge(finder_.x_, finder_.y_, RBstart, finder_.y_.size() - 1);
+  LB_ = SUM4Edge(finder_.weighted_data.right(settings_.background_edge_samples));
 }
 
 void ROI::init_background()
@@ -915,8 +894,11 @@ ROI::ROI(const nlohmann::json& j, const Finder &finder, const FitSettings& fs)
     nlohmann::json o = j["fits"];
     for (nlohmann::json::iterator it = o.begin(); it != o.end(); ++it)
     {
-      SUM4Edge LB(it.value()["background_left"], finder);
-      SUM4Edge RB(it.value()["background_right"], finder);
+      SUM4Edge LB = it.value()["background_left"];
+      SUM4Edge RB = it.value()["background_right"];
+
+      LB = SUM4Edge(finder.weighted_data.subset(LB.left(), LB.right()));
+      RB = SUM4Edge(finder.weighted_data.subset(RB.left(), RB.right()));
 
       if (!LB.width() || !RB.width())
         return;

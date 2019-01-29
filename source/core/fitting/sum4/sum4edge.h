@@ -2,7 +2,7 @@
 
 #include <core/fitting/finder.h>
 #include <core/fitting/uncertain.h>
-#include <cmath>
+#include <core/calibration/polynomial.h>
 
 namespace DAQuiri {
 
@@ -16,10 +16,7 @@ class SUM4Edge {
 
 public:
   SUM4Edge() = default;
-  SUM4Edge(const nlohmann::json& j, const Finder& f);
-  SUM4Edge(const std::vector<double> &x,
-           const std::vector<double> &y,
-           uint32_t left, uint32_t right);
+  SUM4Edge(const SpectrumData& d);
 
   double left()  const {return Lchan_;}
   double right() const {return Rchan_;}
@@ -33,6 +30,10 @@ public:
   double midpoint() const;
 
   friend void to_json(nlohmann::json& j, const SUM4Edge& s);
+  friend void from_json(const nlohmann::json& j, SUM4Edge& s);
+
+  static Polynomial sum4_background(const SUM4Edge& L,
+                                    const SUM4Edge& R);
 };
 
 }

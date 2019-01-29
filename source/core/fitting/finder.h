@@ -14,7 +14,26 @@ struct SpectrumDataPoint
   double weight_revay {0};
 };
 
-using SpectrumData = std::vector<SpectrumDataPoint>;
+struct SpectrumData
+{
+  // \todo uncertainty treatment for ZDT spectra
+  // \todo empty
+  // \todo push_back
+
+  SpectrumData() = default;
+  void set(const std::vector<double>& x,
+           const std::vector<double>& y);
+  SpectrumData subset(double from, double to) const;
+  SpectrumData left(size_t size) const;
+  SpectrumData right(size_t size) const;
+  void clear();
+
+  std::vector<SpectrumDataPoint> data;
+
+  double weight_true(const std::vector<double>& y, size_t i) const;
+  double weight_phillips_marlow(const std::vector<double>& y, size_t i) const;
+  double weight_revay_student(const std::vector<double>& y, size_t i) const;
+};
 
 class Finder
 {
@@ -24,11 +43,8 @@ class Finder
          const std::vector<double>& y,
          const KONSettings& settings);
 
-  // \todo constructors for ZDT spectra
-
   void clear();
   void reset();
-  void calc_uncertainties();
 
   bool empty() const;
 
@@ -65,10 +81,6 @@ class Finder
   size_t right_edge(size_t idx) const;
 
   void setNewData(const std::vector<double>& x, const std::vector<double>& y);
-
-  double weight_true(size_t i) const;
-  double weight_phillips_marlow(size_t i) const;
-  double weight_revay_student(size_t i) const;
 };
 
 }

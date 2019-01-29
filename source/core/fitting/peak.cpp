@@ -83,7 +83,10 @@ Peak::Peak(
   if (j.count("hypermet"))
     hypermet_ = j["hypermet"];
   if (j.count("SUM4"))
-    sum4_ = SUM4(j["SUM4"], f, LB, RB);
+  {
+    sum4_ = j["SUM4"];
+    sum4_ = SUM4(f.weighted_data.subset(sum4_.left(), sum4_.right()), LB, RB);
+  }
   reconstruct(cal);
 }
 
