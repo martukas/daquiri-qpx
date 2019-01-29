@@ -12,7 +12,7 @@ SUM4Edge::SUM4Edge(const std::vector<double> &x,
                    const std::vector<double> &y,
                    uint32_t Lindex, uint32_t Rindex)
 {
-  dsum_ = UncertainDouble::from_int(0,0);
+  dsum_ = {0.0, 0.0};
 
   if (y.empty()
       || (y.size() != x.size())

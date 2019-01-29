@@ -111,6 +111,7 @@ UncertainDouble Hypermet::peak_position() const
 
 UncertainDouble Hypermet::peak_energy(const HCalibration& cal) const
 {
+  // \todo if there is a curve, does the slope not differ with x?
   return {cal.channel_to_energy(position.val()),
           cal.energy_slope() * position.uncert_value};
 }
@@ -164,6 +165,7 @@ UncertainDouble Hypermet::area() const
 
 UncertainDouble Hypermet::peak_area_eff(const HCalibration& cal) const
 {
+  // \todo should this also be more rigorous, like area() ?
   auto e = peak_energy(cal).value();
   auto a = area().value();
 
@@ -178,6 +180,42 @@ UncertainDouble Hypermet::peak_area_eff(const HCalibration& cal) const
           square(std::sqrt(std::sqrt(a) / a)) + square(sigrel_eff) *
               (a / eff) * std::max(1.0, chi_sq_norm)};
 }
+
+UncertainDouble Hypermet::fwhm() const
+{
+  // \todo multiply with sqrt(log(2.0)) ?
+  return {width_.val(), width_.uncert_value};
+}
+
+UncertainDouble Hypermet::fwhm_energy(const HCalibration& cal) const
+{
+  double width = width_.val() * sqrt(log(2.0));
+  double max_width = (width_.val() + width_.uncert_value) * sqrt(log(2.0));
+  double min_width = (width_.val() - width_.uncert_value) * sqrt(log(2.0));
+
+  double val = cal.channel_to_energy(position.val() + width)
+      - cal.channel_to_energy(position.val() - width);
+  double max = cal.channel_to_energy(position.val() + max_width)
+      - cal.channel_to_energy(position.val() - max_width);
+  double min = cal.channel_to_energy(position.val() + min_width)
+      - cal.channel_to_energy(position.val() - min_width);
+
+  return {val, 0.5 * (max - min)};
+}
+
+UncertainDouble Hypermet::fwhm_energy(const Calibration& cal) const
+{
+  double width = width_.val() * sqrt(log(2.0));
+  double max_width = (width_.val() + width_.uncert_value) * sqrt(log(2.0));
+  double min_width = (width_.val() - width_.uncert_value) * sqrt(log(2.0));
+
+  double val = cal.transform(position.val() + width) - cal.transform(position.val() - width);
+  double max = cal.transform(position.val() + max_width) - cal.transform(position.val() - max_width);
+  double min = cal.transform(position.val() + min_width) - cal.transform(position.val() - min_width);
+
+  return {val, 0.5 * (max - min)};
+}
+
 
 void Hypermet::update_indices(int32_t& i)
 {

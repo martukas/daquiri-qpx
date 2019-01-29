@@ -18,8 +18,25 @@ double dead_time(double real_time, double live_time)
 double rate(double live_time, double sum_counts)
 {
   if (live_time > 0.0)
-    return sum_counts / live_time * 100;
+    return sum_counts / live_time;
   return 0.0;
 }
+
+int value_quality(UncertainDouble ud, double error_threshold)
+{
+  if (ud.error() > error_threshold)
+    return 3;
+  else if (!std::isfinite(ud.uncertainty()) || !ud.uncertainty())
+    return 2;
+  return 1;
+}
+
+int peak_good(const Hypermet& h, const SUM4& s)
+{
+  return ((s.quality() == 1)
+      && (value_quality(h.peak_position()) == 1)
+      && (value_quality(h.fwhm()) == 1));
+}
+
 
 }

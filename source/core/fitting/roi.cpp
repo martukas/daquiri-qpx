@@ -23,8 +23,8 @@ Fit::Fit(const SUM4Edge &lb, const SUM4Edge &rb,
   if (!peaks_.empty())
   {
     //description.chi_sq_norm = chi_sq_normalized();
-    UncertainDouble tot_gross = UncertainDouble::from_int(0,0);
-    UncertainDouble tot_back = UncertainDouble::from_int(0,0);
+    UncertainDouble tot_gross {0.0, 0.0};
+    UncertainDouble tot_back {0.0, 0.0};
     for (auto &p : peaks_)
     {
       tot_gross += p.sum4().gross_area();

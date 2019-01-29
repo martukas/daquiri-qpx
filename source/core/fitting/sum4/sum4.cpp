@@ -45,7 +45,7 @@ SUM4::SUM4(double left, double right, const Finder& f,
   Lchan_ = x[Lindex];
   Rchan_ = x[Rindex];
 
-  gross_area_ = UncertainDouble::from_int(0, 0);
+  gross_area_ = {0.0, 0.0};
   for (size_t i = Lindex; i <= Rindex; ++i)
     gross_area_ += {y[i], sqrt(y[i])};
 
@@ -75,6 +75,19 @@ SUM4::SUM4(double left, double right, const Finder& f,
 
   double fwhm_val = 2.0 * sqrt(centroid_variance * log(4));
   fwhm_ = {fwhm_val, std::numeric_limits<double>::quiet_NaN()};
+}
+
+UncertainDouble SUM4::peak_energy(const Calibration& cal) const
+{
+  return {cal.transform(centroid_.value()),
+          cal.function()->derivative(centroid_.value()) * centroid_.uncertainty()};
+}
+
+UncertainDouble SUM4::fwhm_energy(const Calibration& cal) const
+{
+  double L = centroid_.value() - 0.5 * fwhm_.value();
+  double R = centroid_.value() + 0.5 * fwhm_.value();
+  return {cal.transform(R) - cal.transform(L), std::numeric_limits<double>::quiet_NaN()};
 }
 
 double SUM4::peak_width() const

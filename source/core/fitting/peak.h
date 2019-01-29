@@ -6,8 +6,6 @@
 namespace DAQuiri
 {
 
-int value_quality(UncertainDouble ud, double error_threshold = 50);
-
 class Peak
 {
  public:
@@ -35,10 +33,6 @@ class Peak
   const UncertainDouble& cps_best() const { return cps_best_; }
 
   void override_energy(double);
-
-  int quality_energy() const;
-  int quality_fwhm() const;
-  bool good() const;
 
   bool operator<(const Peak& other) const;
   bool operator==(const Peak& other) const;

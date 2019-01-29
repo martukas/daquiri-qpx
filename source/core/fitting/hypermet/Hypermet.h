@@ -48,6 +48,9 @@ class Hypermet
   UncertainDouble peak_energy(const Calibration& cal) const;
   UncertainDouble area() const;
   UncertainDouble peak_area_eff(const HCalibration& cal) const;
+  UncertainDouble fwhm() const;
+  UncertainDouble fwhm_energy(const HCalibration& cal) const;
+  UncertainDouble fwhm_energy(const Calibration& cal) const;
 
   PrecalcVals precalc_vals(double chan) const;
   PrecalcVals precalc_vals_at(double chan, const std::vector<double>& fit) const;
