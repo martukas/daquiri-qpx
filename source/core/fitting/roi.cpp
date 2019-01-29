@@ -220,11 +220,11 @@ bool ROI::add_from_resid(BFGS& optimizer, std::atomic<bool>& interruptor, int32_
       if (!too_close &&
       gaussian.sanity_check(finder_.x_[finder_.lefts[j]], finder_.x_[finder_.rights[j]])
       && (gaussian.amplitude.val() > settings_.resid_min_amplitude) &&
-           (gaussian.area() > biggest)
+           (gaussian.area().value() > biggest)
            )
       {
         target_peak = j;
-        biggest = gaussian.area();
+        biggest = gaussian.area().value();
       }
     }
     //    DBG << "    biggest potential add at " << finder_.x_[finder_.filtered[target_peak]] << " with area=" << biggest;

@@ -22,18 +22,12 @@ std::string UncertainDouble::debug() const
 
 UncertainDouble UncertainDouble::from_int(int64_t val, double sigma)
 {
-  return UncertainDouble(double(val), sigma);
+  return UncertainDouble(static_cast<double>(val), sigma);
 }
 
 UncertainDouble UncertainDouble::from_uint(uint64_t val, double sigma)
 {
-  return UncertainDouble(double(val), sigma);
-}
-
-UncertainDouble UncertainDouble::from_double(double val, double sigma)
-{
-  UncertainDouble ret(val, sigma);
-  return ret;
+  return UncertainDouble(static_cast<double>(val), sigma);
 }
 
 int UncertainDouble::exponent() const
@@ -47,17 +41,6 @@ int UncertainDouble::exponent() const
   else
     return 0;
 }
-
-
-//UncertainDouble &UncertainDouble::operator =(const UncertainDouble &other)
-//{
-//  if (this != &other) {
-//    value_ = other.value_;
-//    sigma_ = other.sigma_;
-//    sigfigs_ = other.sigfigs_;
-//  }
-//  return *this;
-//}
 
 double UncertainDouble::value() const
 {
@@ -160,14 +143,6 @@ std::string UncertainDouble::error_percent() const
   else
     return p.to_string(false) + "%";
 }
-
-//std::string UncertainDouble::to_markup() const
-//{
-//  std::string ret = to_string();
-//  boost::replace_all(ret, "<", "&lt;");
-//  boost::replace_all(ret, ">", "&gt;");
-//  return ret;
-//}
 
 UncertainDouble& UncertainDouble::operator*=(const UncertainDouble& other)
 {

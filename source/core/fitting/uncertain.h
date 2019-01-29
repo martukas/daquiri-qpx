@@ -13,7 +13,6 @@ class UncertainDouble
 
   static UncertainDouble from_int(int64_t val, double sigma);
   static UncertainDouble from_uint(uint64_t val, double sigma);
-  static UncertainDouble from_double(double val, double sigma);
 
   double value() const;
   double uncertainty() const;
@@ -25,7 +24,6 @@ class UncertainDouble
   bool finite() const;
 
   std::string to_string(bool ommit_tiny = true) const;
-//  std::string to_markup() const; // outputs formatted text
   std::string error_percent() const;
 
   std::string debug() const;

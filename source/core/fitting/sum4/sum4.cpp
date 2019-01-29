@@ -1,10 +1,10 @@
 #include <core/fitting/sum4/sum4.h>
 
-namespace DAQuiri {
+namespace DAQuiri
+{
 
 SUM4::SUM4(const nlohmann::json& j, const Finder& f, const SUM4Edge& LB, const SUM4Edge& RB)
-  : SUM4(j["left"], j["right"], f, LB, RB)
-{}
+    : SUM4(j["left"], j["right"], f, LB, RB) {}
 
 Polynomial SUM4::sum4_background(const SUM4Edge& L, const SUM4Edge& R, const Finder& f)
 {
@@ -45,20 +45,21 @@ SUM4::SUM4(double left, double right, const Finder& f,
   Lchan_ = x[Lindex];
   Rchan_ = x[Rindex];
 
-  gross_area_ = UncertainDouble::from_int(0,0);
-  for (size_t i=Lindex; i <=Rindex; ++i)
-    gross_area_ += UncertainDouble::from_double(y[i], sqrt(y[i]));
+  gross_area_ = UncertainDouble::from_int(0, 0);
+  for (size_t i = Lindex; i <= Rindex; ++i)
+    gross_area_ += {y[i], sqrt(y[i])};
 
   double background_variance = pow((peak_width() / 2.0), 2) * (LB_.variance() + RB_.variance());
-  background_area_ = UncertainDouble::from_double(
+  background_area_ = {
       peak_width() * (background(x[Rindex]) + background(x[Lindex])) / 2.0,
-      sqrt(background_variance));
+      sqrt(background_variance)};
 
   peak_area_ = gross_area_ - background_area_;
   //peak_area_.autoSigs(1);
 
   double sumYnet(0), CsumYnet(0), C2sumYnet(0);
-  for (size_t i = Lindex; i <= Rindex; ++i) {
+  for (size_t i = Lindex; i <= Rindex; ++i)
+  {
     double yn = y[i] - background(y[i]);
     sumYnet += yn;
     CsumYnet += x[i] * yn;
@@ -70,10 +71,10 @@ SUM4::SUM4(double left, double right, const Finder& f,
   //    centroidval = x.at(static_cast<size_t>(centroidval));
 
   double centroid_variance = (C2sumYnet / sumYnet) - pow(centroidval, 2);
-  centroid_ = UncertainDouble::from_double(centroidval, centroid_variance);
+  centroid_ = {centroidval, centroid_variance};
 
   double fwhm_val = 2.0 * sqrt(centroid_variance * log(4));
-  fwhm_ = UncertainDouble::from_double(fwhm_val, std::numeric_limits<double>::quiet_NaN());
+  fwhm_ = {fwhm_val, std::numeric_limits<double>::quiet_NaN()};
 }
 
 double SUM4::peak_width() const
@@ -86,9 +87,8 @@ double SUM4::peak_width() const
 
 int SUM4::quality() const
 {
-  return get_currie_quality_indicator(peak_area_.value(), pow(background_area_.uncertainty(),2));
+  return get_currie_quality_indicator(peak_area_.value(), pow(background_area_.uncertainty(), 2));
 }
-
 
 int SUM4::get_currie_quality_indicator(double peak_net_area, double background_variance)
 {
@@ -109,7 +109,7 @@ int SUM4::get_currie_quality_indicator(double peak_net_area, double background_v
     return 5;
 }
 
-void to_json(nlohmann::json& j, const SUM4 &s)
+void to_json(nlohmann::json& j, const SUM4& s)
 {
   j["left"] = s.Lchan_;
   j["right"] = s.Rchan_;

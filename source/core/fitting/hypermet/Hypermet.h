@@ -4,6 +4,7 @@
 #include <core/fitting/hypermet/Tail.h>
 #include <core/fitting/hypermet/Calibration.h>
 #include <core/calibration/calibration.h>
+#include <core/fitting/uncertain.h>
 
 namespace DAQuiri
 {
@@ -42,19 +43,11 @@ class Hypermet
   void get(const std::vector<double>& fit);
   void get_uncerts(const std::vector<double>& diagonals, double chisq_norm);
 
-  double peak_position() const;
-  double peak_position_unc() const;
-  double peak_energy(const HCalibration& cal) const;
-  double peak_energy_unc(const HCalibration& cal) const;
-
-  double peak_energy(const Calibration& cal) const;
-  double peak_energy_unc(const Calibration& cal) const;
-
-  double area() const;
-  double area_uncert(double chisq_norm) const;
-
-  double peak_area_eff(const HCalibration& cal) const;
-  double peak_area_eff_unc(const HCalibration& cal, double chisq_norm) const;
+  UncertainDouble peak_position() const;
+  UncertainDouble peak_energy(const HCalibration& cal) const;
+  UncertainDouble peak_energy(const Calibration& cal) const;
+  UncertainDouble area() const;
+  UncertainDouble peak_area_eff(const HCalibration& cal) const;
 
   PrecalcVals precalc_vals(double chan) const;
   PrecalcVals precalc_vals_at(double chan, const std::vector<double>& fit) const;
@@ -76,7 +69,6 @@ class Hypermet
   Value width_;
 
   // \todo why skew naming different?
-
   // skews (part of peak)
   Tail short_tail {Side::left};
   Tail right_tail {Side::right};
@@ -84,6 +76,8 @@ class Hypermet
   // step & tail (background)
   Tail long_tail {Side::left};
   Step step;
+
+  double chi_sq_norm {0.0};
 };
 
 void to_json(nlohmann::json& j, const Hypermet& s);

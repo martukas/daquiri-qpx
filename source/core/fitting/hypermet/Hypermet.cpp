@@ -86,61 +86,6 @@ bool Hypermet::sanity_check(double min_x, double max_x) const
       std::isfinite(pos) && (min_x < pos) && (pos < max_x);
 }
 
-double Hypermet::peak_position() const
-{
-  return position.val();
-}
-
-double Hypermet::peak_position_unc() const
-{
-  return position.uncert_value;
-}
-
-double Hypermet::peak_energy(const HCalibration& cal) const
-{
-  return cal.channel_to_energy(position.val());
-}
-
-double Hypermet::peak_energy_unc(const HCalibration& cal) const
-{
-  return cal.energy_slope() * position.uncert_value;
-}
-
-double Hypermet::peak_energy(const DAQuiri::Calibration& cal) const
-{
-  return cal.transform(position.val());
-}
-
-double Hypermet::peak_energy_unc(const DAQuiri::Calibration& cal) const
-{
-  // \todo wrong!
-  return 1;
-}
-
-double Hypermet::peak_area_eff(const HCalibration& cal) const
-{
-  double eff{1.0};
-  if (cal.efficiency.initialized())
-    eff = cal.efficiency.val(peak_energy(cal));
-  return area() / eff;
-}
-
-double Hypermet::peak_area_eff_unc(const HCalibration& cal, double chisq_norm) const
-{
-  double eff{0.0};
-  double sigrel_eff{0.0};
-  if (cal.efficiency.initialized())
-  {
-    auto energy = peak_energy(cal);
-    eff = cal.efficiency.val(energy);
-    sigrel_eff = cal.efficiency.sigma_rel(energy);
-  }
-  double a = area();
-  return (square(std::sqrt(std::sqrt(a) / a)) + square(sigrel_eff)) *
-      (a / eff) * std::max(1.0, chisq_norm);
-}
-
-
 bool Hypermet::full_energy_peak() const
 {
   return (step.flip(1.0) > 0);
@@ -159,41 +104,79 @@ bool Hypermet::operator<(const Hypermet& other) const
   return position.val() < other.position.val();
 }
 
-double Hypermet::area() const
+UncertainDouble Hypermet::peak_position() const
 {
-  return amplitude.val() * width_.val() * (std::sqrt(M_PI) +
+  return {position.val(), position.uncert_value};
+}
+
+UncertainDouble Hypermet::peak_energy(const HCalibration& cal) const
+{
+  return {cal.channel_to_energy(position.val()),
+          cal.energy_slope() * position.uncert_value};
+}
+
+UncertainDouble Hypermet::peak_energy(const Calibration& cal) const
+{
+  return {cal.transform(position.val()),
+          cal.function()->derivative(position.val()) * position.uncert_value};
+}
+
+UncertainDouble Hypermet::area() const
+{
+  auto a = amplitude.val() * width_.val() * (std::sqrt(M_PI) +
       short_tail.amplitude.val() * short_tail.slope.val() *
           std::exp(-0.25 / square(short_tail.slope.val())) +
       right_tail.amplitude.val() * right_tail.slope.val() *
           std::exp(-0.25 / square(right_tail.slope.val())));
+
+  // \todo make this more rigorous
+//  double cs = chi_sq_norm * 0.5;
+//  int i, j;
+//  for( i = 0 To FitVars - 1)
+//  for( j = 0 To i - 1)
+//  t += fit_gradients(i) * fit_gradients(j) * Hessinv.coeff(i, j) * cs;
+
+//  //(dGAM/dX*dArea/dGAM)^2*Var(X)*Chisq
+//  t = square(amplitude.grad() * width_.val() * a) * cs;
+//  // * Hessinv.coeff(DEL.x_index, DEL.x_index);
+//  //(dGAM/dX*dArea/dGAM)*(dDEL/dY*dArea/dDEL)*Covar(X,Y)*Chisq
+//  t += square(amplitude.grad() * width_.val() * a) * cs;
+//  // * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, DEL.x_index)
+//  if (short_tail.amplitude.to_fit)
+//  {
+//    //(dGAM/dX*dArea/dGAM)*(dAST/dY*dArea/dAST)*Covar(X,Y)*Chisq
+//    t += (amplitude.grad() * width_.val() * a) *
+//        (short_tail.amplitude.grad() * amplitude.val() * width_.val() *
+//            short_tail.slope.val() * std::exp(-0.25 / square(short_tail.slope.val()))) * cs;
+//    // * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, AST.x_index)
+//  }
+//  if (short_tail.slope.to_fit)
+//  {
+//    // (dGAM/dX*dArea/dGAM)*(dBST/dY*dArea/dBST)*Covar(X,Y)*Chisq
+//    t += (amplitude.grad() * width_.val() * a) *
+//        (short_tail.slope.grad() * amplitude.val() * width_.val()
+//            * short_tail.amplitude.val() * (1 + 0.5 / square(short_tail.slope.val()))
+//            * std::exp(-0.25 / square(short_tail.slope.val()))) * cs;
+//    // * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, AST.x_index)
+//  }
+  return {a, std::sqrt(a) * std::max(1.0, chi_sq_norm)};
 }
 
-double Hypermet::area_uncert(double chisq_norm) const
+UncertainDouble Hypermet::peak_area_eff(const HCalibration& cal) const
 {
-  // \todo make this more rigorous
-  double t = area();
-  //, i, j As Integer
-  //Dim cs As Double = ChisqNorm() * 0.5
-  //for( i = 0 To FitVars - 1
-  //for( j = 0 To i - 1
-  //t += fit_gradients(i) * fit_gradients(j) * Hessinv.coeff(i, j) * cs
-  //} //j
-  //} //i
-  //
-  //Dim Bracket As Double = (std::sqrt(M_PI) + AST.val() * BST.val() * std::exp(-0.25 / BST.val() ^ 2) + ART.val() * BRT.val() * std::exp(-0.25 / BRT.val() ^ 2))
-  //(dGAM/dX*dArea/dGAM)^2*Var(X)*Chisq
-  //t = (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.val() * Bracket) ^ 2 * Hessinv.coeff(DEL.x_index, DEL.x_index) * cs
-  //(dGAM/dX*dArea/dGAM)*(dDEL/dY*dArea/dDEL)*Covar(X,Y)*Chisq
-  //t += (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.val() * Bracket) * (DEL.GradAt(DEL.X) * Peak(PeakIndex).GAM.val() * Bracket) * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, DEL.x_index) * cs
-  //if(AST.to_fit = true) {
-  ////(dGAM/dX*dArea/dGAM)*(dAST/dY*dArea/dAST)*Covar(X,Y)*Chisq
-  //t += (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.val() * Bracket) * (AST.GradAt(AST.X) * Peak(PeakIndex).GAM.val() * DEL.val() * BST.val() * std::exp(-0.25 / BST.val() ^ 2)) * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, AST.x_index) * cs
-  //}
-  //if(BST.to_fit = true) {
-  //(dGAM/dX*dArea/dGAM)*(dBST/dY*dArea/dBST)*Covar(X,Y)*Chisq
-  //t += (Peak(PeakIndex).GAM.GradAt(Peak(PeakIndex).GAM.X) * DEL.val() * Bracket) * (BST.GradAt(BST.X) * Peak(PeakIndex).GAM.val() * DEL.val() * AST.val() * (1 + 0.5 / BST.val() ^ 2) * std::exp(-0.25 / BST.val() ^ 2)) * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, AST.x_index) * cs
-  //}
-  return std::sqrt(t) * std::max(1.0, chisq_norm);
+  auto e = peak_energy(cal).value();
+  auto a = area().value();
+
+  double eff{0.0};
+  double sigrel_eff{0.0};
+  if (cal.efficiency.initialized())
+  {
+    eff = cal.efficiency.val(e);
+    sigrel_eff = cal.efficiency.sigma_rel(e);
+  }
+  return {a / eff,
+          square(std::sqrt(std::sqrt(a) / a)) + square(sigrel_eff) *
+              (a / eff) * std::max(1.0, chi_sq_norm)};
 }
 
 void Hypermet::update_indices(int32_t& i)
@@ -243,6 +226,7 @@ void Hypermet::get(const std::vector<double>& fit)
 
 void Hypermet::get_uncerts(const std::vector<double>& diagonals, double chisq_norm)
 {
+  chi_sq_norm = chisq_norm;
   position.get_uncert(diagonals, chisq_norm);
   amplitude.get_uncert(diagonals, chisq_norm);
   width_.get_uncert(diagonals, chisq_norm);
