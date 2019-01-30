@@ -48,6 +48,7 @@ double BFGS::BrentDeriv(const Fittable* const fittable,
   dw = dv = dx = dfgv(fittable, x, variables, hessian);
 
   double e{0.0};
+  // \todo check for cancel
   for (iteration = 0; iteration <= brent_iter; ++iteration)
   {
     xm = 0.5 * (sa + sb);
@@ -313,7 +314,7 @@ double BFGS::LinMin(const Fittable* const fittable, std::vector<double>& variabl
   return fmin;
 }
 
-FitResult BFGS::BFGSMin(const Fittable* const fittable, double tolf, std::atomic<bool>& cancel)
+FitResult BFGS::BFGSMin(const Fittable* const fittable, double tolf)
 {
   static constexpr double eps{0.0000000001};
   static constexpr size_t maxit{500};

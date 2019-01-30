@@ -93,16 +93,16 @@ struct ROI {
   //bool override_energy(double peakID, double energy);
 
   //manupulation, may invoke optimizer
-  bool find_and_fit(BFGS& optimizer, std::atomic<bool>& interruptor);
-  bool refit(BFGS& optimizer, std::atomic<bool>& interruptor);
+  bool find_and_fit(BFGS& optimizer);
+  bool refit(BFGS& optimizer);
   bool adjust_LB(const Finder &parentfinder, double left, double right,
-                 BFGS& optimizer, std::atomic<bool>& interruptor);
+                 BFGS& optimizer);
   bool adjust_RB(const Finder &parentfinder, double left, double right,
-                 BFGS& optimizer, std::atomic<bool>& interruptor);
+                 BFGS& optimizer);
   bool add_peak(const Finder &parentfinder, double left, double right,
-                BFGS& optimizer, std::atomic<bool>& interruptor);
-  bool remove_peaks(const std::set<double> &pks, BFGS& optimizer, std::atomic<bool>& interruptor);
-  bool override_settings(const FitSettings &fs, std::atomic<bool>& interruptor);
+                BFGS& optimizer);
+  bool remove_peaks(const std::set<double> &pks, BFGS& optimizer);
+  bool override_settings(const FitSettings &fs);
 
   nlohmann::json to_json(const Finder &parent_finder) const;
 
@@ -123,9 +123,9 @@ private:
 
   std::vector<double> remove_background();
 
-  bool add_from_resid(BFGS& optimizer, std::atomic<bool>& interruptor);
-  bool rebuild(BFGS& optimizer, std::atomic<bool>& interruptor);
-  void iterative_fit(BFGS& optimizer, std::atomic<bool>& interruptor);
+  bool add_from_resid(BFGS& optimizer);
+  bool rebuild(BFGS& optimizer);
+  void iterative_fit(BFGS& optimizer);
 
   void render();
   void save_current_fit(std::string description);

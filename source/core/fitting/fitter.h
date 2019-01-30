@@ -41,20 +41,20 @@ public:
   std::set<double> relevant_regions(double left, double right);
 
   //manupulation, may invoke optimizer
-  bool find_and_fit(double regionID, BFGS& optimizer, std::atomic<bool>& interruptor);
-  bool add_peak(double left, double right, BFGS& optimizer, std::atomic<bool>& interruptor);
-  bool adj_LB(double regionID, double left, double right, BFGS& optimizer, std::atomic<bool>& interruptor);
-  bool adj_RB(double regionID, double left, double right, BFGS& optimizer, std::atomic<bool>& interruptor);
-  bool merge_regions(double left, double right, BFGS& optimizer, std::atomic<bool>& interruptor);
-  bool refit_region(double regionID, BFGS& optimizer, std::atomic<bool>& interruptor);
-  bool override_ROI_settings(double regionID, const FitSettings &fs, std::atomic<bool>& interruptor);
-  bool remove_peaks(std::set<double> peakIDs, BFGS& optimizer, std::atomic<bool>& interruptor);
+  bool find_and_fit(double regionID, BFGS& optimizer);
+  bool add_peak(double left, double right, BFGS& optimizer);
+  bool adj_LB(double regionID, double left, double right, BFGS& optimizer);
+  bool adj_RB(double regionID, double left, double right, BFGS& optimizer);
+  bool merge_regions(double left, double right, BFGS& optimizer);
+  bool refit_region(double regionID, BFGS& optimizer);
+  bool override_ROI_settings(double regionID, const FitSettings &fs);
+  bool remove_peaks(std::set<double> peakIDs, BFGS& optimizer);
   //manipulation, no optimizer
   bool adjust_sum4(double &peakID, double left, double right);
   bool replace_hypermet(double &peakID, Peak hyp);
   bool rollback_ROI(double regionID, size_t point);
   bool delete_ROI(double regionID);
-  bool override_energy(double peakID, double energy);
+  //bool override_energy(double peakID, double energy);
   void clear_all_ROIs();
 
   std::set<double> get_selected_peaks() const;

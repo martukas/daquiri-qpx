@@ -159,15 +159,15 @@ void ROI::set_data(const Finder &parentfinder, double l, double r)
   render();
 }
 
-bool ROI::refit(BFGS& optimizer, std::atomic<bool>& interruptor)
+bool ROI::refit(BFGS& optimizer)
 {
   if (region_.peaks_.empty())
-    return find_and_fit(optimizer, interruptor);
+    return find_and_fit(optimizer);
   else
-    return rebuild(optimizer, interruptor);
+    return rebuild(optimizer);
 }
 
-bool ROI::find_and_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
+bool ROI::find_and_fit(BFGS& optimizer)
 {
   finder_.y_resid_ = finder_.y_;
   finder_.find_peaks();  //assumes default params!!!
@@ -199,19 +199,19 @@ bool ROI::find_and_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
   region_.reindex_peaks();
   save_current_fit("Autofind");
 
-  if (!rebuild(optimizer, interruptor))
+  if (!rebuild(optimizer))
   {
     render();
     return false;
   }
 
   if (settings_.resid_auto)
-    iterative_fit(optimizer, interruptor);
+    iterative_fit(optimizer);
 
   return true;
 }
 
-void ROI::iterative_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
+void ROI::iterative_fit(BFGS& optimizer)
 {
   if (!settings_.calib.cali_fwhm_.valid() || region_.peaks_.empty())
     return;
@@ -222,18 +222,17 @@ void ROI::iterative_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
   {
     DBG("Attempting add from resid with {} peaks", region_.peaks_.size());
 
-    if (!add_from_resid(optimizer, interruptor)) {
+    if (!add_from_resid(optimizer)) {
       //      DBG << "    failed add from resid";
       break;
     }
 
-    if (interruptor.load())
+    if (optimizer.cancel.load())
       break;
   }
 }
 
-bool ROI::add_from_resid(BFGS& optimizer,
-                         std::atomic<bool>& interruptor)
+bool ROI::add_from_resid(BFGS& optimizer)
 {
   if (finder_.filtered.empty())
     return false;
@@ -249,7 +248,7 @@ bool ROI::add_from_resid(BFGS& optimizer,
   save_current_fit("Added peak from residuals");
 
   if (region_.dirty)
-    rebuild(optimizer, interruptor);
+    rebuild(optimizer);
 }
 
 //Peak ROI::peak(double peakID) const
@@ -346,8 +345,7 @@ bool ROI::replace_hypermet(double &peakID, Peak hyp)
 
 bool ROI::add_peak(const Finder &parentfinder,
                    double left, double right,
-                   BFGS& optimizer,
-                   std::atomic<bool>& interruptor)
+                   BFGS& optimizer)
 {
   double center_prelim = (left+right) * 0.5; //assume down the middle
 
@@ -375,14 +373,14 @@ bool ROI::add_peak(const Finder &parentfinder,
       return true;
     }
     else
-      return find_and_fit(optimizer, interruptor); // \todo maybe not?
+      return find_and_fit(optimizer); // \todo maybe not?
   }
 
   DBG("<ROI> could not add peak");
   return false;
 }
 
-bool ROI::remove_peaks(const std::set<double> &pks, BFGS& optimizer, std::atomic<bool>& interruptor)
+bool ROI::remove_peaks(const std::set<double> &pks, BFGS& optimizer)
 {
   bool found = region_.remove_peaks(pks);
 
@@ -390,7 +388,7 @@ bool ROI::remove_peaks(const std::set<double> &pks, BFGS& optimizer, std::atomic
     return false;
 
   // \todo save and refit if dirty
-  if (region_.peaks_.size() && !rebuild(optimizer, interruptor))
+  if (region_.peaks_.size() && !rebuild(optimizer))
     return false;
 
   render();
@@ -398,7 +396,7 @@ bool ROI::remove_peaks(const std::set<double> &pks, BFGS& optimizer, std::atomic
   return true;
 }
 
-bool ROI::override_settings(const FitSettings &fs, std::atomic<bool>& interruptor)
+bool ROI::override_settings(const FitSettings &fs)
 {
   settings_ = fs;
   settings_.overriden = true; //do this in fitter if different?
@@ -417,13 +415,13 @@ void ROI::save_current_fit(std::string description)
   current_fit_ = fits_.size() - 1;
 }
 
-bool ROI::rebuild(BFGS& optimizer, std::atomic<bool>& interruptor)
+bool ROI::rebuild(BFGS& optimizer)
 {
   if (region_.peaks_.empty())
     return false;
 
   region_.map_fit();
-  auto result = optimizer.BFGSMin(&region_, 0.0001, interruptor);
+  auto result = optimizer.BFGSMin(&region_, 0.0001);
   // \todo check for convergence?
   region_.save_fit_uncerts(result);
   region_.auto_sum4();
@@ -464,7 +462,7 @@ std::vector<double> ROI::remove_background()
 }
 
 bool ROI::adjust_LB(const Finder &parentfinder, double left, double right,
-                     BFGS& optimizer, std::atomic<bool>& interruptor)
+                     BFGS& optimizer)
 {
   SUM4Edge edge(parentfinder.weighted_data.subset(left, right));
   if (!edge.width() || (edge.right() >= region_.RB_.left()))
@@ -478,14 +476,14 @@ bool ROI::adjust_LB(const Finder &parentfinder, double left, double right,
   save_current_fit("Left baseline adjusted");
 
   if (region_.dirty)
-    rebuild(optimizer, interruptor);
+    rebuild(optimizer);
 
   render();
   return true;
 }
 
 bool ROI::adjust_RB(const Finder &parentfinder, double left, double right,
-                    BFGS& optimizer, std::atomic<bool>& interruptor) {
+                    BFGS& optimizer) {
   SUM4Edge edge(parentfinder.weighted_data.subset(left, right));
   if (!edge.width() || (edge.left() <= region_.LB_.right()))
     return false;
@@ -499,7 +497,7 @@ bool ROI::adjust_RB(const Finder &parentfinder, double left, double right,
   save_current_fit("Right baseline adjusted");
 
   if (region_.dirty)
-    rebuild(optimizer, interruptor);
+    rebuild(optimizer);
 
   render();
   return true;

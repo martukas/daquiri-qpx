@@ -259,35 +259,35 @@ void Fitter::render_all()
                    r.second.finder().y_background_);
 }
 
-bool Fitter::find_and_fit(double regionID, BFGS& optimizer, std::atomic<bool>& interruptor)
+bool Fitter::find_and_fit(double regionID, BFGS& optimizer)
 {
   if (!regions_.count(regionID))
     return false;
 
-  regions_[regionID].find_and_fit(optimizer, interruptor);
+  regions_[regionID].find_and_fit(optimizer);
   render_all();
   return true;
 }
 
-bool Fitter::refit_region(double regionID, BFGS& optimizer, std::atomic<bool>& interruptor)
+bool Fitter::refit_region(double regionID, BFGS& optimizer)
 {
   if (!contains_region(regionID))
     return false;
 
-  regions_[regionID].refit(optimizer, interruptor);
+  regions_[regionID].refit(optimizer);
   render_all();
   return true;
 }
 
 
 bool Fitter::adj_LB(double regionID, double left, double right,
-                    BFGS& optimizer, std::atomic<bool>& interruptor)
+                    BFGS& optimizer)
 {
   if (!contains_region(regionID))
     return false;
 
   ROI newROI = regions_[regionID];
-  if (!newROI.adjust_LB(finder_, left, right, optimizer, interruptor))
+  if (!newROI.adjust_LB(finder_, left, right, optimizer))
     return false;
   regions_.erase(regionID);
   regions_[newROI.ID()] = newROI;
@@ -296,13 +296,13 @@ bool Fitter::adj_LB(double regionID, double left, double right,
 }
 
 bool Fitter::adj_RB(double regionID, double left, double right,
-                    BFGS& optimizer, std::atomic<bool>& interruptor)
+                    BFGS& optimizer)
 {
   if (!contains_region(regionID))
     return false;
 
   ROI newROI = regions_[regionID];
-  if (!newROI.adjust_RB(finder_, left, right, optimizer, interruptor))
+  if (!newROI.adjust_RB(finder_, left, right, optimizer))
     return false;
   regions_.erase(regionID);
   regions_[newROI.ID()] = newROI;
@@ -310,12 +310,12 @@ bool Fitter::adj_RB(double regionID, double left, double right,
   return true;
 }
 
-bool Fitter::override_ROI_settings(double regionID, const FitSettings &fs, std::atomic<bool>& interruptor)
+bool Fitter::override_ROI_settings(double regionID, const FitSettings &fs)
 {
   if (!contains_region(regionID))
     return false;
 
-  if (!regions_[regionID].override_settings(fs, interruptor))
+  if (!regions_[regionID].override_settings(fs))
     return false;
   //refit?
 
@@ -325,7 +325,7 @@ bool Fitter::override_ROI_settings(double regionID, const FitSettings &fs, std::
 }
 
 bool Fitter::merge_regions(double left, double right,
-                           BFGS& optimizer, std::atomic<bool>& interruptor)
+                           BFGS& optimizer)
 {
   std::set<double> rois = relevant_regions(left, right);
   double min = std::min(left, right);
@@ -343,7 +343,7 @@ bool Fitter::merge_regions(double left, double right,
   ROI newROI(settings_, finder_, min, max);
 
   //add old peaks?
-  newROI.find_and_fit(optimizer, interruptor);
+  newROI.find_and_fit(optimizer);
   if (!newROI.width())
     return false;
 
@@ -387,14 +387,14 @@ bool Fitter::rollback_ROI(double regionID, size_t point)
 }
 
 bool Fitter::add_peak(double left, double right,
-                      BFGS& optimizer, std::atomic<bool>& interruptor)
+                      BFGS& optimizer)
 {
   if (finder_.x_.empty())
     return false;
 
   for (auto &q : regions_) {
     if (q.second.overlaps(left, right)) {
-      q.second.add_peak(finder_, left, right, optimizer, interruptor);
+      q.second.add_peak(finder_, left, right, optimizer);
       render_all();
       return true;
     }
@@ -402,8 +402,8 @@ bool Fitter::add_peak(double left, double right,
 
 //  DBG << "<Fitter> making new ROI to add peak manually " << left << " " << right;
   ROI newROI(settings_, finder_, left, right);
-//  newROI.add_peak(finder_.x_, finder_.y_, left, right, interruptor);
-  newROI.find_and_fit(optimizer, interruptor);
+//  newROI.add_peak(finder_.x_, finder_.y_, left, right);
+  newROI.find_and_fit(optimizer);
   if (!newROI.width())
     return false;
 
@@ -413,11 +413,11 @@ bool Fitter::add_peak(double left, double right,
 }
 
 bool Fitter::remove_peaks(std::set<double> bins,
-                          BFGS& optimizer, std::atomic<bool>& interruptor)
+                          BFGS& optimizer)
 {
   bool changed = false;
   for (auto &m : regions_)
-    if (m.second.remove_peaks(bins, optimizer, interruptor))
+    if (m.second.remove_peaks(bins, optimizer))
       changed = true;
   if (changed)
     render_all();
