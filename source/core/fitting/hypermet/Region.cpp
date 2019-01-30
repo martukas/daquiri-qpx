@@ -97,6 +97,32 @@ double Region::right() const
   return data_.data.back().x;
 }
 
+bool Region::add_peak(double l, double r, double amp_hint)
+{
+  if ((l < left()) || (right() < r))
+    throw std::runtime_error("Attempting to add peak outside of region bounds");
+  Peak p = default_peak_;
+  p.position.min(l);
+  p.position.max(r);
+  p.position.val(0.5 * (l + r));
+
+  data_.subset(l, r);
+  double max_val {0.0};
+  double min_bkg {std::numeric_limits<double>::max()};
+  for (const auto& v : data_.data)
+  {
+    max_val = std::max(max_val, v.y);
+    min_bkg = std::min(min_bkg, background.eval(v.x));
+  }
+
+  p.amplitude.val(amp_hint);
+
+  // \todo why is amplitude not bounded?
+  //p.amplitude.max(max_val - min_bkg);
+  peaks_[p.id()] = p;
+  dirty = true;
+}
+
 bool Region::adjust_sum4(double peakID, double left, double right)
 {
   if (!peaks_.count(peakID))
@@ -108,6 +134,22 @@ bool Region::adjust_sum4(double peakID, double left, double right)
   peaks_[peakID].sum4 = SUM4(subregion, LB_, RB_);
   return true;
 }
+
+bool Region::auto_sum4()
+{
+  for (auto& p : peaks_)
+  {
+    if (p.second.sum4.peak_width())
+      continue;
+    // \todo use const from settings?
+    // \todo do we really need to multiply with sqrt(log(2))?
+    double edge =  p.second.fwhm().value() * sqrt(log(2)) * 3;
+    double left = p.second.peak_position().value() - edge;
+    double right = p.second.peak_position().value() + edge;
+    adjust_sum4(p.second.id(), left, right);
+  }
+}
+
 
 bool Region::replace_hypermet(double peakID, Peak hyp)
 {
@@ -305,6 +347,8 @@ void Region::save_fit_uncerts(const FitResult& result)
 
   for (auto& p : peaks_)
     p.second.get_uncerts(diagonals, chisq_norm);
+
+  dirty = false;
 }
 
 double Region::chi_sq_normalized() const

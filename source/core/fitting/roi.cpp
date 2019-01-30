@@ -155,64 +155,55 @@ void ROI::set_data(const Finder &parentfinder, double l, double r)
     return;
   }
 
-  init_edges();
-  init_background();
+  region_ = Region(finder_.weighted_data, settings_.background_edge_samples);
   render();
 }
 
 bool ROI::refit(BFGS& optimizer, std::atomic<bool>& interruptor)
 {
   if (region_.peaks_.empty())
-    return auto_fit(optimizer, interruptor);
-
-  if (!rebuild(optimizer, interruptor))
-    return false;
-
-  save_current_fit("Refit");
-  return true;
+    return find_and_fit(optimizer, interruptor);
+  else
+    return rebuild(optimizer, interruptor);
 }
 
-bool ROI::auto_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
+bool ROI::find_and_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
 {
-  region_.peaks_.clear();
   finder_.y_resid_ = finder_.y_;
   finder_.find_peaks();  //assumes default params!!!
+  region_ = Region(finder_.weighted_data, settings_.background_edge_samples);
 
   if (finder_.filtered.empty())
+  {
+    render();
     return false;
-
-  if ((region_.LB_.width() == 0) || (region_.RB_.width() == 0))
-  {
-    init_edges();
-    init_background();
   }
 
-  std::vector<double> y_nobkg = remove_background();
+  //std::vector<double> y_nobkg = remove_background();
 
-  for (size_t i = 0; i < finder_.filtered.size(); ++i)
+  for (const auto& p : finder_.filtered)
   {
-    // \todo finder.subset
-    std::vector<double> x_pk = std::vector<double>(
-        finder_.x_.begin() + finder_.lefts[i],
-        finder_.x_.begin() + finder_.rights[i] + 1);
-    std::vector<double> y_pk = std::vector<double>(
-        y_nobkg.begin() + finder_.lefts[i],
-        y_nobkg.begin() + finder_.rights[i] + 1);
-
-    auto gaussian = Peak().gaussian_only();
-    //optimizer->fit(gaussian, x_pk, y_pk);
-
-    if (gaussian.sanity_check(finder_.x_[finder().lefts[i]], finder_.x_[finder_.rights[i]]))
-    {
-      gaussian.force_defaults(region_.default_peak_);
-      region_.peaks_[gaussian.id()] = gaussian;
-    }
+//                   subset should be from y_nobkg
+//    auto subset = finder_.weighted_data.subset(finder_.x_[finder_.lefts[i]],
+//                                               finder_.x_[finder_.rights[i]]);
+//    auto gaussian = Peak().gaussian_only();
+//    //optimizer->fit(gaussian, x_pk, y_pk);
+//
+//    if (gaussian.sanity_check(finder_.x_[finder().lefts[i]], finder_.x_[finder_.rights[i]]))
+//    {
+//      gaussian.force_defaults(region_.default_peak_);
+//      region_.peaks_[gaussian.id()] = gaussian;
+//    }
+    region_.add_peak(p.left, p.right);
   }
+  region_.reindex_peaks();
+  save_current_fit("Autofind");
 
   if (!rebuild(optimizer, interruptor))
+  {
+    render();
     return false;
-
-  save_current_fit("Autofit");
+  }
 
   if (settings_.resid_auto)
     iterative_fit(optimizer, interruptor);
@@ -229,105 +220,36 @@ void ROI::iterative_fit(BFGS& optimizer, std::atomic<bool>& interruptor)
 
   for (int i=0; i < settings_.resid_max_iterations; ++i)
   {
-    ROI new_fit = *this;
-
     DBG("Attempting add from resid with {} peaks", region_.peaks_.size());
 
-    if (!new_fit.add_from_resid(optimizer, interruptor, -1)) {
+    if (!add_from_resid(optimizer, interruptor)) {
       //      DBG << "    failed add from resid";
       break;
     }
-//    double new_rsq = new_fit.peaks_.begin()->second.hypermet().chi2();
-//    double improvement = (prev_chi_sq - new_rsq) / prev_chi_sq * 100;
-//    DBG("X2 new={} previous={} improved by {}", new_rsq, prev_chi_sq, improvement);
-//
-//    if ((new_rsq > prev_chi_sq) || std::isnan(new_rsq)) {
-//      DBG(" not improved. reject new refit");
-//      break;
-//    }
-
-    new_fit.save_current_fit("Iterative " + std::to_string(new_fit.peaks().size()));
-//    prev_chi_sq = new_rsq;
-    *this = new_fit;
 
     if (interruptor.load())
       break;
   }
 }
 
-bool ROI::add_from_resid(BFGS& optimizer, std::atomic<bool>& interruptor, int32_t centroid_hint)
+bool ROI::add_from_resid(BFGS& optimizer,
+                         std::atomic<bool>& interruptor)
 {
   if (finder_.filtered.empty())
     return false;
 
-  int64_t target_peak = -1;
-  if (centroid_hint == -1) {
-    double biggest = 0;
-    for (size_t j=0; j < finder_.filtered.size(); ++j)
-    {
-      std::vector<double> x_pk = std::vector<double>(finder_.x_.begin() + finder_.lefts[j],
-                                                     finder_.x_.begin() + finder_.rights[j] + 1);
-      std::vector<double> y_pk = std::vector<double>(finder_.y_resid_.begin() + finder_.lefts[j],
-                                                     finder_.y_resid_.begin() + finder_.rights[j] + 1);
-      auto gaussian = Peak().gaussian_only();
-      //optimizer->fit(gaussian, x_pk, y_pk);
+  DetectedPeak target_peak = finder_.tallest_detected();
 
-      bool too_close = false;
-
-      double lateral_slack = settings_.resid_too_close * gaussian.width_.val() * 2;
-      for (auto &p : region_.peaks_)
-      {
-        // \todo use saniti check instead?
-        if ((p.second.id() > (gaussian.id() - lateral_slack))
-            && (p.second.id() < (gaussian.id() + lateral_slack)))
-          too_close = true;
-      }
-
-      //      if (too_close)
-      //        DBG << "Too close at " << settings_.cali_nrg_.transform(gaussian.center_, settings_.bits_);
-
-      if (!too_close &&
-      gaussian.sanity_check(finder_.x_[finder_.lefts[j]], finder_.x_[finder_.rights[j]])
-      && (gaussian.amplitude.val() > settings_.resid_min_amplitude) &&
-           (gaussian.area().value() > biggest)
-           )
-      {
-        target_peak = j;
-        biggest = gaussian.area().value();
-      }
-    }
-    //    DBG << "    biggest potential add at " << finder_.x_[finder_.filtered[target_peak]] << " with area=" << biggest;
-  } else {
-
-    //THIS NEVER HAPPENS
-    double diff = std::abs(finder_.x_[finder_.filtered[target_peak]] - centroid_hint);
-    for (size_t j=0; j < finder_.filtered.size(); ++j)
-      if (std::abs(finder_.x_[finder_.filtered[j]] - centroid_hint) < diff) {
-        target_peak = j;
-        diff = std::abs(finder_.x_[finder_.filtered[j]] - centroid_hint);
-      }
-  }
-
-  if (target_peak == -1)
+  if (target_peak.highest_y == 0.0)
     return false;
 
-  std::vector<double> x_pk = std::vector<double>(finder_.x_.begin() + finder_.lefts[target_peak],
-                                                 finder_.x_.begin() + finder_.rights[target_peak] + 1);
-  std::vector<double> y_pk = std::vector<double>(finder_.y_resid_.begin() + finder_.lefts[target_peak],
-                                                 finder_.y_resid_.begin() + finder_.rights[target_peak] + 1);
-  auto gaussian = Peak().gaussian_only();
-  //optimizer->fit(gaussian, x_pk, y_pk);
+  if (!region_.add_peak(target_peak.left, target_peak.right, target_peak.highest_y))
+    return false;
 
-  if (gaussian.sanity_check(finder_.x_[finder().lefts[target_peak]],
-      finder_.x_[finder_.rights[target_peak]]))
-  {
-    gaussian.apply_defaults(region_.default_peak_);
-    region_.peaks_[gaussian.id()] = gaussian;
+  save_current_fit("Added peak from residuals");
+
+  if (region_.dirty)
     rebuild(optimizer, interruptor);
-    return true;
-  }
-  else
-    return false;
 }
 
 //Peak ROI::peak(double peakID) const
@@ -412,44 +334,34 @@ bool ROI::add_peak(const Finder &parentfinder,
 {
   double center_prelim = (left+right) * 0.5; //assume down the middle
 
-  if (overlaps(left) && overlaps(right)) {
-    ROI new_fit = *this;
-
-    if (new_fit.add_from_resid(optimizer, interruptor, finder_.find_index(center_prelim)))
+  if (overlaps(left) && overlaps(right))
+  {
+    if (region_.add_peak(left, right, finder_.y_resid_[finder_.find_index(center_prelim)]))
     {
-      *this = new_fit;
-      save_current_fit("Added from residuals");
+      save_current_fit("Manually added peak");
       return true;
     }
   }
   else if (width()) //changing region bounds
   {
-    if (!finder_.x_.empty())
-    {
-      left  = std::min(left, left_bin());
-      right = std::max(right, right_bin());
-    }
+    left  = std::min(left, left_bin());
+    right = std::max(right, right_bin());
     if (!finder_.cloneRange(parentfinder, left, right))
       return false;
 
-    init_edges();
-    init_background();
-    finder_.y_resid_ = remove_background();
-    render();
     finder_.find_peaks();  //assumes default params!!!
+    region_.replace_data(finder_.weighted_data);
 
-    ROI new_fit = *this;
-    if (new_fit.add_from_resid(optimizer, interruptor, finder_.find_index(center_prelim)))
+    if (region_.add_peak(left, right, finder_.y_resid_[finder_.find_index(center_prelim)]))
     {
-      *this = new_fit;
-      save_current_fit("Added from residuals");
+      save_current_fit("Manually added peak");
       return true;
     }
     else
-      return auto_fit(optimizer, interruptor);
+      return find_and_fit(optimizer, interruptor); // \todo maybe not?
   }
 
-  DBG("<ROI> cannot add to empty ROI");
+  DBG("<ROI> could not add peak");
   return false;
 }
 
@@ -467,16 +379,6 @@ bool ROI::remove_peaks(const std::set<double> &pks, BFGS& optimizer, std::atomic
   render();
   save_current_fit("Peaks removed");
   return true;
-}
-
-bool ROI::remove_peak(double bin)
-{
-  if (region_.remove_peak(bin))
-  {
-    // \todo save and refit if dirty
-    return true;
-  }
-  return false;
 }
 
 bool ROI::override_settings(const FitSettings &fs, std::atomic<bool>& interruptor)
@@ -500,29 +402,16 @@ void ROI::save_current_fit(std::string description)
 
 bool ROI::rebuild(BFGS& optimizer, std::atomic<bool>& interruptor)
 {
-  rendering_.clear();
-
-  std::vector<Peak> old_hype;
-  for (auto &q : region_.peaks_)
-    if (q.second.amplitude.val())
-      old_hype.push_back(q.second);
-
-  if (old_hype.empty())
+  if (region_.peaks_.empty())
     return false;
 
-  std::map<double, Peak> new_peaks;
-//  std::vector<Hypermet> hype = optimizer->fit_multiplet(finder_.x_, finder_.y_,
-//                                                        old_hype, background_,
-//                                                        settings_);
-//
-//  for (size_t i=0; i < hype.size(); ++i) {
-//    double edge =  hype[i].width().value() * sqrt(log(2)) * 3; //use const from settings
-//    double left = hype[i].center().value() - edge;
-//    double right = hype[i].center().value() + edge;
-//    Peak one(hype[i], SUM4(left, right, finder_, LB_, RB_), settings_);
-//    new_peaks[one.center()] = one;
-//  }
-  region_.peaks_ = new_peaks;
+  region_.map_fit();
+  auto result = optimizer.BFGSMin(&region_, 0.0001, interruptor);
+  // \todo check for convergence?
+  region_.save_fit_uncerts(result);
+  region_.auto_sum4();
+  save_current_fit("Rebuild");
+
   render();
   return true;
 }
@@ -571,10 +460,10 @@ bool ROI::adjust_LB(const Finder &parentfinder, double left, double right,
       edge, RB());
   save_current_fit("Left baseline adjusted");
 
-  render();
   if (region_.dirty)
     rebuild(optimizer, interruptor);
 
+  render();
   return true;
 }
 
@@ -592,71 +481,11 @@ bool ROI::adjust_RB(const Finder &parentfinder, double left, double right,
 
   save_current_fit("Right baseline adjusted");
 
-  render();
   if (region_.dirty)
     rebuild(optimizer, interruptor);
 
+  render();
   return true;
-}
-
-void ROI::init_edges()
-{
-  init_LB();
-  init_RB();
-}
-
-void ROI::init_LB()
-{
-  region_.LB_ = SUM4Edge(finder_.weighted_data.left(settings_.background_edge_samples));
-}
-
-void ROI::init_RB()
-{
-  region_.RB_ = SUM4Edge(finder_.weighted_data.right(settings_.background_edge_samples));
-}
-
-void ROI::init_background()
-{
-  if (finder_.x_.empty())
-    return;
-
-  region_.background = PolyBackground();
-  region_.background.x_offset = finder_.x_.front();
-
-  //by default, linear
-  double run = region_.RB_.left() - region_.LB_.right();
-
-  double minslope = 0, maxslope = 0;
-  double ymin, ymax, yav;
-  if (region_.LB_.average() < region_.RB_.average())
-  {
-    run = region_.RB_.right() - region_.LB_.right();
-    minslope = (region_.RB_.min() - region_.LB_.max()) / (region_.RB_.right() - region_.LB_.left());
-    maxslope = (region_.RB_.max() - region_.LB_.min()) / (region_.RB_.left() - region_.LB_.right());
-    ymin = region_.LB_.min();
-    ymax = region_.RB_.max();
-    yav = region_.LB_.average();
-  }
-  else if (region_.RB_.average() < region_.LB_.average())
-  {
-    run = region_.RB_.left() - region_.LB_.left();
-    minslope = (region_.RB_.min() - region_.LB_.max()) / (region_.RB_.left() - region_.LB_.right());
-    maxslope = (region_.RB_.max() - region_.LB_.min()) / (region_.RB_.right() - region_.LB_.left());
-    ymin = region_.RB_.min();
-    ymax = region_.LB_.max();
-    yav = region_.RB_.average();
-  }
-
-  double maxcurve = (square(run) - std::min(region_.LB_.min(), region_.RB_.min())) / std::max(region_.LB_.max(), region_.RB_.max());
-  double slope = (region_.RB_.average() - region_.LB_.average()) / run;
-
-//  background_.base. set_coeff(0, {ymin, ymax, yav});
-//  background_.slope. set_coeff(1, {0.5 * minslope, 2 * maxslope, slope});
-//  background_.curve. set_coeff(2, {-maxcurve, maxcurve, 0});
-
-  region_.background.base.val(yav);
-  region_.background.slope.val(slope);
-  region_.background.curve.val(0);
 }
 
 size_t ROI::current_fit() const
@@ -685,17 +514,6 @@ bool ROI::rollback(const Finder &parent_finder, size_t i)
   render();
 
   return true;
-}
-
-void ROI::cull_peaks()
-{
-  std::map<double, Peak> peaks;
-  for (auto &p : region_.peaks_) {
-    if ((p.first > region_.LB_.right()) &&
-        (p.first < region_.RB_.left()))
-      peaks[p.first] = p.second;
-  }
-  region_.peaks_ = peaks;
 }
 
 nlohmann::json ROI::to_json(const Finder &parent_finder) const

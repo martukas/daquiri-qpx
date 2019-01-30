@@ -112,8 +112,6 @@ void Finder::clear()
 
   prelim.clear();
   filtered.clear();
-  lefts.clear();
-  rights.clear();
 
   y_kon.clear();
   y_convolution.clear();
@@ -293,13 +291,13 @@ void Finder::find_peaks()
 {
   calc_kon();
   filtered.clear();
-  lefts.clear();
-  rights.clear();
 
   if (prelim.empty())
     return;
 
   //find edges of contiguous peak areas
+  std::vector<size_t> lefts;
+  std::vector<size_t> rights;
   lefts.push_back(prelim[0]);
   size_t prev = prelim[0];
   for (size_t i = 0; i < prelim.size(); ++i)
@@ -316,14 +314,26 @@ void Finder::find_peaks()
 
   //assume center is bentween edges
   for (size_t i = 0; i < lefts.size(); ++i)
-    filtered.push_back((rights[i] + lefts[i]) / 2);
-
-  for (size_t i = 0; i < filtered.size(); ++i)
   {
-    lefts[i] = left_edge(lefts[i]);
-    rights[i] = right_edge(rights[i]);
-//    DBG << "<Finder> Peak " << lefts[i] << "-"  << filtered[i] << "-"  << rights[i];
+    DetectedPeak p;
+    size_t l = left_edge(lefts[i]);
+    size_t r = right_edge(rights[i]);
+    for (size_t j = l; j <= r; ++j)
+      p.highest_y = std::max(p.highest_y, y_resid_[j]);
+    p.left = x_[l];
+    p.right = x_[r];
+    p.center = 0.5 * (p.left + p.right);
+    filtered.push_back(p);
   }
+}
+
+DetectedPeak Finder::tallest_detected() const
+{
+  DetectedPeak p;
+  for (const auto& pp : filtered)
+    if (pp.highest_y > p.highest_y)
+      p = pp;
+  return p;
 }
 
 double Finder::find_left(double chan) const
@@ -332,15 +342,6 @@ double Finder::find_left(double chan) const
     return 0;
 
   //assume x is monotone increasing
-
-  double sigma = settings_.sigma_spectrum;
-  if (y_resid_ != y_)
-  {
-//    DBG << "<Finder> Using sigma resid";
-    sigma = settings_.sigma_resid;
-  }
-
-  double edge_threshold = -0.5 * sigma;
 
   if ((chan < x_[0]) || (chan >= x_[x_.size() - 1]))
     return x_.front();
@@ -357,16 +358,7 @@ double Finder::find_right(double chan) const
   if (x_.empty())
     return 0;
 
-  double sigma = settings_.sigma_spectrum;
-  if (y_resid_ != y_)
-  {
-//    DBG << "<Finder> Using sigma resid";
-    sigma = settings_.sigma_resid;
-  }
-
   //assume x is monotone increasing
-
-  double edge_threshold = -0.5 * sigma;
 
   if ((chan < x_[0]) || (chan >= x_[x_.size() - 1]))
     return x_.back();
@@ -386,7 +378,7 @@ size_t Finder::left_edge(size_t idx) const
   if (!fw_theoretical_bin.empty())
   {
     double width = floor(fw_theoretical_bin[idx]);
-    double goal = x_[idx] - width * settings_.edge_width_factor / 2;
+    double goal = x_[idx] - 0.5 * width * settings_.edge_width_factor;
     while ((idx > 0) && (x_[idx] > goal))
       idx--;
     return idx;

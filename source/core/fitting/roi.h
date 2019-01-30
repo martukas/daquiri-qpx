@@ -90,7 +90,7 @@ struct ROI {
   //bool override_energy(double peakID, double energy);
 
   //manupulation, may invoke optimizer
-  bool auto_fit(BFGS& optimizer, std::atomic<bool>& interruptor);
+  bool find_and_fit(BFGS& optimizer, std::atomic<bool>& interruptor);
   bool refit(BFGS& optimizer, std::atomic<bool>& interruptor);
   bool adjust_LB(const Finder &parentfinder, double left, double right,
                  BFGS& optimizer, std::atomic<bool>& interruptor);
@@ -119,16 +119,8 @@ private:
   void set_data(const Finder &parentfinder, double min, double max);
 
   std::vector<double> remove_background();
-  void init_edges();
-  void init_LB();
-  void init_RB();
-  void init_background();
 
-  void cull_peaks();
-  bool remove_peak(double bin);
-
-  bool add_from_resid(BFGS& optimizer, std::atomic<bool>& interruptor,
-                      int32_t centroid_hint = -1);
+  bool add_from_resid(BFGS& optimizer, std::atomic<bool>& interruptor);
   bool rebuild(BFGS& optimizer, std::atomic<bool>& interruptor);
   void iterative_fit(BFGS& optimizer, std::atomic<bool>& interruptor);
 

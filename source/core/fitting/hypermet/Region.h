@@ -43,13 +43,15 @@ class Region : public Fittable
 
   double left() const;
   double right() const;
+  // \todo empty
 
+  bool add_peak(double l, double r, double amp_hint = 10);
   bool adjust_sum4(double peakID, double left, double right);
+  bool auto_sum4();
   bool replace_hypermet(double peakID, Peak hyp);
   bool remove_peak(double peakID);
   bool remove_peaks(const std::set<double>& ids);
 
-  // \todo add peak
   void reindex_peaks();
 
   double chi_sq_normalized() const;

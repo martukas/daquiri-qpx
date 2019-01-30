@@ -35,6 +35,14 @@ struct SpectrumData
   double weight_revay_student(const std::vector<double>& y, size_t i) const;
 };
 
+struct DetectedPeak
+{
+  double center;
+  double left;
+  double right;
+  double highest_y {0};
+};
+
 class Finder
 {
  public:
@@ -53,6 +61,7 @@ class Finder
               const std::vector<double>& y_fit,
               const std::vector<double>& y_background);
   void find_peaks();
+  DetectedPeak tallest_detected() const;
 
   double find_left(double chan) const;
   double find_right(double chan) const;
@@ -70,7 +79,8 @@ class Finder
   std::vector<double> fw_theoretical_bin;
   std::vector<double> y_kon, y_convolution;
 
-  std::vector<size_t> prelim, filtered, lefts, rights;
+  std::vector<size_t> prelim;
+  std::vector<DetectedPeak> filtered;
 
   KONSettings settings_;
 
