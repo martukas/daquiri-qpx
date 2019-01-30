@@ -4,12 +4,12 @@
 #include <core/fitting/hypermet/Tail.h>
 #include <core/fitting/hypermet/Calibration.h>
 #include <core/calibration/calibration.h>
-#include <core/fitting/uncertain.h>
+#include <core/fitting/sum4/sum4.h>
 
 namespace DAQuiri
 {
 
-class Hypermet
+class Peak
 {
  public:
   struct Components
@@ -25,24 +25,25 @@ class Hypermet
     double all() const;
   };
 
-  Hypermet();
-  void apply_defaults(const Hypermet& other);
-  void force_defaults(const Hypermet& other);
+  Peak();
+  void apply_defaults(const Peak& other);
+  void force_defaults(const Peak& other);
 
-  Hypermet gaussian_only() const;
+  Peak gaussian_only() const;
   bool is_gaussian_only() const;
 
   bool sanity_check(double min_x, double max_x) const;
 
   bool full_energy_peak() const;
   void full_energy_peak(bool flag);
-  bool operator<(const Hypermet& other) const;
+  bool operator<(const Peak& other) const;
 
   void update_indices(int32_t& i);
   void put(std::vector<double>& fit) const;
   void get(const std::vector<double>& fit);
   void get_uncerts(const std::vector<double>& diagonals, double chisq_norm);
 
+  double id() const;
   UncertainDouble peak_position() const;
   UncertainDouble peak_energy(const HCalibration& cal) const;
   UncertainDouble peak_energy(const Calibration& cal) const;
@@ -81,9 +82,11 @@ class Hypermet
   Step step;
 
   double chi_sq_norm {0.0};
+
+  SUM4 sum4;
 };
 
-void to_json(nlohmann::json& j, const Hypermet& s);
-void from_json(const nlohmann::json& j, Hypermet& s);
+void to_json(nlohmann::json& j, const Peak& s);
+void from_json(const nlohmann::json& j, Peak& s);
 
 }

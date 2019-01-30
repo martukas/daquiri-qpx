@@ -8,7 +8,7 @@ set(SOURCES
   ${dir}/Value.cpp
   ${dir}/Tail.cpp
   ${dir}/Step.cpp
-  ${dir}/Hypermet.cpp
+  ${dir}/Peak.cpp
   ${dir}/PolyBackground.cpp
   ${dir}/Region.cpp
   )
@@ -21,7 +21,7 @@ set(HEADERS
   ${dir}/Value.h
   ${dir}/Tail.h
   ${dir}/Step.h
-  ${dir}/Hypermet.h
+  ${dir}/Peak.h
   ${dir}/PolyBackground.h
   ${dir}/Region.h
   )

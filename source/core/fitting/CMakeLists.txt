@@ -3,7 +3,6 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 set(SOURCES
   ${dir}/fit_settings.cpp
   ${dir}/finder.cpp
-  ${dir}/peak.cpp
 #  ${dir}/optimizer.cpp
   ${dir}/roi.cpp
 #  ${dir}/fitter.cpp
@@ -13,7 +12,6 @@ set(SOURCES
 set(HEADERS
   ${dir}/fit_settings.h
   ${dir}/finder.h
-  ${dir}/peak.h
 #  ${dir}/optimizer.h
   ${dir}/roi.h
 #  ${dir}/fitter.h

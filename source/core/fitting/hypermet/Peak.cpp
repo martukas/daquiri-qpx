@@ -1,4 +1,4 @@
-#include <core/fitting/hypermet/Hypermet.h>
+#include <core/fitting/hypermet/Peak.h>
 #include <core/util/more_math.h>
 
 #include <core/util/custom_logger.h>
@@ -6,22 +6,22 @@
 namespace DAQuiri
 {
 
-double Hypermet::Components::peak_skews() const
+double Peak::Components::peak_skews() const
 {
   return gaussian + short_tail + right_tail;
 }
 
-double Hypermet::Components::step_tail() const
+double Peak::Components::step_tail() const
 {
   return long_tail + step;
 }
 
-double Hypermet::Components::all() const
+double Peak::Components::all() const
 {
   return peak_skews() + step_tail();
 }
 
-Hypermet::Hypermet()
+Peak::Peak()
 {
   width_.bound(0.8, 4.0);
 
@@ -37,7 +37,7 @@ Hypermet::Hypermet()
   step.amplitude.bound(0.000001, 0.05);
 }
 
-void Hypermet::apply_defaults(const Hypermet& other)
+void Peak::apply_defaults(const Peak& other)
 {
   if (!width_override)
     width_ = other.width_;
@@ -49,7 +49,7 @@ void Hypermet::apply_defaults(const Hypermet& other)
     long_tail = other.long_tail;
 }
 
-void Hypermet::force_defaults(const Hypermet& other)
+void Peak::force_defaults(const Peak& other)
 {
   width_ = other.width_;
   short_tail = other.short_tail;
@@ -57,9 +57,9 @@ void Hypermet::force_defaults(const Hypermet& other)
   long_tail = other.long_tail;
 }
 
-Hypermet Hypermet::gaussian_only() const
+Peak Peak::gaussian_only() const
 {
-  Hypermet ret = *this;
+  Peak ret = *this;
   ret.short_tail.override = true;
   ret.short_tail.enabled = false;
   ret.right_tail.override = true;
@@ -71,12 +71,12 @@ Hypermet Hypermet::gaussian_only() const
   return ret;
 }
 
-bool Hypermet::is_gaussian_only() const
+bool Peak::is_gaussian_only() const
 {
   return (!short_tail.enabled && !right_tail.enabled && !long_tail.enabled && !step.enabled);
 }
 
-bool Hypermet::sanity_check(double min_x, double max_x) const
+bool Peak::sanity_check(double min_x, double max_x) const
 {
   auto amp = amplitude.val();
   auto wid = width_.val();
@@ -86,12 +86,12 @@ bool Hypermet::sanity_check(double min_x, double max_x) const
       std::isfinite(pos) && (min_x < pos) && (pos < max_x);
 }
 
-bool Hypermet::full_energy_peak() const
+bool Peak::full_energy_peak() const
 {
   return (step.flip(1.0) > 0);
 }
 
-void Hypermet::full_energy_peak(bool flag)
+void Peak::full_energy_peak(bool flag)
 {
   if (flag)
     step.side = Side::left;
@@ -99,30 +99,35 @@ void Hypermet::full_energy_peak(bool flag)
     step.side = Side::right;
 }
 
-bool Hypermet::operator<(const Hypermet& other) const
+bool Peak::operator<(const Peak& other) const
 {
   return position.val() < other.position.val();
 }
 
-UncertainDouble Hypermet::peak_position() const
+double Peak::id() const
+{
+  return position.val();
+}
+
+UncertainDouble Peak::peak_position() const
 {
   return {position.val(), position.uncert_value};
 }
 
-UncertainDouble Hypermet::peak_energy(const HCalibration& cal) const
+UncertainDouble Peak::peak_energy(const HCalibration& cal) const
 {
   // \todo if there is a curve, does the slope not differ with x?
   return {cal.channel_to_energy(position.val()),
           cal.energy_slope() * position.uncert_value};
 }
 
-UncertainDouble Hypermet::peak_energy(const Calibration& cal) const
+UncertainDouble Peak::peak_energy(const Calibration& cal) const
 {
   return {cal.transform(position.val()),
           cal.function()->derivative(position.val()) * position.uncert_value};
 }
 
-UncertainDouble Hypermet::area() const
+UncertainDouble Peak::area() const
 {
   auto a = amplitude.val() * width_.val() * (std::sqrt(M_PI) +
       short_tail.amplitude.val() * short_tail.slope.val() *
@@ -163,7 +168,7 @@ UncertainDouble Hypermet::area() const
   return {a, std::sqrt(a) * std::max(1.0, chi_sq_norm)};
 }
 
-UncertainDouble Hypermet::peak_area_eff(const HCalibration& cal) const
+UncertainDouble Peak::peak_area_eff(const HCalibration& cal) const
 {
   // \todo should this also be more rigorous, like area() ?
   auto e = peak_energy(cal).value();
@@ -181,13 +186,13 @@ UncertainDouble Hypermet::peak_area_eff(const HCalibration& cal) const
               (a / eff) * std::max(1.0, chi_sq_norm)};
 }
 
-UncertainDouble Hypermet::fwhm() const
+UncertainDouble Peak::fwhm() const
 {
   // \todo multiply with sqrt(log(2.0)) ?
   return {width_.val(), width_.uncert_value};
 }
 
-UncertainDouble Hypermet::fwhm_energy(const HCalibration& cal) const
+UncertainDouble Peak::fwhm_energy(const HCalibration& cal) const
 {
   double width = width_.val() * sqrt(log(2.0));
   double max_width = (width_.val() + width_.uncert_value) * sqrt(log(2.0));
@@ -203,7 +208,7 @@ UncertainDouble Hypermet::fwhm_energy(const HCalibration& cal) const
   return {val, 0.5 * (max - min)};
 }
 
-UncertainDouble Hypermet::fwhm_energy(const Calibration& cal) const
+UncertainDouble Peak::fwhm_energy(const Calibration& cal) const
 {
   double width = width_.val() * sqrt(log(2.0));
   double max_width = (width_.val() + width_.uncert_value) * sqrt(log(2.0));
@@ -217,7 +222,7 @@ UncertainDouble Hypermet::fwhm_energy(const Calibration& cal) const
 }
 
 
-void Hypermet::update_indices(int32_t& i)
+void Peak::update_indices(int32_t& i)
 {
   amplitude.x_index = i++;
   position.x_index = i++;
@@ -240,7 +245,7 @@ void Hypermet::update_indices(int32_t& i)
     step.update_indices(i);
 }
 
-void Hypermet::put(std::vector<double>& fit) const
+void Peak::put(std::vector<double>& fit) const
 {
   position.put(fit);
   amplitude.put(fit);
@@ -251,7 +256,7 @@ void Hypermet::put(std::vector<double>& fit) const
   step.put(fit);
 }
 
-void Hypermet::get(const std::vector<double>& fit)
+void Peak::get(const std::vector<double>& fit)
 {
   position.get(fit);
   amplitude.get(fit);
@@ -262,7 +267,7 @@ void Hypermet::get(const std::vector<double>& fit)
   step.get(fit);
 }
 
-void Hypermet::get_uncerts(const std::vector<double>& diagonals, double chisq_norm)
+void Peak::get_uncerts(const std::vector<double>& diagonals, double chisq_norm)
 {
   chi_sq_norm = chisq_norm;
   position.get_uncert(diagonals, chisq_norm);
@@ -274,7 +279,7 @@ void Hypermet::get_uncerts(const std::vector<double>& diagonals, double chisq_no
   step.get_uncerts(diagonals, chisq_norm);
 }
 
-PrecalcVals Hypermet::precalc_vals(double chan) const
+PrecalcVals Peak::precalc_vals(double chan) const
 {
   PrecalcVals ret;
   ret.ampl = amplitude.val();
@@ -284,7 +289,7 @@ PrecalcVals Hypermet::precalc_vals(double chan) const
   return ret;
 }
 
-PrecalcVals Hypermet::precalc_vals_at(double chan, const std::vector<double>& fit) const
+PrecalcVals Peak::precalc_vals_at(double chan, const std::vector<double>& fit) const
 {
   PrecalcVals ret;
   ret.ampl = amplitude.val_at(fit[amplitude.x_index]);
@@ -294,9 +299,9 @@ PrecalcVals Hypermet::precalc_vals_at(double chan, const std::vector<double>& fi
   return ret;
 }
 
-Hypermet::Components Hypermet::eval(double chan) const
+Peak::Components Peak::eval(double chan) const
 {
-  Hypermet::Components ret;
+  Peak::Components ret;
 
   auto pre = precalc_vals(chan);
 
@@ -313,9 +318,9 @@ Hypermet::Components Hypermet::eval(double chan) const
   return ret;
 }
 
-Hypermet::Components Hypermet::eval_at(double chan, const std::vector<double>& fit) const
+Peak::Components Peak::eval_at(double chan, const std::vector<double>& fit) const
 {
-  Hypermet::Components ret;
+  Peak::Components ret;
 
   auto pre = precalc_vals_at(chan, fit);
 
@@ -332,9 +337,9 @@ Hypermet::Components Hypermet::eval_at(double chan, const std::vector<double>& f
   return ret;
 }
 
-Hypermet::Components Hypermet::eval_grad(double chan, std::vector<double>& grads) const
+Peak::Components Peak::eval_grad(double chan, std::vector<double>& grads) const
 {
-  Hypermet::Components ret;
+  Peak::Components ret;
 
   auto pre = precalc_vals(chan);
 
@@ -366,10 +371,10 @@ Hypermet::Components Hypermet::eval_grad(double chan, std::vector<double>& grads
   return ret;
 }
 
-Hypermet::Components Hypermet::eval_grad_at(double chan, const std::vector<double>& fit,
+Peak::Components Peak::eval_grad_at(double chan, const std::vector<double>& fit,
                                             std::vector<double>& grads) const
 {
-  Hypermet::Components ret;
+  Peak::Components ret;
 
   auto pre = precalc_vals_at(chan, fit);
 
@@ -402,7 +407,7 @@ Hypermet::Components Hypermet::eval_grad_at(double chan, const std::vector<doubl
   return ret;
 }
 
-std::string Hypermet::to_string() const
+std::string Peak::to_string() const
 {
   std::stringstream ss;
   ss << "pos = " << position.to_string() << "\n";
@@ -416,7 +421,7 @@ std::string Hypermet::to_string() const
   return ss.str();
 }
 
-void to_json(nlohmann::json& j, const Hypermet& s)
+void to_json(nlohmann::json& j, const Peak& s)
 {
   j["position"] = s.position;
   j["amplitude"] = s.amplitude;
@@ -426,9 +431,13 @@ void to_json(nlohmann::json& j, const Hypermet& s)
   j["right_tail"] = s.right_tail;
   j["long_tail"] = s.long_tail;
   j["step"] = s.step;
+  j["sum4"] = s.sum4;
+
+  // \todo should this be here?
+  j["chi_sq_norm"] = s.chi_sq_norm;
 }
 
-void from_json(const nlohmann::json& j, Hypermet& s)
+void from_json(const nlohmann::json& j, Peak& s)
 {
   s.position = j["position"];
   s.amplitude = j["amplitude"];
@@ -438,6 +447,10 @@ void from_json(const nlohmann::json& j, Hypermet& s)
   s.right_tail = j["right_tail"];
   s.long_tail = j["long_tail"];
   s.step = j["step"];
+  s.sum4 = j["sum4"];
+
+  // \todo should this be here?
+  s.chi_sq_norm = j["chi_sq_norm"];
 }
 
 }

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <core/fitting/peak.h>
 #include <core/fitting/finder.h>
 #include <atomic>
 #include <set>
 #include <core/fitting/BFGS/BFGS.h>
 #include <core/fitting/hypermet/PolyBackground.h>
+#include <core/fitting/hypermet/Peak.h>
 
 namespace DAQuiri {
 
@@ -40,7 +40,7 @@ struct PeakRendering
       full_fit;
 
   void clear();
-  void render(const Hypermet&);
+  void render(const Peak&);
 };
 
 struct RegionRendering
@@ -106,8 +106,8 @@ struct ROI {
   //manipulation, no optimizer
   bool rollback(const Finder &parent_finder, size_t i);
   bool adjust_sum4(double &peakID, double left, double right);
-  bool replace_hypermet(double &peakID, Hypermet hyp);
-  bool override_energy(double peakID, double energy);
+  bool replace_hypermet(double &peakID, Peak hyp);
+  //bool override_energy(double peakID, double energy);
 
   //manupulation, may invoke optimizer
   bool auto_fit(BFGS& optimizer, std::atomic<bool>& interruptor);
@@ -126,7 +126,7 @@ struct ROI {
 private:
   FitSettings settings_;
   Finder finder_;           // gets x & y data from fitter
-  Hypermet default_peak_;
+  Peak default_peak_;
 
   //history
   std::vector<Fit> fits_;

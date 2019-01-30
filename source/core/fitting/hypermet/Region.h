@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/fitting/hypermet/Hypermet.h>
+#include <core/fitting/hypermet/Peak.h>
 #include <core/fitting/hypermet/PolyBackground.h>
 #include <core/fitting/finder.h>
 
@@ -24,8 +24,8 @@ class Region : public Fittable
 {
  public:
   PolyBackground background;
-  Hypermet default_peak_;
-  std::vector<Hypermet> peaks_;
+  Peak default_peak_;
+  std::vector<Peak> peaks_;
 
  public:
   Region(const SpectrumData& data);

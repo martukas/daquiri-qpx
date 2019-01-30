@@ -41,7 +41,6 @@ class FitSettings
   uint16_t ROI_max_peaks{10};
   double ROI_extend_background{0.6};
   uint16_t background_edge_samples{7};
-  bool sum4_only{false};
 
   bool resid_auto{true};
   uint16_t resid_max_iterations{5};

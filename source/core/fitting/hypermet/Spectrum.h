@@ -2,7 +2,7 @@
 
 #include <core/fitting/uncertain.h>
 #include <core/fitting/sum4/sum4.h>
-#include <core/fitting/hypermet/Hypermet.h>
+#include <core/fitting/hypermet/Peak.h>
 
 namespace DAQuiri
 {
@@ -14,7 +14,7 @@ double rate(double live_time, double sum_counts);
 
 int value_quality(UncertainDouble ud, double error_threshold = 50);
 
-int peak_good(const Hypermet& h, const SUM4& s);
+int peak_good(const Peak& h, const SUM4& s);
 
 
 }

@@ -65,7 +65,6 @@ void to_json(nlohmann::json& j, const FitSettings& s)
   j["ROI"]["max_peaks"] = s.ROI_max_peaks;
   j["ROI"]["extend_background"] = s.ROI_extend_background;
   j["ROI"]["edge_samples"] = s.background_edge_samples;
-  j["ROI"]["sum4_only"] = s.sum4_only;
 
   j["residuals"]["auto"] = s.resid_auto;
   j["residuals"]["max_iterations"] = s.resid_max_iterations;
@@ -100,7 +99,6 @@ void from_json(const nlohmann::json& j, FitSettings& s)
   s.ROI_max_peaks = j["ROI"]["max_peaks"];
   s.ROI_extend_background = j["ROI"]["extend_background"];
   s.background_edge_samples = j["ROI"]["edge_samples"];
-  s.sum4_only = j["ROI"]["sum4_only"];
 
   s.resid_auto = j["residuals"]["auto"];
   s.resid_max_iterations = j["residuals"]["max_iterations"];
