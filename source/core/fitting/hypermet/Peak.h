@@ -26,6 +26,7 @@ class Peak
   };
 
   Peak();
+  // \todo set position bounds
   void apply_defaults(const Peak& other);
   void force_defaults(const Peak& other);
 

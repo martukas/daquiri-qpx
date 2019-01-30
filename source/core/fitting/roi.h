@@ -4,8 +4,7 @@
 #include <atomic>
 #include <set>
 #include <core/fitting/BFGS/BFGS.h>
-#include <core/fitting/hypermet/PolyBackground.h>
-#include <core/fitting/hypermet/Peak.h>
+#include <core/fitting/hypermet/Region.h>
 
 namespace DAQuiri {
 
@@ -19,18 +18,10 @@ struct FitDescription
 
 class Fit {
  public:
-  Fit(const SUM4Edge &lb, const SUM4Edge &rb,
-      PolyBackground bkg,
-      const std::map<double, Peak> &peaks,
-      std::string descr);
+  Fit(const Region& r, std::string descr);
 
   FitDescription description;
-
-  SUM4Edge  LB_, RB_;
-  PolyBackground background;
-
-  Peak default_peak_;
-  std::vector<Peak> peaks_;
+  Region region;
 };
 
 struct PeakRendering
@@ -59,25 +50,14 @@ struct RegionRendering
 
   void reserve(size_t count);
   void clear();
-  void sum4only(const std::vector<double>& x,
-                   const std::vector<double>& y,
-                   const Calibration& energy_calib,
-                   const Polynomial& sum4back,
-                   const std::map<double, Peak>& pks);
 
-  void with_hypermet(double start, double end,
-                     const Calibration& energy_calib,
-                     const Polynomial& sum4back,
-                     const PolyBackground& hyp_back,
-                     const std::map<double, Peak>& pks);
+  void render(const Region& r, const Calibration& energy_calib);
 };
 
 
 struct ROI {
   ROI() = default;
-  ROI(const nlohmann::json& j,
-      const Finder &finder,
-      const FitSettings& fs);
+  ROI(const nlohmann::json& j, const Finder &finder, const FitSettings& fs);
   ROI(const FitSettings& fs, const Finder &parentfinder, double min, double max);
 
   //bounds
@@ -94,8 +74,8 @@ struct ROI {
   const std::map<double, Peak> &peaks() const;
 
   //access other
-  SUM4Edge LB() const {return LB_;}
-  SUM4Edge RB() const {return RB_;}
+  SUM4Edge LB() const {return region_.LB_;}
+  SUM4Edge RB() const {return region_.RB_;}
   FitSettings fit_settings() const { return settings_; }
   const Finder &finder() const { return finder_; }
 
@@ -105,7 +85,7 @@ struct ROI {
 
   //manipulation, no optimizer
   bool rollback(const Finder &parent_finder, size_t i);
-  bool adjust_sum4(double &peakID, double left, double right);
+  bool adjust_sum4(double peakID, double left, double right);
   bool replace_hypermet(double &peakID, Peak hyp);
   //bool override_energy(double peakID, double energy);
 
@@ -126,16 +106,13 @@ struct ROI {
 private:
   FitSettings settings_;
   Finder finder_;           // gets x & y data from fitter
-  Peak default_peak_;
 
   //history
   std::vector<Fit> fits_;
   size_t current_fit_ {0};
 
   //intrinsic, these are saved
-  SUM4Edge LB_, RB_;
-  PolyBackground background_;
-  std::map<double, Peak> peaks_;
+  Region region_;
 
   RegionRendering rendering_;
 
@@ -153,8 +130,6 @@ private:
   bool add_from_resid(BFGS& optimizer, std::atomic<bool>& interruptor,
                       int32_t centroid_hint = -1);
   bool rebuild(BFGS& optimizer, std::atomic<bool>& interruptor);
-  bool rebuild_as_hypermet(BFGS& optimizer, std::atomic<bool>& interruptor);
-  bool rebuild_as_gaussian(BFGS& optimizer, std::atomic<bool>& interruptor);
   void iterative_fit(BFGS& optimizer, std::atomic<bool>& interruptor);
 
   void render();
