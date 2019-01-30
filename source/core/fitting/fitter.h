@@ -14,7 +14,7 @@ public:
 
   Fitter(const json& j, ConsumerPtr spectrum);
 
-  FitSettings settings() const { return finder_.settings_; }
+  FitSettings settings() const { return settings_; }
   void apply_settings(FitSettings settings);
   const Finder &finder() const { return finder_; }
 //  void apply_energy_calibration(Calibration cal);
@@ -41,17 +41,17 @@ public:
   std::set<double> relevant_regions(double left, double right);
 
   //manupulation, may invoke optimizer
-  bool auto_fit(double regionID, OptimizerPtr optimizer, std::atomic<bool>& interruptor);
-  bool add_peak(double left, double right, OptimizerPtr optimizer, std::atomic<bool>& interruptor);
-  bool adj_LB(double regionID, double left, double right, OptimizerPtr optimizer, std::atomic<bool>& interruptor);
-  bool adj_RB(double regionID, double left, double right, OptimizerPtr optimizer, std::atomic<bool>& interruptor);
-  bool merge_regions(double left, double right, OptimizerPtr optimizer, std::atomic<bool>& interruptor);
-  bool refit_region(double regionID, OptimizerPtr optimizer, std::atomic<bool>& interruptor);
+  bool find_and_fit(double regionID, BFGS& optimizer, std::atomic<bool>& interruptor);
+  bool add_peak(double left, double right, BFGS& optimizer, std::atomic<bool>& interruptor);
+  bool adj_LB(double regionID, double left, double right, BFGS& optimizer, std::atomic<bool>& interruptor);
+  bool adj_RB(double regionID, double left, double right, BFGS& optimizer, std::atomic<bool>& interruptor);
+  bool merge_regions(double left, double right, BFGS& optimizer, std::atomic<bool>& interruptor);
+  bool refit_region(double regionID, BFGS& optimizer, std::atomic<bool>& interruptor);
   bool override_ROI_settings(double regionID, const FitSettings &fs, std::atomic<bool>& interruptor);
-  bool remove_peaks(std::set<double> peakIDs, OptimizerPtr optimizer, std::atomic<bool>& interruptor);
+  bool remove_peaks(std::set<double> peakIDs, BFGS& optimizer, std::atomic<bool>& interruptor);
   //manipulation, no optimizer
   bool adjust_sum4(double &peakID, double left, double right);
-  bool replace_hypermet(double &peakID, Hypermet hyp);
+  bool replace_hypermet(double &peakID, Peak hyp);
   bool rollback_ROI(double regionID, size_t point);
   bool delete_ROI(double regionID);
   bool override_energy(double peakID, double energy);
@@ -78,6 +78,7 @@ private:
   std::map<double, ROI> regions_;
   std::set<double> selected_peaks_;
   Finder finder_;
+  FitSettings settings_;
 
   void render_all();
   ROI *parent_of(double peakID);

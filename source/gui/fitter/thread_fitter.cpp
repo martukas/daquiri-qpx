@@ -169,7 +169,7 @@ void ThreadFitter::run() {
       for (auto &q : fitter_.regions())
       {
         if (optimizer_)
-          fitter_.auto_fit(q.first, optimizer_, interruptor_);
+          fitter_.find_and_fit(q.first, optimizer_, interruptor_);
         current++;
         if (timer->s() > 2) {
           emit fit_updated(fitter_);

@@ -285,11 +285,28 @@ bool ROI::overlaps(const ROI& other) const
   return overlaps(other.left_bin(), other.right_bin());
 }
 
+size_t ROI::peak_count() const
+{
+  return region_.peaks_.size();
+}
+
+bool ROI::contains(double peakID) const
+{
+  return (region_.peaks_.count(peakID) > 0);
+}
+
+Peak ROI::peak(double peakID) const
+{
+  if (contains(peakID))
+    return region_.peaks_.at(peakID);
+  else
+    return Peak();
+}
+
 const std::map<double, Peak> &ROI::peaks() const
 {
   return region_.peaks_;
 }
-
 
 bool ROI::adjust_sum4(double peakID, double left, double right)
 {

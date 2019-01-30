@@ -5,7 +5,7 @@ set(SOURCES
   ${dir}/finder.cpp
 #  ${dir}/optimizer.cpp
   ${dir}/roi.cpp
-#  ${dir}/fitter.cpp
+  ${dir}/fitter.cpp
   ${dir}/uncertain.cpp
   )
 
@@ -14,7 +14,7 @@ set(HEADERS
   ${dir}/finder.h
 #  ${dir}/optimizer.h
   ${dir}/roi.h
-#  ${dir}/fitter.h
+  ${dir}/fitter.h
   ${dir}/uncertain.h
   )
 

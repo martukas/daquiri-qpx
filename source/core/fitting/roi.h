@@ -71,6 +71,9 @@ struct ROI {
   bool overlaps(const ROI& other) const;
 
   //access peaks
+  size_t peak_count() const;
+  bool contains(double peakID) const;
+  Peak peak(double peakID) const;
   const std::map<double, Peak> &peaks() const;
 
   //access other
