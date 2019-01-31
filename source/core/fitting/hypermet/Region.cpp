@@ -390,13 +390,11 @@ double Region::chi_sq() const
 
 
 //Calculates the Chi-square and its gradient
-double Region::grad_chi_sq(std::vector<double>& gradients) const
+double Region::grad_chi_sq(std::vector<double>& gradients,
+                           std::vector<double>& chan_gradients) const
 {
   gradients.assign(gradients.size(), 0.0);
-  auto chan_gradients = gradients;
-
   double Chisq = 0;
-
   for (const auto& data : data_.data)
   {
     chan_gradients.assign(chan_gradients.size(), 0.0);
@@ -431,16 +429,14 @@ double Region::chi_sq(const std::vector<double>& fit) const
 
 //Calculates the Chi-square and its gradient
 double Region::grad_chi_sq(const std::vector<double>& fit,
-                           std::vector<double>& gradients) const
+                           std::vector<double>& gradients,
+                           std::vector<double>& chan_gradients) const
 {
-  gradients.assign(gradients.size(), 0.0);
-  auto chan_gradients = gradients;
-
-  double Chisq = 0;
-
+  gradients.assign(fit.size(), 0.0);
+  double Chisq {0.0};
   for (const auto& data : data_.data)
   {
-    chan_gradients.assign(chan_gradients.size(), 0.0);
+    chan_gradients.assign(fit.size(), 0.0);
 
     double FTotal = background.eval_grad_at(data.x, fit, chan_gradients);
     for (auto& p : peaks_)
@@ -452,7 +448,6 @@ double Region::grad_chi_sq(const std::vector<double>& fit,
     Chisq += square((data.y - FTotal) / data.weight_phillips_marlow);
   }
   //Chisq /= df
-
   return Chisq;
 }
 

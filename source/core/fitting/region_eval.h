@@ -16,7 +16,7 @@ class FitEvaluation
 
   bool empty() const;
 
-  bool cloneRange(const FitEvaluation& other, double l, double r);
+  void cloneRange(const FitEvaluation& other, double l, double r);
   void update_fit(const std::vector<double>& y_fit,
                   const std::vector<double>& y_background);
 

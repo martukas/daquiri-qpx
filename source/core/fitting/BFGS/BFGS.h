@@ -11,7 +11,7 @@ class BFGS
 {
  public:
   std::atomic<bool> cancel{false};
-  FitResult BFGSMin(const Fittable* const fittable, double tolf);
+  FitResult BFGSMin(Fittable* fittable, double tolf);
 
  private:
   double Sign(double a, double b);
@@ -24,7 +24,8 @@ class BFGS
   double fgv(const Fittable* const fittable, double lambda,
              std::vector<double> variables, std::vector<double> hessian);
   double dfgv(const Fittable* const fittable, double lambda,
-              std::vector<double> variables, std::vector<double> hessian);
+              std::vector<double> variables, std::vector<double> hessian,
+              std::vector<double>& chan_gradients);
   double LinMin(const Fittable* const fittable,
                 std::vector<double>& variables,
                 std::vector<double> hessian);

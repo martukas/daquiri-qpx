@@ -43,9 +43,11 @@ double BFGS::BrentDeriv(const Fittable* const fittable,
   double sa = (a < c) ? a : c;
   double sb = (a > c) ? a : c;
 
+  std::vector<double> chan_gradients(variables.size());
+
   w = x = v = b;
   fw = fv = fx = fgv(fittable, x, variables, hessian);
-  dw = dv = dx = dfgv(fittable, x, variables, hessian);
+  dw = dv = dx = dfgv(fittable, x, variables, hessian, chan_gradients);
 
   double e{0.0};
   // \todo check for cancel
@@ -112,7 +114,7 @@ double BFGS::BrentDeriv(const Fittable* const fittable,
 
       if (!done)
       {
-        du = dfgv(fittable, u, variables, hessian);
+        du = dfgv(fittable, u, variables, hessian, chan_gradients);
         if (fu < fx)
         {
           if (u >= x)
@@ -280,14 +282,15 @@ double BFGS::fgv(const Fittable* const fittable,
 double BFGS::dfgv(const Fittable* const fittable,
                   double lambda,
                   std::vector<double> variables,
-                  std::vector<double> hessian)
+                  std::vector<double> hessian,
+                  std::vector<double>& chan_gradients)
 {
   auto n = variables.size();
   std::vector<double> xlocal(n);
   std::vector<double> dflocal(n);
   for (size_t i = 0; i < n; ++i)
     xlocal[i] = variables[i] + lambda * hessian[i];
-  fittable->grad_chi_sq(xlocal, dflocal);
+  fittable->grad_chi_sq(xlocal, dflocal, chan_gradients);
   double s = 0;
   for (size_t i = 0; i < n; ++i)
     s += dflocal[i] * hessian[i];
@@ -314,7 +317,7 @@ double BFGS::LinMin(const Fittable* const fittable, std::vector<double>& variabl
   return fmin;
 }
 
-FitResult BFGS::BFGSMin(const Fittable* const fittable, double tolf)
+FitResult BFGS::BFGSMin(Fittable* fittable, double tolf)
 {
   static constexpr double eps{0.0000000001};
   static constexpr size_t maxit{500};
@@ -326,11 +329,12 @@ FitResult BFGS::BFGSMin(const Fittable* const fittable, double tolf)
   double free_vars = fittable->degrees_of_freedom();
   std::vector<double>
       hessian(var_count),
-      gradient(var_count),
+      gradients(var_count),
+      chan_gradients(var_count),
       prev_val(var_count),
       Adg(var_count);
 
-  double f = fittable->grad_chi_sq(ret.variables, gradient);
+  double f = fittable->grad_chi_sq(ret.variables, gradients, chan_gradients);
 
   ret.inv_hessian.resize(var_count, var_count);
   ret.inv_hessian.setIdentity();
@@ -343,13 +347,13 @@ FitResult BFGS::BFGSMin(const Fittable* const fittable, double tolf)
     f = fmin;
 
     for (size_t i = 0; i < var_count; ++i)
-      prev_val[i] = gradient[i];
+      prev_val[i] = gradients[i];
 
-    fmin = fittable->grad_chi_sq(ret.variables, gradient);
+    fmin = fittable->grad_chi_sq(ret.variables, gradients, chan_gradients);
     INFO("Fitting... Iteration = {}, Chisq = {}", ret.iterations, fmin / free_vars);
 
     for (size_t i = 0; i < var_count; ++i)
-      prev_val[i] = gradient[i] - prev_val[i];
+      prev_val[i] = gradients[i] - prev_val[i];
 
     for (size_t i = 0; i < var_count; ++i)
     {
@@ -388,7 +392,7 @@ FitResult BFGS::BFGSMin(const Fittable* const fittable, double tolf)
     {
       hessian[i] = 0;
       for (size_t j = 0; j < var_count; ++j)
-        hessian[i] -= ret.inv_hessian.coeff(i, j) * gradient[j];
+        hessian[i] -= ret.inv_hessian.coeff(i, j) * gradients[j];
     }
 
     if (ret.converged || cancel)

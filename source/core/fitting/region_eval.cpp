@@ -8,7 +8,7 @@ FitEvaluation::FitEvaluation(const WeightedData& data)
   setNewData(data);
 }
 
-bool FitEvaluation::cloneRange(const FitEvaluation& other, double l, double r)
+void FitEvaluation::cloneRange(const FitEvaluation& other, double l, double r)
 {
   setNewData(other.weighted_data.subset(l, r));
 }

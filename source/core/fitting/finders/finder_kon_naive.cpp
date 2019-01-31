@@ -11,6 +11,8 @@ NaiveKON::NaiveKON(const std::vector<double>& x,
     , kon_width_(std::max(kon_width, uint16_t(2)))
     , sigma_(sigma)
 {
+  if (x_.empty())
+    return;
   calc_kon();
   find_peaks();
 }

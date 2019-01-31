@@ -61,7 +61,8 @@ class Region : public Fittable
   double degrees_of_freedom() const  override;
   double chi_sq(const std::vector<double>& fit) const override;
   double grad_chi_sq(const std::vector<double>& fit,
-                     std::vector<double>& gradients) const override;
+                     std::vector<double>& gradients,
+                     std::vector<double>& chan_gradients) const override;
 
   friend void to_json(nlohmann::json& j, const Region& s);
   friend void from_json(const nlohmann::json& j, Region& s);
@@ -77,7 +78,8 @@ class Region : public Fittable
   size_t fit_var_count() const;
   void save_fit(const std::vector<double>& variables);
   double chi_sq() const;
-  double grad_chi_sq(std::vector<double>& gradients) const;
+  double grad_chi_sq(std::vector<double>& gradients,
+                     std::vector<double>& chan_gradients) const;
   void init_background();
   void cull_peaks();
   void reindex_peaks();

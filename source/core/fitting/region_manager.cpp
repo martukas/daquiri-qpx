@@ -149,12 +149,7 @@ double RegionManager::width() const
 
 void RegionManager::set_data(const FitEvaluation &parentfinder, double l, double r)
 {
-  if (!fit_eval_.cloneRange(parentfinder, l, r))
-  {
-    fit_eval_.clear();
-    return;
-  }
-
+  fit_eval_.cloneRange(parentfinder, l, r);
   region_ = Region(fit_eval_.weighted_data, settings_.background_edge_samples);
   render();
 }
@@ -370,9 +365,7 @@ bool RegionManager::add_peak(const FitEvaluation &parentfinder,
   {
     left  = std::min(left, left_bin());
     right = std::max(right, right_bin());
-    if (!fit_eval_.cloneRange(parentfinder, left, right))
-      return false;
-
+    fit_eval_.cloneRange(parentfinder, left, right);
     render();
     save_current_fit("Implicitly expanded region");
 
@@ -482,9 +475,10 @@ bool RegionManager::adjust_LB(const FitEvaluation &parentfinder, double left, do
   if (!edge.width() || (edge.right() >= region_.RB_.left()))
     return false;
 
-  if ((edge.left() != left_bin()) && !fit_eval_.cloneRange(parentfinder, left, right_bin()))
+  if (edge.left() != left_bin())
     return false;
 
+  fit_eval_.cloneRange(parentfinder, left, right_bin());
   region_.replace_data(parentfinder.weighted_data.subset(left, right_bin()),
       edge, RB());
   save_current_fit("Left baseline adjusted");
@@ -502,9 +496,10 @@ bool RegionManager::adjust_RB(const FitEvaluation &parentfinder, double left, do
   if (!edge.width() || (edge.left() <= region_.LB_.right()))
     return false;
 
-  if ((edge.right() != right_bin()) && !fit_eval_.cloneRange(parentfinder, left_bin(), right))
+  if (edge.right() != right_bin())
     return false;
 
+  fit_eval_.cloneRange(parentfinder, left_bin(), right);
   region_.replace_data(parentfinder.weighted_data.subset(left_bin(), right),
                        LB(), edge);
 
