@@ -22,19 +22,21 @@ double BFGS::Sign(double a, double b)
     return -std::abs(a);
 }
 
-double BFGS::BrentDeriv(const Fittable* const fittable,
+double BFGS::BrentDeriv(Fittable* fittable,
                         double a,
                         double b,
                         double c,
                         double tol,
                         double& xmin,
                         const std::vector<double>& variables,
-                        const std::vector<double>& hessian)
+                        const std::vector<double>& hessian,
+                        std::vector<double>& chan_gradients)
 {
   static constexpr int32_t brent_iter{500};
   static constexpr double zeps{0.0000000001};
 
-  double d, d1, d2, du, dv, dw, dx;
+  double d{0.0}; // \todo is this really the default value?
+  double d1, d2, du, dv, dw, dx;
   double fu, fv, fw, fx;
   int32_t iteration;
   bool ok1, ok2, done;
@@ -42,8 +44,6 @@ double BFGS::BrentDeriv(const Fittable* const fittable,
 
   double sa = (a < c) ? a : c;
   double sb = (a > c) ? a : c;
-
-  std::vector<double> chan_gradients(variables.size());
 
   w = x = v = b;
   fw = fv = fx = fgv(fittable, x, variables, hessian);
@@ -161,13 +161,13 @@ double BFGS::BrentDeriv(const Fittable* const fittable,
       break;
   }
   if (!done)
-    WARN("Warning: The maximum number of iterations reached in Brent line search");
+    WARN("Warning: The maximum number of iterations ({}) reached in Brent line search", iteration);
 
   xmin = x;
   return fx;
 }
 
-void BFGS::Bracket(const Fittable* const fittable,
+void BFGS::Bracket(Fittable* fittable,
                    double& a, double& b, double& c, double& fa, double& fb, double& fc,
                    const std::vector<double>& variables, const std::vector<double>& hessian)
 {
@@ -267,7 +267,7 @@ void BFGS::Bracket(const Fittable* const fittable,
 
 }
 
-double BFGS::fgv(const Fittable* const fittable,
+double BFGS::fgv(Fittable* fittable,
                  double lambda,
                  std::vector<double> variables,
                  std::vector<double> hessian)
@@ -279,7 +279,7 @@ double BFGS::fgv(const Fittable* const fittable,
   return fittable->chi_sq(xlocal);
 }
 
-double BFGS::dfgv(const Fittable* const fittable,
+double BFGS::dfgv(Fittable* fittable,
                   double lambda,
                   std::vector<double> variables,
                   std::vector<double> hessian,
@@ -297,7 +297,8 @@ double BFGS::dfgv(const Fittable* const fittable,
   return s;
 }
 
-double BFGS::LinMin(const Fittable* const fittable, std::vector<double>& variables, std::vector<double> hessian)
+double BFGS::LinMin(Fittable* fittable, std::vector<double>& variables,
+    std::vector<double> hessian, std::vector<double>& chan_gradients)
 {
   static constexpr float linmin_tol{0.0001};
   double lambdak, xk, fxk, fa, fb, a, b;
@@ -306,7 +307,7 @@ double BFGS::LinMin(const Fittable* const fittable, std::vector<double>& variabl
   xk = 1.0;
   b = 2.0;
   Bracket(fittable, a, xk, b, fa, fxk, fb, variables, hessian);
-  double fmin = BrentDeriv(fittable, a, xk, b, linmin_tol, lambdak, variables, hessian);
+  double fmin = BrentDeriv(fittable, a, xk, b, linmin_tol, lambdak, variables, hessian, chan_gradients);
   DBG("lambda={}", lambdak);
   for (size_t j = 0; j < n; ++j)
   {
@@ -341,7 +342,7 @@ FitResult BFGS::BFGSMin(Fittable* fittable, double tolf)
 
   for (; ret.iterations <= maxit; ++ret.iterations)
   {
-    double fmin = LinMin(fittable, ret.variables, hessian);
+    double fmin = LinMin(fittable, ret.variables, hessian, chan_gradients);
     //if (std::abs(f - fmin) < 0.000001) { done = true; }
     ret.converged = (2 * std::abs(fmin - f)) <= (tolf * (std::abs(fmin) + std::abs(f) + eps));
     f = fmin;
@@ -395,7 +396,7 @@ FitResult BFGS::BFGSMin(Fittable* fittable, double tolf)
         hessian[i] -= ret.inv_hessian.coeff(i, j) * gradients[j];
     }
 
-    if (ret.converged || cancel)
+    if (ret.converged || cancel.load())
       break;
   }
 
