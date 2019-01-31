@@ -8,7 +8,6 @@ ThreadFitter::ThreadFitter(QObject *parent) :
   running_(false)
 {
   action_ = kIdle;
-  optimizer_ = DAQuiri::OptimizerFactory::getInstance().create_any();
   start(HighPriority);
 }
 
@@ -151,7 +150,7 @@ void ThreadFitter::remove_peaks(std::set<double> chosen_peaks) {
 void ThreadFitter::stop_work() {
   QMutexLocker locker(&mutex_);
   action_ = kStop; //not thread safe
-  interruptor_.store(true);
+  optimizer_.cancel.store(true);
 }
 
 void ThreadFitter::run() {
@@ -159,7 +158,7 @@ void ThreadFitter::run() {
   while (!terminating_.load()) {
     if (action_ != kIdle) {
       running_.store(true);
-      interruptor_.store(false);
+      optimizer_.cancel.store(false);
     }
 
     if (action_ == kFit) {
@@ -168,8 +167,7 @@ void ThreadFitter::run() {
       std::shared_ptr<Timer> timer(new Timer(true));
       for (auto &q : fitter_.regions())
       {
-        if (optimizer_)
-          fitter_.find_and_fit(q.first, optimizer_, interruptor_);
+        fitter_.find_and_fit(q.first, optimizer_);
         current++;
         if (timer->s() > 2) {
           emit fit_updated(fitter_);
@@ -186,38 +184,37 @@ void ThreadFitter::run() {
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kRefit) {
-      if (optimizer_ && fitter_.refit_region(target_, optimizer_, interruptor_))
+      if (fitter_.refit_region(target_, optimizer_))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kAddPeak) {
-      if (optimizer_)
-        fitter_.add_peak(LL, RR, optimizer_, interruptor_);
+      fitter_.add_peak(LL, RR, optimizer_);
       emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kAdjustLB) {
-      if (optimizer_ && fitter_.adj_LB(target_, LL, RR, optimizer_, interruptor_))
+      if (fitter_.adj_LB(target_, LL, RR, optimizer_))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kAdjustRB) {
-      if (optimizer_ && fitter_.adj_RB(target_, LL, RR, optimizer_, interruptor_))
+      if (fitter_.adj_RB(target_, LL, RR, optimizer_))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kOverrideSettingsROI) {
-      if (fitter_.override_ROI_settings(target_, settings_, interruptor_))
+      if (fitter_.override_ROI_settings(target_, settings_))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kMergeRegions) {
-      if (optimizer_ && fitter_.merge_regions(LL, RR, optimizer_, interruptor_))
+      if (fitter_.merge_regions(LL, RR, optimizer_))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kRemovePeaks) {
-      if (optimizer_ && fitter_.remove_peaks(chosen_peaks_, optimizer_, interruptor_))
+      if (fitter_.remove_peaks(chosen_peaks_, optimizer_))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;

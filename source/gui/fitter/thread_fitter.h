@@ -37,19 +37,17 @@ protected:
 private:
   DAQuiri::Fitter fitter_;
 
-  DAQuiri::OptimizerPtr optimizer_;
+  DAQuiri::BFGS optimizer_;
 
   QMutex mutex_;
   FitterAction action_;
 
   double LL, RR;
   double target_;
-  DAQuiri::Hypermet hypermet_;
+  DAQuiri::Peak hypermet_;
   DAQuiri::FitSettings settings_;
   std::set<double> chosen_peaks_;
 
   std::atomic<bool> running_;
   std::atomic<bool> terminating_;
-  std::atomic<bool> interruptor_;
-
 };

@@ -23,7 +23,7 @@ public:
   double sum()      const {return dsum_.value();}
   double width()    const;
   double average()  const {return davg_.value();}
-  double variance() const {return std::pow(davg_.uncertainty(), 2);}
+  double variance() const {return std::pow(davg_.sigma(), 2);}
 
   double min()      const {return min_;}
   double max()      const {return max_;}

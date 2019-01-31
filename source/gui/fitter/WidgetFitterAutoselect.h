@@ -2,7 +2,8 @@
 
 #include <QWidget>
 #include <QSettings>
-#include <core/fitting/peak.h>
+#include <core/fitting/hypermet/Peak.h>
+#include <set>
 
 namespace Ui {
 class WidgetFitterAutoselect;

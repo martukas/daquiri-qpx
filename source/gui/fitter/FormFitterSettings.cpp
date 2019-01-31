@@ -11,21 +11,20 @@ FormFitterSettings::FormFitterSettings(DAQuiri::FitSettings &fs, QWidget *parent
   ui->setupUi(this);
   this->setFixedSize(this->size());
 
-  ui->labelCaliEnergy->setText(QString::fromStdString(fit_settings_.cali_nrg_.debug()));
-  ui->labelCaliFWHM->setText(QString::fromStdString(fit_settings_.cali_fwhm_.debug()));
+  ui->labelCaliEnergy->setText(QString::fromStdString(fit_settings_.calib.cali_nrg_.debug()));
+  ui->labelCaliFWHM->setText(QString::fromStdString(fit_settings_.calib.cali_fwhm_.debug()));
 
   ui->spinFinderCutoffKeV->setValue(fit_settings_.finder_cutoff_kev);
 
-  ui->spinKONwidth->setValue(fit_settings_.KON_width);
-  ui->doubleKONsigmaSpectrum->setValue(fit_settings_.KON_sigma_spectrum);
-  ui->doubleKONsigmaResid->setValue(fit_settings_.KON_sigma_resid);
+  ui->spinKONwidth->setValue(fit_settings_.kon_settings.width);
+  ui->doubleKONsigmaSpectrum->setValue(fit_settings_.kon_settings.sigma_spectrum);
+  ui->doubleKONsigmaResid->setValue(fit_settings_.kon_settings.sigma_resid);
+  ui->doubleKONEdgeWidthFactor->setValue(fit_settings_.kon_settings.edge_width_factor);
 
   ui->spinRegionMaxPeaks->setValue(fit_settings_.ROI_max_peaks);
-  ui->doubleRegionExtendPeaks->setValue(fit_settings_.ROI_extend_peaks);
   ui->doubleRegionExtendBackground->setValue(fit_settings_.ROI_extend_background);
 
   ui->spinEdgeSamples->setValue(fit_settings_.background_edge_samples);
-  ui->checkOnlySum4->setChecked(fit_settings_.sum4_only);
 
   ui->checkResidAuto->setChecked(fit_settings_.resid_auto);
   ui->spinResidMaxIterations->setValue(fit_settings_.resid_max_iterations);
@@ -78,7 +77,6 @@ FormFitterSettings::FormFitterSettings(DAQuiri::FitSettings &fs, QWidget *parent
   ui->doubleLateralSlack->setValue(fit_settings_.lateral_slack);
   ui->spinFitterMaxIterations->setValue(fit_settings_.fitter_max_iter);
 
-  on_checkOnlySum4_clicked();
   on_checkGaussOnly_clicked();
 }
 
@@ -86,16 +84,15 @@ void FormFitterSettings::on_buttonBox_accepted()
 {
   fit_settings_.finder_cutoff_kev = ui->spinFinderCutoffKeV->value();
 
-  fit_settings_.KON_width = ui->spinKONwidth->value();
-  fit_settings_.KON_sigma_spectrum = ui->doubleKONsigmaSpectrum->value();
-  fit_settings_.KON_sigma_resid = ui->doubleKONsigmaResid->value();
+  fit_settings_.kon_settings.width = ui->spinKONwidth->value();
+  fit_settings_.kon_settings.sigma_spectrum = ui->doubleKONsigmaSpectrum->value();
+  fit_settings_.kon_settings.sigma_resid = ui->doubleKONsigmaResid->value();
+  fit_settings_.kon_settings.edge_width_factor = ui->doubleKONEdgeWidthFactor->value();
 
   fit_settings_.ROI_max_peaks = ui->spinRegionMaxPeaks->value();
-  fit_settings_.ROI_extend_peaks = ui->doubleRegionExtendPeaks->value();
   fit_settings_.ROI_extend_background = ui->doubleRegionExtendBackground->value();
 
   fit_settings_.background_edge_samples = ui->spinEdgeSamples->value();
-  fit_settings_.sum4_only = ui->checkOnlySum4->isChecked();
 
   fit_settings_.resid_auto = ui->checkResidAuto->isChecked();
   fit_settings_.resid_max_iterations = ui->spinResidMaxIterations->value();
@@ -275,19 +272,6 @@ void FormFitterSettings::on_doubleMinStep_valueChanged(double)
 void FormFitterSettings::on_doubleMaxStep_valueChanged(double)
 {
   enforce_bounds();
-}
-
-void FormFitterSettings::on_checkOnlySum4_clicked()
-{
-  bool enabled = !ui->checkOnlySum4->isChecked();
-
-  ui->boxHypermet->setEnabled(enabled);
-  ui->boxDeconvolution->setEnabled(enabled);
-  ui->spinResidMaxIterations->setEnabled(enabled);
-  ui->spinResidMinAmplitude->setEnabled(enabled);
-  ui->doubleResidTooClose->setEnabled(enabled);
-  ui->spinFitterMaxIterations->setEnabled(enabled);
-  ui->checkResidAuto->setEnabled(enabled);
 }
 
 void FormFitterSettings::on_checkGaussOnly_clicked()

@@ -40,8 +40,6 @@ private slots:
   void on_doubleMinStep_valueChanged(double);
   void on_doubleMaxStep_valueChanged(double);
 
-  void on_checkOnlySum4_clicked();
-
   void on_checkGaussOnly_clicked();
 
 private:

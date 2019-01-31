@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>961</width>
-    <height>843</height>
+    <height>857</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,7 +20,7 @@
    <string>Form</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/qpxres.qrc">
+   <iconset>
     <normaloff>:/icons/qpx.xpm</normaloff>:/icons/qpx.xpm</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -3196,7 +3196,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../resources/qpxres.qrc"/>
+  <include location="../resources/daquiri.qrc"/>
  </resources>
  <connections/>
 </ui>

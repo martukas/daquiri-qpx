@@ -3,8 +3,8 @@
 #include <QWidget>
 #include <core/project.h>
 #include <gui/analysis/form_energy_calibration.h>
-#include <gui/analysis/form_fwhm_calibration.h>
-#include <gui/analysis/form_fit_results.h>
+//#include <gui/analysis/form_fwhm_calibration.h>
+//#include <gui/analysis/form_fit_results.h>
 
 namespace Ui {
 class FormAnalysis1D;
@@ -44,8 +44,8 @@ private:
   Ui::FormAnalysis1D *ui;
 
   FormEnergyCalibration *form_energy_calibration_;
-  FormFwhmCalibration *form_fwhm_calibration_;
-  FormFitResults *form_fit_results_;
+//  FormFwhmCalibration *form_fwhm_calibration_;
+//  FormFitResults *form_fit_results_;
 
   DAQuiri::Fitter fit_data_;
 

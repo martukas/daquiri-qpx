@@ -5,7 +5,7 @@
 
 #include <core/util/custom_logger.h>
 
-RollbackDialog::RollbackDialog(DAQuiri::ROI roi, QWidget *parent) :
+RollbackDialog::RollbackDialog(DAQuiri::RegionManager roi, QWidget *parent) :
   QDialog(parent),
   roi_(roi)
 {
@@ -71,7 +71,7 @@ RollbackDialog::RollbackDialog(DAQuiri::ROI roi, QWidget *parent) :
   hl->addLayout(vl_s4a);
 
   label = new QLabel();
-  label->setText(QString::fromStdString("<b>ROI at chan=" + std::to_string(roi_.hr_x_nrg.front()) + " rollback to</b>"));
+  label->setText(QString::fromStdString("<b>ROI at chan=" + std::to_string(roi_.left_bin()) + " rollback to</b>"));
 
   line = new QFrame();
   line->setFrameShape(QFrame::HLine);

@@ -97,7 +97,7 @@ void FormFwhmCalibration::clear()
 
 void FormFwhmCalibration::newSpectrum()
 {
-  new_calibration_ = fit_data_.settings().cali_fwhm_;
+  new_calibration_ = fit_data_.settings().calib.cali_fwhm_;
   update_data();
 }
 

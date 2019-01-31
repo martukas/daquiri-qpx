@@ -51,9 +51,9 @@ std::set<double> WidgetFitterAutoselect::autoselect(const std::map<double, DAQui
   {
     double maxheight = peaks.begin()->first;
     for (auto &p : peaks) {
-      if (p.second.hypermet().height().value() > maxheight)
+      if (p.second.amplitude.val() > maxheight)
       {
-        maxheight = p.second.hypermet().height().value();
+        maxheight = p.second.amplitude.val();
         selection = p.first;
       }
     }
@@ -62,8 +62,8 @@ std::set<double> WidgetFitterAutoselect::autoselect(const std::map<double, DAQui
   {
     double maxarea = peaks.begin()->first;
     for (auto &p : peaks) {
-      if (p.second.area_best() > maxarea) {
-        maxarea = p.second.area_best();
+      if (p.second.area().value() > maxarea) {
+        maxarea = p.second.area().value();
         selection = p.first;
       }
     }
@@ -77,8 +77,8 @@ std::set<double> WidgetFitterAutoselect::autoselect(const std::map<double, DAQui
     double prevpeak = *prevsel.begin();
     double delta = std::numeric_limits<double>::max();
     for (auto &p : peaks) {
-      if (abs(p.second.center() - prevpeak) < delta) {
-        delta = abs(p.second.center() - prevpeak);
+      if (abs(p.second.position.val() - prevpeak) < delta) {
+        delta = abs(p.second.position.val() - prevpeak);
         selection = p.first;
       }
     }
@@ -103,12 +103,12 @@ std::set<double> WidgetFitterAutoselect::reselect(const std::map<double, DAQuiri
     double selection = peaks.begin()->first;
     double delta = std::numeric_limits<double>::max();
     for (auto &p : peaks) {
-      if (abs(p.second.center() - prev) < delta) {
-        delta = abs(p.second.center() - prev);
+      if (abs(p.second.position.val() - prev) < delta) {
+        delta = abs(p.second.position.val() - prev);
         selection = p.first;
       }
     }
-    if (abs(selection - prev) < ui->doubleSlack->value() * peaks.at(selection).fwhm())
+    if (abs(selection - prev) < ui->doubleSlack->value() * peaks.at(selection).fwhm().value())
       newselr.insert(selection);
   }
 

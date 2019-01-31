@@ -1,4 +1,5 @@
 #include <gui/analysis/form_energy_calibration.h>
+#include <core/fitting/BFGS/BFGS.h>
 #include "ui_form_energy_calibration.h"
 
 #include <QSettings>
@@ -94,7 +95,7 @@ void FormEnergyCalibration::clear()
 
 void FormEnergyCalibration::newSpectrum()
 {
-  new_calibration_ = fit_data_.settings().cali_nrg_;
+  new_calibration_ = fit_data_.settings().calib.cali_nrg_;
   update_data();
 }
 
@@ -158,7 +159,7 @@ void FormEnergyCalibration::replot_calib()
   for (auto& q : fit_data_.peaks())
   {
     double x = q.first;
-    double y = q.second.energy();
+    double y = q.second.peak_energy(fit_data_.settings().calib.cali_nrg_).value();
 
     xx.push_back(x);
     yy.push_back(y);
@@ -213,7 +214,7 @@ void FormEnergyCalibration::rebuild_table()
   {
     bool close = false;
     for (auto& e : ui->isotopes->current_isotope_gammas())
-      if (std::abs(p.second.energy() - e.energy) < 2.0)
+      if (std::abs(p.second.peak_energy(fit_data_.settings().calib.cali_nrg_).value() - e.energy) < 2.0)
       {//hardcoded
         flagged.insert(e.energy);
         close = true;
@@ -273,14 +274,12 @@ void FormEnergyCalibration::toggle_push()
   else
     ui->pushFromDB->setEnabled(false);
 
-  ui->pushApplyCalib->setEnabled(fit_data_.settings().cali_nrg_ != new_calibration_);
+  ui->pushApplyCalib->setEnabled(fit_data_.settings().calib.cali_nrg_ != new_calibration_);
 }
 
 void FormEnergyCalibration::on_pushFit_clicked()
 {
-  auto optimizer = DAQuiri::OptimizerFactory::getInstance().create_any();
-  if (!optimizer)
-    return;
+  DAQuiri::BFGS optimizer;
 
   std::vector<double> x, y;
   x.resize(fit_data_.peaks().size());
@@ -289,7 +288,7 @@ void FormEnergyCalibration::on_pushFit_clicked()
   for (auto& q : fit_data_.peaks())
   {
     x[i] = q.first;
-    y[i] = q.second.energy();
+    y[i] = q.second.peak_energy(fit_data_.settings().calib.cali_nrg_).value();
     i++;
   }
 
@@ -301,7 +300,8 @@ void FormEnergyCalibration::on_pushFit_clicked()
   for (int i = 2; i <= ui->spinTerms->value(); ++i)
     p->set_coeff(i, {-5, 5, 0.5});
 
-  optimizer->fit(p, x, y, std::vector<double>(), std::vector<double>());
+  // \todo reenable
+  //optimizer->fit(p, x, y, std::vector<double>(), std::vector<double>());
 
   if (p->coeffs().size())
   {
@@ -351,7 +351,7 @@ void FormEnergyCalibration::on_pushPeaksToNuclide_clicked()
   std::vector<double> gammas;
   for (auto& q : fit_data_.peaks())
     if (selected_peaks_.count(q.first))
-      gammas.push_back(q.second.energy());
+      gammas.push_back(q.second.peak_energy(fit_data_.settings().calib.cali_nrg_).value());
   ui->isotopes->push_energies(gammas);
 }
 
@@ -372,8 +372,9 @@ void FormEnergyCalibration::on_pushEnergiesToPeaks_clicked()
   if (gammas.size() != peakIDs.size())
     return;
 
-  for (size_t i = 0; i < gammas.size(); ++i)
-    fit_data_.override_energy(peakIDs.at(i), gammas.at(i));
+  // \todo reenable
+//  for (size_t i = 0; i < gammas.size(); ++i)
+//    fit_data_.override_energy(peakIDs.at(i), gammas.at(i));
 
   selected_peaks_.clear();
   for (auto& q : fit_data_.peaks())
@@ -394,12 +395,12 @@ void FormEnergyCalibration::add_peak_to_table(const DAQuiri::Peak& p, int row, b
 {
   QBrush background(gray ? Qt::lightGray : Qt::white);
 
-  add_to_table(ui->tablePeaks, row, 0, QString::number(p.center()),
-               QVariant::fromValue(p.center()), background);
+  add_to_table(ui->tablePeaks, row, 0, QString::number(p.position.val()),
+               QVariant::fromValue(p.position.val()), background);
   // \todo uncertainty
   //add_to_table(ui->tablePeaks, row, 1, p.center().error_percent(), QVariant(), background);
-  add_to_table(ui->tablePeaks, row, 2, QString::number(p.energy()), QVariant(), background);
-
+  auto nrg = p.peak_energy(fit_data_.settings().calib.cali_nrg_).value();
+  add_to_table(ui->tablePeaks, row, 2, QString::number(nrg), QVariant(), background);
 }
 
 void FormEnergyCalibration::select_in_plot()

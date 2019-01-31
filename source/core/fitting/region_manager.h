@@ -55,7 +55,8 @@ struct RegionRendering
 };
 
 
-struct RegionManager {
+class RegionManager {
+ public:
   RegionManager() = default;
   RegionManager(const nlohmann::json& j, const FitEvaluation &finder, const FitSettings& fs);
   RegionManager(const FitSettings& fs, const FitEvaluation &parentfinder, double min, double max);
@@ -81,6 +82,7 @@ struct RegionManager {
   SUM4Edge RB() const {return region_.RB_;}
   FitSettings fit_settings() const { return settings_; }
   const FitEvaluation &finder() const { return fit_eval_; }
+  const RegionRendering &rendering() const { return rendering_; }
 
   //access history
   size_t current_fit() const;
@@ -109,6 +111,7 @@ struct RegionManager {
 private:
   FitSettings settings_;
   FitEvaluation fit_eval_;           // gets x & y data from fitter
+  RegionRendering rendering_;
 
   //history
   std::vector<Fit> fits_;
@@ -116,8 +119,6 @@ private:
 
   //intrinsic, these are saved
   Region region_;
-
-  RegionRendering rendering_;
 
   void set_data(const FitEvaluation &parentfinder, double min, double max);
 

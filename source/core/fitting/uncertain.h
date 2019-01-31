@@ -15,16 +15,18 @@ class UncertainDouble
   static UncertainDouble from_uint(uint64_t val, double sigma);
 
   double value() const;
-  double uncertainty() const;
+  double sigma() const;
   double error() const;
+  double error_percent() const;
 
-  void setValue(double val);
-  void setUncertainty(double sigma);
+  void set_value(double val);
+  void set_sigma(double sigma);
 
-  bool finite() const;
+  // \todo make static function instead?
+  bool is_finite() const;
 
   std::string to_string(bool ommit_tiny = true) const;
-  std::string error_percent() const;
+  std::string error_percent_fancy() const;
 
   std::string debug() const;
 

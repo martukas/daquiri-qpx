@@ -53,7 +53,7 @@ SUM4::SUM4(const WeightedData& d,
 UncertainDouble SUM4::peak_energy(const Calibration& cal) const
 {
   return {cal.transform(centroid_.value()),
-          cal.function()->derivative(centroid_.value()) * centroid_.uncertainty()};
+          cal.function()->derivative(centroid_.value()) * centroid_.sigma()};
 }
 
 UncertainDouble SUM4::fwhm_energy(const Calibration& cal) const
@@ -73,7 +73,7 @@ double SUM4::peak_width() const
 
 int SUM4::quality() const
 {
-  return get_currie_quality_indicator(peak_area_.value(), pow(background_area_.uncertainty(), 2));
+  return get_currie_quality_indicator(peak_area_.value(), pow(background_area_.sigma(), 2));
 }
 
 int SUM4::get_currie_quality_indicator(double peak_net_area, double background_variance)

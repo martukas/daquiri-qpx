@@ -26,7 +26,7 @@ int value_quality(UncertainDouble ud, double error_threshold)
 {
   if (ud.error() > error_threshold)
     return 3;
-  else if (!std::isfinite(ud.uncertainty()) || !ud.uncertainty())
+  else if (!std::isfinite(ud.sigma()) || !ud.sigma())
     return 2;
   return 1;
 }

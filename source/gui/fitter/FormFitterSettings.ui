@@ -20,7 +20,7 @@
    <string>Form</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/qpxres.qrc">
+   <iconset>
     <normaloff>:/icons/qpx.xpm</normaloff>:/icons/qpx.xpm</iconset>
   </property>
   <widget class="QWidget" name="layoutWidget">
@@ -29,7 +29,7 @@
      <x>9</x>
      <y>9</y>
      <width>996</width>
-     <height>753</height>
+     <height>767</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -362,7 +362,7 @@
              </item>
             </layout>
            </item>
-           <item row="4" column="0">
+           <item row="5" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_5">
              <item>
               <widget class="QLabel" name="label_5">
@@ -404,58 +404,7 @@
              </item>
             </layout>
            </item>
-           <item row="5" column="0">
-            <layout class="QHBoxLayout" name="horizontalLayout_6">
-             <item>
-              <widget class="QLabel" name="label_6">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>25</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>25</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>Region extend peaks (*FW)</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QDoubleSpinBox" name="doubleRegionExtendPeaks">
-               <property name="minimumSize">
-                <size>
-                 <width>70</width>
-                 <height>25</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>70</width>
-                 <height>25</height>
-                </size>
-               </property>
-               <property name="decimals">
-                <number>1</number>
-               </property>
-               <property name="minimum">
-                <double>0.100000000000000</double>
-               </property>
-               <property name="maximum">
-                <double>10.000000000000000</double>
-               </property>
-               <property name="singleStep">
-                <double>0.100000000000000</double>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="6" column="0">
+           <item row="7" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_7">
              <item>
               <widget class="QLabel" name="label_7">
@@ -506,6 +455,57 @@
              </item>
             </layout>
            </item>
+           <item row="4" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
+             <item>
+              <widget class="QLabel" name="label_6">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>KON edge width factor (*FW)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="doubleKONEdgeWidthFactor">
+               <property name="minimumSize">
+                <size>
+                 <width>70</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>70</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="decimals">
+                <number>1</number>
+               </property>
+               <property name="minimum">
+                <double>0.100000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>10.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.100000000000000</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
           </layout>
          </widget>
         </item>
@@ -515,7 +515,7 @@
            <string>Region parameters</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="6" column="0">
+           <item row="5" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_27">
              <item>
               <widget class="QLabel" name="label_50">
@@ -563,7 +563,7 @@
              </item>
             </layout>
            </item>
-           <item row="2" column="0">
+           <item row="1" column="0">
             <widget class="QCheckBox" name="checkResidAuto">
              <property name="enabled">
               <bool>true</bool>
@@ -588,7 +588,7 @@
              </property>
             </widget>
            </item>
-           <item row="9" column="0">
+           <item row="8" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_19">
              <item>
               <widget class="QLabel" name="label_40">
@@ -642,7 +642,7 @@
              </item>
             </layout>
            </item>
-           <item row="8" column="0">
+           <item row="7" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_11">
              <item>
               <widget class="QLabel" name="label_11">
@@ -693,7 +693,7 @@
              </item>
             </layout>
            </item>
-           <item row="4" column="0">
+           <item row="3" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_9">
              <item>
               <widget class="QLabel" name="label_9">
@@ -738,7 +738,7 @@
              </item>
             </layout>
            </item>
-           <item row="5" column="0">
+           <item row="4" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_10">
              <item>
               <widget class="QLabel" name="label_10">
@@ -828,7 +828,7 @@
              </item>
             </layout>
            </item>
-           <item row="7" column="0">
+           <item row="6" column="0">
             <widget class="QCheckBox" name="checkSmallSimplify">
              <property name="enabled">
               <bool>false</bool>
@@ -850,31 +850,6 @@
              </property>
              <property name="text">
               <string>Small peak regions w/ simplified parameters</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QCheckBox" name="checkOnlySum4">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="layoutDirection">
-              <enum>Qt::LeftToRight</enum>
-             </property>
-             <property name="text">
-              <string>SUM4 only (disable all Hypermet fitting)</string>
              </property>
             </widget>
            </item>
@@ -2773,7 +2748,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../resources/qpxres.qrc"/>
+  <include location="../resources/daquiri.qrc"/>
  </resources>
  <connections/>
 </ui>
