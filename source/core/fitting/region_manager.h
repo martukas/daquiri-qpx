@@ -1,10 +1,10 @@
 #pragma once
 
-#include <core/fitting/finder.h>
-#include <atomic>
-#include <set>
 #include <core/fitting/BFGS/BFGS.h>
 #include <core/fitting/hypermet/Region.h>
+#include <core/fitting/region_eval.h>
+#include <atomic>
+#include <set>
 
 namespace DAQuiri {
 

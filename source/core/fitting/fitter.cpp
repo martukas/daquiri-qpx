@@ -1,7 +1,7 @@
 #include <core/fitting/fitter.h>
-#include <algorithm>
-
+#include <core/fitting/finders/finder_kon_naive.h>
 #include <core/util/time_extensions.h>
+#include <algorithm>
 
 #include <core/util/custom_logger.h>
 
@@ -77,7 +77,9 @@ void Fitter::find_regions() {
   regions_.clear();
 //  DBG << "Fitter: looking for " << filtered.size()  << " peaks";
 
-  KON kon(finder_.x_, finder_.y_, false, settings_.kon_settings);
+  NaiveKON kon(finder_.x_, finder_.y_,
+               settings_.kon_settings.width,
+               settings_.kon_settings.sigma_spectrum);
 
   if (kon.filtered.empty())
     return;

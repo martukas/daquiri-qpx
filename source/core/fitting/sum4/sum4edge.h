@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/fitting/finder.h>
+#include <core/fitting/weighted_data.h>
 #include <core/fitting/uncertain.h>
 #include <core/calibration/polynomial.h>
 

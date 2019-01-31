@@ -2,7 +2,7 @@
 
 #include <core/fitting/hypermet/Peak.h>
 #include <core/fitting/hypermet/PolyBackground.h>
-#include <core/fitting/finder.h>
+#include <core/fitting/weighted_data.h>
 
 #include <core/fitting/BFGS/Fittable.h>
 

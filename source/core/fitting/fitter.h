@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/fitting/roi.h>
+#include <core/fitting/region_manager.h>
 #include <core/consumer.h>
 
 namespace DAQuiri {

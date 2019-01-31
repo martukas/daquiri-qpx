@@ -3,9 +3,8 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 set(SOURCES
   ${dir}/fit_settings.cpp
   ${dir}/weighted_data.cpp
-  ${dir}/finder.cpp
-#  ${dir}/optimizer.cpp
-  ${dir}/roi.cpp
+  ${dir}/region_eval.cpp
+  ${dir}/region_manager.cpp
   ${dir}/fitter.cpp
   ${dir}/uncertain.cpp
   )
@@ -13,9 +12,8 @@ set(SOURCES
 set(HEADERS
   ${dir}/fit_settings.h
   ${dir}/weighted_data.h
-  ${dir}/finder.h
-#  ${dir}/optimizer.h
-  ${dir}/roi.h
+  ${dir}/region_eval.h
+  ${dir}/region_manager.h
   ${dir}/fitter.h
   ${dir}/uncertain.h
   )
@@ -23,6 +21,7 @@ set(HEADERS
 add_subdirectory(sum4)
 add_subdirectory(BFGS)
 add_subdirectory(hypermet)
+add_subdirectory(finders)
 
 set(${this_target}_headers ${${this_target}_headers} ${HEADERS} PARENT_SCOPE)
 set(${this_target}_sources ${${this_target}_sources} ${SOURCES} PARENT_SCOPE)

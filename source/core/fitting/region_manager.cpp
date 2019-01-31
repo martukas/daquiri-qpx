@@ -1,7 +1,6 @@
-#include <core/fitting/roi.h>
-#include <core/util/custom_logger.h>
-#include <core/util/timer.h>
+#include <core/fitting/region_manager.h>
 #include <core/util/more_math.h>
+#include <core/fitting/finders/finder_kon_naive.h>
 
 #include <core/util/custom_logger.h>
 
@@ -170,7 +169,9 @@ bool ROI::refit(BFGS& optimizer)
 bool ROI::find_and_fit(BFGS& optimizer)
 {
   finder_.reset();
-  KON kon(finder_.x_, finder_.y_resid_, false, settings_.kon_settings);
+  NaiveKON kon(finder_.x_, finder_.y_,
+      settings_.kon_settings.width,
+      settings_.kon_settings.sigma_spectrum);
   region_ = Region(finder_.weighted_data, settings_.background_edge_samples);
 
   if (kon.filtered.empty())
@@ -236,7 +237,9 @@ bool ROI::add_from_resid(BFGS& optimizer)
   if (finder_.empty())
     return false;
 
-  KON kon(finder_.x_, finder_.y_resid_, true, settings_.kon_settings);
+  NaiveKON kon(finder_.x_, finder_.y_resid_,
+               settings_.kon_settings.width,
+               settings_.kon_settings.sigma_resid);
 
   DetectedPeak target_peak = kon.tallest_detected();
 
@@ -350,7 +353,9 @@ bool ROI::add_peak(const FitEvaluation &parentfinder,
 {
   double center_prelim = (left+right) * 0.5; //assume down the middle
 
-  KON kon(finder_.x_, finder_.y_resid_, true, settings_.kon_settings);
+  NaiveKON kon(finder_.x_, finder_.y_resid_,
+               settings_.kon_settings.width,
+               settings_.kon_settings.sigma_resid);
 
   if (overlaps(left) && overlaps(right))
   {
@@ -367,7 +372,13 @@ bool ROI::add_peak(const FitEvaluation &parentfinder,
     if (!finder_.cloneRange(parentfinder, left, right))
       return false;
 
-    KON kon(finder_.x_, finder_.y_resid_, false, settings_.kon_settings);
+    render();
+    save_current_fit("Implicitly expanded region");
+
+    NaiveKON kon(finder_.x_, finder_.y_resid_,
+                 settings_.kon_settings.width,
+                 settings_.kon_settings.sigma_resid);
+
     region_.replace_data(finder_.weighted_data);
 
     if (region_.add_peak(left, right, kon.highest_residual(left, right)))
