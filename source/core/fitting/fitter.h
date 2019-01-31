@@ -16,7 +16,7 @@ public:
 
   FitSettings settings() const { return settings_; }
   void apply_settings(FitSettings settings);
-  const FitEvaluation &finder() const { return finder_; }
+  const FitEvaluation &finder() const { return fit_eval_; }
 //  void apply_energy_calibration(Calibration cal);
 //  void apply_fwhm_calibration(Calibration cal);
 
@@ -35,9 +35,9 @@ public:
   //access regions
   size_t region_count() const;
   bool contains_region(double bin) const;
-  ROI region(double bin) const;
-  const std::map<double, ROI> &regions() const;
-  ROI parent_region(double peakID) const;
+  RegionManager region(double bin) const;
+  const std::map<double, RegionManager> &regions() const;
+  RegionManager parent_region(double peakID) const;
   std::set<double> relevant_regions(double left, double right);
 
   //manupulation, may invoke optimizer
@@ -75,13 +75,13 @@ public:
 
 
 private:
-  std::map<double, ROI> regions_;
+  std::map<double, RegionManager> regions_;
   std::set<double> selected_peaks_;
-  FitEvaluation finder_;
+  FitEvaluation fit_eval_;
   FitSettings settings_;
 
   void render_all();
-  ROI *parent_of(double peakID);
+  RegionManager *parent_of(double peakID);
 
   void filter_selection();
 

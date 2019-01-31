@@ -14,12 +14,12 @@ add_subdirectory(producers)
 add_subdirectory(importers)
 
 #ROOT
-list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
-find_package(ROOT COMPONENTS Hist)
-if(ROOT_FOUND)
-  add_subdirectory(optimizerROOT)
-  set(optimizer_LIBRARIES daquiri_optimizerROOT)
-endif()
+#list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
+#find_package(ROOT COMPONENTS Hist)
+#if(ROOT_FOUND)
+#  add_subdirectory(optimizerROOT)
+#  set(optimizer_LIBRARIES daquiri_optimizerROOT)
+#endif()
 
 add_subdirectory(cmd)
 add_subdirectory(gui)

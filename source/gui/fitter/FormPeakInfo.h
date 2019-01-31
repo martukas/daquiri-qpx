@@ -2,7 +2,7 @@
 
 #include <QDialog>
 #include <QCloseEvent>
-#include <core/fitting/hypermet.h>
+#include <core/fitting/hypermet/Peak.h>
 
 namespace Ui {
 class FormPeakInfo;
@@ -13,7 +13,7 @@ class FormPeakInfo : public QDialog
   Q_OBJECT
 
 public:
-  explicit FormPeakInfo(DAQuiri::Hypermet &hm, QWidget *parent = 0);
+  explicit FormPeakInfo(DAQuiri::Peak &hm, QWidget *parent = 0);
   ~FormPeakInfo();
 
 protected:
@@ -43,7 +43,7 @@ private slots:
 private:
   Ui::FormPeakInfo *ui;
 
-  DAQuiri::Hypermet &hm_;
+  DAQuiri::Peak &hm_;
 
   void enforce_bounds();
 };

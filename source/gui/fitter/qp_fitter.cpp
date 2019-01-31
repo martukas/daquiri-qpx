@@ -342,7 +342,7 @@ void QpFitter::make_SUM4_range(double region, double peak)
   if (!fit_data_  || !fit_data_->contains_region(region))
     return;
 
-  DAQuiri::ROI parent_region = fit_data_->region(region);
+  DAQuiri::RegionManager parent_region = fit_data_->region(region);
 
   if (!parent_region.contains(peak))
     return;
@@ -373,7 +373,7 @@ void QpFitter::make_background_range(double roi, bool left)
   if (!fit_data_ || !fit_data_->contains_region(roi))
     return;
 
-  DAQuiri::ROI parent_region = fit_data_->region(roi);
+  DAQuiri::RegionManager parent_region = fit_data_->region(roi);
   range_->clearProperties();
 
   if (left)
@@ -454,7 +454,7 @@ void QpFitter::updateData()
   adjustY();
 }
 
-void QpFitter::plotRegion(double region_id, const DAQuiri::ROI &region, QCPGraph *data_graph)
+void QpFitter::plotRegion(double region_id, const DAQuiri::RegionManager &region, QCPGraph *data_graph)
 {
   QPen pen_back_sum4 = QPen(Qt::darkMagenta, 1);
   QPen pen_back_poly = QPen(Qt::darkGray, 1);

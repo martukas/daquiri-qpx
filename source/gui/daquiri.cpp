@@ -17,7 +17,6 @@
 #include <QDir>
 #include <QApplication>
 #include <date/date.h>
-#include <core/fitting/optimizer.h>
 
 using namespace DAQuiri;
 

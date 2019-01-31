@@ -109,56 +109,57 @@ void RegionRendering::render(const Region& r,
 }
 
 
-ROI::ROI(const FitSettings& fs,
+RegionManager::RegionManager(const FitSettings& fs,
     const FitEvaluation &parentfinder, double min, double max)
     : settings_(fs)
 {
   settings_ = fs;
   set_data(parentfinder, min, max);
+  save_current_fit("Region created");
 }
 
-double ROI::ID() const
+double RegionManager::id() const
 {
   return left_bin();
 }
 
-double ROI::left_bin() const
+double RegionManager::left_bin() const
 {
-  if (finder_.x_.empty())
+  if (fit_eval_.x_.empty())
     return -1;
   else
-    return finder_.x_.front();
+    return fit_eval_.x_.front();
 }
 
-double ROI::right_bin() const
+double RegionManager::right_bin() const
 {
-  if (finder_.x_.empty())
+  if (fit_eval_.x_.empty())
     return -1;
   else
-    return finder_.x_.back();
+    return fit_eval_.x_.back();
 }
 
-double ROI::width() const
+double RegionManager::width() const
 {
-  if (finder_.x_.empty())
+  if (fit_eval_.x_.empty())
     return 0;
   else
     return right_bin() - left_bin() + 1;
 }
 
-void ROI::set_data(const FitEvaluation &parentfinder, double l, double r)
+void RegionManager::set_data(const FitEvaluation &parentfinder, double l, double r)
 {
-  if (!finder_.cloneRange(parentfinder, l, r))
+  if (!fit_eval_.cloneRange(parentfinder, l, r))
   {
-    finder_.clear();
+    fit_eval_.clear();
     return;
   }
 
-  region_ = Region(finder_.weighted_data, settings_.background_edge_samples);
+  region_ = Region(fit_eval_.weighted_data, settings_.background_edge_samples);
   render();
 }
 
-bool ROI::refit(BFGS& optimizer)
+bool RegionManager::refit(BFGS& optimizer)
 {
   if (region_.peaks_.empty())
     return find_and_fit(optimizer);
@@ -166,13 +167,13 @@ bool ROI::refit(BFGS& optimizer)
     return rebuild(optimizer);
 }
 
-bool ROI::find_and_fit(BFGS& optimizer)
+bool RegionManager::find_and_fit(BFGS& optimizer)
 {
-  finder_.reset();
-  NaiveKON kon(finder_.x_, finder_.y_,
+  fit_eval_.reset();
+  NaiveKON kon(fit_eval_.x_, fit_eval_.y_,
       settings_.kon_settings.width,
       settings_.kon_settings.sigma_spectrum);
-  region_ = Region(finder_.weighted_data, settings_.background_edge_samples);
+  region_ = Region(fit_eval_.weighted_data, settings_.background_edge_samples);
 
   if (kon.filtered.empty())
   {
@@ -211,7 +212,7 @@ bool ROI::find_and_fit(BFGS& optimizer)
   return true;
 }
 
-void ROI::iterative_fit(BFGS& optimizer)
+void RegionManager::iterative_fit(BFGS& optimizer)
 {
   if (!settings_.calib.cali_fwhm_.valid() || region_.peaks_.empty())
     return;
@@ -232,12 +233,12 @@ void ROI::iterative_fit(BFGS& optimizer)
   }
 }
 
-bool ROI::add_from_resid(BFGS& optimizer)
+bool RegionManager::add_from_resid(BFGS& optimizer)
 {
-  if (finder_.empty())
+  if (fit_eval_.empty())
     return false;
 
-  NaiveKON kon(finder_.x_, finder_.y_resid_,
+  NaiveKON kon(fit_eval_.x_, fit_eval_.y_resid_,
                settings_.kon_settings.width,
                settings_.kon_settings.sigma_resid);
 
@@ -263,16 +264,16 @@ bool ROI::add_from_resid(BFGS& optimizer)
 //    return Peak();
 //}
 
-bool ROI::overlaps(double bin) const
+bool RegionManager::overlaps(double bin) const
 {
   if (!width())
     return false;
   return ((bin >= left_bin()) && (bin <= right_bin()));
 }
 
-bool ROI::overlaps(double Lbin, double Rbin) const
+bool RegionManager::overlaps(double Lbin, double Rbin) const
 {
-  if (finder_.x_.empty())
+  if (fit_eval_.x_.empty())
     return false;
   if (overlaps(Lbin) || overlaps(Rbin))
     return true;
@@ -281,24 +282,24 @@ bool ROI::overlaps(double Lbin, double Rbin) const
   return false;
 }
 
-bool ROI::overlaps(const ROI& other) const
+bool RegionManager::overlaps(const RegionManager& other) const
 {
   if (!other.width())
     return false;
   return overlaps(other.left_bin(), other.right_bin());
 }
 
-size_t ROI::peak_count() const
+size_t RegionManager::peak_count() const
 {
   return region_.peaks_.size();
 }
 
-bool ROI::contains(double peakID) const
+bool RegionManager::contains(double peakID) const
 {
   return (region_.peaks_.count(peakID) > 0);
 }
 
-Peak ROI::peak(double peakID) const
+Peak RegionManager::peak(double peakID) const
 {
   if (contains(peakID))
     return region_.peaks_.at(peakID);
@@ -306,12 +307,12 @@ Peak ROI::peak(double peakID) const
     return Peak();
 }
 
-const std::map<double, Peak> &ROI::peaks() const
+const std::map<double, Peak> &RegionManager::peaks() const
 {
   return region_.peaks_;
 }
 
-bool ROI::adjust_sum4(double peakID, double left, double right)
+bool RegionManager::adjust_sum4(double peakID, double left, double right)
 {
   if (region_.adjust_sum4(peakID, left, right))
   {
@@ -322,7 +323,7 @@ bool ROI::adjust_sum4(double peakID, double left, double right)
   return false;
 }
 
-bool ROI::replace_hypermet(double &peakID, Peak hyp)
+bool RegionManager::replace_hypermet(double &peakID, Peak hyp)
 {
   if (region_.replace_hypermet(peakID, hyp))
   {
@@ -347,13 +348,13 @@ bool ROI::replace_hypermet(double &peakID, Peak hyp)
 //   return true;
 //}
 
-bool ROI::add_peak(const FitEvaluation &parentfinder,
+bool RegionManager::add_peak(const FitEvaluation &parentfinder,
                    double left, double right,
                    BFGS& optimizer)
 {
   double center_prelim = (left+right) * 0.5; //assume down the middle
 
-  NaiveKON kon(finder_.x_, finder_.y_resid_,
+  NaiveKON kon(fit_eval_.x_, fit_eval_.y_resid_,
                settings_.kon_settings.width,
                settings_.kon_settings.sigma_resid);
 
@@ -369,17 +370,17 @@ bool ROI::add_peak(const FitEvaluation &parentfinder,
   {
     left  = std::min(left, left_bin());
     right = std::max(right, right_bin());
-    if (!finder_.cloneRange(parentfinder, left, right))
+    if (!fit_eval_.cloneRange(parentfinder, left, right))
       return false;
 
     render();
     save_current_fit("Implicitly expanded region");
 
-    NaiveKON kon(finder_.x_, finder_.y_resid_,
+    NaiveKON kon(fit_eval_.x_, fit_eval_.y_resid_,
                  settings_.kon_settings.width,
                  settings_.kon_settings.sigma_resid);
 
-    region_.replace_data(finder_.weighted_data);
+    region_.replace_data(fit_eval_.weighted_data);
 
     if (region_.add_peak(left, right, kon.highest_residual(left, right)))
     {
@@ -394,7 +395,7 @@ bool ROI::add_peak(const FitEvaluation &parentfinder,
   return false;
 }
 
-bool ROI::remove_peaks(const std::set<double> &pks, BFGS& optimizer)
+bool RegionManager::remove_peaks(const std::set<double> &pks, BFGS& optimizer)
 {
   bool found = region_.remove_peaks(pks);
 
@@ -410,7 +411,7 @@ bool ROI::remove_peaks(const std::set<double> &pks, BFGS& optimizer)
   return true;
 }
 
-bool ROI::override_settings(const FitSettings &fs)
+bool RegionManager::override_settings(const FitSettings &fs)
 {
   settings_ = fs;
   settings_.overriden = true; //do this in fitter if different?
@@ -422,14 +423,14 @@ bool ROI::override_settings(const FitSettings &fs)
   return true;
 }
 
-void ROI::save_current_fit(std::string description)
+void RegionManager::save_current_fit(std::string description)
 {
   Fit thisfit(region_, description);
   fits_.push_back(thisfit);
   current_fit_ = fits_.size() - 1;
 }
 
-bool ROI::rebuild(BFGS& optimizer)
+bool RegionManager::rebuild(BFGS& optimizer)
 {
   if (region_.peaks_.empty())
     return false;
@@ -445,43 +446,43 @@ bool ROI::rebuild(BFGS& optimizer)
   return true;
 }
 
-void ROI::render()
+void RegionManager::render()
 {
   rendering_.render(region_, settings_.calib.cali_nrg_);
 
   std::vector<double> lowres_backsteps, lowres_fullfit;
-  region_.background.eval_add(finder_.x_, lowres_backsteps);
-  region_.background.eval_add(finder_.x_, lowres_fullfit);
+  region_.background.eval_add(fit_eval_.x_, lowres_backsteps);
+  region_.background.eval_add(fit_eval_.x_, lowres_fullfit);
   for (auto& p : region_.peaks_)
   {
-    for (size_t i = 0; i < finder_.x_.size(); ++i)
+    for (size_t i = 0; i < fit_eval_.x_.size(); ++i)
     {
-      auto vals = p.second.eval(finder_.x_[i]);
+      auto vals = p.second.eval(fit_eval_.x_[i]);
       lowres_backsteps[i] += vals.step_tail();
       lowres_fullfit[i] += vals.all();
     }
   }
 
-  finder_.update_fit(lowres_fullfit, lowres_backsteps);
+  fit_eval_.update_fit(lowres_fullfit, lowres_backsteps);
 }
 
 // \todo belongs in another class?
-std::vector<double> ROI::remove_background()
+std::vector<double> RegionManager::remove_background()
 {
-  std::vector<double> y_nobkg(finder_.x_.size());
-  for (size_t i = 0; i < finder_.y_.size(); ++i)
-    y_nobkg[i] = finder_.y_[i] - region_.background.eval(finder_.x_[i]);
+  std::vector<double> y_nobkg(fit_eval_.x_.size());
+  for (size_t i = 0; i < fit_eval_.y_.size(); ++i)
+    y_nobkg[i] = fit_eval_.y_[i] - region_.background.eval(fit_eval_.x_[i]);
   return y_nobkg;
 }
 
-bool ROI::adjust_LB(const FitEvaluation &parentfinder, double left, double right,
+bool RegionManager::adjust_LB(const FitEvaluation &parentfinder, double left, double right,
                      BFGS& optimizer)
 {
   SUM4Edge edge(parentfinder.weighted_data.subset(left, right));
   if (!edge.width() || (edge.right() >= region_.RB_.left()))
     return false;
 
-  if ((edge.left() != left_bin()) && !finder_.cloneRange(parentfinder, left, right_bin()))
+  if ((edge.left() != left_bin()) && !fit_eval_.cloneRange(parentfinder, left, right_bin()))
     return false;
 
   region_.replace_data(parentfinder.weighted_data.subset(left, right_bin()),
@@ -495,13 +496,13 @@ bool ROI::adjust_LB(const FitEvaluation &parentfinder, double left, double right
   return true;
 }
 
-bool ROI::adjust_RB(const FitEvaluation &parentfinder, double left, double right,
+bool RegionManager::adjust_RB(const FitEvaluation &parentfinder, double left, double right,
                     BFGS& optimizer) {
   SUM4Edge edge(parentfinder.weighted_data.subset(left, right));
   if (!edge.width() || (edge.left() <= region_.LB_.right()))
     return false;
 
-  if ((edge.right() != right_bin()) && !finder_.cloneRange(parentfinder, left_bin(), right))
+  if ((edge.right() != right_bin()) && !fit_eval_.cloneRange(parentfinder, left_bin(), right))
     return false;
 
   region_.replace_data(parentfinder.weighted_data.subset(left_bin(), right),
@@ -516,12 +517,12 @@ bool ROI::adjust_RB(const FitEvaluation &parentfinder, double left, double right
   return true;
 }
 
-size_t ROI::current_fit() const
+size_t RegionManager::current_fit() const
 {
   return current_fit_;
 }
 
-std::vector<FitDescription> ROI::history() const
+std::vector<FitDescription> RegionManager::history() const
 {
   std::vector<FitDescription> ret;
   for (auto &f : fits_)
@@ -530,7 +531,7 @@ std::vector<FitDescription> ROI::history() const
 }
 
 
-bool ROI::rollback(const FitEvaluation &parent_finder, size_t i)
+bool RegionManager::rollback(const FitEvaluation &parent_finder, size_t i)
 {
   if (i >= fits_.size())
     return false;
@@ -544,7 +545,7 @@ bool ROI::rollback(const FitEvaluation &parent_finder, size_t i)
   return true;
 }
 
-nlohmann::json ROI::to_json(const FitEvaluation &parent_finder) const
+nlohmann::json RegionManager::to_json(const FitEvaluation &parent_finder) const
 {
   nlohmann::json j;
 
@@ -553,7 +554,7 @@ nlohmann::json ROI::to_json(const FitEvaluation &parent_finder) const
 
   j["current_fit"] = current_fit_;
 
-  ROI temp(*this);
+  RegionManager temp(*this);
 
   for (size_t i=0; i < temp.fits_.size(); ++i)
   {
@@ -578,7 +579,7 @@ nlohmann::json ROI::to_json(const FitEvaluation &parent_finder) const
   return j;
 }
 
-ROI::ROI(const nlohmann::json& j, const FitEvaluation &finder, const FitSettings& fs)
+RegionManager::RegionManager(const nlohmann::json& j, const FitEvaluation &finder, const FitSettings& fs)
 {
   settings_ = fs;
   if (finder.x_.empty() || (finder.x_.size() != finder.y_.size()))

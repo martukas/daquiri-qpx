@@ -55,20 +55,20 @@ struct RegionRendering
 };
 
 
-struct ROI {
-  ROI() = default;
-  ROI(const nlohmann::json& j, const FitEvaluation &finder, const FitSettings& fs);
-  ROI(const FitSettings& fs, const FitEvaluation &parentfinder, double min, double max);
+struct RegionManager {
+  RegionManager() = default;
+  RegionManager(const nlohmann::json& j, const FitEvaluation &finder, const FitSettings& fs);
+  RegionManager(const FitSettings& fs, const FitEvaluation &parentfinder, double min, double max);
 
   //bounds
-  double ID() const;
+  double id() const;
   double left_bin() const;
   double right_bin() const;
   double width() const;
 
   bool overlaps(double bin) const;
   bool overlaps(double Lbin, double Rbin) const;
-  bool overlaps(const ROI& other) const;
+  bool overlaps(const RegionManager& other) const;
 
   //access peaks
   size_t peak_count() const;
@@ -80,7 +80,7 @@ struct ROI {
   SUM4Edge LB() const {return region_.LB_;}
   SUM4Edge RB() const {return region_.RB_;}
   FitSettings fit_settings() const { return settings_; }
-  const FitEvaluation &finder() const { return finder_; }
+  const FitEvaluation &finder() const { return fit_eval_; }
 
   //access history
   size_t current_fit() const;
@@ -108,7 +108,7 @@ struct ROI {
 
 private:
   FitSettings settings_;
-  FitEvaluation finder_;           // gets x & y data from fitter
+  FitEvaluation fit_eval_;           // gets x & y data from fitter
 
   //history
   std::vector<Fit> fits_;

@@ -90,7 +90,7 @@ protected:
   void plotExtraButtons();
   void plotEnergyLabel(double peak_id, double peak_energy, QCPItemTracer *crs);
 
-  void plotRegion(double region_id, const DAQuiri::ROI &region, QCPGraph *data_graph);
+  void plotRegion(double region_id, const DAQuiri::RegionManager &region, QCPGraph *data_graph);
   void plotPeak(double region_id, double peak_id, const DAQuiri::Peak &peak);
 
   void make_SUM4_range(double region, double peak);
