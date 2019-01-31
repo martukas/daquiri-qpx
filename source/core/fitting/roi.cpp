@@ -111,7 +111,7 @@ void RegionRendering::render(const Region& r,
 
 
 ROI::ROI(const FitSettings& fs,
-    const Finder &parentfinder, double min, double max)
+    const FitEvaluation &parentfinder, double min, double max)
     : settings_(fs)
 {
   settings_ = fs;
@@ -147,7 +147,7 @@ double ROI::width() const
     return right_bin() - left_bin() + 1;
 }
 
-void ROI::set_data(const Finder &parentfinder, double l, double r)
+void ROI::set_data(const FitEvaluation &parentfinder, double l, double r)
 {
   if (!finder_.cloneRange(parentfinder, l, r))
   {
@@ -169,11 +169,11 @@ bool ROI::refit(BFGS& optimizer)
 
 bool ROI::find_and_fit(BFGS& optimizer)
 {
-  finder_.y_resid_ = finder_.y_;
-  finder_.find_peaks();  //assumes default params!!!
+  finder_.reset();
+  KON kon(finder_.x_, finder_.y_resid_, false, settings_.kon_settings);
   region_ = Region(finder_.weighted_data, settings_.background_edge_samples);
 
-  if (finder_.filtered.empty())
+  if (kon.filtered.empty())
   {
     render();
     return false;
@@ -181,7 +181,7 @@ bool ROI::find_and_fit(BFGS& optimizer)
 
   //std::vector<double> y_nobkg = remove_background();
 
-  for (const auto& p : finder_.filtered)
+  for (const auto& p : kon.filtered)
   {
 //                   subset should be from y_nobkg
 //    auto subset = finder_.weighted_data.subset(finder_.x_[finder_.lefts[i]],
@@ -233,10 +233,12 @@ void ROI::iterative_fit(BFGS& optimizer)
 
 bool ROI::add_from_resid(BFGS& optimizer)
 {
-  if (finder_.filtered.empty())
+  if (finder_.empty())
     return false;
 
-  DetectedPeak target_peak = finder_.tallest_detected();
+  KON kon(finder_.x_, finder_.y_resid_, true, settings_.kon_settings);
+
+  DetectedPeak target_peak = kon.tallest_detected();
 
   if (target_peak.highest_y == 0.0)
     return false;
@@ -342,15 +344,17 @@ bool ROI::replace_hypermet(double &peakID, Peak hyp)
 //   return true;
 //}
 
-bool ROI::add_peak(const Finder &parentfinder,
+bool ROI::add_peak(const FitEvaluation &parentfinder,
                    double left, double right,
                    BFGS& optimizer)
 {
   double center_prelim = (left+right) * 0.5; //assume down the middle
 
+  KON kon(finder_.x_, finder_.y_resid_, true, settings_.kon_settings);
+
   if (overlaps(left) && overlaps(right))
   {
-    if (region_.add_peak(left, right, finder_.highest_residual(left, right)))
+    if (region_.add_peak(left, right, kon.highest_residual(left, right)))
     {
       save_current_fit("Manually added peak");
       return true;
@@ -363,10 +367,10 @@ bool ROI::add_peak(const Finder &parentfinder,
     if (!finder_.cloneRange(parentfinder, left, right))
       return false;
 
-    finder_.find_peaks();  //assumes default params!!!
+    KON kon(finder_.x_, finder_.y_resid_, false, settings_.kon_settings);
     region_.replace_data(finder_.weighted_data);
 
-    if (region_.add_peak(left, right, finder_.highest_residual(left, right)))
+    if (region_.add_peak(left, right, kon.highest_residual(left, right)))
     {
       save_current_fit("Manually added peak");
       return true;
@@ -447,7 +451,7 @@ void ROI::render()
     }
   }
 
-  finder_.setFit(lowres_fullfit, lowres_backsteps);
+  finder_.update_fit(lowres_fullfit, lowres_backsteps);
 }
 
 // \todo belongs in another class?
@@ -459,7 +463,7 @@ std::vector<double> ROI::remove_background()
   return y_nobkg;
 }
 
-bool ROI::adjust_LB(const Finder &parentfinder, double left, double right,
+bool ROI::adjust_LB(const FitEvaluation &parentfinder, double left, double right,
                      BFGS& optimizer)
 {
   SUM4Edge edge(parentfinder.weighted_data.subset(left, right));
@@ -480,7 +484,7 @@ bool ROI::adjust_LB(const Finder &parentfinder, double left, double right,
   return true;
 }
 
-bool ROI::adjust_RB(const Finder &parentfinder, double left, double right,
+bool ROI::adjust_RB(const FitEvaluation &parentfinder, double left, double right,
                     BFGS& optimizer) {
   SUM4Edge edge(parentfinder.weighted_data.subset(left, right));
   if (!edge.width() || (edge.left() <= region_.LB_.right()))
@@ -515,7 +519,7 @@ std::vector<FitDescription> ROI::history() const
 }
 
 
-bool ROI::rollback(const Finder &parent_finder, size_t i)
+bool ROI::rollback(const FitEvaluation &parent_finder, size_t i)
 {
   if (i >= fits_.size())
     return false;
@@ -529,7 +533,7 @@ bool ROI::rollback(const Finder &parent_finder, size_t i)
   return true;
 }
 
-nlohmann::json ROI::to_json(const Finder &parent_finder) const
+nlohmann::json ROI::to_json(const FitEvaluation &parent_finder) const
 {
   nlohmann::json j;
 
@@ -563,7 +567,7 @@ nlohmann::json ROI::to_json(const Finder &parent_finder) const
   return j;
 }
 
-ROI::ROI(const nlohmann::json& j, const Finder &finder, const FitSettings& fs)
+ROI::ROI(const nlohmann::json& j, const FitEvaluation &finder, const FitSettings& fs)
 {
   settings_ = fs;
   if (finder.x_.empty() || (finder.x_.size() != finder.y_.size()))

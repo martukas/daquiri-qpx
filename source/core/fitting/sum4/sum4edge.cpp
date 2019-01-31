@@ -3,7 +3,7 @@
 namespace DAQuiri
 {
 
-SUM4Edge::SUM4Edge(const SpectrumData& d)
+SUM4Edge::SUM4Edge(const WeightedData& d)
 {
   dsum_ = {0.0, 0.0};
 

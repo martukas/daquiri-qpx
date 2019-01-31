@@ -8,7 +8,7 @@ class SUM4 {
 
 public:
   SUM4() = default;
-  SUM4(const SpectrumData& d, const SUM4Edge& LB, const SUM4Edge& RB);
+  SUM4(const WeightedData& d, const SUM4Edge& LB, const SUM4Edge& RB);
 
   // \todo consider removing these
   SUM4Edge LB() const {return LB_;}

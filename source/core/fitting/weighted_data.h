@@ -5,7 +5,7 @@
 namespace DAQuiri
 {
 
-struct SpectrumDataPoint
+struct WeightedDataPoint
 {
   double x {0};
   double y {0};
@@ -14,22 +14,22 @@ struct SpectrumDataPoint
   double weight_revay {0};
 };
 
-struct SpectrumData
+struct WeightedData
 {
   // \todo uncertainty treatment for ZDT spectra
 
-  SpectrumData() = default;
-  SpectrumData(const std::vector<double>& x,
+  WeightedData() = default;
+  WeightedData(const std::vector<double>& x,
                const std::vector<double>& y);
-  SpectrumData subset(double b1, double b2) const;
-  SpectrumData left(size_t size) const;
-  SpectrumData right(size_t size) const;
+  WeightedData subset(double b1, double b2) const;
+  WeightedData left(size_t size) const;
+  WeightedData right(size_t size) const;
 
 
   void clear();
   bool empty() const;
 
-  std::vector<SpectrumDataPoint> data;
+  std::vector<WeightedDataPoint> data;
 
   double weight_true(const std::vector<double>& y, size_t i) const;
   double weight_phillips_marlow(const std::vector<double>& y, size_t i) const;

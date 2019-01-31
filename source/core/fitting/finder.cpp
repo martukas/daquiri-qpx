@@ -3,97 +3,20 @@
 namespace DAQuiri
 {
 
-Finder::Finder(const std::vector<double>& x, const std::vector<double>& y, const KONSettings& settings)
-: settings_(settings)
+KON::KON(const std::vector<double>& x,
+         const std::vector<double>& y,
+         bool residuals,
+         const KONSettings& settings)
+    : settings_(settings)
+      , residuals_(residuals)
+      , x_(x)
+      , y_(y)
 {
-  setNewData(SpectrumData(x, y));
-}
-
-bool Finder::cloneRange(const Finder& other, double l, double r)
-{
-  setNewData(other.weighted_data.subset(l, r));
-}
-
-void Finder::setNewData(const SpectrumData& d)
-{
-  clear();
-  weighted_data = d;
-  for (const auto& p : d.data)
-  {
-    x_.push_back(p.x);
-    y_.push_back(p.y);
-  }
-  reset();
   calc_kon();
   find_peaks();
 }
 
-void Finder::clear()
-{
-  x_.clear();
-  y_.clear();
-  y_fit_.clear();
-  y_background_.clear();
-  y_resid_.clear();
-  y_resid_on_background_.clear();
-//  settings_.clear();
-
-  weighted_data.clear();
-
-  prelim.clear();
-  filtered.clear();
-
-  y_kon.clear();
-  y_convolution.clear();
-}
-
-void Finder::reset()
-{
-  y_resid_on_background_ = y_resid_ = y_;
-  y_fit_.assign(x_.size(), 0.0);
-  y_background_.assign(x_.size(), 0.0);
-}
-
-bool Finder::empty() const
-{
-  return x_.empty();
-}
-
-void Finder::setFit(const std::vector<double>& y_fit,
-                    const std::vector<double>& y_background)
-{
-  if ((y_fit.size() != y_background.size())
-      || (y_fit.empty()))
-    return;
-
-  for (size_t i = 0; i < y_fit.size(); ++i)
-  {
-    y_fit_[i] = y_fit[i];
-    y_background_[i] = y_background[i];
-    double resid = y_[i] - y_fit[i];
-    y_resid_[i] = resid;
-    y_resid_on_background_[i] = y_background[i] + resid;
-  }
-
-  calc_kon();
-  find_peaks();
-
-//  if (y_fit.size() == y_.size()) {
-//    y_fit_ = y_fit;
-
-//    y_resid_ = y_;
-//    y_resid_on_background_ = y_background;
-//    for (int i=0; i < y_.size(); ++i) {
-//      y_resid_[i] = y_[i] - y_fit_[i];
-//      y_resid_on_background_[i] += y_resid_[i];
-//    }
-
-//    calc_kon();
-//    find_peaks();
-//  }
-}
-
-void Finder::calc_kon()
+void KON::calc_kon()
 {
   fw_theoretical_bin.clear();
 
@@ -108,24 +31,11 @@ void Finder::calc_kon()
 //    }
 //  }
 
-  uint16_t width = settings_.width;
+  uint16_t width = std::max(settings_.width, uint16_t(2));
 
-  if (width < 2)
-    width = 2;
-
-  double sigma = settings_.sigma_spectrum;
-  if (y_resid_ != y_)
-  {
-//    DBG << "<Finder> Using sigma resid";
-    sigma = settings_.sigma_resid;
-  }
-
-
-//  DBG << "<Finder> width " << settings_.width;
-
-  int start = width;
-  int end = x_.size() - 1 - 2 * width;
-  int shift = width / 2;
+  size_t start = width;
+  size_t end = x_.size() - 1 - 2 * width;
+  size_t shift = width / uint16_t(2);
 
   if (!fw_theoretical_bin.empty())
   {
@@ -136,7 +46,7 @@ void Finder::calc_kon()
         break;
       }
 
-    for (int i = fw_theoretical_bin.size() - 1; i >= 0; --i)
+    for (size_t i = fw_theoretical_bin.size() - 1; i >= 0; --i)
       if (2 * ceil(fw_theoretical_bin[i]) + i + 1 < fw_theoretical_bin.size())
       {
         end = i;
@@ -144,38 +54,39 @@ void Finder::calc_kon()
       }
   }
 
-  y_kon.assign(y_resid_.size(), 0.0);
-  y_convolution.assign(y_resid_.size(), 0.0);
-  prelim.clear();
+  y_convolution.assign(y_.size(), 0.0);
 
-  for (int j = start; j < end; ++j)
+  for (size_t j = start; j < end; ++j)
   {
     if (!fw_theoretical_bin.empty())
     {
-      width = floor(fw_theoretical_bin[j]);
-      shift = width / 2;
+      width = static_cast<uint16_t>(std::floor(fw_theoretical_bin[j]));
+      shift = width / uint16_t(2);
     }
 
-    double kon = 0;
-    double avg = 0;
-    for (int i = j; i <= (j + width + 1); ++i)
+    double kon{0.0};
+    double avg{0.0};
+    for (size_t i = j; i <= (j + width + 1); ++i)
     {
-      kon += 2 * y_resid_[i] - y_resid_[i - width] - y_resid_[i + width];
-      avg += y_resid_[i];
+      kon += 2 * y_[i] - y_[i - width] - y_[i + width];
+      avg += y_[i];
     }
     avg = avg / width;
-    y_kon[j + shift] = kon;
-    y_convolution[j + shift] = kon / sqrt(6 * width * avg);
-
-    if (y_convolution[j + shift] > sigma)
-      prelim.push_back(j + shift);
+    y_convolution[j + shift] = kon / sqrt(6.0 * width * avg);
   }
 }
 
-void Finder::find_peaks()
+void KON::find_peaks()
 {
   calc_kon();
   filtered.clear();
+
+  double sigma = residuals_ ? settings_.sigma_resid : settings_.sigma_spectrum;
+
+  std::vector<size_t> prelim;
+  for (int j = 0; j < y_convolution.size(); ++j)
+    if (y_convolution[j] > sigma)
+      prelim.push_back(j);
 
   if (prelim.empty())
     return;
@@ -202,8 +113,9 @@ void Finder::find_peaks()
     DetectedPeak p;
     size_t l = left_edge(lefts[i]);
     size_t r = right_edge(rights[i]);
+    // \todo use function?
     for (size_t j = l; j <= r; ++j)
-      p.highest_y = std::max(p.highest_y, y_resid_[j]);
+      p.highest_y = std::max(p.highest_y, y_[j]);
     p.left = x_[l];
     p.right = x_[r];
     p.center = 0.5 * (p.left + p.right);
@@ -211,18 +123,19 @@ void Finder::find_peaks()
   }
 }
 
-double Finder::highest_residual(double l, double r) const
+
+double KON::highest_residual(double l, double r) const
 {
   auto li = find_index(l);
   auto ri = find_index(r);
   if ((li < 0) || (ri < 0))
     return 0.0;
-  double ret {0.0};
+  double ret{0.0};
   for (size_t j = li; j <= ri; ++j)
-    ret = std::max(ret, y_resid_[j]);
+    ret = std::max(ret, y_[j]);
 }
 
-DetectedPeak Finder::tallest_detected() const
+DetectedPeak KON::tallest_detected() const
 {
   DetectedPeak p;
   for (const auto& pp : filtered)
@@ -231,7 +144,7 @@ DetectedPeak Finder::tallest_detected() const
   return p;
 }
 
-double Finder::find_left(double chan) const
+double KON::find_left(double chan) const
 {
   if (x_.empty())
     return 0;
@@ -248,7 +161,7 @@ double Finder::find_left(double chan) const
   return x_[left_edge(i)];
 }
 
-double Finder::find_right(double chan) const
+double KON::find_right(double chan) const
 {
   if (x_.empty())
     return 0;
@@ -265,7 +178,7 @@ double Finder::find_right(double chan) const
   return x_[right_edge(i)];
 }
 
-size_t Finder::left_edge(size_t idx) const
+size_t KON::left_edge(size_t idx) const
 {
   if (y_convolution.empty() || idx >= y_convolution.size())
     return 0;
@@ -279,12 +192,7 @@ size_t Finder::left_edge(size_t idx) const
     return idx;
   }
 
-  double sigma = settings_.sigma_spectrum;
-  if (y_resid_ != y_)
-  {
-//    DBG << "<Finder> Using sigma resid";
-    sigma = settings_.sigma_resid;
-  }
+  double sigma = residuals_ ? settings_.sigma_resid : settings_.sigma_spectrum;
 
   double edge_threshold = -0.5 * sigma;
 
@@ -298,7 +206,7 @@ size_t Finder::left_edge(size_t idx) const
   return idx;
 }
 
-size_t Finder::right_edge(size_t idx) const
+size_t KON::right_edge(size_t idx) const
 {
   if (y_convolution.empty() || idx >= y_convolution.size())
     return 0;
@@ -312,12 +220,7 @@ size_t Finder::right_edge(size_t idx) const
     return idx;
   }
 
-  double sigma = settings_.sigma_spectrum;
-  if (y_resid_ != y_)
-  {
-//    DBG << "<Finder> Using sigma resid";
-    sigma = settings_.sigma_resid;
-  }
+  double sigma = residuals_ ? settings_.sigma_resid : settings_.sigma_spectrum;
 
   double edge_threshold = -0.5 * sigma;
 
@@ -334,7 +237,7 @@ size_t Finder::right_edge(size_t idx) const
   return idx;
 }
 
-int32_t Finder::find_index(double chan_val) const
+int32_t KON::find_index(double chan_val) const
 {
   if (x_.empty())
     return -1;
@@ -350,6 +253,75 @@ int32_t Finder::find_index(double chan_val) const
     i++;
 
   return i;
+}
+
+
+
+
+
+
+FitEvaluation::FitEvaluation(const WeightedData& data)
+{
+  setNewData(data);
+}
+
+bool FitEvaluation::cloneRange(const FitEvaluation& other, double l, double r)
+{
+  setNewData(other.weighted_data.subset(l, r));
+}
+
+void FitEvaluation::setNewData(const WeightedData& d)
+{
+  clear();
+  weighted_data = d;
+  for (const auto& p : d.data)
+  {
+    x_.push_back(p.x);
+    y_.push_back(p.y);
+  }
+  reset();
+}
+
+void FitEvaluation::clear()
+{
+  x_.clear();
+  y_.clear();
+  y_fit_.clear();
+  y_background_.clear();
+  y_resid_.clear();
+  y_resid_on_background_.clear();
+
+  weighted_data.clear();
+}
+
+void FitEvaluation::reset()
+{
+  y_resid_on_background_ = y_resid_ = y_;
+  y_fit_.assign(x_.size(), 0.0);
+  y_background_.assign(x_.size(), 0.0);
+}
+
+bool FitEvaluation::empty() const
+{
+  return x_.empty();
+}
+
+void FitEvaluation::update_fit(const std::vector<double>& y_fit,
+                        const std::vector<double>& y_background)
+{
+  if ((y_.size() != y_background.size())
+      || (y_fit.size() != y_background.size())
+      || (y_fit.empty()))
+    return;
+
+  for (size_t i = 0; i < y_fit.size(); ++i)
+  {
+    y_fit_[i] = y_fit[i];
+    y_background_[i] = y_background[i];
+    double resid = y_[i] - y_fit[i];
+    y_resid_[i] = resid;
+    y_resid_on_background_[i] = y_background[i] + resid;
+  }
 }
 
 /*

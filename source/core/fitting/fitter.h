@@ -16,7 +16,7 @@ public:
 
   FitSettings settings() const { return settings_; }
   void apply_settings(FitSettings settings);
-  const Finder &finder() const { return finder_; }
+  const FitEvaluation &finder() const { return finder_; }
 //  void apply_energy_calibration(Calibration cal);
 //  void apply_fwhm_calibration(Calibration cal);
 
@@ -77,7 +77,7 @@ public:
 private:
   std::map<double, ROI> regions_;
   std::set<double> selected_peaks_;
-  Finder finder_;
+  FitEvaluation finder_;
   FitSettings settings_;
 
   void render_all();

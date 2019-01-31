@@ -16,7 +16,7 @@ class SUM4Edge {
 
 public:
   SUM4Edge() = default;
-  SUM4Edge(const SpectrumData& d);
+  SUM4Edge(const WeightedData& d);
 
   double left()  const {return Lchan_;}
   double right() const {return Rchan_;}

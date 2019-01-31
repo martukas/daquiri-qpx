@@ -3,7 +3,7 @@
 namespace DAQuiri
 {
 
-SpectrumData::SpectrumData(const std::vector<double>& x,
+WeightedData::WeightedData(const std::vector<double>& x,
                            const std::vector<double>& y)
 {
   if (x.size() != y.size())
@@ -20,49 +20,49 @@ SpectrumData::SpectrumData(const std::vector<double>& x,
   }
 }
 
-bool SpectrumData::empty() const
+bool WeightedData::empty() const
 {
   return data.empty();
 }
 
-SpectrumData SpectrumData::subset(double b1, double b2) const
+WeightedData WeightedData::subset(double b1, double b2) const
 {
   auto from = std::min(b1, b2);
   auto to = std::max(b1, b2);
-  SpectrumData ret;
+  WeightedData ret;
   for (const auto& p : data)
     if ((p.x >= from) && (p.x <= to))
       ret.data.push_back(p);
   return ret;
 }
 
-SpectrumData SpectrumData::left(size_t size) const
+WeightedData WeightedData::left(size_t size) const
 {
   size = std::min(size, data.size());
-  SpectrumData ret;
-  ret.data = std::vector<SpectrumDataPoint>(data.begin(), data.begin() + size);
+  WeightedData ret;
+  ret.data = std::vector<WeightedDataPoint>(data.begin(), data.begin() + size);
   return ret;
 }
 
-SpectrumData SpectrumData::right(size_t size) const
+WeightedData WeightedData::right(size_t size) const
 {
   size = std::min(size, data.size());
-  SpectrumData ret;
-  ret.data = std::vector<SpectrumDataPoint>(data.begin() + (data.size() - size), data.end());
+  WeightedData ret;
+  ret.data = std::vector<WeightedDataPoint>(data.begin() + (data.size() - size), data.end());
   return ret;
 }
 
-void SpectrumData::clear()
+void WeightedData::clear()
 {
   data.clear();
 }
 
-double SpectrumData::weight_true(const std::vector<double>& y, size_t i) const
+double WeightedData::weight_true(const std::vector<double>& y, size_t i) const
 {
   return std::sqrt(y[i]);
 }
 
-double SpectrumData::weight_phillips_marlow(const std::vector<double>& y, size_t i) const
+double WeightedData::weight_phillips_marlow(const std::vector<double>& y, size_t i) const
 {
   double k0 = y[i];
 
@@ -77,7 +77,7 @@ double SpectrumData::weight_phillips_marlow(const std::vector<double>& y, size_t
   }
 }
 
-double SpectrumData::weight_revay_student(const std::vector<double>& y, size_t i) const
+double WeightedData::weight_revay_student(const std::vector<double>& y, size_t i) const
 {
   double k0 = y[i] + 1;
   return std::sqrt(k0);

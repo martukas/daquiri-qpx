@@ -55,7 +55,7 @@ void Fitter::setData(ConsumerPtr spectrum)
     x.resize(x_bound);
     y.resize(x_bound);
 
-    finder_ = Finder(x, y, finder_.settings_);
+    finder_ = FitEvaluation(WeightedData(x, y));
     apply_settings(settings_);
   }
 }
@@ -77,15 +77,15 @@ void Fitter::find_regions() {
   regions_.clear();
 //  DBG << "Fitter: looking for " << filtered.size()  << " peaks";
 
-  finder_.find_peaks();
+  KON kon(finder_.x_, finder_.y_, false, settings_.kon_settings);
 
-  if (finder_.filtered.empty())
+  if (kon.filtered.empty())
     return;
 
   std::vector<DetectedPeak> new_regions;
 
-  DetectedPeak bounds = finder_.filtered[0];
-  for (const auto& p : finder_.filtered)
+  DetectedPeak bounds = kon.filtered[0];
+  for (const auto& p : kon.filtered)
   {
     double margin = 0;
 //    if (!finder_.fw_theoretical_bin.empty())
@@ -427,8 +427,9 @@ bool Fitter::remove_peaks(std::set<double> bins,
 void Fitter::apply_settings(FitSettings settings) {
   settings_.clone(settings);
   //propagate to regions?
-  if (regions_.empty())
-    finder_.find_peaks();
+  // \todo reenable
+//  if (regions_.empty())
+//    finder_.find_peaks();
 }
 
 //bool Fitter::override_energy(double peakID, double energy)
@@ -568,7 +569,7 @@ void Fitter::save_report(std::string filename) {
 
 void to_json(json& j, const Fitter &s)
 {
-  j["settings"] = s.finder_.settings_;
+  j["settings"] = s.settings_;
   if (!s.selected_peaks_.empty())
     j["selected_peaks"] = s.selected_peaks_;
   for (auto &r : s.regions_)
@@ -587,7 +588,7 @@ Fitter::Fitter(const json& j, ConsumerPtr spectrum)
       selected_peaks_.insert(it.value().get<double>());
   }
 
-  finder_.settings_ = j["settings"];
+  settings_ = j["settings"];
 
   setData(spectrum);
 

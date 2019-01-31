@@ -57,8 +57,8 @@ struct RegionRendering
 
 struct ROI {
   ROI() = default;
-  ROI(const nlohmann::json& j, const Finder &finder, const FitSettings& fs);
-  ROI(const FitSettings& fs, const Finder &parentfinder, double min, double max);
+  ROI(const nlohmann::json& j, const FitEvaluation &finder, const FitSettings& fs);
+  ROI(const FitSettings& fs, const FitEvaluation &parentfinder, double min, double max);
 
   //bounds
   double ID() const;
@@ -80,14 +80,14 @@ struct ROI {
   SUM4Edge LB() const {return region_.LB_;}
   SUM4Edge RB() const {return region_.RB_;}
   FitSettings fit_settings() const { return settings_; }
-  const Finder &finder() const { return finder_; }
+  const FitEvaluation &finder() const { return finder_; }
 
   //access history
   size_t current_fit() const;
   std::vector<FitDescription> history() const;
 
   //manipulation, no optimizer
-  bool rollback(const Finder &parent_finder, size_t i);
+  bool rollback(const FitEvaluation &parent_finder, size_t i);
   bool adjust_sum4(double peakID, double left, double right);
   bool replace_hypermet(double &peakID, Peak hyp);
   //bool override_energy(double peakID, double energy);
@@ -95,20 +95,20 @@ struct ROI {
   //manupulation, may invoke optimizer
   bool find_and_fit(BFGS& optimizer);
   bool refit(BFGS& optimizer);
-  bool adjust_LB(const Finder &parentfinder, double left, double right,
+  bool adjust_LB(const FitEvaluation &parentfinder, double left, double right,
                  BFGS& optimizer);
-  bool adjust_RB(const Finder &parentfinder, double left, double right,
+  bool adjust_RB(const FitEvaluation &parentfinder, double left, double right,
                  BFGS& optimizer);
-  bool add_peak(const Finder &parentfinder, double left, double right,
+  bool add_peak(const FitEvaluation &parentfinder, double left, double right,
                 BFGS& optimizer);
   bool remove_peaks(const std::set<double> &pks, BFGS& optimizer);
   bool override_settings(const FitSettings &fs);
 
-  nlohmann::json to_json(const Finder &parent_finder) const;
+  nlohmann::json to_json(const FitEvaluation &parent_finder) const;
 
 private:
   FitSettings settings_;
-  Finder finder_;           // gets x & y data from fitter
+  FitEvaluation finder_;           // gets x & y data from fitter
 
   //history
   std::vector<Fit> fits_;
@@ -119,7 +119,7 @@ private:
 
   RegionRendering rendering_;
 
-  void set_data(const Finder &parentfinder, double min, double max);
+  void set_data(const FitEvaluation &parentfinder, double min, double max);
 
   std::vector<double> remove_background();
 

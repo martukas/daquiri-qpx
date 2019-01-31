@@ -32,10 +32,10 @@ class Region : public Fittable
 
  public:
   Region();
-  Region(const SpectrumData& data, uint16_t background_samples);
-  void replace_data(const SpectrumData& data, const SUM4Edge& lb, const SUM4Edge& rb);
-  void replace_data(const SpectrumData& data, uint16_t left_samples, uint16_t right_samples);
-  void replace_data(const SpectrumData& data);
+  Region(const WeightedData& data, uint16_t background_samples);
+  void replace_data(const WeightedData& data, const SUM4Edge& lb, const SUM4Edge& rb);
+  void replace_data(const WeightedData& data, uint16_t left_samples, uint16_t right_samples);
+  void replace_data(const WeightedData& data);
   void adjust_LB(const SUM4Edge& lb);
   void adjust_RB(const SUM4Edge& rb);
 
@@ -68,7 +68,7 @@ class Region : public Fittable
 
  private:
   int32_t var_count_{0};
-  SpectrumData data_;
+  WeightedData data_;
   bool dirty_{false};
 
   //public: BoronPeak As CBoronPeak

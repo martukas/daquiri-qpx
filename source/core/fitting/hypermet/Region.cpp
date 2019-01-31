@@ -29,7 +29,7 @@ Region::Region()
   default_peak_.step.amplitude.to_fit = true;
 }
 
-Region::Region(const SpectrumData& data, uint16_t background_samples)
+Region::Region(const WeightedData& data, uint16_t background_samples)
   : Region()
 {
   if (data.data.empty())
@@ -41,17 +41,17 @@ Region::Region(const SpectrumData& data, uint16_t background_samples)
   init_background();
 }
 
-void Region::replace_data(const SpectrumData& data)
+void Region::replace_data(const WeightedData& data)
 {
   replace_data(data, LB_.width(), RB_.width());
 }
 
-void Region::replace_data(const SpectrumData& data, uint16_t left_samples, uint16_t right_samples)
+void Region::replace_data(const WeightedData& data, uint16_t left_samples, uint16_t right_samples)
 {
   replace_data(data, SUM4Edge(data.left(left_samples)), SUM4Edge(data.right(right_samples)));
 }
 
-void Region::replace_data(const SpectrumData& data, const SUM4Edge& lb, const SUM4Edge& rb)
+void Region::replace_data(const WeightedData& data, const SUM4Edge& lb, const SUM4Edge& rb)
 {
   if (data.data.empty())
     throw std::runtime_error("Attempting to construct Region from empty sample");

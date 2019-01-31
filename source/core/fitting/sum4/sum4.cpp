@@ -3,7 +3,7 @@
 namespace DAQuiri
 {
 
-SUM4::SUM4(const SpectrumData& d,
+SUM4::SUM4(const WeightedData& d,
            const SUM4Edge& LB, const SUM4Edge& RB)
 {
   Polynomial background = SUM4Edge::sum4_background(LB, RB);
