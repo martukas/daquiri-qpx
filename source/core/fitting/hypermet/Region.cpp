@@ -66,7 +66,7 @@ void Region::replace_data(const SpectrumData& data, const SUM4Edge& lb, const SU
   // \todo only if edge values changed
   init_background();
   cull_peaks();
-  dirty = true;
+  dirty_ = true;
 }
 
 void Region::adjust_LB(const SUM4Edge& lb)
@@ -75,7 +75,7 @@ void Region::adjust_LB(const SUM4Edge& lb)
     return;
   LB_ = lb;
   init_background();
-  dirty = true;
+  dirty_ = true;
 }
 
 void Region::adjust_RB(const SUM4Edge& rb)
@@ -84,7 +84,7 @@ void Region::adjust_RB(const SUM4Edge& rb)
     return;
   RB_ = rb;
   init_background();
-  dirty = true;
+  dirty_ = true;
 }
 
 double Region::left() const
@@ -95,6 +95,16 @@ double Region::left() const
 double Region::right() const
 {
   return data_.data.back().x;
+}
+
+bool Region::empty() const
+{
+  return peaks_.empty();
+}
+
+bool Region::dirty() const
+{
+  return dirty_;
 }
 
 bool Region::add_peak(double l, double r, double amp_hint)
@@ -120,7 +130,7 @@ bool Region::add_peak(double l, double r, double amp_hint)
   // \todo why is amplitude not bounded?
   //p.amplitude.max(max_val - min_bkg);
   peaks_[p.id()] = p;
-  dirty = true;
+  dirty_ = true;
 }
 
 bool Region::adjust_sum4(double peakID, double left, double right)
@@ -162,7 +172,7 @@ bool Region::replace_hypermet(double peakID, Peak hyp)
   hyp.sum4 = peaks_[peakID].sum4;
   peaks_[hyp.id()] = hyp;
   reindex_peaks();
-  dirty = true;
+  dirty_ = true;
   return true;
 }
 
@@ -171,7 +181,7 @@ bool Region::remove_peak(double peakID)
   if (!peaks_.count(peakID))
     return false;
   peaks_.erase(peakID);
-  dirty = true;
+  dirty_ = true;
   return true;
 }
 
@@ -237,6 +247,8 @@ void Region::init_background()
   background.curve.val(0.0);
 
   // \todo invalidate uncertanties
+
+  dirty_ = true;
 }
 
 void Region::reindex_peaks()
@@ -348,7 +360,7 @@ void Region::save_fit_uncerts(const FitResult& result)
   for (auto& p : peaks_)
     p.second.get_uncerts(diagonals, chisq_norm);
 
-  dirty = false;
+  dirty_ = false;
 }
 
 double Region::chi_sq_normalized() const

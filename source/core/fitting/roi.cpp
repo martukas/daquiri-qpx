@@ -196,7 +196,6 @@ bool ROI::find_and_fit(BFGS& optimizer)
 //    }
     region_.add_peak(p.left, p.right);
   }
-  region_.reindex_peaks();
   save_current_fit("Autofind");
 
   if (!rebuild(optimizer))
@@ -247,7 +246,7 @@ bool ROI::add_from_resid(BFGS& optimizer)
 
   save_current_fit("Added peak from residuals");
 
-  if (region_.dirty)
+  if (region_.dirty())
     rebuild(optimizer);
 }
 
@@ -351,7 +350,7 @@ bool ROI::add_peak(const Finder &parentfinder,
 
   if (overlaps(left) && overlaps(right))
   {
-    if (region_.add_peak(left, right, finder_.y_resid_[finder_.find_index(center_prelim)]))
+    if (region_.add_peak(left, right, finder_.highest_residual(left, right)))
     {
       save_current_fit("Manually added peak");
       return true;
@@ -367,7 +366,7 @@ bool ROI::add_peak(const Finder &parentfinder,
     finder_.find_peaks();  //assumes default params!!!
     region_.replace_data(finder_.weighted_data);
 
-    if (region_.add_peak(left, right, finder_.y_resid_[finder_.find_index(center_prelim)]))
+    if (region_.add_peak(left, right, finder_.highest_residual(left, right)))
     {
       save_current_fit("Manually added peak");
       return true;
@@ -448,8 +447,7 @@ void ROI::render()
     }
   }
 
-  finder_.reset();
-  finder_.setFit(finder_.x_, lowres_fullfit, lowres_backsteps);
+  finder_.setFit(lowres_fullfit, lowres_backsteps);
 }
 
 // \todo belongs in another class?
@@ -475,7 +473,7 @@ bool ROI::adjust_LB(const Finder &parentfinder, double left, double right,
       edge, RB());
   save_current_fit("Left baseline adjusted");
 
-  if (region_.dirty)
+  if (region_.dirty())
     rebuild(optimizer);
 
   render();
@@ -496,7 +494,7 @@ bool ROI::adjust_RB(const Finder &parentfinder, double left, double right,
 
   save_current_fit("Right baseline adjusted");
 
-  if (region_.dirty)
+  if (region_.dirty())
     rebuild(optimizer);
 
   render();

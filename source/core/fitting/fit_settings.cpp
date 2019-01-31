@@ -34,7 +34,7 @@ double FCalibration::bin_to_width(double bin) const
 {
   double nrg = bin_to_nrg(bin);
   double fwhm = nrg_to_fwhm(nrg);
-  return (nrg_to_bin(nrg + fwhm / 2.0) - nrg_to_bin(nrg - fwhm / 2.0));
+  return (nrg_to_bin(nrg + 0.5 * fwhm) - nrg_to_bin(nrg - 0.5 * fwhm));
 }
 
 double FCalibration::nrg_to_fwhm(double energy) const

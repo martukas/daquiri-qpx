@@ -3,99 +3,29 @@
 namespace DAQuiri
 {
 
-void SpectrumData::set(const std::vector<double>& x,
-         const std::vector<double>& y)
-{
-  if (x.size() != y.size())
-    throw std::runtime_error("SubSpectrum::set x & y sized don't match");
-  data.resize(x.size());
-  for (size_t i = 0; i < x.size(); ++i)
-  {
-    auto& p = data[i];
-    p.x = x[i];
-    p.y = y[i];
-    p.weight_true = weight_true(y, i);
-    p.weight_phillips_marlow = weight_phillips_marlow(y, i);
-    p.weight_revay = weight_revay_student(y, i);
-  }
-}
-
-SpectrumData SpectrumData::subset(double from, double to) const
-{
-  SpectrumData ret;
-  for (const auto& p : data)
-    if ((p.x >= from) && (p.x <= to))
-      ret.data.push_back(p);
-  return ret;
-}
-
-SpectrumData SpectrumData::left(size_t size) const
-{
-  size = std::min(size, data.size());
-  SpectrumData ret;
-  ret.data = std::vector<SpectrumDataPoint>(data.begin(), data.begin() + size);
-  return ret;
-}
-
-SpectrumData SpectrumData::right(size_t size) const
-{
-  size = std::min(size, data.size());
-  SpectrumData ret;
-  ret.data = std::vector<SpectrumDataPoint>(data.begin() + (data.size() - size), data.end());
-  return ret;
-}
-
-void SpectrumData::clear()
-{
-  data.clear();
-}
-
-double SpectrumData::weight_true(const std::vector<double>& y, size_t i) const
-{
-  return std::sqrt(y[i]);
-}
-
-double SpectrumData::weight_phillips_marlow(const std::vector<double>& y, size_t i) const
-{
-  double k0 = y[i];
-
-  if (k0 >= 25)
-    return std::sqrt(k0);
-  else
-  {
-    k0 = 1.0;
-    if ((i > 0) && ((i + 1) < y.size()))
-      k0 = y[i - 1] + y[i] + y[i + 1] / 3.0;
-    return std::max(std::sqrt(k0), 1.0);
-  }
-}
-
-double SpectrumData::weight_revay_student(const std::vector<double>& y, size_t i) const
-{
-  double k0 = y[i] + 1;
-  return std::sqrt(k0);
-}
-
-
 Finder::Finder(const std::vector<double>& x, const std::vector<double>& y, const KONSettings& settings)
 : settings_(settings)
 {
-  setNewData(x, y);
+  setNewData(SpectrumData(x, y));
 }
 
-void Finder::setNewData(const std::vector<double>& x, const std::vector<double>& y)
+bool Finder::cloneRange(const Finder& other, double l, double r)
+{
+  setNewData(other.weighted_data.subset(l, r));
+}
+
+void Finder::setNewData(const SpectrumData& d)
 {
   clear();
-  if (x.size() == y.size())
+  weighted_data = d;
+  for (const auto& p : d.data)
   {
-    x_ = x;
-    y_ = y;
-    weighted_data.set(x, y);
-
-    reset();
-    calc_kon();
-    find_peaks();
+    x_.push_back(p.x);
+    y_.push_back(p.y);
   }
+  reset();
+  calc_kon();
+  find_peaks();
 }
 
 void Finder::clear()
@@ -120,8 +50,8 @@ void Finder::clear()
 void Finder::reset()
 {
   y_resid_on_background_ = y_resid_ = y_;
-  y_fit_.resize(x_.size(), 0);
-  y_background_.resize(x_.size(), 0);
+  y_fit_.assign(x_.size(), 0.0);
+  y_background_.assign(x_.size(), 0.0);
 }
 
 bool Finder::empty() const
@@ -129,53 +59,20 @@ bool Finder::empty() const
   return x_.empty();
 }
 
-bool Finder::cloneRange(const Finder& other, double l, double r)
-{
-  if (other.x_.empty()
-      || other.y_.empty()
-      || other.x_.size() != other.y_.size())
-    return false;
-
-  size_t min = other.find_index(l);
-  size_t max = other.find_index(r);
-
-  if (min >= other.x_.size())
-    min = other.x_.size() - 1;
-  if (max >= other.x_.size())
-    max = other.x_.size() - 1;
-
-  std::vector<double> x_local, y_local;
-  for (size_t i = min; i < max; ++i)
-  {
-    x_local.push_back(other.x_[i]);
-    y_local.push_back(other.y_[i]);
-  }
-  setNewData(x_local, y_local);
-  return true;
-}
-
-void Finder::setFit(const std::vector<double>& x_fit,
-                    const std::vector<double>& y_fit,
+void Finder::setFit(const std::vector<double>& y_fit,
                     const std::vector<double>& y_background)
 {
-  if ((x_fit.size() != y_fit.size())
-      || (x_fit.size() != y_background.size())
-      || (x_fit.empty()))
+  if ((y_fit.size() != y_background.size())
+      || (y_fit.empty()))
     return;
 
-  size_t l = find_index(x_fit.front());
-  size_t r = find_index(x_fit.back());
-
-  if ((r - l + 1) != x_fit.size())
-    return;
-
-  for (size_t i = 0; i < x_fit.size(); ++i)
+  for (size_t i = 0; i < y_fit.size(); ++i)
   {
-    y_fit_[l + i] = y_fit[i];
-    y_background_[l + i] = y_background[i];
-    double resid = y_[l + i] - y_fit[i];
-    y_resid_[l + i] = resid;
-    y_resid_on_background_[l + i] = y_background[i] + resid;
+    y_fit_[i] = y_fit[i];
+    y_background_[i] = y_background[i];
+    double resid = y_[i] - y_fit[i];
+    y_resid_[i] = resid;
+    y_resid_on_background_[i] = y_background[i] + resid;
   }
 
   calc_kon();
@@ -198,31 +95,18 @@ void Finder::setFit(const std::vector<double>& x_fit,
 
 void Finder::calc_kon()
 {
-  fw_theoretical_nrg.clear();
   fw_theoretical_bin.clear();
 
-//  DBG << "Kon calc " << x_.front() << "-"  << x_.back();
-
-  /*if (settings_.cali_fwhm_.valid() && settings_.cali_nrg_.valid())
-  {
-    for (size_t i=0; i < x_.size(); ++i)
-    {
-      double nrg = settings_.bin_to_nrg(x_[i]);
-      double fw = settings_.cali_fwhm_.transform(nrg);
-      double L = settings_.nrg_to_bin(nrg - fw/2);
-      double R = settings_.nrg_to_bin(nrg + fw/2);
-      double wchan = R-L;
-
-      if (!std::isfinite(fw))
-      {
-        DBG << "Kon " << x_[i] << "->" << nrg << "  fw=" << fw
-            << " L=" << L << " R=" << R << " wchan=" << wchan;
-      }
-
-      fw_theoretical_nrg.push_back(nrg);
-      fw_theoretical_bin.push_back(wchan);
-    }
-  }*/
+//  if (cal.cali_fwhm_.valid() && cal.cali_nrg_.valid())
+//  {
+//    for (size_t i=0; i < x_.size(); ++i)
+//    {
+//      double wchan = cal.bin_to_width(x_[i]);
+//      if (!std::isfinite(wchan))
+//        DBG("Kon {} - > {}", x_[i], wchan);
+//      fw_theoretical_bin.push_back(wchan);
+//    }
+//  }
 
   uint16_t width = settings_.width;
 
@@ -251,6 +135,7 @@ void Finder::calc_kon()
         start = i;
         break;
       }
+
     for (int i = fw_theoretical_bin.size() - 1; i >= 0; --i)
       if (2 * ceil(fw_theoretical_bin[i]) + i + 1 < fw_theoretical_bin.size())
       {
@@ -259,8 +144,8 @@ void Finder::calc_kon()
       }
   }
 
-  y_kon.resize(y_resid_.size(), 0);
-  y_convolution.resize(y_resid_.size(), 0);
+  y_kon.assign(y_resid_.size(), 0.0);
+  y_convolution.assign(y_resid_.size(), 0.0);
   prelim.clear();
 
   for (int j = start; j < end; ++j)
@@ -300,9 +185,8 @@ void Finder::find_peaks()
   std::vector<size_t> rights;
   lefts.push_back(prelim[0]);
   size_t prev = prelim[0];
-  for (size_t i = 0; i < prelim.size(); ++i)
+  for (const auto& current : prelim)
   {
-    size_t current = prelim[i];
     if ((current - prev) > 1)
     {
       rights.push_back(prev);
@@ -325,6 +209,17 @@ void Finder::find_peaks()
     p.center = 0.5 * (p.left + p.right);
     filtered.push_back(p);
   }
+}
+
+double Finder::highest_residual(double l, double r) const
+{
+  auto li = find_index(l);
+  auto ri = find_index(r);
+  if ((li < 0) || (ri < 0))
+    return 0.0;
+  double ret {0.0};
+  for (size_t j = li; j <= ri; ++j)
+    ret = std::max(ret, y_resid_[j]);
 }
 
 DetectedPeak Finder::tallest_detected() const
@@ -411,7 +306,7 @@ size_t Finder::right_edge(size_t idx) const
   if (!fw_theoretical_bin.empty())
   {
     double width = floor(fw_theoretical_bin[idx]);
-    double goal = x_[idx] + width * settings_.edge_width_factor / 2;
+    double goal = x_[idx] + 0.5 * width * settings_.edge_width_factor;
     while ((idx < x_.size()) && (x_[idx] < goal))
       idx++;
     return idx;

@@ -253,10 +253,10 @@ ROI *Fitter::parent_of(double peakID) {
 void Fitter::render_all()
 {
   finder_.reset();
-  for (auto &r : regions_)
-    finder_.setFit(r.second.finder().x_,
-                   r.second.finder().y_fit_,
-                   r.second.finder().y_background_);
+  // \todo merge region fits
+//  for (auto &r : regions_)
+//    finder_.setFit(r.second.finder().y_fit_,
+//                   r.second.finder().y_background_);
 }
 
 bool Fitter::find_and_fit(double regionID, BFGS& optimizer)

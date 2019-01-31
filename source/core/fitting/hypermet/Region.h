@@ -30,8 +30,6 @@ class Region : public Fittable
   std::map<double, Peak> peaks_;
   SUM4Edge LB_, RB_;
 
-  bool dirty{false};
-
  public:
   Region();
   Region(const SpectrumData& data, uint16_t background_samples);
@@ -43,7 +41,8 @@ class Region : public Fittable
 
   double left() const;
   double right() const;
-  // \todo empty
+  bool empty() const;
+  bool dirty() const;
 
   bool add_peak(double l, double r, double amp_hint = 10);
   bool adjust_sum4(double peakID, double left, double right);
@@ -51,8 +50,6 @@ class Region : public Fittable
   bool replace_hypermet(double peakID, Peak hyp);
   bool remove_peak(double peakID);
   bool remove_peaks(const std::set<double>& ids);
-
-  void reindex_peaks();
 
   double chi_sq_normalized() const;
 
@@ -72,6 +69,7 @@ class Region : public Fittable
  private:
   int32_t var_count_{0};
   SpectrumData data_;
+  bool dirty_{false};
 
   //public: BoronPeak As CBoronPeak
   //public: AnnPeak As CAnnPeak
@@ -82,6 +80,7 @@ class Region : public Fittable
   double grad_chi_sq(std::vector<double>& gradients) const;
   void init_background();
   void cull_peaks();
+  void reindex_peaks();
 };
 
 }

@@ -2,6 +2,7 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(SOURCES
   ${dir}/fit_settings.cpp
+  ${dir}/weighted_data.cpp
   ${dir}/finder.cpp
 #  ${dir}/optimizer.cpp
   ${dir}/roi.cpp
@@ -11,6 +12,7 @@ set(SOURCES
 
 set(HEADERS
   ${dir}/fit_settings.h
+  ${dir}/weighted_data.h
   ${dir}/finder.h
 #  ${dir}/optimizer.h
   ${dir}/roi.h

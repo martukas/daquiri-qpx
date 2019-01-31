@@ -21,6 +21,7 @@ struct FCalibration
   //specific to spectrum
   Calibration cali_nrg_, cali_fwhm_;
 
+  // \todo with uncerts
   double nrg_to_bin(double energy) const;
   double bin_to_nrg(double bin) const;
   double bin_to_width(double bin) const;
