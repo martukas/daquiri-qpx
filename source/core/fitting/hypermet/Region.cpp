@@ -388,14 +388,15 @@ double Region::chi_sq() const
 }
 
 //Calculates the Chi-square and its gradient
-double Region::grad_chi_sq(Eigen::VectorXd& gradients,
-                           Eigen::VectorXd& chan_gradients) const
+double Region::grad_chi_sq(Eigen::VectorXd& gradients) const
 {
   gradients.setConstant(gradients.size(), 0.0);
+  Eigen::VectorXd chan_gradients;
+  chan_gradients.setConstant(gradients.size(), 0.0);
   double Chisq = 0;
   for (const auto& data : data_.data)
   {
-    chan_gradients.setConstant(chan_gradients.size(), 0.0);
+    chan_gradients.setConstant(gradients.size(), 0.0);
 
     double FTotal = background.eval_grad(data.x, chan_gradients);
     for (auto& p : peaks_)
@@ -426,11 +427,12 @@ double Region::chi_sq(const Eigen::VectorXd& fit) const
 }
 
 //Calculates the Chi-square and its gradient
-double Region::grad_chi_sq(const Eigen::VectorXd& fit,
-                           Eigen::VectorXd& gradients,
-                           Eigen::VectorXd& chan_gradients) const
+double Region::operator ()(const Eigen::VectorXd& fit,
+                           Eigen::VectorXd& gradients) const
 {
   gradients.setConstant(fit.size(), 0.0);
+  Eigen::VectorXd chan_gradients;
+  chan_gradients.setConstant(fit.size(), 0.0);
   double Chisq{0.0};
   for (const auto& data : data_.data)
   {

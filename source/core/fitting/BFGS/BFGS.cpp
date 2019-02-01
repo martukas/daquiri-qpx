@@ -29,8 +29,7 @@ double BFGS::BrentDeriv(Fittable* fittable,
                         double tol,
                         double& xmin,
                         const Eigen::VectorXd& variables,
-                        const Eigen::VectorXd& hessian,
-                        Eigen::VectorXd& chan_gradients)
+                        const Eigen::VectorXd& hessian)
 {
   static constexpr int32_t brent_iter{500};
   static constexpr double zeps{0.0000000001};
@@ -47,7 +46,7 @@ double BFGS::BrentDeriv(Fittable* fittable,
 
   w = x = v = b;
   fw = fv = fx = fgv(fittable, x, variables, hessian);
-  dw = dv = dx = dfgv(fittable, x, variables, hessian, chan_gradients);
+  dw = dv = dx = dfgv(fittable, x, variables, hessian);
 
   double e{0.0};
   // \todo check for cancel
@@ -114,7 +113,7 @@ double BFGS::BrentDeriv(Fittable* fittable,
 
       if (!done)
       {
-        du = dfgv(fittable, u, variables, hessian, chan_gradients);
+        du = dfgv(fittable, u, variables, hessian);
         if (fu < fx)
         {
           if (u >= x)
@@ -282,15 +281,14 @@ double BFGS::fgv(Fittable* fittable,
 double BFGS::dfgv(Fittable* fittable,
                   double lambda,
                   Eigen::VectorXd variables,
-                  Eigen::VectorXd hessian,
-                  Eigen::VectorXd& chan_gradients)
+                  Eigen::VectorXd hessian)
 {
   auto n = variables.size();
   Eigen::VectorXd xlocal(n);
   Eigen::VectorXd dflocal(n);
   for (size_t i = 0; i < n; ++i)
     xlocal[i] = variables[i] + lambda * hessian[i];
-  fittable->grad_chi_sq(xlocal, dflocal, chan_gradients);
+  (*fittable)(xlocal, dflocal);
   double s = 0;
   for (size_t i = 0; i < n; ++i)
     s += dflocal[i] * hessian[i];
@@ -298,7 +296,7 @@ double BFGS::dfgv(Fittable* fittable,
 }
 
 double BFGS::LinMin(Fittable* fittable, Eigen::VectorXd& variables,
-    Eigen::VectorXd hessian, Eigen::VectorXd& chan_gradients)
+    Eigen::VectorXd hessian)
 {
   static constexpr float linmin_tol{0.0001};
   double lambdak, xk, fxk, fa, fb, a, b;
@@ -307,7 +305,7 @@ double BFGS::LinMin(Fittable* fittable, Eigen::VectorXd& variables,
   xk = 1.0;
   b = 2.0;
   Bracket(fittable, a, xk, b, fa, fxk, fb, variables, hessian);
-  double fmin = BrentDeriv(fittable, a, xk, b, linmin_tol, lambdak, variables, hessian, chan_gradients);
+  double fmin = BrentDeriv(fittable, a, xk, b, linmin_tol, lambdak, variables, hessian);
   DBG("lambda={}", lambdak);
   for (size_t j = 0; j < n; ++j)
   {
@@ -331,18 +329,17 @@ FitResult BFGS::BFGSMin(Fittable* fittable, double tolf)
   Eigen::VectorXd
       hessian(var_count),
       gradients(var_count),
-      chan_gradients(var_count),
       prev_val(var_count),
       Adg(var_count);
 
-  double f = fittable->grad_chi_sq(ret.variables, gradients, chan_gradients);
+  double f = (*fittable)(ret.variables, gradients);
 
   ret.inv_hessian.resize(var_count, var_count);
   ret.inv_hessian.setIdentity();
 
   for (; ret.iterations < maxit; ++ret.iterations)
   {
-    double fmin = LinMin(fittable, ret.variables, hessian, chan_gradients);
+    double fmin = LinMin(fittable, ret.variables, hessian);
     //if (std::abs(f - fmin) < 0.000001) { done = true; }
     ret.converged = (2 * std::abs(fmin - f)) <= (tolf * (std::abs(fmin) + std::abs(f) + eps));
     f = fmin;
@@ -350,7 +347,7 @@ FitResult BFGS::BFGSMin(Fittable* fittable, double tolf)
     for (size_t i = 0; i < var_count; ++i)
       prev_val[i] = gradients[i];
 
-    fmin = fittable->grad_chi_sq(ret.variables, gradients, chan_gradients);
+    fmin = (*fittable)(ret.variables, gradients);
     INFO("Fitting... Iteration = {}, Chisq = {}", ret.iterations, fmin / free_vars);
 
     for (size_t i = 0; i < var_count; ++i)

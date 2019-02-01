@@ -27,12 +27,12 @@ class Fittable
   Fittable() = default;
   virtual ~Fittable() = default;
 
+  virtual double operator ()(const Eigen::VectorXd& fit,
+                             Eigen::VectorXd& gradients) const = 0;
+
   virtual Eigen::VectorXd variables() const = 0;
   virtual double degrees_of_freedom() const = 0;
   virtual double chi_sq(const Eigen::VectorXd& fit) const = 0;
-  virtual double grad_chi_sq(const Eigen::VectorXd& fit,
-                             Eigen::VectorXd& gradients,
-                             Eigen::VectorXd& chan_gradients) const = 0;
 };
 
 }
