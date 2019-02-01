@@ -54,11 +54,11 @@ double PolyBackground::eval(double bin) const
 
 double PolyBackground::eval_at(double bin, const std::vector<double>& fit) const
 {
-  double ret = base.val_at(fit[base.x_index]);
+  double ret = base.val_from(fit);
   if (slope_enabled)
-    ret += slope.val_at(fit[slope.x_index]) * (bin - x_offset);
+    ret += slope.val_from(fit) * (bin - x_offset);
   if (curve_enabled)
-    ret += curve.val_at(fit[curve.x_index]) * square(bin - x_offset);
+    ret += curve.val_from(fit) * square(bin - x_offset);
   return ret;
 }
 
@@ -84,17 +84,17 @@ double PolyBackground::eval_grad_at(double bin,
                                     const std::vector<double>& fit,
                                     std::vector<double>& gradients) const
 {
-  double ret = base.val_at(fit[base.x_index]);
-  gradients[base.x_index] = base.grad_at(fit[base.x_index]);
+  double ret = base.val_from(fit);
+  gradients[base.x_index] = base.grad_from(fit);
   if (slope_enabled)
   {
-    ret += slope.val_at(fit[slope.x_index]) * (bin - x_offset);
+    ret += slope.val_from(fit) * (bin - x_offset);
     gradients[slope.x_index] = (bin - x_offset);
   }
 
   if (curve_enabled)
   {
-    ret += curve.val_at(fit[curve.x_index]) * square(bin - x_offset);
+    ret += curve.val_from(fit) * square(bin - x_offset);
     gradients[curve.x_index] = square(bin - x_offset);
   }
   return ret;
@@ -115,15 +115,15 @@ std::vector<double> PolyBackground::eval(const std::vector<double>& bins) const
   return ret;
 }
 
-std::string PolyBackground::to_string() const
+std::string PolyBackground::to_string(std::string prepend) const
 {
   std::stringstream ss;
-  ss << "x=bin-" << x_offset << "    ";
-  ss << "base=" << base.to_string();
+  ss << prepend << "x=bin-" << x_offset << "\n";
+  ss << prepend << "base=" << base.to_string() << "\n";
   if (slope_enabled)
-    ss << "   base=" << slope.to_string();
+    ss << prepend << "slope=" << slope.to_string() << "\n";
   if (curve_enabled)
-    ss << "   base=" << curve.to_string();
+    ss << prepend << "curve=" << curve.to_string() << "\n";
   return ss.str();
 }
 

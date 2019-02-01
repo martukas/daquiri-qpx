@@ -50,10 +50,7 @@ double Tail::eval(const PrecalcVals& pre) const
 
 double Tail::eval_at(const PrecalcVals& pre, const std::vector<double>& fit) const
 {
-  return eval_with(pre,
-                   amplitude.val_at(fit[amplitude.x_index]),
-                   slope.val_at(fit[slope.x_index])
-  );
+  return eval_with(pre, amplitude.val_from(fit), slope.val_from(fit));
 }
 
 double Tail::eval_grad(const PrecalcVals& pre, std::vector<double>& grads,
@@ -81,8 +78,8 @@ double Tail::eval_grad_at(const PrecalcVals& pre, const std::vector<double>& fit
                           std::vector<double>& grads,
                           size_t i_width, size_t i_pos, size_t i_amp) const
 {
-  double ampl = amplitude.val_at(fit[amplitude.x_index]);
-  double slp = slope.val_at(fit[slope.x_index]);
+  double ampl = amplitude.val_from(fit);
+  double slp = slope.val_from(fit);
   double ret = eval_with(pre, ampl, slp);
   double spread = flip(pre.spread);
   double t2 = (pre.ampl * ampl * std::exp(spread / slp) / std::sqrt(M_PI) *
@@ -92,9 +89,9 @@ double Tail::eval_grad_at(const PrecalcVals& pre, const std::vector<double>& fit
   grads[i_amp] += ret / ampl;
 
   if (amplitude.to_fit)
-    grads[amplitude.x_index] += ret / ampl * amplitude.grad_at(fit[amplitude.x_index]);
+    grads[amplitude.x_index] += ret / ampl * amplitude.grad_from(fit);
   if (slope.to_fit)
-    grads[slope.x_index] += slope.grad_at(fit[slope.x_index]) * ((-spread / square(slp)) *
+    grads[slope.x_index] += slope.grad_from(fit) * ((-spread / square(slp)) *
         ret + (pre.width / (2.0 * square(slp)) * t2));
   return ret;
 }

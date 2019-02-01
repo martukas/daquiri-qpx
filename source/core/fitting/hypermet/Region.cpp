@@ -30,7 +30,7 @@ Region::Region()
 }
 
 Region::Region(const WeightedData& data, uint16_t background_samples)
-  : Region()
+    : Region()
 {
   if (data.data.empty())
     throw std::runtime_error("Attempting to construct Region from empty sample");
@@ -117,8 +117,8 @@ bool Region::add_peak(double l, double r, double amp_hint)
   p.position.val(0.5 * (l + r));
 
   data_.subset(l, r);
-  double max_val {0.0};
-  double min_bkg {std::numeric_limits<double>::max()};
+  double max_val{0.0};
+  double min_bkg{std::numeric_limits<double>::max()};
   for (const auto& v : data_.data)
   {
     max_val = std::max(max_val, v.y);
@@ -153,13 +153,12 @@ bool Region::auto_sum4()
       continue;
     // \todo use const from settings?
     // \todo do we really need to multiply with sqrt(log(2))?
-    double edge =  p.second.fwhm().value() * sqrt(log(2)) * 3;
+    double edge = p.second.fwhm().value() * sqrt(log(2)) * 3;
     double left = p.second.peak_position().value() - edge;
     double right = p.second.peak_position().value() + edge;
     adjust_sum4(p.second.id(), left, right);
   }
 }
-
 
 bool Region::replace_hypermet(double peakID, Peak hyp)
 {
@@ -388,7 +387,6 @@ double Region::chi_sq() const
   return ChiSq;
 }
 
-
 //Calculates the Chi-square and its gradient
 double Region::grad_chi_sq(std::vector<double>& gradients,
                            std::vector<double>& chan_gradients) const
@@ -433,7 +431,7 @@ double Region::grad_chi_sq(const std::vector<double>& fit,
                            std::vector<double>& chan_gradients) const
 {
   gradients.assign(fit.size(), 0.0);
-  double Chisq {0.0};
+  double Chisq{0.0};
   for (const auto& data : data_.data)
   {
     chan_gradients.assign(fit.size(), 0.0);
@@ -451,6 +449,25 @@ double Region::grad_chi_sq(const std::vector<double>& fit,
   return Chisq;
 }
 
+std::string Region::to_string(std::string prepend) const
+{
+  std::stringstream ss;
+  ss << prepend << "Background:\n";
+  ss << background.to_string(prepend + " ");
+  ss << prepend << "Default peak:\n";
+  ss << default_peak_.to_string(prepend + " ");
+  ss << prepend << "SUM4/LB: " << LB_.to_string() << "\n";
+  ss << prepend << "SUM4/RB: " << RB_.to_string() << "\n";
+  ss << prepend << "Peaks:\n";
+  for (const auto& p : peaks_)
+  {
+    ss << prepend << " Peak " << p.first << "\n";
+    ss << p.second.to_string(prepend + "  ");
+  }
+
+  return ss.str();
+}
+
 void to_json(nlohmann::json& j, const Region& s)
 {
 
@@ -460,6 +477,5 @@ void from_json(const nlohmann::json& j, Region& s)
 {
 
 }
-
 
 }

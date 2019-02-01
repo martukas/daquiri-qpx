@@ -41,7 +41,7 @@ double Step::eval(const PrecalcVals& pre) const
 
 double Step::eval_at(const PrecalcVals& pre, const std::vector<double>& fit) const
 {
-  return eval_with(pre, amplitude.val_at(fit[amplitude.x_index]));
+  return eval_with(pre, amplitude.val_from(fit));
 }
 
 double Step::eval_grad(const PrecalcVals& pre, std::vector<double>& grads,
@@ -64,14 +64,14 @@ double Step::eval_grad_at(const PrecalcVals& pre, const std::vector<double>& fit
                           std::vector<double>& grads,
                           size_t i_width, size_t i_pos, size_t i_amp) const
 {
-  double ampl = amplitude.val_at(fit[amplitude.x_index]);
+  double ampl = amplitude.val_from(fit);
   double ret = eval_with(pre, ampl);
 
   grads[i_width] += (pre.ampl * flip(ampl) / std::sqrt(M_PI) *
       std::exp(-square(pre.spread)) * pre.spread / pre.width);
   grads[i_amp] += ret / pre.ampl;
   if (amplitude.to_fit)
-    grads[amplitude.x_index] += ret / ampl * amplitude.grad_at(fit[amplitude.x_index]);
+    grads[amplitude.x_index] += ret / ampl * amplitude.grad_from(fit);
 
   // \todo pos unused?
   return ret;

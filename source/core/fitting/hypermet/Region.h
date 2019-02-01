@@ -64,6 +64,8 @@ class Region : public Fittable
                      std::vector<double>& gradients,
                      std::vector<double>& chan_gradients) const override;
 
+
+  std::string to_string(std::string prepend = "") const;
   friend void to_json(nlohmann::json& j, const Region& s);
   friend void from_json(const nlohmann::json& j, Region& s);
 

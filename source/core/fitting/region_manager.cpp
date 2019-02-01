@@ -46,11 +46,6 @@ void RegionRendering::reserve(size_t count)
   back_steps.assign(count, 0.0);
   full_fit.assign(count, 0.0);
   sum4_background.assign(count, 0.0);
-  for (auto& p : peaks)
-  {
-    p.second.peak.assign(count, 0.0);
-    p.second.full_fit.assign(count, 0.0);
-  }
 }
 
 void RegionRendering::clear()
@@ -99,6 +94,7 @@ void RegionRendering::render(const Region& r,
     auto& peak = peaks[p.first];
     const auto& hyp = p.second;
     peak.full_fit = back_steps;
+    peak.peak.assign(count, 0.0);
     for (size_t i = 0; i < channel.size(); ++i)
     {
       auto vals = hyp.eval(channel[i]);
@@ -180,18 +176,9 @@ bool RegionManager::find_and_fit(BFGS& optimizer)
 
   for (const auto& p : kon.filtered)
   {
-//                   subset should be from y_nobkg
-//    auto subset = finder_.weighted_data.subset(finder_.x_[finder_.lefts[i]],
-//                                               finder_.x_[finder_.rights[i]]);
-//    auto gaussian = Peak().gaussian_only();
-//    //optimizer->fit(gaussian, x_pk, y_pk);
-//
-//    if (gaussian.sanity_check(finder_.x_[finder().lefts[i]], finder_.x_[finder_.rights[i]]))
-//    {
-//      gaussian.force_defaults(region_.default_peak_);
-//      region_.peaks_[gaussian.id()] = gaussian;
-//    }
-    region_.add_peak(p.left, p.right);
+    double height = kon.highest_residual(p.left, p.right);
+    height -= region_.background.eval(0.5 * (p.left + p.right));
+    region_.add_peak(p.left, p.right, height);
   }
   save_current_fit("Autofind");
 
@@ -429,11 +416,13 @@ bool RegionManager::rebuild(BFGS& optimizer)
     return false;
 
   region_.map_fit();
-  auto result = optimizer.BFGSMin(&region_, 0.0001);
+  INFO("Will rebuild\n{}", region_.to_string());
+  auto result = optimizer.BFGSMin(&region_, 0.0000001);
   // \todo check for convergence?
   region_.save_fit_uncerts(result);
   region_.auto_sum4();
   save_current_fit("Rebuild");
+  INFO("Rebuilt as\n{}", region_.to_string());
 
   render();
   return true;

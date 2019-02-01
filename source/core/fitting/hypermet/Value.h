@@ -27,6 +27,9 @@ class AbstractValue
   virtual double val_at(double at_x) const = 0;
   virtual double grad_at(double at_x) const = 0;
 
+  double val_from(const std::vector<double>& fit) const;
+  double grad_from(const std::vector<double>& fit) const;
+
   void put(std::vector<double>& fit) const;
   void get(const std::vector<double>& fit);
   void get_uncert(const std::vector<double>& diagonals, double chisq_norm);

@@ -51,7 +51,7 @@ double BFGS::BrentDeriv(Fittable* fittable,
 
   double e{0.0};
   // \todo check for cancel
-  for (iteration = 0; iteration <= brent_iter; ++iteration)
+  for (iteration = 0; iteration < brent_iter; ++iteration)
   {
     xm = 0.5 * (sa + sb);
     tol1 = tol * std::abs(x) + zeps;
@@ -340,7 +340,7 @@ FitResult BFGS::BFGSMin(Fittable* fittable, double tolf)
   ret.inv_hessian.resize(var_count, var_count);
   ret.inv_hessian.setIdentity();
 
-  for (; ret.iterations <= maxit; ++ret.iterations)
+  for (; ret.iterations < maxit; ++ret.iterations)
   {
     double fmin = LinMin(fittable, ret.variables, hessian, chan_gradients);
     //if (std::abs(f - fmin) < 0.000001) { done = true; }

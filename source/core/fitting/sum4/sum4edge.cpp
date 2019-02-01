@@ -1,4 +1,5 @@
 #include <core/fitting/sum4/sum4edge.h>
+#include <fmt/format.h>
 
 namespace DAQuiri
 {
@@ -41,6 +42,12 @@ double SUM4Edge::midpoint() const
     return std::numeric_limits<double>::quiet_NaN();
   else
     return Lchan_ + (w * 0.5);
+}
+
+std::string SUM4Edge::to_string() const
+{
+  return fmt::format("x=[{},{}] cts=[{},{}] dsum={} davg={}",
+      Lchan_, Rchan_, min_, max_, dsum_.to_string(), davg_.to_string());
 }
 
 void to_json(nlohmann::json& j, const SUM4Edge& s)

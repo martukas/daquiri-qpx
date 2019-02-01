@@ -63,7 +63,7 @@ class Peak
   Components eval_grad_at(double chan, const std::vector<double>& fit,
       std::vector<double>& grads) const;
 
-  std::string to_string() const;
+  std::string to_string(std::string prepend = "") const;
 
   // These are unique to peak
   Value position;

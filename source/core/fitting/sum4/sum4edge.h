@@ -29,6 +29,8 @@ public:
   double max()      const {return max_;}
   double midpoint() const;
 
+  std::string to_string() const;
+
   friend void to_json(nlohmann::json& j, const SUM4Edge& s);
   friend void from_json(const nlohmann::json& j, SUM4Edge& s);
 

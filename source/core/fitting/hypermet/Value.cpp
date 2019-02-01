@@ -26,6 +26,22 @@ double AbstractValue::grad() const
   return this->grad_at(x_);
 }
 
+double AbstractValue::val_from(const std::vector<double>& fit) const
+{
+  // \todo use [x_index] for performance once we have tests
+  if (x_index >= 0)
+    return this->val_at(fit.at(static_cast<size_t>(x_index)));
+  return val();
+}
+
+double AbstractValue::grad_from(const std::vector<double>& fit) const
+{
+  // \todo use [x_index] for performance once we have tests
+  if (x_index >= 0)
+    return this->grad_at(fit.at(static_cast<size_t>(x_index)));
+  return grad();
+}
+
 void AbstractValue::put(std::vector<double>& fit) const
 {
   if (x_index != -1)
@@ -46,7 +62,7 @@ void AbstractValue::get_uncert(const std::vector<double>& diagonals, double chis
 
 std::string AbstractValue::to_string() const
 {
-  return fmt::format("{}+-{}(x={},i={}{})",
+  return fmt::format("{}\u00B1{}(x={},i={}{})",
       val(), uncert_value, x_, x_index,
       to_fit ? " fit" : "");
 }

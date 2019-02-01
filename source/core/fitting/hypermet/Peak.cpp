@@ -47,6 +47,8 @@ void Peak::apply_defaults(const Peak& other)
     right_tail = other.right_tail;
   if (!long_tail.override)
     long_tail = other.long_tail;
+  if (!step.override)
+    step = other.step;
 }
 
 void Peak::force_defaults(const Peak& other)
@@ -55,6 +57,7 @@ void Peak::force_defaults(const Peak& other)
   short_tail = other.short_tail;
   right_tail = other.right_tail;
   long_tail = other.long_tail;
+  step = other.step;
 }
 
 Peak Peak::gaussian_only() const
@@ -224,13 +227,11 @@ UncertainDouble Peak::fwhm_energy(const Calibration& cal) const
 
 void Peak::update_indices(int32_t& i)
 {
-  amplitude.x_index = i++;
   position.x_index = i++;
+  amplitude.x_index = i++;
 
   if (width_override)
     width_.x_index = i++;
-  else
-    width_.x_index = -1;
 
   if (short_tail.override && short_tail.enabled)
     short_tail.update_indices(i);
@@ -292,10 +293,10 @@ PrecalcVals Peak::precalc_vals(double chan) const
 PrecalcVals Peak::precalc_vals_at(double chan, const std::vector<double>& fit) const
 {
   PrecalcVals ret;
-  ret.ampl = amplitude.val_at(fit[amplitude.x_index]);
+  ret.ampl = amplitude.val_from(fit);
   ret.half_ampl = 0.5 * ret.ampl;
-  ret.width = width_.val_at(fit[width_.x_index]);
-  ret.spread = (chan - position.val_at(fit[position.x_index])) / ret.width;
+  ret.width = width_.val_from(fit);
+  ret.spread = (chan - position.val_from(fit)) / ret.width;
   return ret;
 }
 
@@ -324,7 +325,7 @@ Peak::Components Peak::eval_at(double chan, const std::vector<double>& fit) cons
 
   auto pre = precalc_vals_at(chan, fit);
 
-  ret.gaussian = amplitude.val_at(fit[amplitude.x_index]) * std::exp(-square(pre.spread));
+  ret.gaussian = amplitude.val_from(fit) * std::exp(-square(pre.spread));
 
   if (short_tail.enabled)
     ret.short_tail = short_tail.eval_at(pre, fit);
@@ -400,24 +401,25 @@ Peak::Components Peak::eval_grad_at(double chan, const std::vector<double>& fit,
     ret.step = step.eval_grad_at(pre, fit, grads,
                                  width_.x_index, position.x_index, amplitude.x_index);
 
-  grads[width_.x_index] *= width_.grad_at(fit[width_.x_index]);
-  grads[amplitude.x_index] *= amplitude.grad_at(fit[amplitude.x_index]);
-  grads[position.x_index] *= position.grad_at(fit[position.x_index]);
+  grads[width_.x_index] *= width_.grad_from(fit);
+  grads[amplitude.x_index] *= amplitude.grad_from(fit);
+  grads[position.x_index] *= position.grad_from(fit);
 
   return ret;
 }
 
-std::string Peak::to_string() const
+std::string Peak::to_string(std::string prepend) const
 {
   std::stringstream ss;
-  ss << "pos = " << position.to_string() << "\n";
-  ss << "amp = " << amplitude.to_string() << "\n";
-  ss << "width" << (width_override ? "(OVERRIDEN) = " : " = ")
-     << position.to_string() << "\n";
-  ss << "left_skew = " << short_tail.to_string() << "\n";
-  ss << "right_skew = " << right_tail.to_string() << "\n";
-  ss << "long_tail = " << long_tail.to_string() << "\n";
-  ss << "step = " << step.to_string() << "\n";
+  ss << prepend << "pos = " << position.to_string() << "\n";
+  ss << prepend << "amp = " << amplitude.to_string() << "\n";
+  ss << prepend << "width"
+     << (width_override ? "(OVERRIDEN) = " : " = ")
+     << width_.to_string() << "\n";
+  ss << prepend << "left_skew = " << short_tail.to_string() << "\n";
+  ss << prepend << "right_skew = " << right_tail.to_string() << "\n";
+  ss << prepend << "long_tail = " << long_tail.to_string() << "\n";
+  ss << prepend << "step = " << step.to_string() << "\n";
   return ss.str();
 }
 

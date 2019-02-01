@@ -33,7 +33,7 @@ struct PolyBackground
   double eval_add(const std::vector<double>& bins, std::vector<double>& vals) const;
   std::vector<double> eval(const std::vector<double>& bins) const;
 
-  std::string to_string() const;
+  std::string to_string(std::string prepend = "") const;
 };
 
 void to_json(nlohmann::json& j, const PolyBackground& s);
