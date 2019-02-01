@@ -452,16 +452,20 @@ double Region::grad_chi_sq(const std::vector<double>& fit,
 std::string Region::to_string(std::string prepend) const
 {
   std::stringstream ss;
+  ss << prepend
+     << fmt::format("data_points={} on channels [{},{}] vars={} {}\n",
+                               data_.data.size(), left(), right(),
+                               var_count_, (dirty_ ? " DIRTY" : ""));
+  ss << prepend << "SUM4/LB: " << LB_.to_string() << "\n";
+  ss << prepend << "SUM4/RB: " << RB_.to_string() << "\n";
   ss << prepend << "Background:\n";
   ss << background.to_string(prepend + " ");
   ss << prepend << "Default peak:\n";
   ss << default_peak_.to_string(prepend + " ");
-  ss << prepend << "SUM4/LB: " << LB_.to_string() << "\n";
-  ss << prepend << "SUM4/RB: " << RB_.to_string() << "\n";
   ss << prepend << "Peaks:\n";
   for (const auto& p : peaks_)
   {
-    ss << prepend << " Peak " << p.first << "\n";
+    ss << prepend << " Peak at " << p.first << "\n";
     ss << p.second.to_string(prepend + "  ");
   }
 

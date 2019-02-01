@@ -416,13 +416,13 @@ bool RegionManager::rebuild(BFGS& optimizer)
     return false;
 
   region_.map_fit();
-  INFO("Will rebuild\n{}", region_.to_string());
+  INFO("Will rebuild\n{}", region_.to_string(" "));
   auto result = optimizer.BFGSMin(&region_, 0.0000001);
   // \todo check for convergence?
   region_.save_fit_uncerts(result);
   region_.auto_sum4();
   save_current_fit("Rebuild");
-  INFO("Rebuilt as\n{}", region_.to_string());
+  INFO("Rebuilt as\n{}", region_.to_string(" "));
 
   render();
   return true;
