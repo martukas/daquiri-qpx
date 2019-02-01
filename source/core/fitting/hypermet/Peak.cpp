@@ -246,7 +246,7 @@ void Peak::update_indices(int32_t& i)
     step.update_indices(i);
 }
 
-void Peak::put(std::vector<double>& fit) const
+void Peak::put(Eigen::VectorXd& fit) const
 {
   position.put(fit);
   amplitude.put(fit);
@@ -257,7 +257,7 @@ void Peak::put(std::vector<double>& fit) const
   step.put(fit);
 }
 
-void Peak::get(const std::vector<double>& fit)
+void Peak::get(const Eigen::VectorXd& fit)
 {
   position.get(fit);
   amplitude.get(fit);
@@ -268,7 +268,7 @@ void Peak::get(const std::vector<double>& fit)
   step.get(fit);
 }
 
-void Peak::get_uncerts(const std::vector<double>& diagonals, double chisq_norm)
+void Peak::get_uncerts(const Eigen::VectorXd& diagonals, double chisq_norm)
 {
   chi_sq_norm = chisq_norm;
   position.get_uncert(diagonals, chisq_norm);
@@ -290,7 +290,7 @@ PrecalcVals Peak::precalc_vals(double chan) const
   return ret;
 }
 
-PrecalcVals Peak::precalc_vals_at(double chan, const std::vector<double>& fit) const
+PrecalcVals Peak::precalc_vals_at(double chan, const Eigen::VectorXd& fit) const
 {
   PrecalcVals ret;
   ret.ampl = amplitude.val_from(fit);
@@ -319,7 +319,7 @@ Peak::Components Peak::eval(double chan) const
   return ret;
 }
 
-Peak::Components Peak::eval_at(double chan, const std::vector<double>& fit) const
+Peak::Components Peak::eval_at(double chan, const Eigen::VectorXd& fit) const
 {
   Peak::Components ret;
 
@@ -338,7 +338,7 @@ Peak::Components Peak::eval_at(double chan, const std::vector<double>& fit) cons
   return ret;
 }
 
-Peak::Components Peak::eval_grad(double chan, std::vector<double>& grads) const
+Peak::Components Peak::eval_grad(double chan, Eigen::VectorXd& grads) const
 {
   Peak::Components ret;
 
@@ -372,8 +372,8 @@ Peak::Components Peak::eval_grad(double chan, std::vector<double>& grads) const
   return ret;
 }
 
-Peak::Components Peak::eval_grad_at(double chan, const std::vector<double>& fit,
-                                            std::vector<double>& grads) const
+Peak::Components Peak::eval_grad_at(double chan, const Eigen::VectorXd& fit,
+                                            Eigen::VectorXd& grads) const
 {
   Peak::Components ret;
 

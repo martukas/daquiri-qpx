@@ -19,19 +19,19 @@ void Tail::update_indices(int32_t& i)
     slope.x_index = -1;
 }
 
-void Tail::put(std::vector<double>& fit) const
+void Tail::put(Eigen::VectorXd& fit) const
 {
   amplitude.put(fit);
   slope.put(fit);
 }
 
-void Tail::get(const std::vector<double>& fit)
+void Tail::get(const Eigen::VectorXd& fit)
 {
   amplitude.get(fit);
   slope.get(fit);
 }
 
-void Tail::get_uncerts(const std::vector<double>& diagonals, double chisq_norm)
+void Tail::get_uncerts(const Eigen::VectorXd& diagonals, double chisq_norm)
 {
   amplitude.get_uncert(diagonals, chisq_norm);
   slope.get_uncert(diagonals, chisq_norm);
@@ -48,12 +48,12 @@ double Tail::eval(const PrecalcVals& pre) const
   return eval_with(pre, amplitude.val(), slope.val());
 }
 
-double Tail::eval_at(const PrecalcVals& pre, const std::vector<double>& fit) const
+double Tail::eval_at(const PrecalcVals& pre, const Eigen::VectorXd& fit) const
 {
   return eval_with(pre, amplitude.val_from(fit), slope.val_from(fit));
 }
 
-double Tail::eval_grad(const PrecalcVals& pre, std::vector<double>& grads,
+double Tail::eval_grad(const PrecalcVals& pre, Eigen::VectorXd& grads,
                        size_t i_width, size_t i_pos, size_t i_amp) const
 {
   double ampl = amplitude.val();
@@ -74,8 +74,8 @@ double Tail::eval_grad(const PrecalcVals& pre, std::vector<double>& grads,
   return ret;
 }
 
-double Tail::eval_grad_at(const PrecalcVals& pre, const std::vector<double>& fit,
-                          std::vector<double>& grads,
+double Tail::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
+                          Eigen::VectorXd& grads,
                           size_t i_width, size_t i_pos, size_t i_amp) const
 {
   double ampl = amplitude.val_from(fit);

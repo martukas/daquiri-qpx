@@ -28,9 +28,9 @@ double BFGS::BrentDeriv(Fittable* fittable,
                         double c,
                         double tol,
                         double& xmin,
-                        const std::vector<double>& variables,
-                        const std::vector<double>& hessian,
-                        std::vector<double>& chan_gradients)
+                        const Eigen::VectorXd& variables,
+                        const Eigen::VectorXd& hessian,
+                        Eigen::VectorXd& chan_gradients)
 {
   static constexpr int32_t brent_iter{500};
   static constexpr double zeps{0.0000000001};
@@ -169,7 +169,7 @@ double BFGS::BrentDeriv(Fittable* fittable,
 
 void BFGS::Bracket(Fittable* fittable,
                    double& a, double& b, double& c, double& fa, double& fb, double& fc,
-                   const std::vector<double>& variables, const std::vector<double>& hessian)
+                   const Eigen::VectorXd& variables, const Eigen::VectorXd& hessian)
 {
   static constexpr double glimit{100.0};
   static constexpr double tiny{1.0E-20};
@@ -269,11 +269,11 @@ void BFGS::Bracket(Fittable* fittable,
 
 double BFGS::fgv(Fittable* fittable,
                  double lambda,
-                 std::vector<double> variables,
-                 std::vector<double> hessian)
+                 Eigen::VectorXd variables,
+                 Eigen::VectorXd hessian)
 {
   auto n = variables.size();
-  std::vector<double> xlocal(n);
+  Eigen::VectorXd xlocal(n);
   for (size_t i = 0; i < n; ++i)
     xlocal[i] = variables[i] + lambda * hessian[i];
   return fittable->chi_sq(xlocal);
@@ -281,13 +281,13 @@ double BFGS::fgv(Fittable* fittable,
 
 double BFGS::dfgv(Fittable* fittable,
                   double lambda,
-                  std::vector<double> variables,
-                  std::vector<double> hessian,
-                  std::vector<double>& chan_gradients)
+                  Eigen::VectorXd variables,
+                  Eigen::VectorXd hessian,
+                  Eigen::VectorXd& chan_gradients)
 {
   auto n = variables.size();
-  std::vector<double> xlocal(n);
-  std::vector<double> dflocal(n);
+  Eigen::VectorXd xlocal(n);
+  Eigen::VectorXd dflocal(n);
   for (size_t i = 0; i < n; ++i)
     xlocal[i] = variables[i] + lambda * hessian[i];
   fittable->grad_chi_sq(xlocal, dflocal, chan_gradients);
@@ -297,8 +297,8 @@ double BFGS::dfgv(Fittable* fittable,
   return s;
 }
 
-double BFGS::LinMin(Fittable* fittable, std::vector<double>& variables,
-    std::vector<double> hessian, std::vector<double>& chan_gradients)
+double BFGS::LinMin(Fittable* fittable, Eigen::VectorXd& variables,
+    Eigen::VectorXd hessian, Eigen::VectorXd& chan_gradients)
 {
   static constexpr float linmin_tol{0.0001};
   double lambdak, xk, fxk, fa, fb, a, b;
@@ -328,7 +328,7 @@ FitResult BFGS::BFGSMin(Fittable* fittable, double tolf)
   ret.variables = fittable->variables();
   auto var_count = ret.variables.size();
   double free_vars = fittable->degrees_of_freedom();
-  std::vector<double>
+  Eigen::VectorXd
       hessian(var_count),
       gradients(var_count),
       chan_gradients(var_count),

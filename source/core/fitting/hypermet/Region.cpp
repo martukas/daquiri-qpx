@@ -315,10 +315,10 @@ size_t Region::fit_var_count() const
   return static_cast<size_t>(var_count_);
 }
 
-std::vector<double> Region::variables() const
+Eigen::VectorXd Region::variables() const
 {
-  std::vector<double> ret;
-  ret.resize(fit_var_count(), 0.0);
+  Eigen::VectorXd ret;
+  ret.setConstant(fit_var_count(), 0.0);
 
   background.put(ret);
   default_peak_.put(ret);
@@ -329,7 +329,7 @@ std::vector<double> Region::variables() const
   return ret;
 }
 
-void Region::save_fit(const std::vector<double>& variables)
+void Region::save_fit(const Eigen::VectorXd& variables)
 {
   background.get(variables);
   default_peak_.get(variables);
@@ -344,12 +344,12 @@ void Region::save_fit_uncerts(const FitResult& result)
 {
   save_fit(result.variables);
 
-  std::vector<double> diagonals;
-  diagonals.reserve(result.variables.size());
+  Eigen::VectorXd diagonals;
+  diagonals.resize(result.variables.size());
 
   double df = degrees_of_freedom();
   for (size_t i = 0; i < result.variables.size(); ++i)
-    diagonals.push_back(result.inv_hessian.coeff(i, i) * df);
+    diagonals[i] = result.inv_hessian.coeff(i, i) * df;
 
   double chisq_norm = std::max(chi_sq_normalized(), 1.0) * 0.5;
 
@@ -388,14 +388,14 @@ double Region::chi_sq() const
 }
 
 //Calculates the Chi-square and its gradient
-double Region::grad_chi_sq(std::vector<double>& gradients,
-                           std::vector<double>& chan_gradients) const
+double Region::grad_chi_sq(Eigen::VectorXd& gradients,
+                           Eigen::VectorXd& chan_gradients) const
 {
-  gradients.assign(gradients.size(), 0.0);
+  gradients.setConstant(gradients.size(), 0.0);
   double Chisq = 0;
   for (const auto& data : data_.data)
   {
-    chan_gradients.assign(chan_gradients.size(), 0.0);
+    chan_gradients.setConstant(chan_gradients.size(), 0.0);
 
     double FTotal = background.eval_grad(data.x, chan_gradients);
     for (auto& p : peaks_)
@@ -412,7 +412,7 @@ double Region::grad_chi_sq(std::vector<double>& gradients,
 }
 
 //Calculates the Chi-square over a region
-double Region::chi_sq(const std::vector<double>& fit) const
+double Region::chi_sq(const Eigen::VectorXd& fit) const
 {
   double ChiSq = 0;
   for (const auto& data : data_.data)
@@ -426,15 +426,15 @@ double Region::chi_sq(const std::vector<double>& fit) const
 }
 
 //Calculates the Chi-square and its gradient
-double Region::grad_chi_sq(const std::vector<double>& fit,
-                           std::vector<double>& gradients,
-                           std::vector<double>& chan_gradients) const
+double Region::grad_chi_sq(const Eigen::VectorXd& fit,
+                           Eigen::VectorXd& gradients,
+                           Eigen::VectorXd& chan_gradients) const
 {
-  gradients.assign(fit.size(), 0.0);
+  gradients.setConstant(fit.size(), 0.0);
   double Chisq{0.0};
   for (const auto& data : data_.data)
   {
-    chan_gradients.assign(fit.size(), 0.0);
+    chan_gradients.setConstant(fit.size(), 0.0);
 
     double FTotal = background.eval_grad_at(data.x, fit, chan_gradients);
     for (auto& p : peaks_)

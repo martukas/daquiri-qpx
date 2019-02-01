@@ -26,35 +26,35 @@ double AbstractValue::grad() const
   return this->grad_at(x_);
 }
 
-double AbstractValue::val_from(const std::vector<double>& fit) const
+double AbstractValue::val_from(const Eigen::VectorXd& fit) const
 {
-  // \todo use [x_index] for performance once we have tests
+  // \todo access without range checking once we have tests
   if (x_index >= 0)
-    return this->val_at(fit.at(static_cast<size_t>(x_index)));
+    return this->val_at(fit(static_cast<size_t>(x_index)));
   return val();
 }
 
-double AbstractValue::grad_from(const std::vector<double>& fit) const
+double AbstractValue::grad_from(const Eigen::VectorXd& fit) const
 {
-  // \todo use [x_index] for performance once we have tests
+  // \todo access without range checking once we have tests
   if (x_index >= 0)
-    return this->grad_at(fit.at(static_cast<size_t>(x_index)));
+    return this->grad_at(fit(static_cast<size_t>(x_index)));
   return grad();
 }
 
-void AbstractValue::put(std::vector<double>& fit) const
+void AbstractValue::put(Eigen::VectorXd& fit) const
 {
   if (x_index != -1)
     fit[x_index] = x();
 }
 
-void AbstractValue::get(const std::vector<double>& fit)
+void AbstractValue::get(const Eigen::VectorXd& fit)
 {
   if (x_index != -1)
     x(fit[x_index]);
 }
 
-void AbstractValue::get_uncert(const std::vector<double>& diagonals, double chisq_norm)
+void AbstractValue::get_uncert(const Eigen::VectorXd& diagonals, double chisq_norm)
 {
   if (x_index != -1)
     uncert_value = std::sqrt(std::abs(diagonals[x_index] * this->grad() * chisq_norm));

@@ -15,7 +15,7 @@ namespace DAQuiri
 
 struct FitResult
 {
-  std::vector<double> variables;
+  Eigen::VectorXd variables;
   Eigen::SparseMatrix<double> inv_hessian;
   size_t iterations{0};
   bool converged{false};
@@ -27,12 +27,12 @@ class Fittable
   Fittable() = default;
   virtual ~Fittable() = default;
 
-  virtual std::vector<double> variables() const = 0;
+  virtual Eigen::VectorXd variables() const = 0;
   virtual double degrees_of_freedom() const = 0;
-  virtual double chi_sq(const std::vector<double>& fit) const = 0;
-  virtual double grad_chi_sq(const std::vector<double>& fit,
-                             std::vector<double>& gradients,
-                             std::vector<double>& chan_gradients) const = 0;
+  virtual double chi_sq(const Eigen::VectorXd& fit) const = 0;
+  virtual double grad_chi_sq(const Eigen::VectorXd& fit,
+                             Eigen::VectorXd& gradients,
+                             Eigen::VectorXd& chan_gradients) const = 0;
 };
 
 }

@@ -19,18 +19,16 @@ struct PolyBackground
   ValueBkg curve;
 
   void update_indices(int32_t& i);
-  void put(std::vector<double>& fit) const;
-  void get(const std::vector<double>& fit);
-  void get_uncerts(const std::vector<double>& diagonals, double chisq_norm);
+  void put(Eigen::VectorXd& fit) const;
+  void get(const Eigen::VectorXd& fit);
+  void get_uncerts(const Eigen::VectorXd& diagonals, double chisq_norm);
 
   double eval(double bin) const;
-  double eval_at(double bin, const std::vector<double>& fit) const;
-  double eval_grad(double bin, std::vector<double>& grads) const;
-  double eval_grad_at(double bin,
-      const std::vector<double>& fit,
-                      std::vector<double>& grads) const;
+  double eval_at(double bin, const Eigen::VectorXd& fit) const;
+  double eval_grad(double bin, Eigen::VectorXd& grads) const;
+  double eval_grad_at(double bin, const Eigen::VectorXd& fit, Eigen::VectorXd& grads) const;
 
-  double eval_add(const std::vector<double>& bins, std::vector<double>& vals) const;
+  void eval_add(const std::vector<double>& bins, std::vector<double>& vals) const;
   std::vector<double> eval(const std::vector<double>& bins) const;
 
   std::string to_string(std::string prepend = "") const;

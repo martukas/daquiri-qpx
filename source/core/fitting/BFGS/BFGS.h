@@ -17,21 +17,21 @@ class BFGS
   double Sign(double a, double b);
   double BrentDeriv(Fittable* fittable,
                     double a, double b, double c, double tol, double& xmin,
-                    const std::vector<double>& variables,
-                    const std::vector<double>& hessian,
-                    std::vector<double>& chan_gradients);
+                    const Eigen::VectorXd& variables,
+                    const Eigen::VectorXd& hessian,
+                    Eigen::VectorXd& chan_gradients);
   void Bracket(Fittable* fittable,
                double& a, double& b, double& c, double& fa, double& fb, double& fc,
-               const std::vector<double>& variables, const std::vector<double>& hessian);
+               const Eigen::VectorXd& variables, const Eigen::VectorXd& hessian);
   double fgv(Fittable* fittable, double lambda,
-             std::vector<double> variables, std::vector<double> hessian);
+             Eigen::VectorXd variables, Eigen::VectorXd hessian);
   double dfgv(Fittable* fittable, double lambda,
-              std::vector<double> variables, std::vector<double> hessian,
-              std::vector<double>& chan_gradients);
+              Eigen::VectorXd variables, Eigen::VectorXd hessian,
+              Eigen::VectorXd& chan_gradients);
   double LinMin(Fittable* fittable,
-                std::vector<double>& variables,
-                std::vector<double> hessian,
-                std::vector<double>& chan_gradients);
+                Eigen::VectorXd& variables,
+                Eigen::VectorXd hessian,
+                Eigen::VectorXd& chan_gradients);
 };
 
 }

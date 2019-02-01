@@ -57,12 +57,12 @@ class Region : public Fittable
   void map_fit();
   void save_fit_uncerts(const FitResult& result);
   // Fittable implementation
-  std::vector<double> variables() const override;
+  Eigen::VectorXd variables() const override;
   double degrees_of_freedom() const  override;
-  double chi_sq(const std::vector<double>& fit) const override;
-  double grad_chi_sq(const std::vector<double>& fit,
-                     std::vector<double>& gradients,
-                     std::vector<double>& chan_gradients) const override;
+  double chi_sq(const Eigen::VectorXd& fit) const override;
+  double grad_chi_sq(const Eigen::VectorXd& fit,
+                     Eigen::VectorXd& gradients,
+                     Eigen::VectorXd& chan_gradients) const override;
 
 
   std::string to_string(std::string prepend = "") const;
@@ -78,10 +78,10 @@ class Region : public Fittable
   //public: AnnPeak As CAnnPeak
 
   size_t fit_var_count() const;
-  void save_fit(const std::vector<double>& variables);
+  void save_fit(const Eigen::VectorXd& variables);
   double chi_sq() const;
-  double grad_chi_sq(std::vector<double>& gradients,
-                     std::vector<double>& chan_gradients) const;
+  double grad_chi_sq(Eigen::VectorXd& gradients,
+                     Eigen::VectorXd& chan_gradients) const;
   void init_background();
   void cull_peaks();
   void reindex_peaks();

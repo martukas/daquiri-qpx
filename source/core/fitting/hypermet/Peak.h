@@ -40,9 +40,9 @@ class Peak
   bool operator<(const Peak& other) const;
 
   void update_indices(int32_t& i);
-  void put(std::vector<double>& fit) const;
-  void get(const std::vector<double>& fit);
-  void get_uncerts(const std::vector<double>& diagonals, double chisq_norm);
+  void put(Eigen::VectorXd& fit) const;
+  void get(const Eigen::VectorXd& fit);
+  void get_uncerts(const Eigen::VectorXd& diagonals, double chisq_norm);
 
   double id() const;
   UncertainDouble peak_position() const;
@@ -55,13 +55,13 @@ class Peak
   UncertainDouble fwhm_energy(const Calibration& cal) const;
 
   PrecalcVals precalc_vals(double chan) const;
-  PrecalcVals precalc_vals_at(double chan, const std::vector<double>& fit) const;
+  PrecalcVals precalc_vals_at(double chan, const Eigen::VectorXd& fit) const;
 
   Components eval(double chan) const;
-  Components eval_at(double chan, const std::vector<double>& fit) const;
-  Components eval_grad(double chan, std::vector<double>& grads) const;
-  Components eval_grad_at(double chan, const std::vector<double>& fit,
-      std::vector<double>& grads) const;
+  Components eval_at(double chan, const Eigen::VectorXd& fit) const;
+  Components eval_grad(double chan, Eigen::VectorXd& grads) const;
+  Components eval_grad_at(double chan, const Eigen::VectorXd& fit,
+      Eigen::VectorXd& grads) const;
 
   std::string to_string(std::string prepend = "") const;
 
