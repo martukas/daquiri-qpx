@@ -7,6 +7,8 @@ ThreadFitter::ThreadFitter(QObject *parent) :
   terminating_(false),
   running_(false)
 {
+  optimizer_ = std::make_shared<DAQuiri::OptimizerType>();
+
   action_ = kIdle;
   start(HighPriority);
 }
@@ -150,7 +152,7 @@ void ThreadFitter::remove_peaks(std::set<double> chosen_peaks) {
 void ThreadFitter::stop_work() {
   QMutexLocker locker(&mutex_);
   action_ = kStop; //not thread safe
-  optimizer_.cancel.store(true);
+  //optimizer_.cancel.store(true);
 }
 
 void ThreadFitter::run() {
@@ -158,7 +160,7 @@ void ThreadFitter::run() {
   while (!terminating_.load()) {
     if (action_ != kIdle) {
       running_.store(true);
-      optimizer_.cancel.store(false);
+      //optimizer_.cancel.store(false);
     }
 
     if (action_ == kFit) {
@@ -167,7 +169,7 @@ void ThreadFitter::run() {
       std::shared_ptr<Timer> timer(new Timer(true));
       for (auto &q : fitter_.regions())
       {
-        fitter_.find_and_fit(q.first, optimizer_);
+        fitter_.find_and_fit(q.first, *optimizer_);
         current++;
         if (timer->s() > 2) {
           emit fit_updated(fitter_);
@@ -184,22 +186,22 @@ void ThreadFitter::run() {
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kRefit) {
-      if (fitter_.refit_region(target_, optimizer_))
+      if (fitter_.refit_region(target_, *optimizer_))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kAddPeak) {
-      fitter_.add_peak(LL, RR, optimizer_);
+      fitter_.add_peak(LL, RR, *optimizer_);
       emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kAdjustLB) {
-      if (fitter_.adj_LB(target_, LL, RR, optimizer_))
+      if (fitter_.adj_LB(target_, LL, RR, *optimizer_))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kAdjustRB) {
-      if (fitter_.adj_RB(target_, LL, RR, optimizer_))
+      if (fitter_.adj_RB(target_, LL, RR, *optimizer_))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
@@ -209,12 +211,12 @@ void ThreadFitter::run() {
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kMergeRegions) {
-      if (fitter_.merge_regions(LL, RR, optimizer_))
+      if (fitter_.merge_regions(LL, RR, *optimizer_))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kRemovePeaks) {
-      if (fitter_.remove_peaks(chosen_peaks_, optimizer_))
+      if (fitter_.remove_peaks(chosen_peaks_, *optimizer_))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;

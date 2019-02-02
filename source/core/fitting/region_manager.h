@@ -1,12 +1,16 @@
 #pragma once
 
-#include <core/fitting/BFGS/BFGS.h>
 #include <core/fitting/hypermet/Region.h>
 #include <core/fitting/region_eval.h>
+
+#include <core/fitting/BFGS/BFGS.h>
+
 #include <atomic>
 #include <set>
 
 namespace DAQuiri {
+
+using OptimizerType = BFGS;
 
 struct FitDescription
 {
@@ -95,15 +99,15 @@ class RegionManager {
   //bool override_energy(double peakID, double energy);
 
   //manupulation, may invoke optimizer
-  bool find_and_fit(BFGS& optimizer);
-  bool refit(BFGS& optimizer);
+  bool find_and_fit(OptimizerType& optimizer);
+  bool refit(OptimizerType& optimizer);
   bool adjust_LB(const FitEvaluation &parentfinder, double left, double right,
-                 BFGS& optimizer);
+                 OptimizerType& optimizer);
   bool adjust_RB(const FitEvaluation &parentfinder, double left, double right,
-                 BFGS& optimizer);
+                 OptimizerType& optimizer);
   bool add_peak(const FitEvaluation &parentfinder, double left, double right,
-                BFGS& optimizer);
-  bool remove_peaks(const std::set<double> &pks, BFGS& optimizer);
+                OptimizerType& optimizer);
+  bool remove_peaks(const std::set<double> &pks, OptimizerType& optimizer);
   bool override_settings(const FitSettings &fs);
 
   nlohmann::json to_json(const FitEvaluation &parent_finder) const;
@@ -124,9 +128,9 @@ private:
 
   std::vector<double> remove_background();
 
-  bool add_from_resid(BFGS& optimizer);
-  bool rebuild(BFGS& optimizer);
-  void iterative_fit(BFGS& optimizer);
+  bool add_from_resid(OptimizerType& optimizer);
+  bool rebuild(OptimizerType& optimizer);
+  void iterative_fit(OptimizerType& optimizer);
 
   void render();
   void save_current_fit(std::string description);

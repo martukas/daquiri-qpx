@@ -55,6 +55,7 @@ class Region : public Fittable
 
   // Fitting related
   void map_fit();
+  void save_fit(const Eigen::VectorXd& variables);
   void save_fit_uncerts(const FitResult& result);
   // Fittable implementation
   Eigen::VectorXd variables() const override;
@@ -63,6 +64,9 @@ class Region : public Fittable
   double operator ()(const Eigen::VectorXd& fit,
                      Eigen::VectorXd& gradients) const override;
 
+  double eval(const fitter_vector& m) const override;
+  fitter_vector derivative (const fitter_vector& m) const override;
+  fitter_matrix hessian(const fitter_vector& m) const override;
 
   std::string to_string(std::string prepend = "") const;
   friend void to_json(nlohmann::json& j, const Region& s);
@@ -77,7 +81,6 @@ class Region : public Fittable
   //public: AnnPeak As CAnnPeak
 
   size_t fit_var_count() const;
-  void save_fit(const Eigen::VectorXd& variables);
   double chi_sq() const;
   double grad_chi_sq(Eigen::VectorXd& gradients) const;
   void init_background();

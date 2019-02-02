@@ -65,6 +65,7 @@ target_link_libraries(
   PUBLIC ${GraylogLogger_STATIC_LIBRARIES}
   PUBLIC h5cpp
   PUBLIC fmt::fmt
+  PUBLIC ${optimizer_LIBRARIES}
   PUBLIC ${DATE_LIBRARIES}
   PRIVATE Threads::Threads
 )

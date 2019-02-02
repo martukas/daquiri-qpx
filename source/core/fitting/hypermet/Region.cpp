@@ -3,6 +3,8 @@
 
 #include <core/util/custom_logger.h>
 
+#include <dlib/matrix/matrix_mat.h>
+
 namespace DAQuiri
 {
 
@@ -384,7 +386,7 @@ double Region::chi_sq() const
       FTotal += p.second.eval(data.x).all();
     ChiSq += square((data.y - FTotal) / data.weight_true);
   }
-  return ChiSq;
+  return ChiSq / degrees_of_freedom();
 }
 
 //Calculates the Chi-square and its gradient
@@ -409,7 +411,7 @@ double Region::grad_chi_sq(Eigen::VectorXd& gradients) const
   }
   //Chisq /= df
 
-  return Chisq;
+  return Chisq / degrees_of_freedom();
 }
 
 //Calculates the Chi-square over a region
@@ -423,7 +425,7 @@ double Region::chi_sq(const Eigen::VectorXd& fit) const
       FTotal += p.second.eval_at(data.x, fit).all();
     ChiSq += square((data.y - FTotal) / data.weight_phillips_marlow);
   }
-  return ChiSq;
+  return ChiSq / degrees_of_freedom();
 }
 
 //Calculates the Chi-square and its gradient
@@ -448,7 +450,33 @@ double Region::operator ()(const Eigen::VectorXd& fit,
     Chisq += square((data.y - FTotal) / data.weight_phillips_marlow);
   }
   //Chisq /= df
-  return Chisq;
+  return Chisq / degrees_of_freedom();
+}
+
+double Region::eval(const fitter_vector& m) const
+{
+  Eigen::VectorXd v;
+  v.setConstant(m.size(), 0.0);
+  for (long i = 0; i < m.size(); ++i)
+    v[i] = m(i);
+  return chi_sq(v);
+}
+
+fitter_vector Region::derivative(const fitter_vector& m) const
+{
+  Eigen::VectorXd v;
+  v.setConstant(m.size(), 0.0);
+  for (long i = 0; i < m.size(); ++i)
+    v[i] = m(i);
+  Eigen::VectorXd g;
+  g.setConstant(g.size(), 0.0);
+  auto chi = operator()(v, g);
+  return dlib::mat(g);
+}
+
+fitter_matrix Region::hessian(const fitter_vector& m) const
+{
+
 }
 
 std::string Region::to_string(std::string prepend) const

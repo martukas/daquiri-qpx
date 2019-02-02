@@ -5,7 +5,10 @@
 #include <core/calibration/calibration.h>
 #include <core/thread_wrappers.h>
 
+#pragma push_macro("POSIX")
+#undef POSIX
 #include <h5cpp/hdf5.hpp>
+#pragma pop_macro("POSIX")
 
 namespace DAQuiri {
 

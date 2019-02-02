@@ -4,6 +4,9 @@
 
 #include <core/util/custom_logger.h>
 
+#include <dlib/matrix/matrix_mat.h>
+
+
 namespace DAQuiri {
 
 Fit::Fit(const Region& r, std::string descr)
@@ -150,7 +153,7 @@ void RegionManager::set_data(const FitEvaluation &parentfinder, double l, double
   render();
 }
 
-bool RegionManager::refit(BFGS& optimizer)
+bool RegionManager::refit(OptimizerType& optimizer)
 {
   if (region_.peaks_.empty())
     return find_and_fit(optimizer);
@@ -158,7 +161,7 @@ bool RegionManager::refit(BFGS& optimizer)
     return rebuild(optimizer);
 }
 
-bool RegionManager::find_and_fit(BFGS& optimizer)
+bool RegionManager::find_and_fit(OptimizerType& optimizer)
 {
   fit_eval_.reset();
   NaiveKON kon(fit_eval_.x_, fit_eval_.y_,
@@ -194,7 +197,7 @@ bool RegionManager::find_and_fit(BFGS& optimizer)
   return true;
 }
 
-void RegionManager::iterative_fit(BFGS& optimizer)
+void RegionManager::iterative_fit(OptimizerType& optimizer)
 {
   if (!settings_.calib.cali_fwhm_.valid() || region_.peaks_.empty())
     return;
@@ -210,12 +213,12 @@ void RegionManager::iterative_fit(BFGS& optimizer)
       break;
     }
 
-    if (optimizer.cancel.load())
-      break;
+//    if (optimizer.cancel.load())
+//      break;
   }
 }
 
-bool RegionManager::add_from_resid(BFGS& optimizer)
+bool RegionManager::add_from_resid(OptimizerType& optimizer)
 {
   if (fit_eval_.empty())
     return false;
@@ -332,7 +335,7 @@ bool RegionManager::replace_hypermet(double &peakID, Peak hyp)
 
 bool RegionManager::add_peak(const FitEvaluation &parentfinder,
                    double left, double right,
-                   BFGS& optimizer)
+                   OptimizerType& optimizer)
 {
   double center_prelim = (left+right) * 0.5; //assume down the middle
 
@@ -375,7 +378,7 @@ bool RegionManager::add_peak(const FitEvaluation &parentfinder,
   return false;
 }
 
-bool RegionManager::remove_peaks(const std::set<double> &pks, BFGS& optimizer)
+bool RegionManager::remove_peaks(const std::set<double> &pks, OptimizerType& optimizer)
 {
   bool found = region_.remove_peaks(pks);
 
@@ -410,16 +413,31 @@ void RegionManager::save_current_fit(std::string description)
   current_fit_ = fits_.size() - 1;
 }
 
-bool RegionManager::rebuild(BFGS& optimizer)
+bool RegionManager::rebuild(OptimizerType& optimizer)
 {
+  // \todo check for convergence before saving?
   if (region_.peaks_.empty())
     return false;
 
   region_.map_fit();
   INFO("Will rebuild\n{}", region_.to_string(" "));
-  auto result = optimizer.BFGSMin(&region_, 0.0000001);
-  // \todo check for convergence?
-  region_.save_fit_uncerts(result);
+
+//  auto result = optimizer.BFGSMin(&region_, 0.00001);
+//  region_.save_fit_uncerts(result);
+
+  fitter_vector starting_point = dlib::mat(region_.variables());
+  const auto& fe = std::bind(&Region::eval, region_, std::placeholders::_1);
+  const auto& fd = std::bind(&Region::derivative, region_, std::placeholders::_1);
+  dlib::find_min(dlib::bfgs_search_strategy(),
+                 dlib::objective_delta_stop_strategy(1e-7).be_verbose(),
+                 fe, fd, starting_point, -1);
+
+  Eigen::VectorXd v;
+  v.setConstant(starting_point.size(), 0.0);
+  for (long i = 0; i < starting_point.size(); ++i)
+    v[i] = starting_point(i);
+  region_.save_fit(v);
+
   region_.auto_sum4();
   save_current_fit("Rebuild");
   INFO("Rebuilt as\n{}", region_.to_string(" "));
@@ -458,7 +476,7 @@ std::vector<double> RegionManager::remove_background()
 }
 
 bool RegionManager::adjust_LB(const FitEvaluation &parentfinder, double left, double right,
-                     BFGS& optimizer)
+                     OptimizerType& optimizer)
 {
   SUM4Edge edge(parentfinder.weighted_data.subset(left, right));
   if (!edge.width() || (edge.right() >= region_.RB_.left()))
@@ -480,7 +498,7 @@ bool RegionManager::adjust_LB(const FitEvaluation &parentfinder, double left, do
 }
 
 bool RegionManager::adjust_RB(const FitEvaluation &parentfinder, double left, double right,
-                    BFGS& optimizer) {
+                    OptimizerType& optimizer) {
   SUM4Edge edge(parentfinder.weighted_data.subset(left, right));
   if (!edge.width() || (edge.left() <= region_.LB_.right()))
     return false;

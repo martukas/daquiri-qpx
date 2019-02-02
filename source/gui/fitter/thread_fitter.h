@@ -37,7 +37,7 @@ protected:
 private:
   DAQuiri::Fitter fitter_;
 
-  DAQuiri::BFGS optimizer_;
+  std::shared_ptr<DAQuiri::OptimizerType> optimizer_;
 
   QMutex mutex_;
   FitterAction action_;

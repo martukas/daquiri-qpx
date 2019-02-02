@@ -8,18 +8,13 @@ find_package(Threads REQUIRED)
 find_package(GraylogLogger REQUIRED)
 add_definitions("-DGRAYLOG")
 
+find_package(dlib REQUIRED)
+set(optimizer_LIBRARIES dlib::dlib)
+
 add_subdirectory(core)
 add_subdirectory(consumers)
 add_subdirectory(producers)
 add_subdirectory(importers)
-
-#ROOT
-#list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
-#find_package(ROOT COMPONENTS Hist)
-#if(ROOT_FOUND)
-#  add_subdirectory(optimizerROOT)
-#  set(optimizer_LIBRARIES daquiri_optimizerROOT)
-#endif()
 
 add_subdirectory(cmd)
 add_subdirectory(gui)

@@ -276,7 +276,7 @@ void Fitter::render_all()
 //                   r.second.finder().y_background_);
 }
 
-bool Fitter::find_and_fit(double regionID, BFGS& optimizer)
+bool Fitter::find_and_fit(double regionID, OptimizerType& optimizer)
 {
   if (!regions_.count(regionID))
     return false;
@@ -286,7 +286,7 @@ bool Fitter::find_and_fit(double regionID, BFGS& optimizer)
   return true;
 }
 
-bool Fitter::refit_region(double regionID, BFGS& optimizer)
+bool Fitter::refit_region(double regionID, OptimizerType& optimizer)
 {
   if (!contains_region(regionID))
     return false;
@@ -297,7 +297,7 @@ bool Fitter::refit_region(double regionID, BFGS& optimizer)
 }
 
 bool Fitter::adj_LB(double regionID, double left, double right,
-                    BFGS& optimizer)
+                    OptimizerType& optimizer)
 {
   if (!contains_region(regionID))
     return false;
@@ -312,7 +312,7 @@ bool Fitter::adj_LB(double regionID, double left, double right,
 }
 
 bool Fitter::adj_RB(double regionID, double left, double right,
-                    BFGS& optimizer)
+                    OptimizerType& optimizer)
 {
   if (!contains_region(regionID))
     return false;
@@ -341,7 +341,7 @@ bool Fitter::override_ROI_settings(double regionID, const FitSettings& fs)
 }
 
 bool Fitter::merge_regions(double left, double right,
-                           BFGS& optimizer)
+                           OptimizerType& optimizer)
 {
   std::set<double> rois = relevant_regions(left, right);
   double min = std::min(left, right);
@@ -402,7 +402,7 @@ bool Fitter::rollback_ROI(double regionID, size_t point)
 }
 
 bool Fitter::add_peak(double left, double right,
-                      BFGS& optimizer)
+                      OptimizerType& optimizer)
 {
   if (fit_eval_.x_.empty())
     return false;
@@ -428,7 +428,7 @@ bool Fitter::add_peak(double left, double right,
 }
 
 bool Fitter::remove_peaks(std::set<double> bins,
-                          BFGS& optimizer)
+                          OptimizerType& optimizer)
 {
   bool changed = false;
   for (auto& m : regions_)
