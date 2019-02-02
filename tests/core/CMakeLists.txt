@@ -22,5 +22,6 @@ set(SOURCES
 add_subdirectory(util)
 add_subdirectory(calibration)
 add_subdirectory(plugin)
+add_subdirectory(fitting)
 
 set(${this_target}_sources ${${this_target}_sources} ${SOURCES} PARENT_SCOPE)

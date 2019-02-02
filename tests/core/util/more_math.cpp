@@ -1,6 +1,6 @@
 #include "gtest_color_print.h"
 
-#include <optimizerBFGS/more_math.h>
+#include <core/util/more_math.h>
 
 class MoreMath : public TestBase
 {

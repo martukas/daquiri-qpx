@@ -54,6 +54,7 @@ class Region : public Fittable
   double chi_sq_normalized() const;
 
   // Fitting related
+  size_t variable_count() const;
   void map_fit();
   void save_fit(const Eigen::VectorXd& variables);
   void save_fit_uncerts(const FitResult& result);
@@ -73,7 +74,7 @@ class Region : public Fittable
   friend void from_json(const nlohmann::json& j, Region& s);
 
  private:
-  int32_t var_count_{0};
+  int32_t variable_count_{0};
   WeightedData data_;
   bool dirty_{false};
 

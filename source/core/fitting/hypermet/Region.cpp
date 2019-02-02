@@ -91,12 +91,16 @@ void Region::adjust_RB(const SUM4Edge& rb)
 
 double Region::left() const
 {
-  return data_.data.front().x;
+  if (!data_.empty())
+    return data_.data.front().x;
+  return std::numeric_limits<double>::quiet_NaN();
 }
 
 double Region::right() const
 {
-  return data_.data.back().x;
+  if (!data_.empty())
+    return data_.data.back().x;
+  return std::numeric_limits<double>::quiet_NaN();
 }
 
 bool Region::empty() const
@@ -260,6 +264,11 @@ void Region::reindex_peaks()
   peaks_ = new_peaks;
 }
 
+size_t Region::variable_count() const
+{
+  return static_cast<size_t>(variable_count_);
+}
+
 void Region::map_fit()
 {
   size_t unique_widths{0};
@@ -281,40 +290,43 @@ void Region::map_fit()
       unique_steps++;
   }
 
-  var_count_ = 0;
-  background.update_indices(var_count_);
+  variable_count_ = 0;
+  background.update_indices(variable_count_);
 
-  if (unique_widths < peaks_.size())
-    default_peak_.width_.x_index = var_count_++;
-  else
-    default_peak_.width_.x_index = -1;
+  if (!peaks_.empty())
+  {
+    if (unique_widths < peaks_.size())
+      default_peak_.width_.x_index = variable_count_++;
+    else
+      default_peak_.width_.x_index = -1;
 
-  if (default_peak_.short_tail.enabled &&
-      (unique_short_tails < peaks_.size()))
-    default_peak_.short_tail.update_indices(var_count_);
+    if (default_peak_.short_tail.enabled &&
+        (unique_short_tails < peaks_.size()))
+      default_peak_.short_tail.update_indices(variable_count_);
 
-  if (default_peak_.right_tail.enabled &&
-      (unique_right_tails < peaks_.size()))
-    default_peak_.right_tail.update_indices(var_count_);
+    if (default_peak_.right_tail.enabled &&
+        (unique_right_tails < peaks_.size()))
+      default_peak_.right_tail.update_indices(variable_count_);
 
-  if (default_peak_.long_tail.enabled &&
-      (unique_long_tails < peaks_.size()))
-    default_peak_.long_tail.update_indices(var_count_);
+    if (default_peak_.long_tail.enabled &&
+        (unique_long_tails < peaks_.size()))
+      default_peak_.long_tail.update_indices(variable_count_);
 
-  if (default_peak_.step.enabled &&
-      (unique_steps < peaks_.size()))
-    default_peak_.step.update_indices(var_count_);
+    if (default_peak_.step.enabled &&
+        (unique_steps < peaks_.size()))
+      default_peak_.step.update_indices(variable_count_);
+  }
 
   for (auto& p : peaks_)
   {
     p.second.apply_defaults(default_peak_);
-    p.second.update_indices(var_count_);
+    p.second.update_indices(variable_count_);
   }
 }
 
 size_t Region::fit_var_count() const
 {
-  return static_cast<size_t>(var_count_);
+  return static_cast<size_t>(variable_count_);
 }
 
 Eigen::VectorXd Region::variables() const
@@ -323,7 +335,9 @@ Eigen::VectorXd Region::variables() const
   ret.setConstant(fit_var_count(), 0.0);
 
   background.put(ret);
-  default_peak_.put(ret);
+
+  if (!peaks_.empty())
+    default_peak_.put(ret);
 
   for (auto& p : peaks_)
     p.second.put(ret);
@@ -334,7 +348,9 @@ Eigen::VectorXd Region::variables() const
 void Region::save_fit(const Eigen::VectorXd& variables)
 {
   background.get(variables);
-  default_peak_.get(variables);
+
+  if (!peaks_.empty())
+    default_peak_.get(variables);
 
   for (auto& p : peaks_)
     p.second.get(variables);
@@ -356,7 +372,8 @@ void Region::save_fit_uncerts(const FitResult& result)
   double chisq_norm = std::max(chi_sq_normalized(), 1.0) * 0.5;
 
   background.get_uncerts(diagonals, chisq_norm);
-  default_peak_.get_uncerts(diagonals, chisq_norm);
+  if (!peaks_.empty())
+    default_peak_.get_uncerts(diagonals, chisq_norm);
 
   for (auto& p : peaks_)
     p.second.get_uncerts(diagonals, chisq_norm);
@@ -485,7 +502,7 @@ std::string Region::to_string(std::string prepend) const
   ss << prepend
      << fmt::format("data_points={} on channels [{},{}] vars={} {}\n",
                                data_.data.size(), left(), right(),
-                               var_count_, (dirty_ ? " DIRTY" : ""));
+                               variable_count_, (dirty_ ? " DIRTY" : ""));
   ss << prepend << "SUM4/LB: " << LB_.to_string() << "\n";
   ss << prepend << "SUM4/RB: " << RB_.to_string() << "\n";
   ss << prepend << "Background:\n";
