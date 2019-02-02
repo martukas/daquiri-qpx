@@ -3,6 +3,7 @@
 #include <random>
 
 #include <core/fitting/hypermet/Region.h>
+#include <core/fitting/region_manager.h>
 
 class Region : public TestBase
 {
@@ -153,8 +154,111 @@ TEST_F(Region, FitBackgroundWithNoise)
 
   MESSAGE() << "Region with data:\n" << region.to_string(" ") << "\n";
 
-  MESSAGE() << "Estimate val:\n" << visualize(x, y2, 80) << "\n";
+  DAQuiri::fitter_vector starting_point = dlib::mat(region.variables());
 
+  const auto& fe = std::bind(&DAQuiri::Region::eval, region, std::placeholders::_1);
+  const auto& fd = std::bind(&DAQuiri::Region::derivative, region, std::placeholders::_1);
+  dlib::find_min(dlib::bfgs_search_strategy(),
+                 dlib::objective_delta_stop_strategy(1e-10).be_verbose(),
+                 fe, fd, starting_point, -1);
+
+  Eigen::VectorXd v;
+  v.setConstant(starting_point.size(), 0.0);
+  for (long i = 0; i < starting_point.size(); ++i)
+    v[i] = starting_point(i);
+  region.save_fit(v);
+
+  MESSAGE() << "Region after fit:\n" << region.to_string(" ") << "\n";
+
+  auto y3 = region.background.eval(x);
+  MESSAGE() << "Final fit:\n" << visualize(x, y3, 80) << "\n";
+}
+
+TEST_F(Region, FitBackgroundOurImplementation)
+{
+  DAQuiri::Region region;
+  region.background.x_offset = 0;
+  region.background.base.val(70);
+  region.background.slope.val(3);
+  region.background.curve.val(5);
+
+  MESSAGE() << "Goal region:\n" << region.to_string(" ") << "\n";
+
+  std::vector<double> x;
+  for (size_t i=0; i < 30; ++i)
+    x.push_back(i);
+  auto y = region.background.eval(x);
+  MESSAGE() << "Original val:\n" << visualize(x, y, 80) << "\n";
+
+  DAQuiri::WeightedData wd(x, y);
+  region.replace_data(wd);
+  region.map_fit();
+  auto y2 = region.background.eval(x);
+
+  MESSAGE() << "Region with data:\n" << region.to_string(" ") << "\n";
+
+  DAQuiri::OptimizerType optimizer;
+  auto result = optimizer.BFGSMin(&region, 1e-10);
+  region.save_fit_uncerts(result);
+
+  MESSAGE() << "Region after fit:\n" << region.to_string(" ") << "\n";
+
+  auto y3 = region.background.eval(x);
+  MESSAGE() << "Final fit:\n" << visualize(x, y3, 80) << "\n";
+}
+
+
+TEST_F(Region, FitOnePeakGaussianOnly)
+{
+  DAQuiri::Region region;
+  region.background.x_offset = 0;
+  region.background.base.val(70);
+  region.background.slope.val(1);
+  region.background.curve.val(0);
+
+  DAQuiri::Peak pk;
+  pk.position.bound(3, 27);
+  pk.position.val(15);
+  pk.amplitude.val(500);
+  pk.width_.val(3);
+  pk.step.enabled = false;
+  pk.short_tail.enabled = false;
+  pk.right_tail.enabled = false;
+  pk.long_tail.enabled = false;
+
+  region.default_peak_ = pk;
+
+//  pk.step.override = true;
+//  pk.short_tail.override = true;
+//  pk.right_tail.override = true;
+//  pk.long_tail.override = true;
+  region.peaks_[pk.id()] = pk;
+
+  MESSAGE() << "Goal region:\n" << region.to_string(" ") << "\n";
+
+  std::vector<double> x;
+  for (size_t i=0; i < 30; ++i)
+    x.push_back(i);
+  auto y = region.background.eval(x);
+  for (size_t i=0; i < 30; ++i)
+    y[i] += pk.eval(x[i]).all();
+
+  MESSAGE() << "Original val:\n" << visualize(x, y, 80) << "\n";
+
+  region.remove_peak(pk.id());
+
+  DAQuiri::WeightedData wd(x, y);
+  region.replace_data(wd);
+  region.add_peak(3, 27, 300);
+  region.map_fit();
+  auto y2 = region.background.eval(x);
+  auto pk2 = region.peaks_.begin()->second;
+  for (size_t i=0; i < 30; ++i)
+    y2[i] += pk2.eval(x[i]).all();
+
+  MESSAGE() << "Region with data:\n" << region.to_string(" ") << "\n";
+
+  MESSAGE() << "Estimate val:\n" << visualize(x, y2, 80) << "\n";
 
   DAQuiri::fitter_vector starting_point = dlib::mat(region.variables());
 

@@ -509,13 +509,15 @@ std::string Region::to_string(std::string prepend) const
   ss << background.to_string(prepend + " ");
   ss << prepend << "Default peak:\n";
   ss << default_peak_.to_string(prepend + " ");
-  ss << prepend << "Peaks:\n";
-  for (const auto& p : peaks_)
+  if (!peaks_.empty())
   {
-    ss << prepend << " Peak at " << p.first << "\n";
-    ss << p.second.to_string(prepend + "  ");
+    ss << prepend << "Peaks:\n";
+    for (const auto& p : peaks_)
+    {
+      ss << prepend << " Peak at " << p.first << "\n";
+      ss << p.second.to_string(prepend + "  ");
+    }
   }
-
   return ss.str();
 }
 
