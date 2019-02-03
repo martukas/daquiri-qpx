@@ -14,9 +14,9 @@ struct PolyBackground
   double x_offset {0};
   ValueGam base;
   bool slope_enabled{true};
-  ValueBkg slope;
+  Value slope;
   bool curve_enabled{true};
-  ValueBkg curve;
+  Value curve;
 
   void update_indices(int32_t& i);
   void put(Eigen::VectorXd& fit) const;

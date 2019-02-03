@@ -243,9 +243,9 @@ void Region::init_background()
   double maxcurve = (square(run) - std::min(LB_.min(), RB_.min())) / std::max(LB_.max(), RB_.max());
 
   // \todo bounds for polynomial
-//  background.base. set_coeff(0, {ymin, ymax, yav});
-//  background.slope. set_coeff(1, {0.5 * minslope, 2 * maxslope, slope});
-//  background.curve. set_coeff(2, {-maxcurve, maxcurve, 0});
+  //background.base. set_coeff(0, {ymin, ymax, yav});
+  background.slope.bound(0.5 * minslope, 2 * maxslope);
+  background.curve.bound(-maxcurve, maxcurve);
 
   background.base.val(yav);
   background.slope.val(slope);
