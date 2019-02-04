@@ -4,6 +4,7 @@ set(SOURCES
   ${dir}/value.cpp
   ${dir}/step.cpp
   ${dir}/poly_background.cpp
+  ${dir}/peak.cpp
   ${dir}/region.cpp
   )
 
