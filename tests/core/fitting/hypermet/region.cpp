@@ -49,7 +49,7 @@ TEST_F(Region, EvalBackground)
   auto y2 = region.background.eval(x);
   MESSAGE() << "Estimate eval:\n" << visualize(x, y2, 80) << "\n";
 
-  size_t fits = 100;
+  size_t fits = 20;
   double delta_slope = (3.0 - region.background.slope.val()) / static_cast<double>(fits);
   double delta_curve = (5.0 - region.background.curve.val()) / static_cast<double>(fits);
 
@@ -278,19 +278,20 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
   region.replace_data(DAQuiri::WeightedData(x, y));
   region.add_peak(5, 27, 300);
   region.map_fit();
+
+  MESSAGE() << "Region with data:\n" << region.to_string(" ") << "\n";
+
   auto y2 = region.background.eval(x);
   auto pk2 = region.peaks_.begin()->second;
   for (size_t i=0; i < 30; ++i)
     y2[i] += pk2.eval(x[i]).all();
 
-  MESSAGE() << "Region with data:\n" << region.to_string(" ") << "\n";
-
   MESSAGE() << "Estimate val:\n" << visualize(x, y2, 80) << "\n";
 
-  size_t fits = 15;
-  double delta_width = (3 - pk2.width_.val()) / static_cast<double>(fits);
+  size_t fits = 20;
+  double delta_width = (3.0 - pk2.width_.val()) / static_cast<double>(fits);
   double delta_pos = (5.0 - pk2.position.val()) / static_cast<double>(fits);
-  double delta_amp = (500 - pk2.amplitude.val()) / static_cast<double>(fits);
+  double delta_amp = (500.0 - pk2.amplitude.val()) / static_cast<double>(fits);
 
   std::vector<double> chi, width, pos, amp;
   Eigen::VectorXd grad(region.variable_count());
@@ -312,13 +313,18 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
   MESSAGE() << "Grad(pos):\n" << visualize(pos, 80) << "\n";
   MESSAGE() << "Grad(amp):\n" << visualize(amp, 80) << "\n";
 
+  region = DAQuiri::Region();
+  region.default_peak_ = DAQuiri::Peak().gaussian_only();
+  region.replace_data(DAQuiri::WeightedData(x, y));
+  region.add_peak(5, 27, 300);
+  region.map_fit();
 
-//  DAQuiri::OptimizerType optimizer;
-//  auto result = optimizer.BFGSMin(&region, 1e-10);
-//  region.save_fit_uncerts(result);
-//
-//  MESSAGE() << "Region after fit:\n" << region.to_string(" ") << "\n";
-//
-//  auto y3 = region.background.eval(x);
-//  MESSAGE() << "Final fit:\n" << visualize(x, y3, 80) << "\n";
+  DAQuiri::OptimizerType optimizer;
+  auto result = optimizer.BFGSMin(&region, 1e-10);
+  region.save_fit_uncerts(result);
+
+  MESSAGE() << "Region after fit:\n" << region.to_string(" ") << "\n";
+
+  auto y3 = region.background.eval(x);
+  MESSAGE() << "Final fit:\n" << visualize(x, y3, 80) << "\n";
 }

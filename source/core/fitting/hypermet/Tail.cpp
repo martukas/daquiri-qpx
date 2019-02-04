@@ -62,9 +62,9 @@ double Tail::eval_grad(const PrecalcVals& pre, Eigen::VectorXd& grads,
   double spread = flip(pre.spread);
   double t2 = (pre.ampl * ampl * std::exp(spread / slp) / std::sqrt(M_PI) *
       std::exp(-1.0 * square(1.0 / (2.0 * slp) + spread)) / pre.width);
-  grads[i_width] += -spread / (pre.width * slp) * ret + t2 * spread;
-  grads[i_pos] += -1.0 / (slp * pre.width) * ret + t2;
-  grads[i_amp] += ret / ampl;
+  grads[i_width] += pre.width_grad * (-spread / (pre.width * slp) * ret + t2 * spread);
+  grads[i_pos] += pre.pos_grad * (-1.0 / (slp * pre.width) * ret + t2);
+  grads[i_amp] += pre.amp_grad * ret / ampl;
 
   if (amplitude.to_fit)
     grads[amplitude.x_index] += ret / ampl * amplitude.grad();
@@ -84,9 +84,9 @@ double Tail::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
   double spread = flip(pre.spread);
   double t2 = (pre.ampl * ampl * std::exp(spread / slp) / std::sqrt(M_PI) *
       std::exp(-1.0 * square(1.0 / (2.0 * slp) + spread)) / pre.width);
-  grads[i_width] += -spread / (pre.width * slp) * ret + t2 * spread;
-  grads[i_pos] += -1.0 / (slp * pre.width) * ret + t2;
-  grads[i_amp] += ret / ampl;
+  grads[i_width] += pre.width_grad * (-spread / (pre.width * slp) * ret + t2 * spread);
+  grads[i_pos] += pre.pos_grad * (-1.0 / (slp * pre.width) * ret + t2);
+  grads[i_amp] += pre.amp_grad * ret / ampl;
 
   if (amplitude.to_fit)
     grads[amplitude.x_index] += ret / ampl * amplitude.grad_from(fit);

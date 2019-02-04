@@ -50,9 +50,9 @@ double Step::eval_grad(const PrecalcVals& pre, Eigen::VectorXd& grads,
   double ampl = amplitude.val();
   double ret = eval_with(pre, ampl);
 
-  grads[i_width] += (pre.ampl * flip(ampl) / std::sqrt(M_PI) *
+  grads[i_width] += pre.width_grad * (pre.ampl * flip(ampl) / std::sqrt(M_PI) *
       std::exp(-square(pre.spread)) * pre.spread / pre.width);
-  grads[i_amp] += ret / pre.ampl;
+  grads[i_amp] += pre.pos_grad * ret / pre.ampl;
   if (amplitude.to_fit)
     grads[amplitude.x_index] += ret / ampl * amplitude.grad();
 
@@ -67,9 +67,9 @@ double Step::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
   double ampl = amplitude.val_from(fit);
   double ret = eval_with(pre, ampl);
 
-  grads[i_width] += (pre.ampl * flip(ampl) / std::sqrt(M_PI) *
+  grads[i_width] += pre.width_grad * (pre.ampl * flip(ampl) / std::sqrt(M_PI) *
       std::exp(-square(pre.spread)) * pre.spread / pre.width);
-  grads[i_amp] += ret / pre.ampl;
+  grads[i_amp] += pre.pos_grad * ret / pre.ampl;
   if (amplitude.to_fit)
     grads[amplitude.x_index] += ret / ampl * amplitude.grad_from(fit);
 

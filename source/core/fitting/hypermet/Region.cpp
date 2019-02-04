@@ -118,8 +118,7 @@ bool Region::add_peak(double l, double r, double amp_hint)
   if ((l < left()) || (right() < r))
     throw std::runtime_error("Attempting to add peak outside of region bounds");
   Peak p = default_peak_;
-  p.position.min(l);
-  p.position.max(r);
+  p.position.bound(l, r);
   p.position.val(0.5 * (l + r));
 
   data_.subset(l, r);
@@ -131,10 +130,9 @@ bool Region::add_peak(double l, double r, double amp_hint)
     min_bkg = std::min(min_bkg, background.eval(v.x));
   }
 
-  p.amplitude.val(amp_hint);
-
   // \todo why is amplitude not bounded?
-  //p.amplitude.max(max_val - min_bkg);
+  p.amplitude.max(max_val - min_bkg);
+  p.amplitude.val(amp_hint);
   peaks_[p.id()] = p;
   dirty_ = true;
 }

@@ -112,6 +112,10 @@ struct PrecalcVals
   double ampl;
   double half_ampl;
   double spread;
+
+  double width_grad;
+  double pos_grad;
+  double amp_grad;
 };
 
 enum class Side
