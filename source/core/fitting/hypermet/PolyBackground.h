@@ -7,7 +7,7 @@ namespace DAQuiri
 
 struct PolyBackground
 {
-  PolyBackground() = default;
+  PolyBackground();
   // \todo construct with default vals
 
   // \todo why are these unbounded?

@@ -216,39 +216,51 @@ void Region::init_background()
   // \todo make this more rigorous
 
   //by default, linear
-  double run = RB_.left() - LB_.right();
+  double run = RB_.right() - LB_.left();
 
-  double minslope = 0, maxslope = 0;
-  double ymin, ymax, yav;
+  INFO("run={}", run);
+
+//  // ascending slope
+//  if (LB_.average() < RB_.average())
+//    run = RB_.right() - LB_.right();
+//  else
+//    run = RB_.left() - LB_.left();
+
+  double ymax = std::max(LB_.max(), RB_.max());
+  double ymin = std::min(LB_.min(), RB_.min());
+
+  INFO("ymax={} ymin={}", ymax, ymin);
+
+  double maxcurve = std::abs((ymax - ymin) / square(run));
+
+  INFO("maxcurve={}", maxcurve);
+
+  double minslope{0.0}, maxslope{0.0};
+  double yav;
+
+  // ascending slope
   if (LB_.average() < RB_.average())
   {
-    run = RB_.right() - LB_.right();
-    minslope = (RB_.min() - LB_.max()) / (RB_.right() - LB_.left());
+    //minslope = (RB_.min() - LB_.max()) / (RB_.right() - LB_.left());
     maxslope = (RB_.max() - LB_.min()) / (RB_.left() - LB_.right());
-    ymin = LB_.min();
-    ymax = RB_.max();
     yav = LB_.average();
   }
-  else if (RB_.average() < LB_.average())
+  else
   {
-    run = RB_.left() - LB_.left();
     minslope = (RB_.min() - LB_.max()) / (RB_.left() - LB_.right());
-    maxslope = (RB_.max() - LB_.min()) / (RB_.right() - LB_.left());
-    ymin = RB_.min();
-    ymax = LB_.max();
+    //maxslope = (RB_.max() - LB_.min()) / (RB_.right() - LB_.left());
     yav = RB_.average();
   }
 
-  double slope = (RB_.average() - LB_.average()) / run;
-  double maxcurve = (square(run) - std::min(LB_.min(), RB_.min())) / std::max(LB_.max(), RB_.max());
+
 
   // \todo bounds for polynomial
   //background.base. set_coeff(0, {ymin, ymax, yav});
-  background.slope.bound(0.5 * minslope, 2 * maxslope);
+  background.slope.bound(minslope, maxslope);
   background.curve.bound(-maxcurve, maxcurve);
 
   background.base.val(yav);
-  background.slope.val(slope);
+  background.slope.val((RB_.average() - LB_.average()) / run);
   background.curve.val(0.0);
 
   // \todo invalidate uncertanties

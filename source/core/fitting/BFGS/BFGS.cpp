@@ -325,7 +325,6 @@ FitResult BFGS::BFGSMin(Fittable* fittable, double tolf)
 
   ret.variables = fittable->variables();
   auto var_count = ret.variables.size();
-  double free_vars = fittable->degrees_of_freedom();
   Eigen::VectorXd
       hessian(var_count),
       gradients(var_count),
@@ -348,7 +347,7 @@ FitResult BFGS::BFGSMin(Fittable* fittable, double tolf)
       prev_val[i] = gradients[i];
 
     fmin = (*fittable)(ret.variables, gradients);
-    INFO("Fitting... Iteration = {}, Chisq = {}", ret.iterations, fmin / free_vars);
+    INFO("Fitting... Iteration = {}, Chisq = {}", ret.iterations, fmin);
 
     for (size_t i = 0; i < var_count; ++i)
       prev_val[i] = gradients[i] - prev_val[i];

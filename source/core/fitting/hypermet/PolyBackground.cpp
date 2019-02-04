@@ -6,6 +6,12 @@
 namespace DAQuiri
 {
 
+PolyBackground::PolyBackground()
+{
+  slope.bound(-100, 100);
+  curve.bound(-100, 100);
+}
+
 void PolyBackground::update_indices(int32_t& i)
 {
   base.x_index = i++;
