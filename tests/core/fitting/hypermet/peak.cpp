@@ -51,7 +51,7 @@ class Peak : public TestBase
     std::vector<double> x_val;
     std::vector<double> val_val;
     std::vector<double> chi_sq_norm;
-    std::vector<double> amp_gradient;
+    std::vector<double> gradient;
 
     Eigen::VectorXd chan_gradients;
     for (double val_x = -4; val_x < 4; val_x += 0.2)
@@ -64,16 +64,16 @@ class Peak : public TestBase
       double FTotal = peak.eval_grad(chosen_point.x, chan_gradients).all();
       double t3 = -2.0 * (chosen_point.y - FTotal) / square(chosen_point.weight_phillips_marlow);
 
-      chi_sq_norm.push_back(chan_gradients[chosen_var_idx] * t3);
-      amp_gradient.push_back(
+      gradient.push_back(chan_gradients[chosen_var_idx] * t3);
+      chi_sq_norm.push_back(
           square((chosen_point.y - FTotal) / chosen_point.weight_phillips_marlow)
               / degrees_freedom);
     }
 
     MESSAGE() << "chi_sq_norm(x):\n" << visualize(x_val, chi_sq_norm, 100) << "\n";
-    MESSAGE() << "amp_gradient(x):\n" << visualize(x_val, amp_gradient, 100) << "\n";
-    MESSAGE() << "chi_sq_norm(val):\n" << visualize(val_val, chi_sq_norm, 100) << "\n";
-    MESSAGE() << "amp_gradient(val):\n" << visualize(val_val, amp_gradient, 100) << "\n";
+    MESSAGE() << "gradient(x):\n" << visualize(x_val, gradient, 100) << "\n";
+    MESSAGE() << "sq_norm(val):\n" << visualize(val_val, chi_sq_norm, 100) << "\n";
+    MESSAGE() << "gradient(val):\n" << visualize(val_val, gradient, 100) << "\n";
   }
 
   void grad(DAQuiri::Value& variable)
@@ -92,7 +92,7 @@ class Peak : public TestBase
     std::vector<double> x_val;
     std::vector<double> val_val;
     std::vector<double> chi_sq_norm;
-    std::vector<double> amp_gradient;
+    std::vector<double> gradient;
 
     Eigen::VectorXd gradients;
     Eigen::VectorXd chan_gradients;
@@ -118,15 +118,15 @@ class Peak : public TestBase
         Chisq += square((data.y - FTotal) / data.weight_phillips_marlow);
       }
 
-      chi_sq_norm.push_back(gradients[chosen_var_idx]);
-      amp_gradient.push_back(Chisq / degrees_freedom);
+      gradient.push_back(gradients[chosen_var_idx]);
+      chi_sq_norm.push_back(Chisq / degrees_freedom);
     }
 
 
     MESSAGE() << "chi_sq_norm(x):\n" << visualize(x_val, chi_sq_norm, 100) << "\n";
-    MESSAGE() << "amp_gradient(x):\n" << visualize(x_val, amp_gradient, 100) << "\n";
+    MESSAGE() << "gradient(x):\n" << visualize(x_val, gradient, 100) << "\n";
     MESSAGE() << "chi_sq_norm(val):\n" << visualize(val_val, chi_sq_norm, 100) << "\n";
-    MESSAGE() << "amp_gradient(val):\n" << visualize(val_val, amp_gradient, 100) << "\n";
+    MESSAGE() << "gradient(val):\n" << visualize(val_val, gradient, 100) << "\n";
   }
 
   DAQuiri::Peak peak;
