@@ -582,7 +582,7 @@ void QpFitter::plotBackgroundEdge(DAQuiri::SUM4Edge edge,
 
   double x1 = fit_data_->settings().calib.bin_to_nrg(edge.left() - 0.5);
   double x2 = fit_data_->settings().calib.bin_to_nrg(edge.right() + 0.5);
-  double y = edge.average();
+  double y = edge.average().value();
 
   QCPItemLine *line = new QCPItemLine(this);
   line->setSelectable(false);

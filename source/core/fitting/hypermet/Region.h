@@ -44,7 +44,7 @@ class Region : public Fittable
   bool empty() const;
   bool dirty() const;
 
-  bool add_peak(double l, double r, double amp_hint = 10);
+  bool add_peak(double l, double r, double amp_hint = 0.0);
   bool adjust_sum4(double peakID, double left, double right);
   bool auto_sum4();
   bool replace_hypermet(double peakID, Peak hyp);

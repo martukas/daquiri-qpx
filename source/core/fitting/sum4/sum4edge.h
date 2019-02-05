@@ -4,29 +4,31 @@
 #include <core/fitting/uncertain.h>
 #include <core/calibration/polynomial.h>
 
-namespace DAQuiri {
+namespace DAQuiri
+{
 
-class SUM4Edge {
-  double Lchan_ {0};
-  double Rchan_ {0};
-  double min_ {0};
-  double max_ {0};
-  UncertainDouble dsum_ {0,0};
-  UncertainDouble davg_ {0,0};
+class SUM4Edge
+{
+  double Lchan_{std::numeric_limits<double>::quiet_NaN()};
+  double Rchan_{std::numeric_limits<double>::quiet_NaN()};
+  double min_{std::numeric_limits<double>::quiet_NaN()};
+  double max_{std::numeric_limits<double>::quiet_NaN()};
+  UncertainDouble dsum_{0.0, 0.0};
+  UncertainDouble davg_{0.0, 0.0};
 
-public:
+ public:
   SUM4Edge() = default;
   SUM4Edge(const WeightedData& d);
 
-  double left()  const {return Lchan_;}
-  double right() const {return Rchan_;}
-  double sum()      const {return dsum_.value();}
-  double width()    const;
-  double average()  const {return davg_.value();}
-  double variance() const {return std::pow(davg_.sigma(), 2);}
+  double left() const { return Lchan_; }
+  double right() const { return Rchan_; }
+  double width() const;
+  UncertainDouble sum() const { return dsum_; }
+  UncertainDouble average() const { return davg_; }
+  double variance() const;
 
-  double min()      const {return min_;}
-  double max()      const {return max_;}
+  double min() const { return min_; }
+  double max() const { return max_; }
   double midpoint() const;
 
   std::string to_string() const;

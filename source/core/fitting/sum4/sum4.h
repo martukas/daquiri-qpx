@@ -31,13 +31,15 @@ public:
 
   static int get_currie_quality_indicator(double peak_net_area, double background_variance);
 
+  std::string to_string() const;
+
   friend void to_json(nlohmann::json& j, const SUM4& s);
   friend void from_json(const nlohmann::json& j, SUM4& s);
 
  private:
   SUM4Edge LB_, RB_;
-  double Lchan_ {0};
-  double Rchan_ {0};
+  double Lchan_ {std::numeric_limits<double>::quiet_NaN()};
+  double Rchan_ {std::numeric_limits<double>::quiet_NaN()};
 
   UncertainDouble gross_area_;
   UncertainDouble background_area_;

@@ -152,7 +152,7 @@ void ThreadFitter::remove_peaks(std::set<double> chosen_peaks) {
 void ThreadFitter::stop_work() {
   QMutexLocker locker(&mutex_);
   action_ = kStop; //not thread safe
-  //optimizer_.cancel.store(true);
+  optimizer_->cancel.store(true);
 }
 
 void ThreadFitter::run() {
@@ -160,7 +160,7 @@ void ThreadFitter::run() {
   while (!terminating_.load()) {
     if (action_ != kIdle) {
       running_.store(true);
-      //optimizer_.cancel.store(false);
+      optimizer_->cancel.store(false);
     }
 
     if (action_ == kFit) {

@@ -246,9 +246,8 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
 {
   DAQuiri::Region region;
   region.background.x_offset = 0;
-  region.background.base.val(0);
-  region.background.slope.val(0);
-  region.background.curve.val(0);
+  region.background.slope_enabled = false;
+  region.background.curve_enabled = false;
 
   auto pk = DAQuiri::Peak().gaussian_only();
   pk.position.bound(3, 27);
@@ -273,10 +272,12 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
   MESSAGE() << "Original val:\n" << visualize(x, y, 80) << "\n";
 
   region = DAQuiri::Region();
+  region.background.slope_enabled = false;
+  region.background.curve_enabled = false;
   region.default_peak_ = DAQuiri::Peak().gaussian_only();
 
   region.replace_data(DAQuiri::WeightedData(x, y));
-  region.add_peak(5, 27, 300);
+  region.add_peak(5, 27);
   region.map_fit();
 
   MESSAGE() << "Region with data:\n" << region.to_string(" ") << "\n";
@@ -309,14 +310,14 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
   }
 
   MESSAGE() << "Chi:\n" << visualize(chi, 80) << "\n";
-  MESSAGE() << "Grad(with):\n" << visualize(width, 80) << "\n";
+  MESSAGE() << "Grad(width):\n" << visualize(width, 80) << "\n";
   MESSAGE() << "Grad(pos):\n" << visualize(pos, 80) << "\n";
   MESSAGE() << "Grad(amp):\n" << visualize(amp, 80) << "\n";
 
   region = DAQuiri::Region();
   region.default_peak_ = DAQuiri::Peak().gaussian_only();
   region.replace_data(DAQuiri::WeightedData(x, y));
-  region.add_peak(5, 27, 300);
+  region.add_peak(5, 27);
   region.map_fit();
 
   DAQuiri::OptimizerType optimizer;
@@ -326,5 +327,21 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
   MESSAGE() << "Region after fit:\n" << region.to_string(" ") << "\n";
 
   auto y3 = region.background.eval(x);
-  MESSAGE() << "Final fit:\n" << visualize(x, y3, 80) << "\n";
+  auto pk3 = region.peaks_.begin()->second;
+  for (size_t i=0; i < 30; ++i)
+    y3[i] += pk3.eval(x[i]).all();
+  MESSAGE() << "Fit eval:\n" << visualize(x, y3, 80) << "\n";
+
+
+  result = optimizer.BFGSMin(&region, 1e-10);
+  region.save_fit_uncerts(result);
+
+  MESSAGE() << "Region after fit2:\n" << region.to_string(" ") << "\n";
+
+  y3 = region.background.eval(x);
+  pk3 = region.peaks_.begin()->second;
+  for (size_t i=0; i < 30; ++i)
+    y3[i] += pk3.eval(x[i]).all();
+  MESSAGE() << "Fit eval2:\n" << visualize(x, y3, 80) << "\n";
+
 }

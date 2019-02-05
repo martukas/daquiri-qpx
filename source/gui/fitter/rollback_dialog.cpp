@@ -27,7 +27,7 @@ RollbackDialog::RollbackDialog(DAQuiri::RegionManager roi, QWidget *parent) :
   QVBoxLayout *vl_rsq = new QVBoxLayout();
   label = new QLabel();
   label->setFixedHeight(25);
-  label->setText("r-squared");
+  label->setText("chi^2");
   vl_rsq->addWidget(label);
 
   QVBoxLayout *vl_s4a = new QVBoxLayout();
@@ -71,7 +71,8 @@ RollbackDialog::RollbackDialog(DAQuiri::RegionManager roi, QWidget *parent) :
   hl->addLayout(vl_s4a);
 
   label = new QLabel();
-  label->setText(QString::fromStdString("<b>ROI at chan=" + std::to_string(roi_.left_bin()) + " rollback to</b>"));
+  label->setText(
+      QString::fromStdString("<b>History for region at chan=" + std::to_string(roi_.left_bin()) + "</b>"));
 
   line = new QFrame();
   line->setFrameShape(QFrame::HLine);

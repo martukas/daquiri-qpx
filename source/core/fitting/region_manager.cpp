@@ -16,7 +16,7 @@ Fit::Fit(const Region& r, std::string descr)
   description.peaknum = region.peaks_.size();
   if (!region.peaks_.empty())
   {
-    //description.chi_sq_norm = chi_sq_normalized();
+    description.chi_sq_norm = region.chi_sq_normalized();
     UncertainDouble tot_gross {0.0, 0.0};
     UncertainDouble tot_back {0.0, 0.0};
     for (const auto &p : region.peaks_)
@@ -422,21 +422,21 @@ bool RegionManager::rebuild(OptimizerType& optimizer)
   region_.map_fit();
   INFO("Will rebuild\n{}", region_.to_string(" "));
 
-//  auto result = optimizer.BFGSMin(&region_, 0.00001);
-//  region_.save_fit_uncerts(result);
+  auto result = optimizer.BFGSMin(&region_, 0.00001);
+  region_.save_fit_uncerts(result);
 
-  fitter_vector starting_point = dlib::mat(region_.variables());
-  const auto& fe = std::bind(&Region::eval, region_, std::placeholders::_1);
-  const auto& fd = std::bind(&Region::derivative, region_, std::placeholders::_1);
-  dlib::find_min(dlib::bfgs_search_strategy(),
-                 dlib::objective_delta_stop_strategy(1e-7).be_verbose(),
-                 fe, fd, starting_point, -1);
-
-  Eigen::VectorXd v;
-  v.setConstant(starting_point.size(), 0.0);
-  for (long i = 0; i < starting_point.size(); ++i)
-    v[i] = starting_point(i);
-  region_.save_fit(v);
+//  fitter_vector starting_point = dlib::mat(region_.variables());
+//  const auto& fe = std::bind(&Region::eval, region_, std::placeholders::_1);
+//  const auto& fd = std::bind(&Region::derivative, region_, std::placeholders::_1);
+//  dlib::find_min(dlib::bfgs_search_strategy(),
+//                 dlib::objective_delta_stop_strategy(1e-7).be_verbose(),
+//                 fe, fd, starting_point, -1);
+//
+//  Eigen::VectorXd v;
+//  v.setConstant(starting_point.size(), 0.0);
+//  for (long i = 0; i < starting_point.size(); ++i)
+//    v[i] = starting_point(i);
+//  region_.save_fit(v);
 
   region_.auto_sum4();
   save_current_fit("Rebuild");

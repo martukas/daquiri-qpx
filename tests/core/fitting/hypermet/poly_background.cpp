@@ -32,8 +32,9 @@ TEST_F(PolyBackground, val_grad)
 
   auto y = pb.eval(x);
 
-  MESSAGE() << "Val:\n" << visualize(x, y, 80) << "\n";
-  MESSAGE() << "Grad(base):\n" << visualize(x, base, 80) << "\n";
-  MESSAGE() << "Grad(slope):\n" << visualize(x, slope, 80) << "\n";
-  MESSAGE() << "Grad(curve):\n" << visualize(x, curve, 80) << "\n";
+  MESSAGE() << "PolyBackground:\n" << pb.to_string(" ") << "\n";
+  MESSAGE() << "val(chan):\n" << visualize(x, y, 80) << "\n";
+  MESSAGE() << "base.grad(chan):\n" << visualize(x, base, 80) << "\n";
+  MESSAGE() << "slope.grad(chan):\n" << visualize(x, slope, 80) << "\n";
+  MESSAGE() << "curve.grad(chan):\n" << visualize(x, curve, 80) << "\n";
 }

@@ -129,10 +129,13 @@ bool Region::add_peak(double l, double r, double amp_hint)
     max_val = std::max(max_val, v.y);
     min_bkg = std::min(min_bkg, background.eval(v.x));
   }
+  double amp_max = max_val - min_bkg;
 
-  // \todo why is amplitude not bounded?
-  p.amplitude.max(max_val - min_bkg);
-  p.amplitude.val(amp_hint);
+  p.amplitude.bound(0, 1.1 * amp_max);
+  if (amp_hint > 0.0)
+    p.amplitude.val(amp_hint);
+  else
+    p.amplitude.val(0.9 * amp_max);
   peaks_[p.id()] = p;
   dirty_ = true;
 }
@@ -173,6 +176,7 @@ bool Region::replace_hypermet(double peakID, Peak hyp)
 
   // \todo should this happen?
   hyp.sum4 = peaks_[peakID].sum4;
+  peaks_.erase(peakID);
   peaks_[hyp.id()] = hyp;
   reindex_peaks();
   dirty_ = true;
@@ -208,10 +212,10 @@ void Region::cull_peaks()
 
 void Region::init_background()
 {
-  background = PolyBackground();
-  background.x_offset = data_.data.front().x;
-
-  // \todo make this more rigorous
+  double global_min = data_.data.front().y;
+  for (const auto& d : data_.data)
+    global_min = std::min(global_min, d.y);
+  global_min = std::floor(global_min);
 
   //by default, linear
   double run = RB_.right() - LB_.left();
@@ -241,24 +245,24 @@ void Region::init_background()
   {
     //minslope = (RB_.min() - LB_.max()) / (RB_.right() - LB_.left());
     maxslope = (RB_.max() - LB_.min()) / (RB_.left() - LB_.right());
-    yav = LB_.average();
+    yav = LB_.average().value();
   }
   else
   {
     minslope = (RB_.min() - LB_.max()) / (RB_.left() - LB_.right());
     //maxslope = (RB_.max() - LB_.min()) / (RB_.right() - LB_.left());
-    yav = RB_.average();
+    yav = RB_.average().value();
   }
 
+  background = PolyBackground();
+  background.x_offset = data_.data.front().x;
 
-
-  // \todo bounds for polynomial
-  //background.base. set_coeff(0, {ymin, ymax, yav});
+  background.base.bound(global_min, ymax);
   background.slope.bound(minslope, maxslope);
   background.curve.bound(-maxcurve, maxcurve);
 
   background.base.val(yav);
-  background.slope.val((RB_.average() - LB_.average()) / run);
+  background.slope.val((RB_.average().value() - LB_.average().value()) / run);
   background.curve.val(0.0);
 
   // \todo invalidate uncertanties

@@ -12,7 +12,7 @@ struct PolyBackground
 
   // \todo why are these unbounded?
   double x_offset {0};
-  ValueGam base;
+  Value base;
   bool slope_enabled{true};
   Value slope;
   bool curve_enabled{true};

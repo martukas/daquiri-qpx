@@ -8,8 +8,10 @@ namespace DAQuiri
 
 PolyBackground::PolyBackground()
 {
+  base.bound(0, 5000000);
+  base.val(0);
   slope.bound(-100, 100);
-  curve.bound(-100, 100);
+  curve.bound(-10, 10);
 }
 
 void PolyBackground::update_indices(int32_t& i)

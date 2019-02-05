@@ -1,4 +1,5 @@
 #include <core/fitting/sum4/sum4.h>
+#include <fmt/format.h>
 
 namespace DAQuiri
 {
@@ -6,12 +7,11 @@ namespace DAQuiri
 SUM4::SUM4(const WeightedData& d,
            const SUM4Edge& LB, const SUM4Edge& RB)
 {
-  Polynomial background = SUM4Edge::sum4_background(LB, RB);
+  if (d.data.empty())
+    throw std::runtime_error("Cannot create SUM4 with empty data");
 
-  if (d.data.empty()
-      || !LB.width()
-      || !RB.width())
-    return;
+  if (!LB.width() || !RB.width())
+    throw std::runtime_error("Cannot create SUM4 with invalid edges");
 
   LB_ = LB;
   RB_ = RB;
@@ -22,13 +22,14 @@ SUM4::SUM4(const WeightedData& d,
   for (const auto& p : d.data)
     gross_area_ += {p.y, p.weight_true};
 
+  Polynomial background = SUM4Edge::sum4_background(LB_, RB_);
+
   double background_variance = pow(0.5 * peak_width(), 2) * (LB_.variance() + RB_.variance());
   background_area_ = {
       0.5 * peak_width() * (background(Rchan_) + background(Lchan_)),
       sqrt(background_variance)};
 
   peak_area_ = gross_area_ - background_area_;
-  //peak_area_.autoSigs(1);
 
   double sumYnet(0), CsumYnet(0), C2sumYnet(0);
   for (const auto& p : d.data)
@@ -65,7 +66,7 @@ UncertainDouble SUM4::fwhm_energy(const Calibration& cal) const
 
 double SUM4::peak_width() const
 {
-  if (Rchan_ < Lchan_)
+  if (!std::isfinite(Rchan_) || !std::isfinite(Lchan_) || (Rchan_ < Lchan_))
     return 0;
   else
     return (Rchan_ - Lchan_ + 1);
@@ -93,6 +94,17 @@ int SUM4::get_currie_quality_indicator(double peak_net_area, double background_v
     return 4;
   else
     return 5;
+}
+
+std::string SUM4::to_string() const
+{
+  return fmt::format("x=[{},{}] gross_area={} bkg_area={} peak_area={} centroid={} fwhm={}",
+                     Lchan_, Rchan_,
+                     gross_area_.to_string(),
+                     background_area_.to_string(),
+                     peak_area_.to_string(),
+                     centroid_.to_string(),
+                     fwhm_.to_string());
 }
 
 void to_json(nlohmann::json& j, const SUM4& s)

@@ -1,4 +1,5 @@
 #include <core/fitting/sum4/sum4edge.h>
+#include <core/util/more_math.h>
 #include <fmt/format.h>
 
 namespace DAQuiri
@@ -6,6 +7,9 @@ namespace DAQuiri
 
 SUM4Edge::SUM4Edge(const WeightedData& d)
 {
+  if (d.empty())
+    throw std::runtime_error("Cannot create SUM4Edge with empty data");
+
   dsum_ = {0.0, 0.0};
 
   if (d.data.empty())
@@ -29,10 +33,15 @@ SUM4Edge::SUM4Edge(const WeightedData& d)
 
 double SUM4Edge::width() const
 {
-  if (Rchan_ < Lchan_)
+  if (!std::isfinite(Rchan_) || !std::isfinite(Lchan_) || (Rchan_ < Lchan_))
     return 0;
   else
     return (Rchan_ - Lchan_ + 1);
+}
+
+double SUM4Edge::variance() const
+{
+  return std::pow(davg_.sigma(), 2);
 }
 
 double SUM4Edge::midpoint() const
@@ -46,7 +55,7 @@ double SUM4Edge::midpoint() const
 
 std::string SUM4Edge::to_string() const
 {
-  return fmt::format("x=[{},{}] cts=[{},{}] dsum={} davg={}",
+  return fmt::format("x=[{},{}] cts=[{},{}] sum={} avg={}",
       Lchan_, Rchan_, min_, max_, dsum_.to_string(), davg_.to_string());
 }
 
@@ -68,8 +77,8 @@ Polynomial SUM4Edge::sum4_background(const SUM4Edge& L, const SUM4Edge& R)
   double run = R.left() - L.right();
   auto x_offset = sum4back.x_offset();
   x_offset.constrain(L.right(), L.right());
-  double s4base = L.average();
-  double s4slope = (R.average() - L.average()) / run;
+  double s4base = L.average().value();
+  double s4slope = (R.average().value() - L.average().value()) / run;
   sum4back.x_offset(x_offset);
   sum4back.set_coeff(0, {s4base, s4base, s4base});
   sum4back.set_coeff(1, {s4slope, s4slope, s4slope});
