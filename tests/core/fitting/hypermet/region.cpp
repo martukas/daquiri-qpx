@@ -41,7 +41,7 @@ TEST_F(Region, EvalBackground)
   MESSAGE() << "Goal eval:\n" << visualize(x, y, 80) << "\n";
 
   DAQuiri::WeightedData wd(x, y);
-  region.replace_data(wd);
+  region.replace_data(wd, 1, 1);
   region.map_fit();
 
   MESSAGE() << "Auto region:\n" << region.to_string(" ") << "\n";
@@ -90,7 +90,7 @@ TEST_F(Region, FitBackground)
   MESSAGE() << "Goal eval:\n" << visualize(x, y, 80) << "\n";
 
   DAQuiri::WeightedData wd(x, y);
-  region.replace_data(wd);
+  region.replace_data(wd, 1, 1);
   region.map_fit();
   auto y2 = region.background.eval(x);
 
@@ -143,7 +143,7 @@ TEST_F(Region, FitBackground)
 //  MESSAGE() << "Noisy val:\n" << visualize(x, y, 80) << "\n";
 //
 //  DAQuiri::WeightedData wd(x, y);
-//  region.replace_data(wd);
+//  region.replace_data(wd, 1, 1);
 //  region.map_fit();
 //  auto y2 = region.background.eval(x);
 //
@@ -186,7 +186,7 @@ TEST_F(Region, FitBackgroundOurImplementation)
   MESSAGE() << "Goal eval:\n" << visualize(x, y, 80) << "\n";
 
   DAQuiri::WeightedData wd(x, y);
-  region.replace_data(wd);
+  region.replace_data(wd, 1, 1);
   region.map_fit();
   auto y2 = region.background.eval(x);
 
@@ -276,7 +276,7 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
   region.background.curve_enabled = false;
   region.default_peak_ = DAQuiri::Peak().gaussian_only();
 
-  region.replace_data(DAQuiri::WeightedData(x, y));
+  region.replace_data(DAQuiri::WeightedData(x, y), 1, 1);
   region.add_peak(5, 27);
   region.map_fit();
 
@@ -316,7 +316,7 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
 
   region = DAQuiri::Region();
   region.default_peak_ = DAQuiri::Peak().gaussian_only();
-  region.replace_data(DAQuiri::WeightedData(x, y));
+  region.replace_data(DAQuiri::WeightedData(x, y), 1 , 1);
   region.add_peak(5, 27);
   region.map_fit();
 

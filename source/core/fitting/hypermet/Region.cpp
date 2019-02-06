@@ -45,6 +45,7 @@ Region::Region(const WeightedData& data, uint16_t background_samples)
 
 void Region::replace_data(const WeightedData& data)
 {
+  // \todo preserve position, not just width
   replace_data(data, LB_.width(), RB_.width());
 }
 
