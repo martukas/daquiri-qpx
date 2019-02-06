@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/calibration/calibration.h>
+#include <core/fitting/hypermet/Peak.h>
 
 namespace DAQuiri
 {
@@ -57,21 +58,8 @@ class FitSettings
   double width_at_511_tolerance{5.0};
 
   //hypermet
-  bool gaussian_only{false};
-  double lateral_slack{0.5};
-  Parameter width_variable_bounds{1.0, 0.7, 4};
-  //variable bounds
-  bool step_enabled{true};
-  Parameter step_amplitude{1.0e-10, 1.0e-10, 0.75};
-  bool tail_enabled{true};
-  Parameter tail_amplitude{1.0e-10, 1.0e-10, 0.015};
-  Parameter tail_slope{2.75, 2.5, 50};
-  bool Lskew_enabled{true};
-  Parameter Lskew_amplitude{1.0e-10, 1.0e-10, 0.75};
-  Parameter Lskew_slope{0.5, 0.3, 2};
-  bool Rskew_enabled{true};
-  Parameter Rskew_amplitude{1.0e-10, 1.0e-10, 0.75};
-  Parameter Rskew_slope{0.5, 0.3, 2};
+  Peak default_peak;
+
   uint16_t fitter_max_iter{3000};
 
   //specific to spectrum

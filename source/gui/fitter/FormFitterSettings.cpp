@@ -34,47 +34,13 @@ FormFitterSettings::FormFitterSettings(DAQuiri::FitSettings &fs, QWidget *parent
   ui->checkSmallSimplify->setChecked(fit_settings_.small_simplify);
   ui->spinSmallMaxAmplitude->setValue(fit_settings_.small_max_amplitude);
 
-  ui->checkGaussOnly->setChecked(fit_settings_.gaussian_only);
-
-  ui->checkStepEnable->setChecked(fit_settings_.step_enabled);
-  ui->doubleMinStep->setValue(fit_settings_.step_amplitude.lower());
-  ui->doubleMaxStep->setValue(fit_settings_.step_amplitude.upper());
-  ui->doubleInitStep->setValue(fit_settings_.step_amplitude.value());
-
-  ui->checkTailEnable->setChecked(fit_settings_.tail_enabled);
-  ui->doubleMinTailAmp->setValue(fit_settings_.tail_amplitude.lower());
-  ui->doubleMaxTailAmp->setValue(fit_settings_.tail_amplitude.upper());
-  ui->doubleInitTailAmp->setValue(fit_settings_.tail_amplitude.value());
-  ui->doubleMinTailSlope->setValue(fit_settings_.tail_slope.lower());
-  ui->doubleMaxTailSlope->setValue(fit_settings_.tail_slope.upper());
-  ui->doubleInitTailSlope->setValue(fit_settings_.tail_slope.value());
-
-  ui->checkEnableLskew->setChecked(fit_settings_.Lskew_enabled);
-  ui->doubleMinLskewAmp->setValue(fit_settings_.Lskew_amplitude.lower());
-  ui->doubleMaxLskewAmp->setValue(fit_settings_.Lskew_amplitude.upper());
-  ui->doubleInitLskewAmp->setValue(fit_settings_.Lskew_amplitude.value());
-  ui->doubleMinLskewSlope->setValue(fit_settings_.Lskew_slope.lower());
-  ui->doubleMaxLskewSlope->setValue(fit_settings_.Lskew_slope.upper());
-  ui->doubleInitLskewSlope->setValue(fit_settings_.Lskew_slope.value());
-
-  ui->checkEnableRskew->setChecked(fit_settings_.Rskew_enabled);
-  ui->doubleMinRskewAmp->setValue(fit_settings_.Rskew_amplitude.lower());
-  ui->doubleMaxRskewAmp->setValue(fit_settings_.Rskew_amplitude.upper());
-  ui->doubleInitRskewAmp->setValue(fit_settings_.Rskew_amplitude.value());
-  ui->doubleMinRskewSlope->setValue(fit_settings_.Rskew_slope.lower());
-  ui->doubleMaxRskewSlope->setValue(fit_settings_.Rskew_slope.upper());
-  ui->doubleInitRskewSlope->setValue(fit_settings_.Rskew_slope.value());
-
   ui->checkWidthCommon->setChecked(fit_settings_.width_common);
   ui->doubleMinWidthCommon->setValue(fit_settings_.width_common_bounds.lower());
   ui->doubleMaxWidthCommon->setValue(fit_settings_.width_common_bounds.upper());
-  ui->doubleMinWidthVariable->setValue(fit_settings_.width_variable_bounds.lower());
-  ui->doubleMaxWidthVariable->setValue(fit_settings_.width_variable_bounds.upper());
 
   ui->checkWidthAt511->setChecked(fit_settings_.width_at_511_variable);
   ui->spinWidthAt511Tolerance->setValue(fit_settings_.width_at_511_tolerance);
 
-  ui->doubleLateralSlack->setValue(fit_settings_.lateral_slack);
   ui->spinFitterMaxIterations->setValue(fit_settings_.fitter_max_iter);
 
   on_checkGaussOnly_clicked();
@@ -102,47 +68,13 @@ void FormFitterSettings::on_buttonBox_accepted()
   fit_settings_.small_simplify = ui->checkSmallSimplify->isChecked();
   fit_settings_.small_max_amplitude = ui->spinSmallMaxAmplitude->value();
 
-  fit_settings_.gaussian_only = ui->checkGaussOnly->isChecked();
-
-  fit_settings_.step_enabled = ui->checkStepEnable->isChecked();
-  fit_settings_.step_amplitude.set(ui->doubleMinStep->value(),
-                                   ui->doubleMaxStep->value(),
-                                   ui->doubleInitStep->value());
-
-  fit_settings_.tail_enabled = ui->checkTailEnable->isChecked();
-  fit_settings_.tail_amplitude.set(ui->doubleMinTailAmp->value(),
-                                   ui->doubleMaxTailAmp->value(),
-                                   ui->doubleInitTailAmp->value());
-  fit_settings_.tail_slope.set(ui->doubleMinTailSlope->value(),
-                               ui->doubleMaxTailSlope->value(),
-                               ui->doubleInitTailSlope->value());
-
-  fit_settings_.Lskew_enabled = ui->checkEnableLskew->isChecked();
-  fit_settings_.Lskew_amplitude.set(ui->doubleMinLskewAmp->value(),
-                                    ui->doubleMaxLskewAmp->value(),
-                                    ui->doubleInitLskewAmp->value());
-  fit_settings_.Lskew_slope.set(ui->doubleMinLskewSlope->value(),
-                                ui->doubleMaxLskewSlope->value(),
-                                ui->doubleInitLskewSlope->value());
-
-  fit_settings_.Rskew_enabled = ui->checkEnableRskew->isChecked();
-  fit_settings_.Rskew_amplitude.set(ui->doubleMinRskewAmp->value(),
-                                    ui->doubleMaxRskewAmp->value(),
-                                    ui->doubleInitRskewAmp->value());
-  fit_settings_.Rskew_slope.set(ui->doubleMinRskewSlope->value(),
-                                ui->doubleMaxRskewSlope->value(),
-                                ui->doubleInitRskewSlope->value());
-
   fit_settings_.width_common = ui->checkWidthCommon->isChecked();
   fit_settings_.width_common_bounds.constrain(ui->doubleMinWidthCommon->value(),
                                                   ui->doubleMaxWidthCommon->value());
-  fit_settings_.width_variable_bounds.constrain(ui->doubleMinWidthVariable->value(),
-                                                    ui->doubleMaxWidthVariable->value());
 
   fit_settings_.width_at_511_variable = ui->checkWidthAt511->isChecked();
   fit_settings_.width_at_511_tolerance = ui->spinWidthAt511Tolerance->value();
 
-  fit_settings_.lateral_slack = ui->doubleLateralSlack->value();
   fit_settings_.fitter_max_iter = ui->spinFitterMaxIterations->value();
 
   accept();

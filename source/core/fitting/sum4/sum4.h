@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/fitting/sum4/sum4edge.h>
+#include <core/calibration/calibration.h>
 
 namespace DAQuiri {
 

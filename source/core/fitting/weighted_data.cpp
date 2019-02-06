@@ -1,4 +1,6 @@
 #include <core/fitting/weighted_data.h>
+#include <stdexcept>
+#include <cmath>
 
 namespace DAQuiri
 {

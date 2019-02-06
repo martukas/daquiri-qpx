@@ -41,7 +41,7 @@ double SUM4Edge::width() const
 
 double SUM4Edge::variance() const
 {
-  return std::pow(davg_.sigma(), 2);
+  return square(davg_.sigma());
 }
 
 double SUM4Edge::midpoint() const

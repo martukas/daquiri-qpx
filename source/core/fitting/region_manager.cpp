@@ -113,6 +113,7 @@ RegionManager::RegionManager(const FitSettings& fs,
     : settings_(fs)
 {
   settings_ = fs;
+  region_.default_peak_ = settings_.default_peak;
   set_data(parentfinder, min, max);
   save_current_fit("Region created");
 }
@@ -398,7 +399,11 @@ bool RegionManager::override_settings(const FitSettings &fs)
 {
   settings_ = fs;
   settings_.overriden = true; //do this in fitter if different?
-  save_current_fit("Fit settings overriden");
+
+  for (auto& p : region_.peaks_)
+    p.second.force_defaults(settings_.default_peak);
+
+  save_current_fit("Region fit settings override");
 
   //propagate to peaks
 

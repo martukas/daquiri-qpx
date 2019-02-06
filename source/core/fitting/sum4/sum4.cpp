@@ -1,4 +1,5 @@
 #include <core/fitting/sum4/sum4.h>
+#include <core/util/more_math.h>
 #include <fmt/format.h>
 
 namespace DAQuiri
@@ -24,7 +25,7 @@ SUM4::SUM4(const WeightedData& d,
 
   Polynomial background = SUM4Edge::sum4_background(LB_, RB_);
 
-  double background_variance = pow(0.5 * peak_width(), 2) * (LB_.variance() + RB_.variance());
+  double background_variance = square(0.5 * peak_width()) * (LB_.variance() + RB_.variance());
   background_area_ = {
       0.5 * peak_width() * (background(Rchan_) + background(Lchan_)),
       sqrt(background_variance)};
@@ -37,14 +38,14 @@ SUM4::SUM4(const WeightedData& d,
     double yn = p.y - background(p.x);
     sumYnet += yn;
     CsumYnet += p.x * yn;
-    C2sumYnet += pow(p.x, 2) * yn;
+    C2sumYnet += square(p.x) * yn;
   }
 
   double centroidval = CsumYnet / sumYnet;
   //  if ((centroidval >= 0) && (centroidval < x.size()))
   //    centroidval = x.at(static_cast<size_t>(centroidval));
 
-  double centroid_variance = (C2sumYnet / sumYnet) - pow(centroidval, 2);
+  double centroid_variance = (C2sumYnet / sumYnet) - square(centroidval);
   centroid_ = {centroidval, centroid_variance};
 
   double fwhm_val = 2.0 * sqrt(centroid_variance * log(4));
@@ -74,7 +75,7 @@ double SUM4::peak_width() const
 
 int SUM4::quality() const
 {
-  return get_currie_quality_indicator(peak_area_.value(), pow(background_area_.sigma(), 2));
+  return get_currie_quality_indicator(peak_area_.value(), square(background_area_.sigma()));
 }
 
 int SUM4::get_currie_quality_indicator(double peak_net_area, double background_variance)

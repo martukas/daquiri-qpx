@@ -79,17 +79,8 @@ void to_json(nlohmann::json& j, const FitSettings& s)
   j["width_options"]["tolerance511"] = s.width_at_511_tolerance;
   j["width_options"]["common_bounds"] = s.width_common_bounds;
 
-  j["hypermet"]["gaussian_only"] = s.gaussian_only;
-  j["hypermet"]["lateral_slack"] = s.lateral_slack;
-  j["hypermet"]["fitter_max_iterations"] = s.fitter_max_iter;
-  j["hypermet"]["width_variable_bounds"] = s.width_variable_bounds;
-  j["hypermet"]["step_amplitude"] = s.step_amplitude;
-  j["hypermet"]["tail_amplitude"] = s.tail_amplitude;
-  j["hypermet"]["tail_slope"] = s.tail_slope;
-  j["hypermet"]["Lskew_amplitude"] = s.Lskew_amplitude;
-  j["hypermet"]["Lskew_slope"] = s.Lskew_slope;
-  j["hypermet"]["Rskew_amplitude"] = s.Rskew_amplitude;
-  j["hypermet"]["Rskew_slope"] = s.Rskew_slope;
+  j["hypermet_peak"] = s.default_peak;
+  j["fitter_max_iterations"] = s.fitter_max_iter;
 }
 
 void from_json(const nlohmann::json& j, FitSettings& s)
@@ -113,17 +104,8 @@ void from_json(const nlohmann::json& j, FitSettings& s)
   s.width_at_511_tolerance = j["width_options"]["tolerance511"];
   s.width_common_bounds = j["width_options"]["common_bounds"];
 
-  s.gaussian_only = j["hypermet"]["gaussian_only"];
-  s.lateral_slack = j["hypermet"]["lateral_slack"];
-  s.fitter_max_iter = j["hypermet"]["fitter_max_iterations"];
-  s.width_variable_bounds = j["hypermet"]["width_variable_bounds"];
-  s.step_amplitude = j["hypermet"]["step_amplitude"];
-  s.tail_amplitude = j["hypermet"]["tail_amplitude"];
-  s.tail_slope = j["hypermet"]["tail_slope"];
-  s.Lskew_amplitude = j["hypermet"]["Lskew_amplitude"];
-  s.Lskew_slope = j["hypermet"]["Lskew_slope"];
-  s.Rskew_amplitude = j["hypermet"]["Rskew_amplitude"];
-  s.Rskew_slope = j["hypermet"]["Rskew_slope"];
+  s.fitter_max_iter = j["fitter_max_iterations"];
+  s.default_peak = j["hypermet_peak"];
 }
 
 }

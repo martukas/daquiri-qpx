@@ -1,6 +1,7 @@
 #pragma once
 
-#include <core/fitting/fit_settings.h>
+#include <cinttypes>
+#include <vector>
 
 namespace DAQuiri
 {
