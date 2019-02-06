@@ -138,6 +138,7 @@ bool Region::add_peak(double l, double r, double amp_hint)
     p.amplitude.val(0.9 * amp_max);
   peaks_[p.id()] = p;
   dirty_ = true;
+  return true;
 }
 
 bool Region::adjust_sum4(double peakID, double left, double right)
@@ -152,7 +153,7 @@ bool Region::adjust_sum4(double peakID, double left, double right)
   return true;
 }
 
-bool Region::auto_sum4()
+void Region::auto_sum4()
 {
   for (auto& p : peaks_)
   {
@@ -507,7 +508,7 @@ fitter_vector Region::derivative(const fitter_vector& m) const
 
 fitter_matrix Region::hessian(const fitter_vector& m) const
 {
-
+  return fitter_matrix();
 }
 
 std::string Region::to_string(std::string prepend) const

@@ -12,6 +12,7 @@ double Finder::highest_residual(double l, double r) const
   double ret{0.0};
   for (size_t j = li; j <= ri; ++j)
     ret = std::max(ret, y_[j]);
+  return ret;
 }
 
 DetectedPeak Finder::tallest_detected() const

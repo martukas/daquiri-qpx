@@ -5,8 +5,12 @@
 #include <nlohmann/json.hpp>
 
 #pragma GCC diagnostic push
+#ifdef __GNUC__
+#ifndef __clang__
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #pragma GCC diagnostic ignored "-Wmisleading-indentation"
+#endif
+#endif
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <Eigen/Sparse>
 #pragma GCC diagnostic pop

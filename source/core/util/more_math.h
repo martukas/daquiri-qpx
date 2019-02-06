@@ -1,5 +1,5 @@
 #pragma once
-#include <math.h>
+#include <cmath>
 
 template <typename T> inline constexpr
 int signum(T x, std::false_type is_signed) {

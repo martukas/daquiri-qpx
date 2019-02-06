@@ -240,6 +240,7 @@ bool RegionManager::add_from_resid(OptimizerType& optimizer)
 
   if (region_.dirty())
     rebuild(optimizer);
+  return true;
 }
 
 //Peak ROI::peak(double peakID) const

@@ -46,7 +46,7 @@ class Region : public Fittable
 
   bool add_peak(double l, double r, double amp_hint = 0.0);
   bool adjust_sum4(double peakID, double left, double right);
-  bool auto_sum4();
+  void auto_sum4();
   bool replace_hypermet(double peakID, Peak hyp);
   bool remove_peak(double peakID);
   bool remove_peaks(const std::set<double>& ids);
