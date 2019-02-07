@@ -46,9 +46,9 @@ class UncertainDouble
   UncertainDouble operator-(const UncertainDouble& other) const;
 
   bool almost(const UncertainDouble& other) const;
-  bool operator==(const UncertainDouble& other) const { return value() == other.value(); }
-  bool operator<(const UncertainDouble& other) const { return value() < other.value(); }
-  bool operator>(const UncertainDouble& other) const { return value() > other.value(); }
+  bool operator==(const UncertainDouble& other) const;
+  bool operator<(const UncertainDouble& other) const;
+  bool operator>(const UncertainDouble& other) const;
 
   static UncertainDouble average(const std::list<UncertainDouble>& list);
 

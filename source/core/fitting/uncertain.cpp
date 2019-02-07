@@ -8,8 +8,7 @@
 
 UncertainDouble::UncertainDouble(double val, double sigma)
     : value_(val)
-      , sigma_(std::abs(sigma))
-{}
+      , sigma_(std::abs(sigma)) {}
 
 UncertainDouble UncertainDouble::from_int(int64_t val, double sigma)
 {
@@ -69,8 +68,11 @@ bool UncertainDouble::is_finite() const
 std::string UncertainDouble::debug() const
 {
   std::stringstream ss;
-  ss << "[" << value_ << "\u00B1" << sigma_;
-  ss << "] ==> " << to_string();
+  ss << "["
+     << std::to_string(value_)
+     << "\u00B1"
+     << std::to_string(sigma_);
+  ss << "] ==> " << to_string(false);
   return ss.str();
 }
 
@@ -254,6 +256,21 @@ UncertainDouble UncertainDouble::operator/(const double& other) const
   UncertainDouble result(*this);
   result /= other;
   return result;
+}
+
+bool UncertainDouble::operator==(const UncertainDouble& other) const
+{
+  return (value() == other.value()) && (sigma() == other.sigma());
+}
+
+bool UncertainDouble::operator<(const UncertainDouble& other) const
+{
+  return (value() < other.value()) || (sigma() < other.sigma());
+}
+
+bool UncertainDouble::operator>(const UncertainDouble& other) const
+{
+  return (value() > other.value()) || (sigma() > other.sigma());
 }
 
 bool UncertainDouble::almost(const UncertainDouble& other) const

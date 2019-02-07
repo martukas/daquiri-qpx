@@ -15,8 +15,6 @@
 namespace DAQuiri
 {
 
-// \todo move these out of the class
-
 /// \returns true statistical weight, i.e. sqrt(count)
 double weight_true(double count);
 
@@ -42,6 +40,8 @@ struct WeightedDataPoint
   double weight_phillips_marlow {0};
   double weight_revay {0};
 };
+
+// \todo uncertainty treatment for ZDT spectra
 
 struct WeightedData
 {
@@ -73,8 +73,6 @@ struct WeightedData
   bool empty() const;
 
   std::vector<WeightedDataPoint> data;
-
-  // \todo uncertainty treatment for ZDT spectra
 };
 
 }

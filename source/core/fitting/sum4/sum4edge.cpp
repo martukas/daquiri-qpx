@@ -52,11 +52,12 @@ double SUM4Edge::width() const
   if (!std::isfinite(Rchan_) || !std::isfinite(Lchan_) || (Rchan_ < Lchan_))
     return 0;
   else
-    return (Rchan_ - Lchan_ + 1);
+    return (Rchan_ - Lchan_ + 1.0);
 }
 
 double SUM4Edge::variance() const
 {
+  // \todo check this in paper
   return square(davg_.sigma());
 }
 
