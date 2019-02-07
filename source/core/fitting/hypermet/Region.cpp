@@ -382,7 +382,7 @@ void Region::save_fit_uncerts(const FitResult& result)
   diagonals.resize(result.variables.size());
 
   double df = degrees_of_freedom();
-  for (size_t i = 0; i < result.variables.size(); ++i)
+  for (size_t i = 0; i < static_cast<size_t>(result.variables.size()); ++i)
     diagonals[i] = result.inv_hessian.coeff(i, i) * df;
 
   double chisq_norm = std::max(chi_sq_normalized(), 1.0) * 0.5;
@@ -503,12 +503,14 @@ fitter_vector Region::derivative(const fitter_vector& m) const
     v[i] = m(i);
   Eigen::VectorXd g;
   g.setConstant(g.size(), 0.0);
-  auto chi = operator()(v, g);
+  operator()(v, g);
   return dlib::mat(g);
 }
 
 fitter_matrix Region::hessian(const fitter_vector& m) const
 {
+  // \todo implement this
+  (void) m;
   return fitter_matrix();
 }
 
@@ -539,12 +541,35 @@ std::string Region::to_string(std::string prepend) const
 
 void to_json(nlohmann::json& j, const Region& s)
 {
+  j["background"] = s.background;
+  j["default_peak"] = s.default_peak_;
+  j["LB"] = s.LB_;
+  j["RB"] = s.RB_;
+  if (!s.peaks_.empty())
+  {
+    auto& peaks = j["peaks"];
+    for (const auto& p : s.peaks_)
+      peaks.push_back(p.second);
+  }
 
+  // \todo dirty, data, var_count
 }
 
 void from_json(const nlohmann::json& j, Region& s)
 {
-
+  s.background = j["background"];
+  s.default_peak_ = j["default_peak"];
+  s.LB_ = j["LB"];
+  s.RB_ = j["RB"];
+  if (j.count("peaks"))
+  {
+    const auto& peaks = j["peaks"];
+    for (const auto& p : peaks)
+    {
+      Peak peak = p;
+      s.peaks_[peak.id()] = peak;
+    }
+  }
 }
 
 }

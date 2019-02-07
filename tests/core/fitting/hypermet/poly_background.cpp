@@ -1,5 +1,5 @@
 #include "gtest_color_print.h"
-#include "visualize_vector.h"
+#include <core/util/visualize_vector.h>
 
 #include <core/fitting/hypermet/PolyBackground.h>
 

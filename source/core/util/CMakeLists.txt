@@ -24,6 +24,7 @@ set(HEADERS
   ${dir}/time_extensions.h
   ${dir}/unique_mangle.h
   ${dir}/UTF_extensions.h
+  ${dir}/visualize_vector.h
   )
 
 set(${this_target}_headers ${${this_target}_headers} ${HEADERS} PARENT_SCOPE)

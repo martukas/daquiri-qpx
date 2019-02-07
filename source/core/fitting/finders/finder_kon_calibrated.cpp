@@ -32,9 +32,9 @@ CalibratedKON::CalibratedKON(const std::vector<double>& x,
 void CalibratedKON::calc_kon()
 {
   uint16_t width;
-  size_t start;
-  size_t end;
-  size_t shift;
+  int32_t start {0};
+  int32_t end {0};
+  int32_t shift;
 
   for (size_t i = 0; i < fw_theoretical.size(); ++i)
     if (ceil(fw_theoretical[i]) < i)
@@ -43,7 +43,7 @@ void CalibratedKON::calc_kon()
       break;
     }
 
-  for (size_t i = fw_theoretical.size() - 1; i >= 0; --i)
+  for (int32_t i = fw_theoretical.size() - 1; i >= 0; --i)
     if (2 * ceil(fw_theoretical[i]) + i + 1 < fw_theoretical.size())
     {
       end = i;
@@ -52,14 +52,14 @@ void CalibratedKON::calc_kon()
 
   y_convolution.assign(y_.size(), 0.0);
 
-  for (size_t j = start; j < end; ++j)
+  for (int32_t j = start; j < end; ++j)
   {
     width = static_cast<uint16_t>(std::floor(fw_theoretical[j]));
     shift = width / uint16_t(2);
 
     double kon{0.0};
     double avg{0.0};
-    for (size_t i = j; i <= (j + width + 1); ++i)
+    for (int32_t i = j; i <= (j + width + 1); ++i)
     {
       kon += 2 * y_[i] - y_[i - width] - y_[i + width];
       avg += y_[i];
@@ -75,7 +75,7 @@ void CalibratedKON::find_peaks()
   filtered.clear();
 
   std::vector<size_t> prelim;
-  for (int j = 0; j < y_convolution.size(); ++j)
+  for (size_t j = 0; j < y_convolution.size(); ++j)
     if (y_convolution[j] > sigma_)
       prelim.push_back(j);
 

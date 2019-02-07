@@ -76,6 +76,7 @@ double HCalibration::width(double channel) const
 {
   //fwhm_b = (-fwhm2 ^ 2 + fwhm1 ^ 2) / (-Energy(chfwhm2) + Energy(chfwhm1))
   //fwhm_a = -(Energy(chfwhm2) * fwhm1 ^ 2 - fwhm2 ^ 2 * Energy(chfwhm1)) / (-Energy(chfwhm2) + Energy(chfwhm1))
+  return channel;
 }
 
 }

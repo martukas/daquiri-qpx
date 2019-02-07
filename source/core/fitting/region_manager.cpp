@@ -339,8 +339,6 @@ bool RegionManager::add_peak(const FitEvaluation &parentfinder,
                    double left, double right,
                    OptimizerType& optimizer)
 {
-  double center_prelim = (left+right) * 0.5; //assume down the middle
-
   NaiveKON kon(fit_eval_.x_, fit_eval_.y_resid_,
                settings_.kon_settings.width,
                settings_.kon_settings.sigma_resid);

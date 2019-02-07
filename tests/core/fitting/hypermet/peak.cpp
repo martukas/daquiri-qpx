@@ -1,6 +1,6 @@
 #include "gtest_color_print.h"
 
-#include "visualize_vector.h"
+#include <core/util/visualize_vector.h>
 
 #include <core/fitting/hypermet/Peak.h>
 
@@ -82,10 +82,10 @@ class Peak : public TestBase
 
     int32_t idx {0};
     peak.update_indices(idx);
-    EXPECT_EQ(idx, 3);
+    ASSERT_EQ(idx, 3);
 
     double degrees_freedom = wdata.data.size() - idx;
-    EXPECT_EQ(degrees_freedom, 17);
+    ASSERT_EQ(degrees_freedom, 17);
 
     size_t chosen_var_idx = variable.x_index;
 
@@ -113,7 +113,7 @@ class Peak : public TestBase
 
         double t3 = -2.0 * (data.y - FTotal) / square(data.weight_phillips_marlow);
 
-        for (size_t var = 0; var < idx; ++var)
+        for (size_t var = 0; var < static_cast<size_t>(idx); ++var)
           gradients[var] += chan_gradients[var] * t3;
         Chisq += square((data.y - FTotal) / data.weight_phillips_marlow);
       }

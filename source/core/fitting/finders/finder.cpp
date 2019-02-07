@@ -10,7 +10,7 @@ double Finder::highest_residual(double l, double r) const
   if ((li < 0) || (ri < 0))
     return 0.0;
   double ret{0.0};
-  for (size_t j = li; j <= ri; ++j)
+  for (size_t j = li; j <= static_cast<size_t>(ri); ++j)
     ret = std::max(ret, y_[j]);
   return ret;
 }

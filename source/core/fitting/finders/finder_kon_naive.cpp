@@ -45,7 +45,7 @@ void NaiveKON::find_peaks()
   filtered.clear();
 
   std::vector<size_t> prelim;
-  for (int j = 0; j < y_convolution.size(); ++j)
+  for (size_t j = 0; j < y_convolution.size(); ++j)
     if (y_convolution[j] > sigma_)
       prelim.push_back(j);
 

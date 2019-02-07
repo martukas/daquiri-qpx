@@ -275,7 +275,7 @@ double BFGS::fgv(Fittable* fittable,
                  Eigen::VectorXd variables,
                  Eigen::VectorXd hessian)
 {
-  auto n = variables.size();
+  auto n = static_cast<size_t>(variables.size());
   Eigen::VectorXd xlocal(n);
   for (size_t i = 0; i < n; ++i)
     xlocal[i] = variables[i] + lambda * hessian[i];
@@ -287,7 +287,7 @@ double BFGS::dfgv(Fittable* fittable,
                   Eigen::VectorXd variables,
                   Eigen::VectorXd hessian)
 {
-  auto n = variables.size();
+  auto n = static_cast<size_t>(variables.size());
   Eigen::VectorXd xlocal(n);
   Eigen::VectorXd dflocal(n);
   for (size_t i = 0; i < n; ++i)
@@ -304,7 +304,7 @@ double BFGS::LinMin(Fittable* fittable, Eigen::VectorXd& variables,
 {
   static constexpr float linmin_tol{0.0001};
   double lambdak, xk, fxk, fa, fb, a, b;
-  auto n = variables.size();
+  auto n = static_cast<size_t>(variables.size());
   a = 0.0;
   xk = 1.0;
   b = 2.0;
@@ -328,7 +328,7 @@ FitResult BFGS::BFGSMin(Fittable* fittable, double tolf)
   FitResult ret;
 
   ret.variables = fittable->variables();
-  auto var_count = ret.variables.size();
+  auto var_count = static_cast<size_t>(ret.variables.size());
   Eigen::VectorXd
       hessian(var_count),
       gradients(var_count),
