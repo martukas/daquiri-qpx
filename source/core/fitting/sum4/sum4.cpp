@@ -1,3 +1,16 @@
+/**
+ * @file sum4.cpp
+ * @brief Construct for simple analysis of a background sample
+ *
+ * This is an abstraction of a peak area based on:
+ * M. Lindstrom, Richard. (1994)
+ * Sum and Mean Standard Programs for Activation Analysis.
+ * Biological trace element research. 43-45. 597-603.
+ * 10.1007/978-1-4757-6025-5_69.
+ *
+ * @author Martin Shetty
+ */
+
 #include <core/fitting/sum4/sum4.h>
 #include <core/util/more_math.h>
 #include <fmt/format.h>
@@ -5,27 +18,25 @@
 namespace DAQuiri
 {
 
-SUM4::SUM4(const WeightedData& d,
+SUM4::SUM4(const WeightedData& spectrum_data,
            const SUM4Edge& LB, const SUM4Edge& RB)
 {
-  if (d.data.empty())
+  if (spectrum_data.data.empty())
     throw std::runtime_error("Cannot create SUM4 with empty data");
 
   if (!LB.width() || !RB.width())
     throw std::runtime_error("Cannot create SUM4 with invalid edges");
 
-  LB_ = LB;
-  RB_ = RB;
-  Lchan_ = d.data.front().x;
-  Rchan_ = d.data.back().x;
+  Lchan_ = spectrum_data.data.front().x;
+  Rchan_ = spectrum_data.data.back().x;
 
   gross_area_ = {0.0, 0.0};
-  for (const auto& p : d.data)
+  for (const auto& p : spectrum_data.data)
     gross_area_ += {p.y, p.weight_true};
 
-  Polynomial background = SUM4Edge::sum4_background(LB_, RB_);
+  Polynomial background = SUM4Edge::sum4_background(LB, RB);
 
-  double background_variance = square(0.5 * peak_width()) * (LB_.variance() + RB_.variance());
+  double background_variance = square(0.5 * peak_width()) * (LB.variance() + RB.variance());
   background_area_ = {
       0.5 * peak_width() * (background(Rchan_) + background(Lchan_)),
       sqrt(background_variance)};
@@ -33,7 +44,7 @@ SUM4::SUM4(const WeightedData& d,
   peak_area_ = gross_area_ - background_area_;
 
   double sumYnet(0), CsumYnet(0), C2sumYnet(0);
-  for (const auto& p : d.data)
+  for (const auto& p : spectrum_data.data)
   {
     double yn = p.y - background(p.x);
     sumYnet += yn;

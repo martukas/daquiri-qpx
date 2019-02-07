@@ -1,3 +1,19 @@
+/**
+ * @file sum4edge.cpp
+ * @brief Construct for simple analysis of a background sample
+ *
+ * This is an abstraction for background estimation based on:
+ * M. Lindstrom, Richard. (1994)
+ * Sum and Mean Standard Programs for Activation Analysis.
+ * Biological trace element research. 43-45. 597-603.
+ * 10.1007/978-1-4757-6025-5_69.
+ *
+ * Two such samples can be used to generate a polynomial function
+ * describing a straight line for background subtraction under a peak.
+ *
+ * @author Martin Shetty
+ */
+
 #include <core/fitting/sum4/sum4edge.h>
 #include <core/util/more_math.h>
 #include <fmt/format.h>
@@ -5,23 +21,23 @@
 namespace DAQuiri
 {
 
-SUM4Edge::SUM4Edge(const WeightedData& d)
+SUM4Edge::SUM4Edge(const WeightedData& spectrum_data)
 {
-  if (d.empty())
+  if (spectrum_data.empty())
     throw std::runtime_error("Cannot create SUM4Edge with empty data");
 
   dsum_ = {0.0, 0.0};
 
-  if (d.data.empty())
+  if (spectrum_data.data.empty())
     return;
 
-  Lchan_ = d.data.front().x;
-  Rchan_ = d.data.back().x;
+  Lchan_ = spectrum_data.data.front().x;
+  Rchan_ = spectrum_data.data.back().x;
 
   min_ = std::numeric_limits<double>::max();
   max_ = std::numeric_limits<double>::min();
 
-  for (const auto& p : d.data)
+  for (const auto& p : spectrum_data.data)
   {
     min_ = std::min(min_, p.y);
     max_ = std::max(max_, p.y);
@@ -42,15 +58,6 @@ double SUM4Edge::width() const
 double SUM4Edge::variance() const
 {
   return square(davg_.sigma());
-}
-
-double SUM4Edge::midpoint() const
-{
-  double w = width();
-  if (w <= 0)
-    return std::numeric_limits<double>::quiet_NaN();
-  else
-    return Lchan_ + (w * 0.5);
 }
 
 std::string SUM4Edge::to_string() const

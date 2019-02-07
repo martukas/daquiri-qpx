@@ -1,3 +1,12 @@
+/**
+ * @file weighted_data.h
+ * @brief
+ *
+ * This is a class for storing spectrum counts and associated weights for fitting.
+ *
+ * @author Martin Shetty
+ */
+
 #include <core/fitting/weighted_data.h>
 #include <stdexcept>
 #include <cmath>
@@ -9,7 +18,9 @@ WeightedData::WeightedData(const std::vector<double>& x,
                            const std::vector<double>& y)
 {
   if (x.size() != y.size())
-    throw std::runtime_error("SubSpectrum::set x & y sized don't match");
+    throw std::runtime_error("WeightedData::constructor x & y sizes don't match");
+  if (x.empty())
+    throw std::runtime_error("WeightedData::constructor data empty");
   data.resize(x.size());
   for (size_t i = 0; i < x.size(); ++i)
   {

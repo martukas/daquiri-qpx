@@ -45,8 +45,9 @@ Region::Region(const WeightedData& data, uint16_t background_samples)
 
 void Region::replace_data(const WeightedData& data)
 {
-  // \todo preserve position, not just width
-  replace_data(data, LB_.width(), RB_.width());
+  auto lb = SUM4Edge(data.subset(LB_.left(), LB_.right()));
+  auto rb = SUM4Edge(data.subset(RB_.left(), RB_.right()));
+  replace_data(data, lb, rb);
 }
 
 void Region::replace_data(const WeightedData& data, uint16_t left_samples, uint16_t right_samples)

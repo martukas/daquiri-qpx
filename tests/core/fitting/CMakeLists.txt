@@ -1,8 +1,8 @@
 set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
-#set(SOURCES
-#  ${dir}/parameter.cpp
-#  )
+set(SOURCES
+  ${dir}/weighted_data.cpp
+  )
 
 add_subdirectory(sum4)
 add_subdirectory(hypermet)
