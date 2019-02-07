@@ -14,6 +14,32 @@
 namespace DAQuiri
 {
 
+double weight_true(double count)
+{
+  return std::sqrt(count);
+}
+
+double weight_phillips_marlow(const std::vector<double>& y, size_t i)
+{
+  double k0 = y[i];
+
+  if (k0 >= 25)
+    return std::sqrt(k0);
+  else
+  {
+    k0 = 1.0;
+    if ((i > 0) && ((i + 1) < y.size()))
+      k0 = y[i - 1] + y[i] + y[i + 1] / 3.0;
+    // \todo what if on edges?
+    return std::max(std::sqrt(k0), 1.0);
+  }
+}
+
+double weight_revay_student(double count)
+{
+  return std::sqrt(count + 1.0);
+}
+
 WeightedData::WeightedData(const std::vector<double>& x,
                            const std::vector<double>& y)
 {
@@ -27,9 +53,9 @@ WeightedData::WeightedData(const std::vector<double>& x,
     auto& p = data[i];
     p.x = x[i];
     p.y = y[i];
-    p.weight_true = weight_true(y, i);
+    p.weight_true = weight_true(p.y);
     p.weight_phillips_marlow = weight_phillips_marlow(y, i);
-    p.weight_revay = weight_revay_student(y, i);
+    p.weight_revay = weight_revay_student(p.y);
   }
 }
 
@@ -68,32 +94,6 @@ WeightedData WeightedData::right(size_t size) const
 void WeightedData::clear()
 {
   data.clear();
-}
-
-double WeightedData::weight_true(const std::vector<double>& y, size_t i) const
-{
-  return std::sqrt(y[i]);
-}
-
-double WeightedData::weight_phillips_marlow(const std::vector<double>& y, size_t i) const
-{
-  double k0 = y[i];
-
-  if (k0 >= 25)
-    return std::sqrt(k0);
-  else
-  {
-    k0 = 1.0;
-    if ((i > 0) && ((i + 1) < y.size()))
-      k0 = y[i - 1] + y[i] + y[i + 1] / 3.0;
-    return std::max(std::sqrt(k0), 1.0);
-  }
-}
-
-double WeightedData::weight_revay_student(const std::vector<double>& y, size_t i) const
-{
-  double k0 = y[i] + 1;
-  return std::sqrt(k0);
 }
 
 }

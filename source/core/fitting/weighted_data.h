@@ -15,6 +15,25 @@
 namespace DAQuiri
 {
 
+// \todo move these out of the class
+
+/// \returns true statistical weight, i.e. sqrt(count)
+double weight_true(double count);
+
+/// \returns low-count compensated weight using:
+///          G. W. Phillips and K. W. Marlow,
+///          "Peak Search and Analysis of Gamma-Ray Spectra with Very Low Statistics,"
+///          IEEE Transactions on Nuclear Science, vol. 24, no. 1, pp. 154-157, Feb. 1977.
+///          doi: 10.1109/TNS.1977.4328659
+/// \param y vector of channel counts
+/// \param i channel index
+double weight_phillips_marlow(const std::vector<double>& y, size_t i);
+
+/// \returns low-count compensated weight using:
+// \todo NEED CITATION!!!!
+double weight_revay_student(double count);
+
+
 struct WeightedDataPoint
 {
   double x {0}; // channels
@@ -54,26 +73,6 @@ struct WeightedData
   bool empty() const;
 
   std::vector<WeightedDataPoint> data;
-
-
-  // \todo move these out of the class
-
-  /// \returns true statistical weight, i.e. sqrt(count)
-  /// \param i channel index
-  double weight_true(const std::vector<double>& y, size_t i) const;
-
-  /// \returns low-count compensated weight using:
-  ///          G. W. Phillips and K. W. Marlow,
-  ///          "Peak Search and Analysis of Gamma-Ray Spectra with Very Low Statistics,"
-  ///          IEEE Transactions on Nuclear Science, vol. 24, no. 1, pp. 154-157, Feb. 1977.
-  ///          doi: 10.1109/TNS.1977.4328659
-  /// \param i channel index
-  double weight_phillips_marlow(const std::vector<double>& y, size_t i) const;
-
-  /// \returns low-count compensated weight using:
-  /// \param i channel index
-  // \todo NEED CITATION!!!!
-  double weight_revay_student(const std::vector<double>& y, size_t i) const;
 
   // \todo uncertainty treatment for ZDT spectra
 };
