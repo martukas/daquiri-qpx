@@ -6,6 +6,22 @@
 namespace DAQuiri
 {
 
+void AbstractValue::update_index(int32_t& idx)
+{
+  if (idx < 0)
+    throw std::runtime_error("Value cannot save negative variable index");
+
+  if (to_fit)
+    index_ = idx++;
+  else
+    index_ = -1;
+}
+
+int32_t AbstractValue::index() const
+{
+  return index_;
+}
+
 double AbstractValue::x() const
 {
   return x_;
@@ -29,58 +45,63 @@ double AbstractValue::grad() const
 double AbstractValue::val_from(const Eigen::VectorXd& fit) const
 {
   // \todo access without range checking once we have tests
-  if (x_index >= 0)
-    return this->val_at(fit(static_cast<size_t>(x_index)));
+  if (index_ >= 0)
+    return this->val_at(fit(static_cast<size_t>(index_)));
   return val();
 }
 
 double AbstractValue::grad_from(const Eigen::VectorXd& fit) const
 {
   // \todo access without range checking once we have tests
-  if (x_index >= 0)
-    return this->grad_at(fit(static_cast<size_t>(x_index)));
+  if (index_ >= 0)
+    return this->grad_at(fit(static_cast<size_t>(index_)));
   return grad();
+}
+
+double AbstractValue::uncert() const
+{
+  return val_uncert_;
 }
 
 void AbstractValue::put(Eigen::VectorXd& fit) const
 {
-  if (x_index != -1)
-    fit[x_index] = x();
+  if (index_ >= 0)
+    fit[index_] = x();
 }
 
 void AbstractValue::get(const Eigen::VectorXd& fit)
 {
-  if (x_index != -1)
-    x(fit[x_index]);
+  if (index_ >= 0)
+    x(fit[index_]);
 }
 
 void AbstractValue::get_uncert(const Eigen::VectorXd& diagonals, double chisq_norm)
 {
-  if (x_index != -1)
-    uncert_value = std::sqrt(std::abs(diagonals[x_index] * this->grad() * chisq_norm));
+  if (index_ >= 0)
+    val_uncert_ = std::sqrt(std::abs(diagonals[index_] * this->grad() * chisq_norm));
 }
 
 std::string AbstractValue::to_string() const
 {
   return fmt::format("{}\u00B1{}(x={},i={}{})",
-      val(), uncert_value, x_, x_index,
+      val(), val_uncert_, x_, index_,
       to_fit ? " fit" : "");
 }
 
 void to_json(nlohmann::json& j, const AbstractValue& s)
 {
   j["x"] = s.x_;
-  j["x_index"] = s.x_index;
+  j["x_index"] = s.index_;
   j["to_fit"] = s.to_fit;
-  j["uncert_value"] = s.uncert_value;
+  j["uncert_value"] = s.val_uncert_;
 }
 
 void from_json(const nlohmann::json& j, AbstractValue& s)
 {
   s.x_ = j["x"];
-  s.x_index = j["x_index"];
+  s.index_ = j["x_index"];
   s.to_fit = j["to_fit"];
-  s.uncert_value = j["uncert_value"];
+  s.val_uncert_ = j["uncert_value"];
 }
 
 
@@ -93,10 +114,8 @@ double Value::max() const
 
 void Value::max(double new_max)
 {
-  //Dim val As Double = _Min + (_Max - _Min) / 2 * (1 + std::Sin(x_))
-  //Value = std::min(NewMax, val)
   max_ = new_max;
-  //x_ = std::Asin((_Min + _Max - 2 * val) / (-1 * _Max + _Min))
+  this->val(std::min(max_, this->val()));
 }
 
 double Value::min() const
@@ -106,10 +125,8 @@ double Value::min() const
 
 void Value::min(double new_min)
 {
-  //Dim val As Double = _Min + (_Max - _Min) / 2 * (1 + std::Sin(x_))
   min_ = new_min;
-  //temp = std::max(temp, val)
-  //x_ = std::Asin((_Min + _Max - 2 * temp) / (-1 * _Max + _Min))
+  this->val(std::max(min_, this->val()));
 }
 
 void Value::bound(double v1, double v2)
@@ -117,16 +134,6 @@ void Value::bound(double v1, double v2)
   min(std::min(v1, v2));
   max(std::max(v1, v2));
 }
-
-//void SetRange(double NewMin, double NewMax) {
-//    if(Not NewMin < NewMax) { return; }
-//    double val = _Min + (_Max - _Min) / 2 * (1 + std::sin(x_));
-//    Value = std::min(NewMin, val);
-//    Value = std::max(NewMax, val);
-//    _Min = NewMin;
-//    _Max = NewMax;
-//    x_ = std::asin((_Min + _Max - 2 * val) / (-1 * _Max + _Min));
-//}
 
 void Value::val(double new_val)
 {
@@ -157,9 +164,9 @@ std::string Value::to_string() const
 void to_json(nlohmann::json& j, const Value& s)
 {
   j["x"] = s.x();
-  j["x_index"] = s.x_index;
+  j["x_index"] = s.index_;
   j["to_fit"] = s.to_fit;
-  j["uncert_value"] = s.uncert_value;
+  j["uncert_value"] = s.val_uncert_;
   j["min"] = s.min();
   j["max"] = s.max();
 }
@@ -167,9 +174,9 @@ void to_json(nlohmann::json& j, const Value& s)
 void from_json(const nlohmann::json& j, Value& s)
 {
   s.x(j["x"]);
-  s.x_index = j["x_index"];
+  s.index_ = j["x_index"];
   s.to_fit = j["to_fit"];
-  s.uncert_value = j["uncert_value"];
+  s.val_uncert_ = j["uncert_value"];
   s.min(j["min"]);
   s.max(j["max"]);
 }

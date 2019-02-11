@@ -13,22 +13,15 @@ Region::Region()
   default_peak_.width_.bound(0.8, 4.0);
 
   default_peak_.short_tail.amplitude.bound(0.02, 1.5);
-  default_peak_.short_tail.amplitude.to_fit = true;
   default_peak_.short_tail.slope.bound(0.2, 0.5);
-  default_peak_.short_tail.slope.to_fit = true;
 
   default_peak_.right_tail.amplitude.bound(0.01, 0.9);
-  default_peak_.right_tail.amplitude.to_fit = true;
   default_peak_.right_tail.slope.bound(0.3, 1.5);
-  default_peak_.right_tail.slope.to_fit = true;
 
   default_peak_.long_tail.amplitude.bound(0.0001, 0.15);
-  default_peak_.long_tail.amplitude.to_fit = true;
   default_peak_.long_tail.slope.bound(2.5, 50);
-  default_peak_.long_tail.slope.to_fit = true;
 
   default_peak_.step.amplitude.bound(0.000001, 0.05);
-  default_peak_.step.amplitude.to_fit = true;
 }
 
 Region::Region(const WeightedData& data, uint16_t background_samples)
@@ -313,9 +306,7 @@ void Region::map_fit()
   if (!peaks_.empty())
   {
     if (unique_widths < peaks_.size())
-      default_peak_.width_.x_index = variable_count_++;
-    else
-      default_peak_.width_.x_index = -1;
+      default_peak_.width_.update_index(variable_count_);
 
     if (default_peak_.short_tail.enabled &&
         (unique_short_tails < peaks_.size()))

@@ -19,44 +19,44 @@ FormPeakInfo::FormPeakInfo(DAQuiri::Peak& hm, QWidget* parent)
 
   ui->labelCenter->setText(QS(hm_.peak_position().to_string()));
   ui->labelCenterPercent->setText(QS(hm_.peak_position().error_percent_fancy()));
-  UncertainDouble amp {hm_.amplitude.val(), hm_.amplitude.uncert_value};
+  UncertainDouble amp {hm_.amplitude.val(), hm_.amplitude.val_uncert_};
   ui->labelAmplitude->setText(QS(amp.to_string()));
   ui->labelAmplitudePercent->setText(QS(amp.error_percent_fancy()));
   ui->labelWidth->setText(QS(hm_.fwhm().to_string()));
   ui->labelWidthPercent->setText(QS(hm_.fwhm().error_percent_fancy()));
 
-  UncertainDouble step {hm_.step.amplitude.val(), hm_.step.amplitude.uncert_value};
+  UncertainDouble step {hm_.step.amplitude.val(), hm_.step.amplitude.val_uncert_};
   ui->labelStep->setText(QS(step.to_string()));
   ui->labelStepPercent->setText(QS(step.error_percent_fancy()));
 
-  UncertainDouble tail_amp {hm_.long_tail.amplitude.val(), hm_.long_tail.amplitude.uncert_value};
+  UncertainDouble tail_amp {hm_.long_tail.amplitude.val(), hm_.long_tail.amplitude.val_uncert_};
   ui->labelTailH->setText(QS(tail_amp.to_string()));
   ui->labelTailHPercent->setText(QS(tail_amp.error_percent_fancy()));
-  UncertainDouble tail_slope {hm_.long_tail.slope.val(), hm_.long_tail.slope.uncert_value};
+  UncertainDouble tail_slope {hm_.long_tail.slope.val(), hm_.long_tail.slope.val_uncert_};
   ui->labelTailS->setText(QS(tail_slope.to_string()));
   ui->labelTailSPercent->setText(QS(tail_slope.error_percent_fancy()));
 
-  UncertainDouble lskew_amp {hm_.short_tail.amplitude.val(), hm_.short_tail.amplitude.uncert_value};
+  UncertainDouble lskew_amp {hm_.short_tail.amplitude.val(), hm_.short_tail.amplitude.val_uncert_};
   ui->labelLskewH->setText(QS(lskew_amp.to_string()));
   ui->labelLskewHPercent->setText(QS(lskew_amp.error_percent_fancy()));
-  UncertainDouble lskew_slope {hm_.short_tail.slope.val(), hm_.short_tail.slope.uncert_value};
+  UncertainDouble lskew_slope {hm_.short_tail.slope.val(), hm_.short_tail.slope.val_uncert_};
   ui->labelLskewS->setText(QS(lskew_slope.to_string()));
   ui->labelLskewSPercent->setText(QS(lskew_slope.error_percent_fancy()));
 
-  UncertainDouble rskew_amp {hm_.right_tail.amplitude.val(), hm_.right_tail.amplitude.uncert_value};
+  UncertainDouble rskew_amp {hm_.right_tail.amplitude.val(), hm_.right_tail.amplitude.val_uncert_};
   ui->labelRskewH->setText(QS(rskew_amp.to_string()));
   ui->labelRskewHPercent->setText(QS(rskew_amp.error_percent_fancy()));
-  UncertainDouble rskew_slope {hm_.right_tail.slope.val(), hm_.right_tail.slope.uncert_value};
+  UncertainDouble rskew_slope {hm_.right_tail.slope.val(), hm_.right_tail.slope.val_uncert_};
   ui->labelRskewS->setText(QS(rskew_slope.to_string()));
   ui->labelRskewSPercent->setText(QS(rskew_slope.error_percent_fancy()));
 
   // \todo min+max instead of epsilon for these
   ui->doubleCenter->setValue(hm_.position.val());
-  ui->doubleCenterEpsilon->setValue(hm_.position.uncert_value);
+  ui->doubleCenterEpsilon->setValue(hm_.position.val_uncert_);
   ui->doubleAmplitude->setValue(hm_.amplitude.val());
-  ui->doubleAmplitudeEpsilon->setValue(hm_.amplitude.uncert_value);
+  ui->doubleAmplitudeEpsilon->setValue(hm_.amplitude.val_uncert_);
   ui->doubleWidth->setValue(hm_.width_.val());
-  ui->doubleWidthEpsilon->setValue(hm_.width_.uncert_value);
+  ui->doubleWidthEpsilon->setValue(hm_.width_.val_uncert_);
 
   ui->checkStepEnable->setChecked(hm_.step.enabled);
   ui->checkStepFixed->setChecked(!hm_.step.amplitude.to_fit);

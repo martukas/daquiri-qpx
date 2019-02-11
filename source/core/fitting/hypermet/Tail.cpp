@@ -8,15 +8,8 @@ namespace DAQuiri
 
 void Tail::update_indices(int32_t& i)
 {
-  if (amplitude.to_fit)
-    amplitude.x_index = i++;
-  else
-    amplitude.x_index = -1;
-
-  if (slope.to_fit)
-    slope.x_index = i++;
-  else
-    slope.x_index = -1;
+  amplitude.update_index(i);
+  slope.update_index(i);
 }
 
 void Tail::put(Eigen::VectorXd& fit) const
@@ -67,9 +60,9 @@ double Tail::eval_grad(const PrecalcVals& pre, Eigen::VectorXd& grads,
   grads[i_amp] += pre.amp_grad * ret / ampl;
 
   if (amplitude.to_fit)
-    grads[amplitude.x_index] += ret / ampl * amplitude.grad();
+    grads[amplitude.index()] += ret / ampl * amplitude.grad();
   if (slope.to_fit)
-    grads[slope.x_index] += slope.grad() * ((-spread / square(slp)) *
+    grads[slope.index()] += slope.grad() * ((-spread / square(slp)) *
         ret + (pre.width / (2.0 * square(slp)) * t2));
   return ret;
 }
@@ -89,9 +82,9 @@ double Tail::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
   grads[i_amp] += pre.amp_grad * ret / ampl;
 
   if (amplitude.to_fit)
-    grads[amplitude.x_index] += ret / ampl * amplitude.grad_from(fit);
+    grads[amplitude.index()] += ret / ampl * amplitude.grad_from(fit);
   if (slope.to_fit)
-    grads[slope.x_index] += slope.grad_from(fit) * ((-spread / square(slp)) *
+    grads[slope.index()] += slope.grad_from(fit) * ((-spread / square(slp)) *
         ret + (pre.width / (2.0 * square(slp)) * t2));
   return ret;
 }

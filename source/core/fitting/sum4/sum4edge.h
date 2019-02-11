@@ -56,8 +56,8 @@ class SUM4Edge
   double max() const { return max_; }
 
   /// \brief generates a linear function estimating a background spanning two samples
-  static Polynomial sum4_background(const SUM4Edge& L,
-                                    const SUM4Edge& R);
+  static Polynomial sum4_background(const SUM4Edge& LB,
+                                    const SUM4Edge& RB);
 
   std::string to_string() const;
 

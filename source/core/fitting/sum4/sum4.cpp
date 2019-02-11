@@ -24,26 +24,22 @@ SUM4::SUM4(const WeightedData& spectrum_data,
   if (spectrum_data.data.empty())
     throw std::runtime_error("Cannot create SUM4 with empty data");
 
-  if (!LB.width() || !RB.width())
-    throw std::runtime_error("Cannot create SUM4 with invalid edges");
+  Polynomial background = SUM4Edge::sum4_background(LB, RB);
+  double background_variance = square(0.5 * peak_width()) * (LB.variance() + RB.variance());
 
   Lchan_ = spectrum_data.data.front().x;
   Rchan_ = spectrum_data.data.back().x;
 
-  gross_area_ = {0.0, 0.0};
   for (const auto& p : spectrum_data.data)
     gross_area_ += {p.y, p.weight_true};
 
-  Polynomial background = SUM4Edge::sum4_background(LB, RB);
-
-  double background_variance = square(0.5 * peak_width()) * (LB.variance() + RB.variance());
   background_area_ = {
       0.5 * peak_width() * (background(Rchan_) + background(Lchan_)),
       sqrt(background_variance)};
 
   peak_area_ = gross_area_ - background_area_;
 
-  double sumYnet(0), CsumYnet(0), C2sumYnet(0);
+  double sumYnet{0.0}, CsumYnet{0.0}, C2sumYnet{0.0};
   for (const auto& p : spectrum_data.data)
   {
     double yn = p.y - background(p.x);
@@ -55,11 +51,11 @@ SUM4::SUM4(const WeightedData& spectrum_data,
   double centroidval = CsumYnet / sumYnet;
   //  if ((centroidval >= 0) && (centroidval < x.size()))
   //    centroidval = x.at(static_cast<size_t>(centroidval));
-
   double centroid_variance = (C2sumYnet / sumYnet) - square(centroidval);
   centroid_ = {centroidval, centroid_variance};
 
-  double fwhm_val = 2.0 * sqrt(centroid_variance * log(4));
+  double fwhm_val = 2.0 * sqrt(centroid_variance * log(4.0));
+  // \todo true uncertainty?
   fwhm_ = {fwhm_val, std::numeric_limits<double>::quiet_NaN()};
 }
 
@@ -91,10 +87,9 @@ int SUM4::quality() const
 
 int SUM4::get_currie_quality_indicator(double peak_net_area, double background_variance)
 {
-  double currieLQ(0), currieLD(0), currieLC(0);
-  currieLQ = 50 * (1 + sqrt(1 + background_variance / 12.5));
-  currieLD = 2.71 + 4.65 * sqrt(background_variance);
-  currieLC = 2.33 * sqrt(background_variance);
+  double currieLQ = 50 * (1 + sqrt(1 + background_variance / 12.5));
+  double currieLD = 2.71 + 4.65 * sqrt(background_variance);
+  double currieLC = 2.33 * sqrt(background_variance);
 
   if (peak_net_area > currieLQ)
     return 1;

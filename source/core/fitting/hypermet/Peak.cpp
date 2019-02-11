@@ -116,20 +116,20 @@ double Peak::id() const
 
 UncertainDouble Peak::peak_position() const
 {
-  return {position.val(), position.uncert_value};
+  return {position.val(), position.uncert()};
 }
 
 UncertainDouble Peak::peak_energy(const HCalibration& cal) const
 {
   // \todo if there is a curve, does the slope not differ with x?
   return {cal.channel_to_energy(position.val()),
-          cal.energy_slope() * position.uncert_value};
+          cal.energy_slope() * position.uncert()};
 }
 
 UncertainDouble Peak::peak_energy(const Calibration& cal) const
 {
   return {cal.transform(position.val()),
-          cal.function()->derivative(position.val()) * position.uncert_value};
+          cal.function()->derivative(position.val()) * position.uncert()};
 }
 
 UncertainDouble Peak::area() const
@@ -149,17 +149,17 @@ UncertainDouble Peak::area() const
 
 //  //(dGAM/dX*dArea/dGAM)^2*Var(X)*Chisq
 //  t = square(amplitude.grad() * width_.val() * a) * cs;
-//  // * Hessinv.coeff(DEL.x_index, DEL.x_index);
+//  // * Hessinv.coeff(DEL.index(), DEL.index());
 //  //(dGAM/dX*dArea/dGAM)*(dDEL/dY*dArea/dDEL)*Covar(X,Y)*Chisq
 //  t += square(amplitude.grad() * width_.val() * a) * cs;
-//  // * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, DEL.x_index)
+//  // * Hessinv.coeff(Peak(PeakIndex).GAM.index(), DEL.index())
 //  if (short_tail.amplitude.to_fit)
 //  {
 //    //(dGAM/dX*dArea/dGAM)*(dAST/dY*dArea/dAST)*Covar(X,Y)*Chisq
 //    t += (amplitude.grad() * width_.val() * a) *
 //        (short_tail.amplitude.grad() * amplitude.val() * width_.val() *
 //            short_tail.slope.val() * std::exp(-0.25 / square(short_tail.slope.val()))) * cs;
-//    // * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, AST.x_index)
+//    // * Hessinv.coeff(Peak(PeakIndex).GAM.index(), AST.index())
 //  }
 //  if (short_tail.slope.to_fit)
 //  {
@@ -168,7 +168,7 @@ UncertainDouble Peak::area() const
 //        (short_tail.slope.grad() * amplitude.val() * width_.val()
 //            * short_tail.amplitude.val() * (1 + 0.5 / square(short_tail.slope.val()))
 //            * std::exp(-0.25 / square(short_tail.slope.val()))) * cs;
-//    // * Hessinv.coeff(Peak(PeakIndex).GAM.x_index, AST.x_index)
+//    // * Hessinv.coeff(Peak(PeakIndex).GAM.index(), AST.index())
 //  }
   return {a, std::sqrt(a) * std::max(1.0, chi_sq_norm)};
 }
@@ -194,14 +194,14 @@ UncertainDouble Peak::peak_area_eff(const HCalibration& cal) const
 UncertainDouble Peak::fwhm() const
 {
   // \todo multiply with sqrt(log(2.0)) ?
-  return {width_.val(), width_.uncert_value};
+  return {width_.val(), width_.uncert()};
 }
 
 UncertainDouble Peak::fwhm_energy(const HCalibration& cal) const
 {
   double width = width_.val() * sqrt(log(2.0));
-  double max_width = (width_.val() + width_.uncert_value) * sqrt(log(2.0));
-  double min_width = (width_.val() - width_.uncert_value) * sqrt(log(2.0));
+  double max_width = (width_.val() + width_.uncert()) * sqrt(log(2.0));
+  double min_width = (width_.val() - width_.uncert()) * sqrt(log(2.0));
 
   double val = cal.channel_to_energy(position.val() + width)
       - cal.channel_to_energy(position.val() - width);
@@ -216,8 +216,8 @@ UncertainDouble Peak::fwhm_energy(const HCalibration& cal) const
 UncertainDouble Peak::fwhm_energy(const Calibration& cal) const
 {
   double width = width_.val() * sqrt(log(2.0));
-  double max_width = (width_.val() + width_.uncert_value) * sqrt(log(2.0));
-  double min_width = (width_.val() - width_.uncert_value) * sqrt(log(2.0));
+  double max_width = (width_.val() + width_.uncert()) * sqrt(log(2.0));
+  double min_width = (width_.val() - width_.uncert()) * sqrt(log(2.0));
 
   double val = cal.transform(position.val() + width) - cal.transform(position.val() - width);
   double max = cal.transform(position.val() + max_width) - cal.transform(position.val() - max_width);
@@ -229,11 +229,11 @@ UncertainDouble Peak::fwhm_energy(const Calibration& cal) const
 
 void Peak::update_indices(int32_t& i)
 {
-  position.x_index = i++;
-  amplitude.x_index = i++;
+  position.update_index(i);
+  amplitude.update_index(i);
 
   if (width_override)
-    width_.x_index = i++;
+    width_.update_index(i);
 
   if (short_tail.override && short_tail.enabled)
     short_tail.update_indices(i);
@@ -356,24 +356,24 @@ Peak::Components Peak::eval_grad(double chan, Eigen::VectorXd& grads) const
 
   ret.gaussian = amplitude.val() * std::exp(-square(pre.spread));
 
-  grads[width_.x_index] += pre.width_grad * ret.gaussian * 2.0 * square(pre.spread) / pre.width;
-  grads[position.x_index] += ret.gaussian * 2.0 * pre.spread / pre.width;
-  grads[amplitude.x_index] += ret.gaussian / pre.ampl;
+  grads[width_.index()] += pre.width_grad * ret.gaussian * 2.0 * square(pre.spread) / pre.width;
+  grads[position.index()] += ret.gaussian * 2.0 * pre.spread / pre.width;
+  grads[amplitude.index()] += ret.gaussian / pre.ampl;
 
   if (short_tail.enabled)
     ret.short_tail = short_tail.eval_grad(pre, grads,
-                                          width_.x_index, position.x_index, amplitude.x_index);
+                                          width_.index(), position.index(), amplitude.index());
 
   if (right_tail.enabled)
     ret.right_tail = short_tail.eval_grad(pre, grads,
-                                          width_.x_index, position.x_index, amplitude.x_index);
+                                          width_.index(), position.index(), amplitude.index());
 
   if (long_tail.enabled)
     ret.long_tail = long_tail.eval_grad(pre, grads,
-                                        width_.x_index, position.x_index, amplitude.x_index);
+                                        width_.index(), position.index(), amplitude.index());
 
   if (step.enabled)
-    ret.step = step.eval_grad(pre, grads, width_.x_index, position.x_index, amplitude.x_index);
+    ret.step = step.eval_grad(pre, grads, width_.index(), position.index(), amplitude.index());
 
   return ret;
 }
@@ -385,27 +385,27 @@ Peak::Components Peak::eval_grad_at(double chan, const Eigen::VectorXd& fit,
 
   auto pre = precalc_vals_at(chan, fit);
 
-  ret.gaussian = amplitude.val_at(fit[amplitude.x_index]) * std::exp(-square(pre.spread));
+  ret.gaussian = amplitude.val_at(fit[amplitude.index()]) * std::exp(-square(pre.spread));
 
-  grads[width_.x_index] += pre.width_grad * ret.gaussian * 2.0 * square(pre.spread) / pre.width;
-  grads[position.x_index] += ret.gaussian * 2.0 * pre.spread / pre.width;
-  grads[amplitude.x_index] += ret.gaussian / pre.ampl;
+  grads[width_.index()] += pre.width_grad * ret.gaussian * 2.0 * square(pre.spread) / pre.width;
+  grads[position.index()] += ret.gaussian * 2.0 * pre.spread / pre.width;
+  grads[amplitude.index()] += ret.gaussian / pre.ampl;
 
   if (short_tail.enabled)
     ret.short_tail = short_tail.eval_grad_at(pre, fit, grads,
-                                             width_.x_index, position.x_index, amplitude.x_index);
+                                             width_.index(), position.index(), amplitude.index());
 
   if (right_tail.enabled)
     ret.right_tail = short_tail.eval_grad_at(pre, fit, grads,
-                                             width_.x_index, position.x_index, amplitude.x_index);
+                                             width_.index(), position.index(), amplitude.index());
 
   if (long_tail.enabled)
     ret.long_tail = long_tail.eval_grad_at(pre, fit, grads,
-                                           width_.x_index, position.x_index, amplitude.x_index);
+                                           width_.index(), position.index(), amplitude.index());
 
   if (step.enabled)
     ret.step = step.eval_grad_at(pre, fit, grads,
-                                 width_.x_index, position.x_index, amplitude.x_index);
+                                 width_.index(), position.index(), amplitude.index());
 
   return ret;
 }

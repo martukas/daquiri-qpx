@@ -79,14 +79,21 @@ void from_json(const nlohmann::json& j, SUM4Edge& s)
   s.Rchan_ = j["right"];
 }
 
-Polynomial SUM4Edge::sum4_background(const SUM4Edge& L, const SUM4Edge& R)
+Polynomial SUM4Edge::sum4_background(const SUM4Edge& LB, const SUM4Edge& RB)
 {
+  if (!LB.width())
+    throw std::runtime_error("Cannot generate background: empty LB");
+  if (!RB.width())
+    throw std::runtime_error("Cannot generate background: empty RB");
+  if (LB.right() >= RB.left())
+    throw std::runtime_error("Cannot generate background: RB must be to the right of LB");
+
   Polynomial sum4back;
-  double run = R.left() - L.right();
+  double run = RB.left() - LB.right();
   auto x_offset = sum4back.x_offset();
-  x_offset.constrain(L.right(), L.right());
-  double s4base = L.average().value();
-  double s4slope = (R.average().value() - L.average().value()) / run;
+  x_offset.constrain(LB.right(), LB.right());
+  double s4base = LB.average().value();
+  double s4slope = (RB.average().value() - LB.average().value()) / run;
   sum4back.x_offset(x_offset);
   sum4back.set_coeff(0, {s4base, s4base, s4base});
   sum4back.set_coeff(1, {s4slope, s4slope, s4slope});

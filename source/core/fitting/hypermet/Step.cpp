@@ -8,10 +8,7 @@ namespace DAQuiri
 
 void Step::update_indices(int32_t& i)
 {
-  if (amplitude.to_fit)
-    amplitude.x_index = i++;
-  else
-    amplitude.x_index = -1;
+  amplitude.update_index(i);
 }
 
 void Step::put(Eigen::VectorXd& fit) const
@@ -54,7 +51,7 @@ double Step::eval_grad(const PrecalcVals& pre, Eigen::VectorXd& grads,
       std::exp(-square(pre.spread)) * pre.spread / pre.width);
   grads[i_amp] += pre.pos_grad * ret / pre.ampl;
   if (amplitude.to_fit)
-    grads[amplitude.x_index] += ret / ampl * amplitude.grad();
+    grads[amplitude.index()] += ret / ampl * amplitude.grad();
 
   // \todo pos unused?
   (void) i_pos;
@@ -73,7 +70,7 @@ double Step::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
       std::exp(-square(pre.spread)) * pre.spread / pre.width);
   grads[i_amp] += pre.pos_grad * ret / pre.ampl;
   if (amplitude.to_fit)
-    grads[amplitude.x_index] += ret / ampl * amplitude.grad_from(fit);
+    grads[amplitude.index()] += ret / ampl * amplitude.grad_from(fit);
 
   // \todo pos unused?
   (void) i_pos;

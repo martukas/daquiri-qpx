@@ -46,7 +46,7 @@ class Peak : public TestBase
     EXPECT_EQ(chosen_point.x, channel_idx);
     EXPECT_EQ(chosen_point.y, peak.eval(chosen_point.x).all());
 
-    size_t chosen_var_idx = variable.x_index;
+    size_t chosen_var_idx = variable.index();
 
     std::vector<double> x_val;
     std::vector<double> val_val;
@@ -87,7 +87,7 @@ class Peak : public TestBase
     double degrees_freedom = wdata.data.size() - idx;
     ASSERT_EQ(degrees_freedom, 17);
 
-    size_t chosen_var_idx = variable.x_index;
+    size_t chosen_var_idx = variable.index();
 
     std::vector<double> x_val;
     std::vector<double> val_val;
