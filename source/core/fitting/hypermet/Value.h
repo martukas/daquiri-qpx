@@ -173,25 +173,4 @@ class ValueBkg : public AbstractValue
   double grad_at(double at_x) const override;
 };
 
-struct PrecalcVals
-{
-  double width;
-  double ampl;
-  double half_ampl;
-  double spread;
-
-  double width_grad;
-  double pos_grad;
-  double amp_grad;
-};
-
-enum class Side
-{
-  left,
-  right
-};
-
-std::string side_to_string(const Side& s);
-Side side_from_string(const std::string& s);
-
 }

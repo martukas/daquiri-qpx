@@ -216,21 +216,4 @@ double ValueBkg::grad_at(double at_x) const
   return 1.0;
 }
 
-std::string side_to_string(const Side& s)
-{
-  if (s == Side::right)
-    return "right";
-  else
-    return "left";
-}
-
-Side side_from_string(const std::string& s)
-{
-  if (s == "right")
-    return Side::right;
-  else
-    return Side::left;
-}
-
-
 }

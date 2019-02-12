@@ -93,7 +93,7 @@ bool Peak::sanity_check(double min_x, double max_x) const
 
 bool Peak::full_energy_peak() const
 {
-  return (step.flip(1.0) > 0);
+  return (step.side == Side::left);
 }
 
 void Peak::full_energy_peak(bool flag)
@@ -235,16 +235,16 @@ void Peak::update_indices(int32_t& i)
   if (width_override)
     width_.update_index(i);
 
-  if (short_tail.override && short_tail.enabled)
+  if (short_tail.override)
     short_tail.update_indices(i);
 
-  if (right_tail.override && right_tail.enabled)
+  if (right_tail.override)
     right_tail.update_indices(i);
 
-  if (long_tail.override && long_tail.enabled)
+  if (long_tail.override)
     long_tail.update_indices(i);
 
-  if (step.override && step.enabled)
+  if (step.override)
     step.update_indices(i);
 }
 
@@ -290,9 +290,13 @@ PrecalcVals Peak::precalc_vals(double chan) const
   ret.width = width_.val();
   ret.spread = (chan - position.val()) / ret.width;
 
-  ret.width_grad = width_.grad();
   ret.amp_grad = amplitude.grad();
+  ret.width_grad = width_.grad();
   ret.pos_grad = position.grad();
+
+  ret.i_amp = amplitude.index();
+  ret.i_width = width_.index();
+  ret.i_pos = position.index();
   return ret;
 }
 
@@ -304,9 +308,13 @@ PrecalcVals Peak::precalc_vals_at(double chan, const Eigen::VectorXd& fit) const
   ret.width = width_.val_from(fit);
   ret.spread = (chan - position.val_from(fit)) / ret.width;
 
-  ret.width_grad = width_.grad_from(fit);
   ret.amp_grad = amplitude.grad_from(fit);
+  ret.width_grad = width_.grad_from(fit);
   ret.pos_grad = position.grad_from(fit);
+
+  ret.i_amp = amplitude.index();
+  ret.i_width = width_.index();
+  ret.i_pos = position.index();
   return ret;
 }
 
@@ -361,19 +369,13 @@ Peak::Components Peak::eval_grad(double chan, Eigen::VectorXd& grads) const
   grads[amplitude.index()] += ret.gaussian / pre.ampl;
 
   if (short_tail.enabled)
-    ret.short_tail = short_tail.eval_grad(pre, grads,
-                                          width_.index(), position.index(), amplitude.index());
-
+    ret.short_tail = short_tail.eval_grad(pre, grads);
   if (right_tail.enabled)
-    ret.right_tail = short_tail.eval_grad(pre, grads,
-                                          width_.index(), position.index(), amplitude.index());
-
+    ret.right_tail = short_tail.eval_grad(pre, grads);
   if (long_tail.enabled)
-    ret.long_tail = long_tail.eval_grad(pre, grads,
-                                        width_.index(), position.index(), amplitude.index());
-
+    ret.long_tail = long_tail.eval_grad(pre, grads);
   if (step.enabled)
-    ret.step = step.eval_grad(pre, grads, width_.index(), position.index(), amplitude.index());
+    ret.step = step.eval_grad(pre, grads);
 
   return ret;
 }
@@ -392,20 +394,13 @@ Peak::Components Peak::eval_grad_at(double chan, const Eigen::VectorXd& fit,
   grads[amplitude.index()] += ret.gaussian / pre.ampl;
 
   if (short_tail.enabled)
-    ret.short_tail = short_tail.eval_grad_at(pre, fit, grads,
-                                             width_.index(), position.index(), amplitude.index());
-
+    ret.short_tail = short_tail.eval_grad_at(pre, fit, grads);
   if (right_tail.enabled)
-    ret.right_tail = short_tail.eval_grad_at(pre, fit, grads,
-                                             width_.index(), position.index(), amplitude.index());
-
+    ret.right_tail = short_tail.eval_grad_at(pre, fit, grads);
   if (long_tail.enabled)
-    ret.long_tail = long_tail.eval_grad_at(pre, fit, grads,
-                                           width_.index(), position.index(), amplitude.index());
-
+    ret.long_tail = long_tail.eval_grad_at(pre, fit, grads);
   if (step.enabled)
-    ret.step = step.eval_grad_at(pre, fit, grads,
-                                 width_.index(), position.index(), amplitude.index());
+    ret.step = step.eval_grad_at(pre, fit, grads);
 
   return ret;
 }

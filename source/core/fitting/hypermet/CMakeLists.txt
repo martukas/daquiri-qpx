@@ -6,6 +6,7 @@ set(SOURCES
   ${dir}/Calibration.cpp
   ${dir}/Spectrum.cpp
   ${dir}/Value.cpp
+  ${dir}/GaussianPrecalc.cpp
   ${dir}/Tail.cpp
   ${dir}/Step.cpp
   ${dir}/Peak.cpp
@@ -19,6 +20,7 @@ set(HEADERS
   ${dir}/Calibration.h
   ${dir}/Spectrum.h
   ${dir}/Value.h
+  ${dir}/GaussianPrecalc.h
   ${dir}/Tail.h
   ${dir}/Step.h
   ${dir}/Peak.h
