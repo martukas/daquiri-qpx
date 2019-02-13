@@ -17,8 +17,14 @@ PolyBackground::PolyBackground()
 void PolyBackground::update_indices(int32_t& i)
 {
   base.update_index(i);
-  slope.update_index(i);
-  curve.update_index(i);
+  if (slope_enabled)
+    slope.update_index(i);
+  else
+    slope.reset_index();
+  if (curve_enabled)
+    curve.update_index(i);
+  else
+    curve.reset_index();
 }
 
 void PolyBackground::put(Eigen::VectorXd& fit) const

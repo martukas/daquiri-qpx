@@ -80,7 +80,7 @@ TEST_F(Step, Visualize)
     channels.push_back(i);
     y.push_back(step.eval(precalc_spoof(i)));
   }
-  MESSAGE() << "peak(channel):\n" << visualize(channels, y, 100) << "\n";
+  MESSAGE() << "counts(channel):\n" << visualize(channels, y, 100) << "\n";
 }
 
 TEST_F(Step, WithinBounds)
@@ -176,6 +176,8 @@ TEST_F(Step, UpdateIndexDisabled)
   step.update_indices(i);
   EXPECT_EQ(step.amplitude.index(), -1);
   EXPECT_EQ(i, 0);
+
+  // \todo test resetting of indices
 }
 
 TEST_F(Step, Put)

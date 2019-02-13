@@ -31,6 +31,9 @@ class AbstractValue
   /// \param idx index from parent model
   void update_index(int32_t& idx);
 
+  // \todo document this
+  void reset_index();
+
   /// \returns internally stored index for fitting
   int32_t index() const;
 

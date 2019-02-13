@@ -14,7 +14,12 @@ void AbstractValue::update_index(int32_t& idx)
   if (to_fit)
     index_ = idx++;
   else
-    index_ = -1;
+    reset_index();
+}
+
+void AbstractValue::reset_index()
+{
+  index_ = -1;
 }
 
 int32_t AbstractValue::index() const

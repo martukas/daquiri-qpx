@@ -82,7 +82,7 @@ TEST_F(Tail, Visualize)
     channels.push_back(i);
     y.push_back(tail.eval(precalc_spoof(i)));
   }
-  MESSAGE() << "peak(channel):\n" << visualize(channels, y, 100) << "\n";
+  MESSAGE() << "counts(channel):\n" << visualize(channels, y, 100) << "\n";
 }
 
 
@@ -195,6 +195,8 @@ TEST_F(Tail, UpdateIndexDisabled)
   EXPECT_EQ(tail.amplitude.index(), -1);
   EXPECT_EQ(tail.slope.index(), -1);
   EXPECT_EQ(i, 0);
+
+  // \todo test resetting of indices
 }
 
 TEST_F(Tail, Put)
