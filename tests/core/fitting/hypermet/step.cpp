@@ -1,11 +1,11 @@
-#include "gtest_color_print.h"
+#include "function_test.h"
 
 #include <core/util/visualize_vector.h>
 
 #include <core/fitting/hypermet/Step.h>
 #include <core/fitting/weighted_data.h>
 
-class Step : public TestBase
+class Step : public FunctionTest
 {
  protected:
 
@@ -17,19 +17,17 @@ class Step : public TestBase
 
   virtual void SetUp()
   {
-    int32_t i {0};
-
     amplitude.bound(0, 1000);
     amplitude.val(40);
-    amplitude.update_index(i);
+    amplitude.update_index(var_count);
 
     width.bound(0.8, 5.0);
     width.val(2);
-    width.update_index(i);
+    width.update_index(var_count);
 
     position.bound(0, 40);
     position.val(20);
-    position.update_index(i);
+    position.update_index(var_count);
 
     step.amplitude.bound(0.000001, 0.05);
     step.amplitude.val(0.05);
@@ -53,104 +51,24 @@ class Step : public TestBase
     return ret;
   }
 
-  double eval_grad(double chan, Eigen::VectorXd& chan_gradients) const
+  double eval(double chan) const override
+  {
+    return step.eval(precalc_spoof(chan));
+  }
+
+  double eval_grad(double chan, Eigen::VectorXd& chan_gradients) const override
   {
     return step.eval_grad(precalc_spoof(chan), chan_gradients);
   }
 
-
-  DAQuiri::WeightedData generate_data()
-  {
-    std::vector<double> channels;
-    std::vector<double> y;
-    for (size_t i = 0; i < 40; ++i)
-    {
-      channels.push_back(i);
-      auto pre = precalc_spoof(i);
-      y.push_back(step.eval(pre));
-    }
-    return DAQuiri::WeightedData(channels, y);
-  }
-
-  void grad(const DAQuiri::WeightedData& wwdata,
-      double from, double to,
-      DAQuiri::Value& variable)
-  {
-    int32_t idx {3};
-    step.update_indices(idx);
-    ASSERT_EQ(idx, 4);
-
-    double degrees_freedom = wwdata.data.size() - idx;
-    ASSERT_EQ(degrees_freedom, 36);
-
-    auto wdata = wwdata.subset(from, to);
-
-    size_t chosen_var_idx = variable.index();
-
-    std::vector<double> val_proxy;
-    std::vector<double> val_val;
-    std::vector<double> chi_sq_norm;
-    std::vector<double> gradient;
-
-    Eigen::VectorXd gradients;
-    Eigen::VectorXd chan_gradients;
-    for (double proxy = -M_PI; proxy < M_PI; proxy += 0.1)
-    {
-      val_proxy.push_back(proxy);
-      val_val.push_back(variable.val_at(proxy));
-      variable.x(proxy);
-
-      gradients.setConstant(idx, 0.0);
-      Eigen::VectorXd chan_gradients;
-      double Chisq{0.0};
-      for (const auto& data : wdata.data)
-      {
-        chan_gradients.setConstant(idx, 0.0);
-
-        double FTotal = eval_grad(data.x, chan_gradients);
-        double t3 = -2.0 * (data.y - FTotal) / square(data.weight_phillips_marlow);
-
-        for (size_t var = 0; var < static_cast<size_t>(idx); ++var)
-          gradients[var] += chan_gradients[var] * t3;
-        Chisq += square((data.y - FTotal) / data.weight_phillips_marlow);
-      }
-
-      gradient.push_back(gradients[chosen_var_idx]);
-      chi_sq_norm.push_back(Chisq / degrees_freedom);
-    }
-
-
-    auto min_chi = std::min_element(chi_sq_norm.begin(), chi_sq_norm.end());
-    auto min_chi_i = std::distance(chi_sq_norm.begin(), min_chi);
-
-    double min_abs = std::numeric_limits<double>::max();
-    size_t grad_i = 0;
-    for (size_t i=0; i < gradient.size(); ++i)
-    {
-      if (std::abs(gradient[i]) < min_abs)
-      {
-        grad_i = i;
-        min_abs = std::abs(gradient[i]);
-      }
-    }
-
-
-//    MESSAGE() << "chi_sq(proxy):\n" << visualize(val_proxy, chi_sq_norm, 100) << "\n";
-    MESSAGE() << "chi_sq(val):\n" << visualize_all(val_val, chi_sq_norm, 100) << "\n";
-    MESSAGE() << "min(chi_sq)=" << chi_sq_norm[min_chi_i] << " at val=" << val_val[min_chi_i] << "\n";
-//    MESSAGE() << "gradient(proxy):\n" << visualize(val_proxy, gradient, 100) << "\n";
-    MESSAGE() << "gradient(val):\n" << visualize_all(val_val, gradient, 100) << "\n";
-    MESSAGE() << "min(abs(grad))=" << gradient[grad_i] << " at val=" << val_val[grad_i] << "\n";
-
-  }
 };
 
 TEST_F(Step, CheckSetup)
 {
-  MESSAGE() << "Gauss-amp:\n" << amplitude.to_string() << "\n";
-  MESSAGE() << "Gauss-pos:\n" << position.to_string() << "\n";
-  MESSAGE() << "Gauss-width:\n" << width.to_string() << "\n";
-  MESSAGE() << "Step:\n" << step.to_string() << "\n";
+  MESSAGE() << "Gaussian amp: " << amplitude.to_string() << "\n";
+  MESSAGE() << "Gaussian pos: " << position.to_string() << "\n";
+  MESSAGE() << "Gaussian width: " << width.to_string() << "\n";
+  MESSAGE() << "Step: " << step.to_string() << "\n";
 }
 
 TEST_F(Step, Visualize)
@@ -160,15 +78,14 @@ TEST_F(Step, Visualize)
   for (size_t i = 0; i < 40; ++i)
   {
     channels.push_back(i);
-    auto pre = precalc_spoof(i);
-    y.push_back(step.eval(pre));
+    y.push_back(step.eval(precalc_spoof(i)));
   }
   MESSAGE() << "peak(channel):\n" << visualize(channels, y, 100) << "\n";
 }
 
 TEST_F(Step, WithinBounds)
 {
-  auto data = generate_data();
+  auto data = generate_data(40);
   auto min = std::numeric_limits<double>::max();
   auto max = std::numeric_limits<double>::min();
   for (const auto& d : data.data)
@@ -184,7 +101,7 @@ TEST_F(Step, WithinBounds)
 TEST_F(Step, LeftOriented)
 {
   step.side = DAQuiri::Side::left;
-  auto data = generate_data();
+  auto data = generate_data(40);
   EXPECT_NEAR(data.data.front().y, 2.0, 1e-15);
   EXPECT_NEAR(data.data.back().y, 0.0, 1e-40);
 }
@@ -192,7 +109,7 @@ TEST_F(Step, LeftOriented)
 TEST_F(Step, RightOriented)
 {
   step.side = DAQuiri::Side::right;
-  auto data = generate_data();
+  auto data = generate_data(40);
   EXPECT_NEAR(data.data.front().y, 0.0, 1e-40);
   EXPECT_NEAR(data.data.back().y, 2.0, 1e-15);
 }
@@ -221,7 +138,7 @@ TEST_F(Step, UpdateIndex)
   EXPECT_EQ(step.amplitude.index(), 1);
   EXPECT_EQ(i, 2);
 
-  i=42;
+  i = 42;
   step.update_indices(i);
   EXPECT_EQ(step.amplitude.index(), 42);
   EXPECT_EQ(i, 43);
@@ -319,11 +236,10 @@ TEST_F(Step, EvalGrad)
 {
   auto pre = precalc_spoof(10);
 
-  int32_t i{3};
-  step.update_indices(i);
+  step.update_indices(var_count);
 
   Eigen::VectorXd grad;
-  grad.setConstant(i, 0.0);
+  grad.setConstant(var_count, 0.0);
 
   auto result = step.eval_grad(pre, grad);
 
@@ -365,48 +281,75 @@ TEST_F(Step, EvalGradAt)
 
 TEST_F(Step, GradStepAmpOnePoint)
 {
-  auto wdata = generate_data();
-  grad(wdata, 10, 10, step.amplitude);
+  double goal_val = step.amplitude.val();
+  step.update_indices(var_count);
+  survey_grad(generate_data(40), 10, 10, step.amplitude);
+  EXPECT_NEAR(check_chi_sq(true), goal_val, 0.00001);
+  EXPECT_NEAR(check_gradients(true), goal_val, 0.00001);
 }
 
 TEST_F(Step, GradStepAmp)
 {
-  auto wdata = generate_data();
-  grad(wdata, 0, 40, step.amplitude);
+  double goal_val = step.amplitude.val();
+  step.update_indices(var_count);
+  survey_grad(generate_data(40), 0, 40, step.amplitude);
+  EXPECT_NEAR(check_chi_sq(true), goal_val, 0.00001);
+  EXPECT_NEAR(check_gradients(true), goal_val, 0.00001);
 }
 
 TEST_F(Step, GradWidthOnePoint)
 {
-  auto wdata = generate_data();
-  grad(wdata, 10, 10, width);
+  double goal_val = width.val();
+  step.update_indices(var_count);
+  survey_grad(generate_data(40), 10, 10, width);
+  EXPECT_NEAR(check_chi_sq(true), goal_val, 0.005);
+  check_gradients(true);
+  // false inflection point, but maybe ok, only one data point is not reliable anyways
 }
 
 TEST_F(Step, GradWidth)
 {
-  auto wdata = generate_data();
-  grad(wdata, 0, 40, width);
+  double goal_val = width.val();
+  step.update_indices(var_count);
+  survey_grad(generate_data(40), 0, 40, width);
+  EXPECT_NEAR(check_chi_sq(true), goal_val, 0.005);
+  EXPECT_NEAR(check_gradients(true), goal_val, 0.005);
 }
 
 TEST_F(Step, GradAmpOnePoint)
 {
-  auto wdata = generate_data();
-  grad(wdata, 10, 10, amplitude);
+  double goal_val = amplitude.val();
+  step.update_indices(var_count);
+  survey_grad(generate_data(40), 10, 10, amplitude, 0.05);
+  EXPECT_NEAR(check_chi_sq(true), goal_val, 4);
+  EXPECT_NEAR(check_gradients(true), goal_val, 4);
 }
 
 TEST_F(Step, GradAmp)
 {
-  auto wdata = generate_data();
-  grad(wdata, 0, 40, amplitude);
+  double goal_val = amplitude.val();
+  step.update_indices(var_count);
+  survey_grad(generate_data(40), 0, 40, amplitude, 0.05);
+  EXPECT_NEAR(check_chi_sq(true), goal_val, 4);
+  EXPECT_NEAR(check_gradients(true), goal_val, 4);
 }
 
 TEST_F(Step, GradPosOnePoint)
 {
-  auto wdata = generate_data();
-  grad(wdata, 10, 10, position);
+  double goal_val = position.val();
+  step.update_indices(var_count);
+  survey_grad(generate_data(40), 10, 10, position);
+  EXPECT_NEAR(check_chi_sq(true), goal_val, 0.00001);
+  check_gradients(true);
+  // \todo gradient not affected!
 }
 
 TEST_F(Step, GradPos)
 {
-  auto wdata = generate_data();
-  grad(wdata, 0, 40, position);
+  double goal_val = position.val();
+  step.update_indices(var_count);
+  survey_grad(generate_data(40), 0, 40, position);
+  EXPECT_NEAR(check_chi_sq(true), goal_val, 0.00001);
+  check_gradients(true);
+  // \todo gradient not affected!
 }

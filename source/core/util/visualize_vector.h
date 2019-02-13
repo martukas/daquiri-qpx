@@ -1,3 +1,5 @@
+#pragma once
+
 #include <fmt/format.h>
 #include <core/util/more_math.h>
 
