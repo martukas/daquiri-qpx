@@ -9,44 +9,55 @@ class Step : public TestBase
 {
  protected:
 
+  DAQuiri::Step step;
+
+  DAQuiri::Value position;
+  DAQuiri::Value amplitude;
+  DAQuiri::Value width;
+
   virtual void SetUp()
   {
+    int32_t i {0};
+
+    amplitude.bound(0, 1000);
+    amplitude.val(40);
+    amplitude.update_index(i);
+
+    width.bound(0.8, 5.0);
+    width.val(2);
+    width.update_index(i);
+
+    position.bound(0, 40);
+    position.val(20);
+    position.update_index(i);
+
     step.amplitude.bound(0.000001, 0.05);
     step.amplitude.val(0.05);
   }
 
-  DAQuiri::PrecalcVals precalc_spoof(double chan)
+  DAQuiri::PrecalcVals precalc_spoof(double chan) const
   {
-    DAQuiri::Value position;
-    position.bound(0, 40);
-    position.val(20);
-    EXPECT_DOUBLE_EQ(position.val(), 20.0);
-
-    DAQuiri::Value amplitude;
-    amplitude.bound(0, 1000);
-    amplitude.val(40);
-    EXPECT_DOUBLE_EQ(amplitude.val(), 40.0);
-
-    DAQuiri::Value width_;
-    width_.bound(0.8, 5.0);
-    width_.val(2);
-    EXPECT_DOUBLE_EQ(width_.val(), 2.0);
-
     DAQuiri::PrecalcVals ret;
     ret.ampl = amplitude.val();
     ret.half_ampl = 0.5 * ret.ampl;
-    ret.width = width_.val();
+    ret.width = width.val();
     ret.spread = (chan - position.val()) / ret.width;
 
     ret.amp_grad = amplitude.grad();
-    ret.width_grad = width_.grad();
+    ret.width_grad = width.grad();
     ret.pos_grad = position.grad();
 
-    ret.i_amp = 0;
-    ret.i_width = 1;
-    ret.i_pos = 2; // should not matter?
+    ret.i_amp = amplitude.index();
+    ret.i_width = width.index();
+    ret.i_pos = position.index(); // should not matter?
     return ret;
   }
+
+  double eval_grad(double chan, Eigen::VectorXd& chan_gradients) const
+  {
+    return step.eval_grad(precalc_spoof(chan), chan_gradients);
+  }
+
 
   DAQuiri::WeightedData generate_data()
   {
@@ -61,63 +72,18 @@ class Step : public TestBase
     return DAQuiri::WeightedData(channels, y);
   }
 
-  void grad_at_point(DAQuiri::Value& variable, size_t channel_idx)
+  void grad(const DAQuiri::WeightedData& wwdata,
+      double from, double to,
+      DAQuiri::Value& variable)
   {
-    auto wdata = generate_data();
-
-    int32_t idx {3};
-    step.update_indices(idx);
-    EXPECT_EQ(idx, 4);
-
-    double degrees_freedom = wdata.data.size() - idx;
-    EXPECT_EQ(degrees_freedom, 36);
-
-    auto chosen_point = wdata.data.at(channel_idx);
-    auto chosen_pre = precalc_spoof(chosen_point.x);
-    EXPECT_EQ(chosen_point.x, channel_idx);
-    EXPECT_EQ(chosen_point.y, step.eval(chosen_pre));
-
-    size_t chosen_var_idx = variable.index();
-
-    std::vector<double> val_proxy;
-    std::vector<double> val_val;
-    std::vector<double> chi_sq_norm;
-    std::vector<double> gradient;
-
-    Eigen::VectorXd chan_gradients;
-    for (double proxy = -4; proxy < 4; proxy += 0.2)
-    {
-      val_proxy.push_back(proxy);
-      val_val.push_back(variable.val_at(proxy));
-
-      variable.x(proxy);
-      chan_gradients.setConstant(idx, 0.0);
-      auto pre = precalc_spoof(chosen_point.x);
-      double FTotal = step.eval_grad(pre, chan_gradients);
-      double t3 = -2.0 * (chosen_point.y - FTotal) / square(chosen_point.weight_phillips_marlow);
-
-      gradient.push_back(chan_gradients[chosen_var_idx] * t3);
-      chi_sq_norm.push_back(
-          square((chosen_point.y - FTotal) / chosen_point.weight_phillips_marlow)
-              / degrees_freedom);
-    }
-
-    MESSAGE() << "chi_sq_norm(proxy):\n" << visualize(val_proxy, chi_sq_norm, 100) << "\n";
-    MESSAGE() << "gradient(proxy):\n" << visualize(val_proxy, gradient, 100) << "\n";
-    MESSAGE() << "sq_norm(val):\n" << visualize(val_val, chi_sq_norm, 100) << "\n";
-    MESSAGE() << "gradient(val):\n" << visualize(val_val, gradient, 100) << "\n";
-  }
-
-  void grad(DAQuiri::Value& variable)
-  {
-    auto wdata = generate_data();
-
     int32_t idx {3};
     step.update_indices(idx);
     ASSERT_EQ(idx, 4);
 
-    double degrees_freedom = wdata.data.size() - idx;
+    double degrees_freedom = wwdata.data.size() - idx;
     ASSERT_EQ(degrees_freedom, 36);
+
+    auto wdata = wwdata.subset(from, to);
 
     size_t chosen_var_idx = variable.index();
 
@@ -128,7 +94,7 @@ class Step : public TestBase
 
     Eigen::VectorXd gradients;
     Eigen::VectorXd chan_gradients;
-    for (double proxy = -4; proxy < 4; proxy += 0.2)
+    for (double proxy = -M_PI; proxy < M_PI; proxy += 0.1)
     {
       val_proxy.push_back(proxy);
       val_val.push_back(variable.val_at(proxy));
@@ -141,10 +107,7 @@ class Step : public TestBase
       {
         chan_gradients.setConstant(idx, 0.0);
 
-        auto pre = precalc_spoof(data.x);
-
-        double FTotal = step.eval_grad(pre, chan_gradients);
-
+        double FTotal = eval_grad(data.x, chan_gradients);
         double t3 = -2.0 * (data.y - FTotal) / square(data.weight_phillips_marlow);
 
         for (size_t var = 0; var < static_cast<size_t>(idx); ++var)
@@ -157,17 +120,36 @@ class Step : public TestBase
     }
 
 
-    MESSAGE() << "chi_sq_norm(proxy):\n" << visualize(val_proxy, chi_sq_norm, 100) << "\n";
-    MESSAGE() << "gradient(proxy):\n" << visualize(val_proxy, gradient, 100) << "\n";
-    MESSAGE() << "chi_sq_norm(val):\n" << visualize(val_val, chi_sq_norm, 100) << "\n";
-    MESSAGE() << "gradient(val):\n" << visualize(val_val, gradient, 100) << "\n";
-  }
+    auto min_chi = std::min_element(chi_sq_norm.begin(), chi_sq_norm.end());
+    auto min_chi_i = std::distance(chi_sq_norm.begin(), min_chi);
 
-  DAQuiri::Step step;
+    double min_abs = std::numeric_limits<double>::max();
+    size_t grad_i = 0;
+    for (size_t i=0; i < gradient.size(); ++i)
+    {
+      if (std::abs(gradient[i]) < min_abs)
+      {
+        grad_i = i;
+        min_abs = std::abs(gradient[i]);
+      }
+    }
+
+
+//    MESSAGE() << "chi_sq(proxy):\n" << visualize(val_proxy, chi_sq_norm, 100) << "\n";
+    MESSAGE() << "chi_sq(val):\n" << visualize_all(val_val, chi_sq_norm, 100) << "\n";
+    MESSAGE() << "min(chi_sq)=" << chi_sq_norm[min_chi_i] << " at val=" << val_val[min_chi_i] << "\n";
+//    MESSAGE() << "gradient(proxy):\n" << visualize(val_proxy, gradient, 100) << "\n";
+    MESSAGE() << "gradient(val):\n" << visualize_all(val_val, gradient, 100) << "\n";
+    MESSAGE() << "min(abs(grad))=" << gradient[grad_i] << " at val=" << val_val[grad_i] << "\n";
+
+  }
 };
 
 TEST_F(Step, CheckSetup)
 {
+  MESSAGE() << "Gauss-amp:\n" << amplitude.to_string() << "\n";
+  MESSAGE() << "Gauss-pos:\n" << position.to_string() << "\n";
+  MESSAGE() << "Gauss-width:\n" << width.to_string() << "\n";
   MESSAGE() << "Step:\n" << step.to_string() << "\n";
 }
 
@@ -381,32 +363,50 @@ TEST_F(Step, EvalGradAt)
   EXPECT_EQ(grad[3], grad_goal[3]);
 }
 
-TEST_F(Step, GradAmplitudeAtOnePoint)
+TEST_F(Step, GradStepAmpOnePoint)
 {
-  grad_at_point(step.amplitude, 10);
+  auto wdata = generate_data();
+  grad(wdata, 10, 10, step.amplitude);
 }
 
-TEST_F(Step, GradAmplitudeOnly)
+TEST_F(Step, GradStepAmp)
 {
-  grad(step.amplitude);
+  auto wdata = generate_data();
+  grad(wdata, 0, 40, step.amplitude);
 }
 
-//TEST_F(Step, GradWidthAtOnePoint)
-//{
-//  grad_at_point(peak.width_, 5);
-//}
-//
-//TEST_F(Step, GradWidthOnly)
-//{
-//  grad(peak.width_);
-//}
-//
-//TEST_F(Step, GradPositionAtOnePoint)
-//{
-//  grad_at_point(peak.position, 10);
-//}
-//
-//TEST_F(Step, GradPositionOnly)
-//{
-//  grad(peak.position);
-//}
+TEST_F(Step, GradWidthOnePoint)
+{
+  auto wdata = generate_data();
+  grad(wdata, 10, 10, width);
+}
+
+TEST_F(Step, GradWidth)
+{
+  auto wdata = generate_data();
+  grad(wdata, 0, 40, width);
+}
+
+TEST_F(Step, GradAmpOnePoint)
+{
+  auto wdata = generate_data();
+  grad(wdata, 10, 10, amplitude);
+}
+
+TEST_F(Step, GradAmp)
+{
+  auto wdata = generate_data();
+  grad(wdata, 0, 40, amplitude);
+}
+
+TEST_F(Step, GradPosOnePoint)
+{
+  auto wdata = generate_data();
+  grad(wdata, 10, 10, position);
+}
+
+TEST_F(Step, GradPos)
+{
+  auto wdata = generate_data();
+  grad(wdata, 0, 40, position);
+}
