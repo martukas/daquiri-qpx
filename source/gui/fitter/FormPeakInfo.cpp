@@ -55,8 +55,8 @@ FormPeakInfo::FormPeakInfo(DAQuiri::Peak& hm, QWidget* parent)
   ui->doubleCenterEpsilon->setValue(hm_.position.val_uncert_);
   ui->doubleAmplitude->setValue(hm_.amplitude.val());
   ui->doubleAmplitudeEpsilon->setValue(hm_.amplitude.val_uncert_);
-  ui->doubleWidth->setValue(hm_.width_.val());
-  ui->doubleWidthEpsilon->setValue(hm_.width_.val_uncert_);
+  ui->doubleWidth->setValue(hm_.width.val());
+  ui->doubleWidthEpsilon->setValue(hm_.width.val_uncert_);
 
   ui->checkStepEnable->setChecked(hm_.step.enabled);
   ui->checkStepFixed->setChecked(!hm_.step.amplitude.to_fit);
@@ -107,7 +107,7 @@ void FormPeakInfo::on_buttonBox_accepted()
 
   hm_.position.val(ui->doubleCenter->value());
   hm_.amplitude.val(ui->doubleAmplitude->value());
-  hm_.width_.val(ui->doubleWidth->value());
+  hm_.width.val(ui->doubleWidth->value());
 
   // \todo fixed?
   hm_.step.enabled = ui->checkStepEnable->isChecked();

@@ -253,7 +253,7 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
   pk.position.bound(3, 27);
   pk.position.val(15);
   pk.amplitude.val(500);
-  pk.width_.val(3);
+  pk.width.val(3);
 
   region.default_peak_ = pk;
 
@@ -290,7 +290,7 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
   MESSAGE() << "Estimate val:\n" << visualize(x, y2, 80) << "\n";
 
   size_t fits = 20;
-  double delta_width = (3.0 - pk2.width_.val()) / static_cast<double>(fits);
+  double delta_width = (3.0 - pk2.width.val()) / static_cast<double>(fits);
   double delta_pos = (5.0 - pk2.position.val()) / static_cast<double>(fits);
   double delta_amp = (500.0 - pk2.amplitude.val()) / static_cast<double>(fits);
 
@@ -299,7 +299,7 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
   for (size_t i=0; i < 2*fits; ++i)
   {
     auto& pkk = region.peaks_.begin()->second;
-    pkk.width_.val(pkk.width_.val() + delta_width);
+    pkk.width.val(pkk.width.val() + delta_width);
     pkk.position.val(pkk.position.val() + delta_pos);
     pkk.amplitude.val(pkk.amplitude.val() + delta_amp);
     Eigen::VectorXd vars = region.variables();

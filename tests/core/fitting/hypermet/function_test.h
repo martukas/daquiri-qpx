@@ -7,21 +7,22 @@
 #include <core/fitting/hypermet/Value.h>
 #include <core/fitting/weighted_data.h>
 
-class FunctionTest : public TestBase
-{
- protected:
-  int32_t var_count {0};
+#include <core/fitting/BFGS/Fittable.h>
 
-  std::vector<double> val_proxy;
-  std::vector<double> val_val;
-  std::vector<double> chi_sq_norm;
-  std::vector<double> gradient;
+class TestFittable : public DAQuiri::Fittable
+{
+ public:
+  int32_t var_count{0};
+  DAQuiri::WeightedData data;
 
   virtual double eval(double chan) const = 0;
 
-  virtual double eval_grad(double chan, Eigen::VectorXd& chan_gradients) const = 0;
+  virtual double eval_at(double chan, const Eigen::VectorXd& fit) const = 0;
 
-  DAQuiri::WeightedData generate_data(size_t bins)
+  virtual double eval_grad_at(double chan, const Eigen::VectorXd& fit,
+                      Eigen::VectorXd& grads) const = 0;
+
+  DAQuiri::WeightedData generate_data(size_t bins) const
   {
     std::vector<double> channels;
     std::vector<double> y;
@@ -33,15 +34,54 @@ class FunctionTest : public TestBase
     return DAQuiri::WeightedData(channels, y);
   }
 
-  void survey_grad(const DAQuiri::WeightedData& weighted_data,
-      double from, double to,
+  double chi_sq(const Eigen::VectorXd& fit) const override
+  {
+    double ChiSq = 0;
+    double dof = data.data.size() - var_count;
+    for (const auto& data : data.data)
+    {
+      double FTotal = this->eval_at(data.x, fit);
+      ChiSq += square((data.y - FTotal) / data.weight_phillips_marlow);
+    }
+    return ChiSq / dof;
+  }
+
+  double operator ()(const Eigen::VectorXd& fit,
+                     Eigen::VectorXd& gradients) const override
+  {
+    gradients.setConstant(fit.size(), 0.0);
+    Eigen::VectorXd chan_gradients;
+    chan_gradients.setConstant(fit.size(), 0.0);
+    double Chisq{0.0};
+    double dof = data.data.size() - var_count;
+    for (const auto& data : data.data)
+    {
+      chan_gradients.setConstant(fit.size(), 0.0);
+
+      double FTotal = this->eval_grad_at(data.x, fit, chan_gradients);
+
+      double t3 = -2.0 * (data.y - FTotal) / square(data.weight_phillips_marlow);
+      for (size_t var = 0; var < static_cast<size_t>(var_count); ++var)
+        gradients[var] += chan_gradients[var] * t3;
+      Chisq += square((data.y - FTotal) / data.weight_phillips_marlow);
+    }
+    return Chisq / dof;
+  }
+};
+
+
+class FunctionTest : public TestBase
+{
+ protected:
+  std::vector<double> val_proxy;
+  std::vector<double> val_val;
+  std::vector<double> chi_sq_norm;
+  std::vector<double> gradient;
+
+  void survey_grad(const TestFittable* fittable,
       DAQuiri::Value& variable,
       double step_size = 0.1)
   {
-    double degrees_freedom = weighted_data.data.size() - var_count;
-
-    auto sub_data = weighted_data.subset(from, to);
-
     size_t chosen_var_idx = variable.index();
 
     val_proxy.clear();
@@ -49,30 +89,16 @@ class FunctionTest : public TestBase
     chi_sq_norm.clear();
     gradient.clear();
 
+    Eigen::VectorXd variables = fittable->variables();
     Eigen::VectorXd gradients;
     for (double proxy = -M_PI; proxy < M_PI; proxy += step_size)
     {
+      variables[chosen_var_idx] = proxy;
+
       val_proxy.push_back(proxy);
       val_val.push_back(variable.val_at(proxy));
-      variable.x(proxy);
-
-      gradients.setConstant(var_count, 0.0);
-      Eigen::VectorXd chan_gradients;
-      double chi_squared{0.0};
-      for (const auto& data : sub_data.data)
-      {
-        chan_gradients.setConstant(var_count, 0.0);
-
-        double FTotal = this->eval_grad(data.x, chan_gradients);
-        double t3 = -2.0 * (data.y - FTotal) / square(data.weight_phillips_marlow);
-
-        for (size_t var = 0; var < static_cast<size_t>(var_count); ++var)
-          gradients[var] += chan_gradients[var] * t3;
-        chi_squared += square((data.y - FTotal) / data.weight_phillips_marlow);
-      }
-
+      chi_sq_norm.push_back(fittable->operator()(variables, gradients));
       gradient.push_back(gradients[chosen_var_idx]);
-      chi_sq_norm.push_back(chi_squared / degrees_freedom);
     }
   }
 

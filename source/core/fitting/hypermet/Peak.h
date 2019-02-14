@@ -60,8 +60,7 @@ class Peak
   Components eval(double chan) const;
   Components eval_at(double chan, const Eigen::VectorXd& fit) const;
   Components eval_grad(double chan, Eigen::VectorXd& grads) const;
-  Components eval_grad_at(double chan, const Eigen::VectorXd& fit,
-      Eigen::VectorXd& grads) const;
+  Components eval_grad_at(double chan, const Eigen::VectorXd& fit, Eigen::VectorXd& grads) const;
 
   std::string to_string(std::string prepend = "") const;
 
@@ -71,7 +70,7 @@ class Peak
 
   // By default these are not unique to peak
   bool width_override{false};
-  Value width_;
+  Value width;
 
   // \todo why skew naming different?
   // skews (part of peak)

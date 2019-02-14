@@ -6,7 +6,6 @@
 
 #include <dlib/matrix/matrix_mat.h>
 
-
 namespace DAQuiri {
 
 Fit::Fit(const Region& r, std::string descr)

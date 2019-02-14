@@ -8,8 +8,14 @@
 
 #include <set>
 
+#include <dlib/optimization.h>
+
+
 namespace DAQuiri
 {
+
+using fitter_vector = dlib::matrix<double, 0, 1>;
+using fitter_matrix = dlib::matrix<double>;
 
 //enum class Type : uint16_t
 //{
@@ -56,18 +62,19 @@ class Region : public Fittable
   // Fitting related
   size_t variable_count() const;
   void map_fit();
+  double degrees_of_freedom() const;
   void save_fit(const Eigen::VectorXd& variables);
   void save_fit_uncerts(const FitResult& result);
   // Fittable implementation
   Eigen::VectorXd variables() const override;
-  double degrees_of_freedom() const  override;
   double chi_sq(const Eigen::VectorXd& fit) const override;
   double operator ()(const Eigen::VectorXd& fit,
                      Eigen::VectorXd& gradients) const override;
 
-  double eval(const fitter_vector& m) const override;
-  fitter_vector derivative (const fitter_vector& m) const override;
-  fitter_matrix hessian(const fitter_vector& m) const override;
+  // dlib implementation
+  double eval(const fitter_vector& m) const;
+  fitter_vector derivative (const fitter_vector& m) const;
+  fitter_matrix hessian(const fitter_vector& m) const;
 
   std::string to_string(std::string prepend = "") const;
   friend void to_json(nlohmann::json& j, const Region& s);

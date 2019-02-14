@@ -10,7 +10,7 @@ namespace DAQuiri
 
 Region::Region()
 {
-  default_peak_.width_.bound(0.8, 4.0);
+  default_peak_.width.bound(0.8, 4.0);
 
   default_peak_.short_tail.amplitude.bound(0.02, 1.5);
   default_peak_.short_tail.slope.bound(0.2, 0.5);
@@ -306,7 +306,7 @@ void Region::map_fit()
   if (!peaks_.empty())
   {
     if (unique_widths < peaks_.size())
-      default_peak_.width_.update_index(variable_count_);
+      default_peak_.width.update_index(variable_count_);
 
     if (default_peak_.short_tail.enabled &&
         (unique_short_tails < peaks_.size()))
