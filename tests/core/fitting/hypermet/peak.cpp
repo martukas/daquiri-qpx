@@ -6,7 +6,7 @@
 
 #include <core/fitting/BFGS/BFGS.h>
 
-class FittablePeak : public TestFittable
+class FittablePeak : public DAQuiri::FittableRegion
 {
  public:
   DAQuiri::Peak peak;
@@ -73,7 +73,7 @@ TEST_F(Peak, Visualize)
 
 TEST_F(Peak, WithinBounds)
 {
-  auto data = fpeak.generate_data(40);
+  auto data = generate_data(&fpeak, 40);
 
   auto min = std::numeric_limits<double>::max();
   auto max = std::numeric_limits<double>::min();
@@ -294,7 +294,7 @@ TEST_F(Peak, EvalGradAt)
 
 TEST_F(Peak, GradPosition)
 {
-  fpeak.data = fpeak.generate_data(40);
+  fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.position.val();
   fpeak.peak.update_indices(fpeak.var_count);
   survey_grad(&fpeak, fpeak.peak.position, 0.05);
@@ -305,7 +305,7 @@ TEST_F(Peak, GradPosition)
 
 TEST_F(Peak, GradAmp)
 {
-  fpeak.data = fpeak.generate_data(40);
+  fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.amplitude.val();
   fpeak.peak.update_indices(fpeak.var_count);
   survey_grad(&fpeak, fpeak.peak.amplitude);
@@ -315,7 +315,7 @@ TEST_F(Peak, GradAmp)
 
 TEST_F(Peak, GradWidth)
 {
-  fpeak.data = fpeak.generate_data(40);
+  fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.width.val();
   fpeak.peak.update_indices(fpeak.var_count);
   survey_grad(&fpeak, fpeak.peak.width, 0.05);
@@ -325,7 +325,7 @@ TEST_F(Peak, GradWidth)
 
 TEST_F(Peak, FitPosition)
 {
-  fpeak.data = fpeak.generate_data(40);
+  fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.position.val();
 
   fpeak.peak.position.val(15);
@@ -353,7 +353,7 @@ TEST_F(Peak, FitPosition)
 
 TEST_F(Peak, FitAmplitude)
 {
-  fpeak.data = fpeak.generate_data(40);
+  fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.amplitude.val();
 
   fpeak.peak.amplitude.val(200);
@@ -382,7 +382,7 @@ TEST_F(Peak, FitAmplitude)
 
 TEST_F(Peak, FitWidth)
 {
-  fpeak.data = fpeak.generate_data(40);
+  fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.width.val();
 
   fpeak.peak.width.val(1.0);

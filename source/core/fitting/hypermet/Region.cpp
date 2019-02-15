@@ -454,8 +454,7 @@ double Region::chi_sq(const Eigen::VectorXd& fit) const
 }
 
 //Calculates the Chi-square and its gradient
-double Region::operator ()(const Eigen::VectorXd& fit,
-                           Eigen::VectorXd& gradients) const
+double Region::chi_sq_gradient(const Eigen::VectorXd& fit, Eigen::VectorXd& gradients) const
 {
   gradients.setConstant(fit.size(), 0.0);
   Eigen::VectorXd chan_gradients;
@@ -476,34 +475,6 @@ double Region::operator ()(const Eigen::VectorXd& fit,
   }
   //Chisq /= df
   return Chisq / degrees_of_freedom();
-}
-
-double Region::eval(const fitter_vector& m) const
-{
-  Eigen::VectorXd v;
-  v.setConstant(m.size(), 0.0);
-  for (long i = 0; i < m.size(); ++i)
-    v[i] = m(i);
-  return chi_sq(v);
-}
-
-fitter_vector Region::derivative(const fitter_vector& m) const
-{
-  Eigen::VectorXd v;
-  v.setConstant(m.size(), 0.0);
-  for (long i = 0; i < m.size(); ++i)
-    v[i] = m(i);
-  Eigen::VectorXd g;
-  g.setConstant(g.size(), 0.0);
-  operator()(v, g);
-  return dlib::mat(g);
-}
-
-fitter_matrix Region::hessian(const fitter_vector& m) const
-{
-  // \todo implement this
-  (void) m;
-  return fitter_matrix();
 }
 
 std::string Region::to_string(std::string prepend) const

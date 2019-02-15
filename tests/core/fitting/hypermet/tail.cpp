@@ -5,7 +5,7 @@
 #include <core/fitting/hypermet/Tail.h>
 #include <core/fitting/weighted_data.h>
 
-class FittableTail : public TestFittable
+class FittableTail : public DAQuiri::FittableRegion
 {
  public:
   DAQuiri::Tail tail;
@@ -127,7 +127,7 @@ TEST_F(Tail, Visualize)
 
 TEST_F(Tail, WithinBounds)
 {
-  auto data = ftail.generate_data(40);
+  auto data = generate_data(&ftail, 40);
   auto min = std::numeric_limits<double>::max();
   auto max = std::numeric_limits<double>::min();
   for (const auto& d : data.data)
@@ -143,7 +143,7 @@ TEST_F(Tail, WithinBounds)
 TEST_F(Tail, LeftOriented)
 {
   ftail.tail.side = DAQuiri::Side::left;
-  auto data = ftail.generate_data(40);
+  auto data = generate_data(&ftail, 40);
   EXPECT_NEAR(data.data.front().y, 14.0, 1.0);
   EXPECT_NEAR(data.data.back().y, 0.0, 1e-39);
 }
@@ -151,7 +151,7 @@ TEST_F(Tail, LeftOriented)
 TEST_F(Tail, RightOriented)
 {
   ftail.tail.side = DAQuiri::Side::right;
-  auto data = ftail.generate_data(40);
+  auto data = generate_data(&ftail, 40);
   EXPECT_NEAR(data.data.front().y, 0.0, 1e-39);
   EXPECT_NEAR(data.data.back().y, 14.0, 1.0);
 }
@@ -358,7 +358,7 @@ TEST_F(Tail, EvalGradAt)
 
 TEST_F(Tail, GradTailAmp)
 {
-  ftail.data = ftail.generate_data(40);
+  ftail.data = generate_data(&ftail, 40);
 
   double goal_val = ftail.tail.amplitude.val();
   ftail.tail.update_indices(ftail.var_count);
@@ -369,7 +369,7 @@ TEST_F(Tail, GradTailAmp)
 
 TEST_F(Tail, GradTailSlope)
 {
-  ftail.data = ftail.generate_data(40);
+  ftail.data = generate_data(&ftail, 40);
 
   double goal_val = ftail.tail.slope.val();
   ftail.tail.update_indices(ftail.var_count);
@@ -380,7 +380,7 @@ TEST_F(Tail, GradTailSlope)
 
 TEST_F(Tail, GradWidth)
 {
-  ftail.data = ftail.generate_data(40);
+  ftail.data = generate_data(&ftail, 40);
 
   double goal_val = ftail.width.val();
   ftail.tail.update_indices(ftail.var_count);
@@ -391,7 +391,7 @@ TEST_F(Tail, GradWidth)
 
 TEST_F(Tail, GradAmp)
 {
-  ftail.data = ftail.generate_data(40);
+  ftail.data = generate_data(&ftail, 40);
 
   double goal_val = ftail.amplitude.val();
   ftail.tail.update_indices(ftail.var_count);
@@ -403,7 +403,7 @@ TEST_F(Tail, GradAmp)
 
 TEST_F(Tail, GradPos)
 {
-  ftail.data = ftail.generate_data(40);
+  ftail.data = generate_data(&ftail, 40);
 
   double goal_val = ftail.position.val();
   ftail.tail.update_indices(ftail.var_count);

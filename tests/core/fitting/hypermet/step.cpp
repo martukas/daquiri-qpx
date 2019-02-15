@@ -5,7 +5,7 @@
 #include <core/fitting/hypermet/Step.h>
 #include <core/fitting/weighted_data.h>
 
-class FittableStep : public TestFittable
+class FittableStep : public DAQuiri::FittableRegion
 {
  public:
   DAQuiri::Step step;
@@ -124,7 +124,7 @@ TEST_F(Step, Visualize)
 
 TEST_F(Step, WithinBounds)
 {
-  auto data = fstep.generate_data(40);
+  auto data = generate_data(&fstep, 40);
   auto min = std::numeric_limits<double>::max();
   auto max = std::numeric_limits<double>::min();
   for (const auto& d : data.data)
@@ -140,7 +140,7 @@ TEST_F(Step, WithinBounds)
 TEST_F(Step, LeftOriented)
 {
   fstep.step.side = DAQuiri::Side::left;
-  auto data = fstep.generate_data(40);
+  auto data = generate_data(&fstep, 40);
   EXPECT_NEAR(data.data.front().y, 2.0, 1e-15);
   EXPECT_NEAR(data.data.back().y, 0.0, 1e-40);
 }
@@ -148,7 +148,7 @@ TEST_F(Step, LeftOriented)
 TEST_F(Step, RightOriented)
 {
   fstep.step.side = DAQuiri::Side::right;
-  auto data = fstep.generate_data(40);
+  auto data = generate_data(&fstep, 40);
   EXPECT_NEAR(data.data.front().y, 0.0, 1e-40);
   EXPECT_NEAR(data.data.back().y, 2.0, 1e-15);
 }
@@ -322,7 +322,7 @@ TEST_F(Step, EvalGradAt)
 
 TEST_F(Step, GradStepAmp)
 {
-  fstep.data = fstep.generate_data(40);
+  fstep.data = generate_data(&fstep, 40);
 
   double goal_val = fstep.step.amplitude.val();
   fstep.step.update_indices(fstep.var_count);
@@ -333,7 +333,7 @@ TEST_F(Step, GradStepAmp)
 
 TEST_F(Step, GradWidth)
 {
-  fstep.data = fstep.generate_data(40);
+  fstep.data = generate_data(&fstep, 40);
 
   double goal_val = fstep.width.val();
   fstep.step.update_indices(fstep.var_count);
@@ -344,7 +344,7 @@ TEST_F(Step, GradWidth)
 
 TEST_F(Step, GradAmp)
 {
-  fstep.data = fstep.generate_data(40);
+  fstep.data = generate_data(&fstep, 40);
 
   double goal_val = fstep.amplitude.val();
   fstep.step.update_indices(fstep.var_count);
@@ -355,7 +355,7 @@ TEST_F(Step, GradAmp)
 
 TEST_F(Step, GradPos)
 {
-  fstep.data = fstep.generate_data(40);
+  fstep.data = generate_data(&fstep, 40);
 
   double goal_val = fstep.position.val();
   fstep.step.update_indices(fstep.var_count);

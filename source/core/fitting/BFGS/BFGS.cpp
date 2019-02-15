@@ -1,17 +1,5 @@
 #include <core/fitting/BFGS/BFGS.h>
-
 #include <core/util/more_math.h>
-
-#pragma GCC diagnostic push
-#ifdef __GNUC__
-#ifndef __clang__
-#pragma GCC diagnostic ignored "-Wint-in-bool-context"
-#pragma GCC diagnostic ignored "-Wmisleading-indentation"
-#endif
-#endif
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <Eigen/Sparse>
-#pragma GCC diagnostic pop
 
 #include <core/util/custom_logger.h>
 
@@ -292,7 +280,7 @@ double BFGS::dfgv(Fittable* fittable,
   Eigen::VectorXd dflocal(n);
   for (size_t i = 0; i < n; ++i)
     xlocal[i] = variables[i] + lambda * hessian[i];
-  (*fittable)(xlocal, dflocal);
+  fittable->chi_sq_gradient(xlocal, dflocal);
   double s = 0;
   for (size_t i = 0; i < n; ++i)
     s += dflocal[i] * hessian[i];
@@ -335,7 +323,7 @@ FitResult BFGS::BFGSMin(Fittable* fittable, double tolf)
       prev_val(var_count),
       Adg(var_count);
 
-  double f = (*fittable)(ret.variables, gradients);
+  double f = fittable->chi_sq_gradient(ret.variables, gradients);
 
   ret.inv_hessian.resize(var_count, var_count);
   ret.inv_hessian.setIdentity();
@@ -350,7 +338,7 @@ FitResult BFGS::BFGSMin(Fittable* fittable, double tolf)
     for (size_t i = 0; i < var_count; ++i)
       prev_val[i] = gradients[i];
 
-    fmin = (*fittable)(ret.variables, gradients);
+    fmin = fittable->chi_sq_gradient(ret.variables, gradients);
     INFO("Fitting... Iteration = {}, Chisq = {}", ret.iterations, fmin);
 
     for (size_t i = 0; i < var_count; ++i)

@@ -4,71 +4,8 @@
 
 #include <core/util/visualize_vector.h>
 
+#include <core/fitting/fittable_region.h>
 #include <core/fitting/hypermet/Value.h>
-#include <core/fitting/weighted_data.h>
-
-#include <core/fitting/BFGS/Fittable.h>
-
-class TestFittable : public DAQuiri::Fittable
-{
- public:
-  int32_t var_count{0};
-  DAQuiri::WeightedData data;
-
-  virtual double eval(double chan) const = 0;
-
-  virtual double eval_at(double chan, const Eigen::VectorXd& fit) const = 0;
-
-  virtual double eval_grad_at(double chan, const Eigen::VectorXd& fit,
-                      Eigen::VectorXd& grads) const = 0;
-
-  DAQuiri::WeightedData generate_data(size_t bins) const
-  {
-    std::vector<double> channels;
-    std::vector<double> y;
-    for (size_t i = 0; i < bins; ++i)
-    {
-      channels.push_back(i);
-      y.push_back(this->eval(i));
-    }
-    return DAQuiri::WeightedData(channels, y);
-  }
-
-  double chi_sq(const Eigen::VectorXd& fit) const override
-  {
-    double ChiSq = 0;
-    double dof = data.data.size() - var_count;
-    for (const auto& data : data.data)
-    {
-      double FTotal = this->eval_at(data.x, fit);
-      ChiSq += square((data.y - FTotal) / data.weight_phillips_marlow);
-    }
-    return ChiSq / dof;
-  }
-
-  double operator ()(const Eigen::VectorXd& fit,
-                     Eigen::VectorXd& gradients) const override
-  {
-    gradients.setConstant(fit.size(), 0.0);
-    Eigen::VectorXd chan_gradients;
-    chan_gradients.setConstant(fit.size(), 0.0);
-    double Chisq{0.0};
-    double dof = data.data.size() - var_count;
-    for (const auto& data : data.data)
-    {
-      chan_gradients.setConstant(fit.size(), 0.0);
-
-      double FTotal = this->eval_grad_at(data.x, fit, chan_gradients);
-
-      double t3 = -2.0 * (data.y - FTotal) / square(data.weight_phillips_marlow);
-      for (size_t var = 0; var < static_cast<size_t>(var_count); ++var)
-        gradients[var] += chan_gradients[var] * t3;
-      Chisq += square((data.y - FTotal) / data.weight_phillips_marlow);
-    }
-    return Chisq / dof;
-  }
-};
-
 
 class FunctionTest : public TestBase
 {
@@ -78,7 +15,19 @@ class FunctionTest : public TestBase
   std::vector<double> chi_sq_norm;
   std::vector<double> gradient;
 
-  void survey_grad(const TestFittable* fittable,
+  DAQuiri::WeightedData generate_data(const DAQuiri::FittableRegion* fittable, size_t bins) const
+  {
+    std::vector<double> channels;
+    std::vector<double> y;
+    for (size_t i = 0; i < bins; ++i)
+    {
+      channels.push_back(i);
+      y.push_back(fittable->eval(i));
+    }
+    return DAQuiri::WeightedData(channels, y);
+  }
+
+  void survey_grad(const DAQuiri::FittableRegion* fittable,
       DAQuiri::Value& variable,
       double step_size = 0.1)
   {
@@ -97,7 +46,7 @@ class FunctionTest : public TestBase
 
       val_proxy.push_back(proxy);
       val_val.push_back(variable.val_at(proxy));
-      chi_sq_norm.push_back(fittable->operator()(variables, gradients));
+      chi_sq_norm.push_back(fittable->chi_sq_gradient(variables, gradients));
       gradient.push_back(gradients[chosen_var_idx]);
     }
   }

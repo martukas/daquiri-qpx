@@ -5,6 +5,9 @@
 #include <core/fitting/hypermet/Region.h>
 #include <core/fitting/region_manager.h>
 
+#include <core/fitting/BFGS/BFGS.h>
+#include <core/fitting/BFGS/dlib.h>
+
 class Region : public TestBase
 {
   virtual void SetUp()
@@ -60,7 +63,7 @@ TEST_F(Region, EvalBackground)
     region.background.slope.val(region.background.slope.val() + delta_slope);
     region.background.curve.val(region.background.curve.val() + delta_curve);
     Eigen::VectorXd vars = region.variables();
-    chi.push_back(region(vars, grad));
+    chi.push_back(region.chi_sq_gradient(vars, grad));
     base.push_back(grad[0]);
     slope.push_back(grad[1]);
     curve.push_back(grad[2]);
@@ -98,20 +101,11 @@ TEST_F(Region, FitBackground)
 
   MESSAGE() << "Estimate eval:\n" << visualize(x, y2, 80) << "\n";
 
+  DAQuiri::DLib opt;
 
-  DAQuiri::fitter_vector starting_point = dlib::mat(region.variables());
+  auto ret = opt.BFGSMin(&region, 0.0);
 
-  const auto& fe = std::bind(&DAQuiri::Region::eval, region, std::placeholders::_1);
-  const auto& fd = std::bind(&DAQuiri::Region::derivative, region, std::placeholders::_1);
-  dlib::find_min(dlib::bfgs_search_strategy(),
-                 dlib::objective_delta_stop_strategy(1e-10).be_verbose(),
-                 fe, fd, starting_point, -1);
-
-  Eigen::VectorXd v;
-  v.setConstant(starting_point.size(), 0.0);
-  for (long i = 0; i < starting_point.size(); ++i)
-    v[i] = starting_point(i);
-  region.save_fit(v);
+  region.save_fit(ret.variables);
 
   MESSAGE() << "Region after fit:\n" << region.to_string(" ") << "\n";
 
@@ -192,7 +186,7 @@ TEST_F(Region, FitBackgroundOurImplementation)
 
   MESSAGE() << "Auto region:\n" << region.to_string(" ") << "\n";
 
-  DAQuiri::OptimizerType optimizer;
+  DAQuiri::BFGS optimizer;
   auto result = optimizer.BFGSMin(&region, 1e-10);
   region.save_fit_uncerts(result);
 
@@ -231,7 +225,7 @@ TEST_F(Region, FitNoisyBackgroundOurImplementation)
 
   MESSAGE() << "Auto region:\n" << region.to_string(" ") << "\n";
 
-  DAQuiri::OptimizerType optimizer;
+  DAQuiri::BFGS optimizer;
   auto result = optimizer.BFGSMin(&region, 1e-10);
   region.save_fit_uncerts(result);
 
@@ -303,7 +297,7 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
     pkk.position.val(pkk.position.val() + delta_pos);
     pkk.amplitude.val(pkk.amplitude.val() + delta_amp);
     Eigen::VectorXd vars = region.variables();
-    chi.push_back(region(vars, grad));
+    chi.push_back(region.chi_sq_gradient(vars, grad));
     width.push_back(grad[3]);
     pos.push_back(grad[4]);
     amp.push_back(grad[5]);
@@ -320,7 +314,7 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
   region.add_peak(5, 27);
   region.map_fit();
 
-  DAQuiri::OptimizerType optimizer;
+  DAQuiri::BFGS optimizer;
   auto result = optimizer.BFGSMin(&region, 1e-10);
   region.save_fit_uncerts(result);
 

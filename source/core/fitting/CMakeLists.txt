@@ -3,6 +3,7 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 set(SOURCES
   ${dir}/fit_settings.cpp
   ${dir}/weighted_data.cpp
+  ${dir}/fittable_region.cpp
   ${dir}/region_eval.cpp
   ${dir}/region_manager.cpp
   ${dir}/fitter.cpp
@@ -12,6 +13,9 @@ set(SOURCES
 set(HEADERS
   ${dir}/fit_settings.h
   ${dir}/weighted_data.h
+  ${dir}/fittable_function.h
+  ${dir}/abstract_optimizer.h
+  ${dir}/fittable_region.h
   ${dir}/region_eval.h
   ${dir}/region_manager.h
   ${dir}/fitter.h

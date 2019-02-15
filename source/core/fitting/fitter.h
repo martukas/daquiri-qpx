@@ -41,14 +41,14 @@ class Fitter
   std::set<double> relevant_regions(double left, double right);
 
   //manupulation, may invoke optimizer
-  bool find_and_fit(double regionID, OptimizerType& optimizer);
-  bool add_peak(double left, double right, OptimizerType& optimizer);
-  bool adj_LB(double regionID, double left, double right, OptimizerType& optimizer);
-  bool adj_RB(double regionID, double left, double right, OptimizerType& optimizer);
-  bool merge_regions(double left, double right, OptimizerType& optimizer);
-  bool refit_region(double regionID, OptimizerType& optimizer);
+  bool find_and_fit(double regionID, AbstractOptimizer* optimizer);
+  bool add_peak(double left, double right, AbstractOptimizer* optimizer);
+  bool adj_LB(double regionID, double left, double right, AbstractOptimizer* optimizer);
+  bool adj_RB(double regionID, double left, double right, AbstractOptimizer* optimizer);
+  bool merge_regions(double left, double right, AbstractOptimizer* optimizer);
+  bool refit_region(double regionID, AbstractOptimizer* optimizer);
   bool override_ROI_settings(double regionID, const FitSettings& fs);
-  bool remove_peaks(std::set<double> peakIDs, OptimizerType& optimizer);
+  bool remove_peaks(std::set<double> peakIDs, AbstractOptimizer* optimizer);
   //manipulation, no optimizer
   bool adjust_sum4(double& peakID, double left, double right);
   bool replace_hypermet(double& peakID, Peak hyp);

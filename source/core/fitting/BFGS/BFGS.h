@@ -1,17 +1,15 @@
 #pragma once
 
-#include <core/fitting/BFGS/Fittable.h>
-#include <atomic>
+#include <core/fitting/abstract_optimizer.h>
 
 namespace DAQuiri
 {
 
 // \todo add locks
-class BFGS
+class BFGS : public AbstractOptimizer
 {
  public:
-  std::atomic<bool> cancel{false};
-  FitResult BFGSMin(Fittable* fittable, double tolf);
+  FitResult BFGSMin(Fittable* fittable, double tolf) override;
 
  private:
   double Sign(double a, double b);

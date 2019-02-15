@@ -4,14 +4,12 @@
 #include <core/fitting/region_eval.h>
 #include <core/fitting/fit_settings.h>
 
-#include <core/fitting/BFGS/BFGS.h>
+#include <core/fitting/abstract_optimizer.h>
 
 #include <atomic>
 #include <set>
 
 namespace DAQuiri {
-
-using OptimizerType = BFGS;
 
 struct FitDescription
 {
@@ -100,15 +98,15 @@ class RegionManager {
   //bool override_energy(double peakID, double energy);
 
   //manupulation, may invoke optimizer
-  bool find_and_fit(OptimizerType& optimizer);
-  bool refit(OptimizerType& optimizer);
+  bool find_and_fit(AbstractOptimizer* optimizer);
+  bool refit(AbstractOptimizer* optimizer);
   bool adjust_LB(const FitEvaluation &parentfinder, double left, double right,
-                 OptimizerType& optimizer);
+                 AbstractOptimizer* optimizer);
   bool adjust_RB(const FitEvaluation &parentfinder, double left, double right,
-                 OptimizerType& optimizer);
+                 AbstractOptimizer* optimizer);
   bool add_peak(const FitEvaluation &parentfinder, double left, double right,
-                OptimizerType& optimizer);
-  bool remove_peaks(const std::set<double> &pks, OptimizerType& optimizer);
+                AbstractOptimizer* optimizer);
+  bool remove_peaks(const std::set<double> &pks, AbstractOptimizer* optimizer);
   bool override_settings(const FitSettings &fs);
 
   nlohmann::json to_json(const FitEvaluation &parent_finder) const;
@@ -129,9 +127,9 @@ private:
 
   std::vector<double> remove_background();
 
-  bool add_from_resid(OptimizerType& optimizer);
-  bool rebuild(OptimizerType& optimizer);
-  void iterative_fit(OptimizerType& optimizer);
+  bool add_from_resid(AbstractOptimizer* optimizer);
+  bool rebuild(AbstractOptimizer* optimizer);
+  void iterative_fit(AbstractOptimizer* optimizer);
 
   void render();
   void save_current_fit(std::string description);

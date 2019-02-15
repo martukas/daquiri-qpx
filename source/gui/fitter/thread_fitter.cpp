@@ -2,12 +2,15 @@
 #include <core/util/timer.h>
 #include <core/util/custom_logger.h>
 
+#include <core/fitting/BFGS/BFGS.h>
+#include <core/fitting/BFGS/dlib.h>
+
 ThreadFitter::ThreadFitter(QObject *parent) :
   QThread(parent),
   terminating_(false),
   running_(false)
 {
-  optimizer_ = std::make_shared<DAQuiri::OptimizerType>();
+  optimizer_ = std::make_shared<DAQuiri::BFGS>();
 
   action_ = kIdle;
   start(HighPriority);
@@ -169,7 +172,7 @@ void ThreadFitter::run() {
       std::shared_ptr<Timer> timer(new Timer(true));
       for (auto &q : fitter_.regions())
       {
-        fitter_.find_and_fit(q.first, *optimizer_);
+        fitter_.find_and_fit(q.first, optimizer_.get());
         current++;
         if (timer->s() > 2) {
           emit fit_updated(fitter_);
@@ -186,22 +189,22 @@ void ThreadFitter::run() {
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kRefit) {
-      if (fitter_.refit_region(target_, *optimizer_))
+      if (fitter_.refit_region(target_, optimizer_.get()))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kAddPeak) {
-      fitter_.add_peak(LL, RR, *optimizer_);
+      fitter_.add_peak(LL, RR, optimizer_.get());
       emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kAdjustLB) {
-      if (fitter_.adj_LB(target_, LL, RR, *optimizer_))
+      if (fitter_.adj_LB(target_, LL, RR, optimizer_.get()))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kAdjustRB) {
-      if (fitter_.adj_RB(target_, LL, RR, *optimizer_))
+      if (fitter_.adj_RB(target_, LL, RR, optimizer_.get()))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
@@ -211,12 +214,12 @@ void ThreadFitter::run() {
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kMergeRegions) {
-      if (fitter_.merge_regions(LL, RR, *optimizer_))
+      if (fitter_.merge_regions(LL, RR, optimizer_.get()))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
     } else if (action_ == kRemovePeaks) {
-      if (fitter_.remove_peaks(chosen_peaks_, *optimizer_))
+      if (fitter_.remove_peaks(chosen_peaks_, optimizer_.get()))
         emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;

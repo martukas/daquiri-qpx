@@ -5,7 +5,7 @@
 #include <core/fitting/hypermet/PolyBackground.h>
 #include <core/fitting/weighted_data.h>
 
-class FittableBackground : public TestFittable
+class FittableBackground : public DAQuiri::FittableRegion
 {
  public:
   DAQuiri::PolyBackground background;
@@ -77,7 +77,7 @@ TEST_F(PolyBackground, Visualize)
 
 TEST_F(PolyBackground, WithinBounds)
 {
-  auto data = fb.generate_data(40);
+  auto data = generate_data(&fb, 40);
   auto min = std::numeric_limits<double>::max();
   auto max = std::numeric_limits<double>::min();
   for (const auto& d : data.data)
@@ -310,7 +310,7 @@ TEST_F(PolyBackground, EvalGradAt)
 
 TEST_F(PolyBackground, GradPolyBackgroundBase)
 {
-  fb.data = fb.generate_data(40);
+  fb.data = generate_data(&fb, 40);
 
   // chi-sq is only good if smaller step sizes are used for more granularity
   double goal_val = fb.background.base.val();
@@ -324,7 +324,7 @@ TEST_F(PolyBackground, GradPolyBackgroundBase)
 
 TEST_F(PolyBackground, GradPolyBackgroundSlope)
 {
-  fb.data = fb.generate_data(40);
+  fb.data = generate_data(&fb, 40);
 
   // chi-sq is only good if smaller step sizes are used for more granularity
   double goal_val = fb.background.slope.val();
@@ -336,7 +336,7 @@ TEST_F(PolyBackground, GradPolyBackgroundSlope)
 
 TEST_F(PolyBackground, GradPolyBackgroundCurve)
 {
-  fb.data = fb.generate_data(40);
+  fb.data = generate_data(&fb, 40);
 
   double goal_val = fb.background.curve.val();
   fb.background.update_indices(fb.var_count);
