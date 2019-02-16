@@ -52,15 +52,16 @@ class Region : public FittableRegion
   bool remove_peak(double peakID);
   bool remove_peaks(const std::set<double>& ids);
 
-  // Fitting related
-  void map_fit();
-  void save_fit(const Eigen::VectorXd& variables);
-  void save_fit_uncerts(const FitResult& result);
   // Fittable implementation
+  void update_indices() override;
   Eigen::VectorXd variables() const override;
   double eval(double chan) const override;
   double eval_at(double chan, const Eigen::VectorXd& fit) const override;
   double eval_grad_at(double chan, const Eigen::VectorXd& fit, Eigen::VectorXd& grads) const override;
+  void save_fit(const FitResult& result) override;
+
+  // \todo deprecate this
+  void save_fit(const Eigen::VectorXd& variables);
 
   std::string to_string(std::string prepend = "") const;
   friend void to_json(nlohmann::json& j, const Region& s);

@@ -11,6 +11,20 @@ class FittablePeak : public DAQuiri::FittableRegion
  public:
   DAQuiri::Peak peak;
 
+  void update_indices() override
+  {
+    variable_count = 0;
+    peak.update_indices(variable_count);
+  }
+
+  Eigen::VectorXd variables() const override
+  {
+    Eigen::VectorXd ret;
+    ret.setConstant(variable_count, 0.0);
+    peak.put(ret);
+    return ret;
+  }
+
   double eval(double chan) const override
   {
     return peak.eval(chan).all();
@@ -27,13 +41,13 @@ class FittablePeak : public DAQuiri::FittableRegion
     return peak.eval_grad_at(chan, fit, grads).all();
   }
 
-  Eigen::VectorXd variables() const override
+  void save_fit(const DAQuiri::FitResult& result) override
   {
-    Eigen::VectorXd ret;
-    ret.setConstant(variable_count, 0.0);
-    peak.put(ret);
-    return ret;
+    peak.get(result.variables);
+
+    // \todo uncerts
   }
+
 };
 
 class Peak : public FunctionTest
@@ -313,27 +327,12 @@ TEST_F(Peak, FitPosition)
   fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.position.val();
 
-  fpeak.peak.position.val(15);
-  fpeak.peak.update_indices(fpeak.variable_count);
-  MESSAGE() << "Will rebuild:\n" << fpeak.peak.to_string() << "\n";
-
   DAQuiri::BFGS optimizer;
-
-  auto result = optimizer.minimize(&fpeak, 0.00001);
-  fpeak.peak.get(result.variables);
+  test_fit(&optimizer, &fpeak, fpeak.peak.position, 15, 5);
 
   MESSAGE() << "Result:\n" << fpeak.peak.to_string() << "\n";
-
-  std::vector<double> channels;
-  std::vector<double> y;
-  for (size_t i = 0; i < 40; ++i)
-  {
-    channels.push_back(i);
-    y.push_back(fpeak.peak.eval(i).all());
-  }
-  MESSAGE() << "counts(channel):\n" << visualize(channels, y, 100) << "\n";
-
-  EXPECT_NEAR(fpeak.peak.position.val(), goal_val, 0.03);
+  visualize_data(generate_data(&fpeak, 40));
+  //EXPECT_NEAR(fpeak.peak.position.val(), goal_val, 0.03);
 }
 
 TEST_F(Peak, FitAmplitude)
@@ -341,26 +340,11 @@ TEST_F(Peak, FitAmplitude)
   fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.amplitude.val();
 
-  fpeak.peak.amplitude.val(200);
-  fpeak.peak.update_indices(fpeak.variable_count);
-  MESSAGE() << "Will rebuild:\n" << fpeak.peak.to_string() << "\n";
-
   DAQuiri::BFGS optimizer;
-
-  auto result = optimizer.minimize(&fpeak, 0.00001);
-  fpeak.peak.get(result.variables);
+  test_fit(&optimizer, &fpeak, fpeak.peak.amplitude, 200, 5);
 
   MESSAGE() << "Result:\n" << fpeak.peak.to_string() << "\n";
-
-  std::vector<double> channels;
-  std::vector<double> y;
-  for (size_t i = 0; i < 40; ++i)
-  {
-    channels.push_back(i);
-    y.push_back(fpeak.peak.eval(i).all());
-  }
-  MESSAGE() << "counts(channel):\n" << visualize(channels, y, 100) << "\n";
-
+  visualize_data(generate_data(&fpeak, 40));
   // \todo this intermittently fails!!!
   //EXPECT_NEAR(fpeak.peak.amplitude.val(), goal_val, 0.03);
 }
@@ -370,26 +354,11 @@ TEST_F(Peak, FitWidth)
   fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.width.val();
 
-  fpeak.peak.width.val(1.0);
-  fpeak.peak.update_indices(fpeak.variable_count);
-  MESSAGE() << "Will rebuild:\n" << fpeak.peak.to_string() << "\n";
-
   DAQuiri::BFGS optimizer;
-
-  auto result = optimizer.minimize(&fpeak, 0.00001);
-  fpeak.peak.get(result.variables);
+  test_fit(&optimizer, &fpeak, fpeak.peak.width, 1.0, 5);
 
   MESSAGE() << "Result:\n" << fpeak.peak.to_string() << "\n";
-
-  std::vector<double> channels;
-  std::vector<double> y;
-  for (size_t i = 0; i < 40; ++i)
-  {
-    channels.push_back(i);
-    y.push_back(fpeak.peak.eval(i).all());
-  }
-  MESSAGE() << "counts(channel):\n" << visualize(channels, y, 100) << "\n";
-
+  visualize_data(generate_data(&fpeak, 40));
   // \todo this intermittently fails!!!
 //  EXPECT_NEAR(fpeak.peak.width.val(), goal_val, 0.3);
 }

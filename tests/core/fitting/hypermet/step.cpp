@@ -8,11 +8,31 @@
 class FittableStep : public DAQuiri::FittableRegion
 {
  public:
-  DAQuiri::Step step;
-
   DAQuiri::Value position;
   DAQuiri::Value amplitude;
   DAQuiri::Value width;
+
+  DAQuiri::Step step;
+
+  void update_indices() override
+  {
+    variable_count = 0;
+    amplitude.update_index(variable_count);
+    width.update_index(variable_count);
+    position.update_index(variable_count);
+    step.update_indices(variable_count);
+  }
+
+  Eigen::VectorXd variables() const override
+  {
+    Eigen::VectorXd ret;
+    ret.setConstant(variable_count, 0.0);
+    position.put(ret);
+    amplitude.put(ret);
+    width.put(ret);
+    step.put(ret);
+    return ret;
+  }
 
   DAQuiri::PrecalcVals precalc(double chan) const
   {
@@ -66,15 +86,14 @@ class FittableStep : public DAQuiri::FittableRegion
     return step.eval_grad_at(precalc_at(chan, fit), fit, grads);
   }
 
-  Eigen::VectorXd variables() const override
+  void save_fit(const DAQuiri::FitResult& result) override
   {
-    Eigen::VectorXd ret;
-    ret.setConstant(variable_count, 0.0);
-    position.put(ret);
-    amplitude.put(ret);
-    width.put(ret);
-    step.put(ret);
-    return ret;
+    amplitude.get(result.variables);
+    width.get(result.variables);
+    position.get(result.variables);
+    step.get(result.variables);
+
+    // \todo uncerts
   }
 };
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/fitting/optimizers/fittable_function.h>
+#include <core/fitting/optimizers/fit_result.h>
 #include <core/fitting/weighted_data.h>
 
 namespace DAQuiri
@@ -9,7 +10,7 @@ namespace DAQuiri
 /// \class FittableRegion fittable_region.h <core/fitting/fittable_region.h>
 /// \brief Partially implements objective FittableFunction for a spectrum region, and provides
 ///         interface for supplying a model function to be compared against the data.
-///         Three new virtual functions must be implemented as well as the variables() function
+///         Five new virtual functions must be implemented as well as the variables() function
 ///         required by FittableFunction.
 class FittableRegion : public FittableFunction
 {
@@ -19,6 +20,9 @@ class FittableRegion : public FittableFunction
 
   FittableRegion() = default;
   virtual ~FittableRegion() = default;
+
+  /// \brief updates variable indices for vector mapping, updates variable_count
+  virtual void update_indices() = 0;
 
   /// \brief evaluates the current state of the model function at a single channel
   /// \returns value of function at channel
@@ -39,6 +43,10 @@ class FittableRegion : public FittableFunction
   /// \param grads vector into which channel gradients will be written
   virtual double eval_grad_at(double chan, const Eigen::VectorXd& fit,
       Eigen::VectorXd& grads) const = 0;
+
+  /// \brief saves fit result, possibly with uncertainties
+  /// \param result result of optimization attempt
+  virtual void save_fit(const FitResult& result) = 0;
 
   /// \returns chi squared of the current state of the model function as compared to
   ///             the empirical data

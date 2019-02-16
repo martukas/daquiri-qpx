@@ -10,6 +10,20 @@ class FittableLine : public DAQuiri::FittableRegion
  public:
   DAQuiri::Value val;
 
+  void update_indices() override
+  {
+    variable_count = 0;
+    val.update_index(variable_count);
+  }
+
+  Eigen::VectorXd variables() const override
+  {
+    Eigen::VectorXd ret;
+    ret.setConstant(variable_count, 0.0);
+    val.put(ret);
+    return ret;
+  }
+
   double eval(double chan) const override
   {
     return val.val() * chan;
@@ -29,13 +43,13 @@ class FittableLine : public DAQuiri::FittableRegion
     return ret;
   }
 
-  Eigen::VectorXd variables() const override
+  void save_fit(const DAQuiri::FitResult& result) override
   {
-    Eigen::VectorXd ret;
-    ret.setConstant(variable_count, 0.0);
-    val.put(ret);
-    return ret;
+    val.get(result.variables);
+
+    // \todo uncerts
   }
+
 };
 
 class FittableRegion : public FunctionTest

@@ -420,11 +420,11 @@ bool RegionManager::rebuild(AbstractOptimizer* optimizer)
   if (region_.peaks_.empty())
     return false;
 
-  region_.map_fit();
+  region_.update_indices();
   INFO("Will rebuild\n{}", region_.to_string(" "));
 
   auto result = optimizer->minimize(&region_, 0.00001);
-  region_.save_fit_uncerts(result);
+  region_.save_fit(result);
 
   region_.auto_sum4();
   save_current_fit("Rebuild");

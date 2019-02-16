@@ -274,7 +274,7 @@ void Region::reindex_peaks()
   peaks_ = new_peaks;
 }
 
-void Region::map_fit()
+void Region::update_indices()
 {
   size_t unique_widths{0};
   size_t unique_short_tails{0};
@@ -356,7 +356,7 @@ void Region::save_fit(const Eigen::VectorXd& variables)
   reindex_peaks();
 }
 
-void Region::save_fit_uncerts(const FitResult& result)
+void Region::save_fit(const FitResult& result)
 {
   save_fit(result.variables);
   //auto chi_sq_norm = chi_sq(result.variables);

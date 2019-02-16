@@ -10,6 +10,20 @@ class FittableBackground : public DAQuiri::FittableRegion
  public:
   DAQuiri::PolyBackground background;
 
+  void update_indices() override
+  {
+    variable_count = 0;
+    background.update_indices(variable_count);
+  }
+
+  Eigen::VectorXd variables() const override
+  {
+    Eigen::VectorXd ret;
+    ret.setConstant(variable_count, 0.0);
+    background.put(ret);
+    return ret;
+  }
+
   double eval(double chan) const override
   {
     return background.eval(chan);
@@ -26,13 +40,14 @@ class FittableBackground : public DAQuiri::FittableRegion
     return background.eval_grad_at(chan, fit, grads);
   }
 
-  Eigen::VectorXd variables() const override
+  void save_fit(const DAQuiri::FitResult& result) override
   {
-    Eigen::VectorXd ret;
-    ret.setConstant(variable_count, 0.0);
-    background.put(ret);
-    return ret;
+    background.get(result.variables);
+
+    // \todo uncerts
   }
+
+
 };
 
 

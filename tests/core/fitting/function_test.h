@@ -5,6 +5,8 @@
 #include <core/util/visualize_vector.h>
 
 #include <core/fitting/fittable_region.h>
+#include <core/fitting/optimizers/abstract_optimizer.h>
+
 #include <core/fitting/hypermet/Value.h>
 
 class FunctionTest : public TestBase
@@ -100,6 +102,31 @@ class FunctionTest : public TestBase
 
     return val_val[grad_i];
   }
+
+  void test_fit(DAQuiri::AbstractOptimizer* optimizer,
+                DAQuiri::FittableRegion* fittable,
+                DAQuiri::Value& variable,
+                double wrong_value,
+                size_t attempts = 1)
+  {
+    MESSAGE() << "Will refit \n" << variable.to_string()
+              << " from " << wrong_value
+              << " with " << attempts << " attempts\n";
+
+    fittable->update_indices();
+
+    for (size_t i=0; i < attempts; ++i)
+    {
+      double goal_val = variable.val();
+      variable.val(wrong_value);
+      auto result = optimizer->minimize(fittable, 0.00001);
+      fittable->save_fit(result);
+      MESSAGE() << "Attempt[" << i << "] = " << variable.to_string()
+                << "  delta=" << (goal_val - variable.val()) << "\n";
+      //EXPECT_NEAR(variable.val(), goal_val, 0.3);
+    }
+  }
+
 
 
 };
