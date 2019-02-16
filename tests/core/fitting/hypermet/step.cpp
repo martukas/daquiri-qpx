@@ -69,7 +69,7 @@ class FittableStep : public DAQuiri::FittableRegion
   Eigen::VectorXd variables() const override
   {
     Eigen::VectorXd ret;
-    ret.setConstant(var_count, 0.0);
+    ret.setConstant(variable_count, 0.0);
     position.put(ret);
     amplitude.put(ret);
     width.put(ret);
@@ -87,15 +87,15 @@ class Step : public FunctionTest
   {
     fstep.amplitude.bound(0, 1000);
     fstep.amplitude.val(40);
-    fstep.amplitude.update_index(fstep.var_count);
+    fstep.amplitude.update_index(fstep.variable_count);
 
     fstep.width.bound(0.8, 5.0);
     fstep.width.val(2);
-    fstep.width.update_index(fstep.var_count);
+    fstep.width.update_index(fstep.variable_count);
 
     fstep.position.bound(0, 40);
     fstep.position.val(20);
-    fstep.position.update_index(fstep.var_count);
+    fstep.position.update_index(fstep.variable_count);
 
     fstep.step.amplitude.bound(0.000001, 0.05);
     fstep.step.amplitude.val(0.05);
@@ -277,10 +277,10 @@ TEST_F(Step, EvalGrad)
 {
   auto pre = fstep.precalc(10);
 
-  fstep.step.update_indices(fstep.var_count);
+  fstep.step.update_indices(fstep.variable_count);
 
   Eigen::VectorXd grad;
-  grad.setConstant(fstep.var_count, 0.0);
+  grad.setConstant(fstep.variable_count, 0.0);
 
   auto result = fstep.step.eval_grad(pre, grad);
 
@@ -325,7 +325,7 @@ TEST_F(Step, GradStepAmp)
   fstep.data = generate_data(&fstep, 40);
 
   double goal_val = fstep.step.amplitude.val();
-  fstep.step.update_indices(fstep.var_count);
+  fstep.step.update_indices(fstep.variable_count);
   survey_grad(&fstep, fstep.step.amplitude);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.00001);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.00001);
@@ -336,7 +336,7 @@ TEST_F(Step, GradWidth)
   fstep.data = generate_data(&fstep, 40);
 
   double goal_val = fstep.width.val();
-  fstep.step.update_indices(fstep.var_count);
+  fstep.step.update_indices(fstep.variable_count);
   survey_grad(&fstep, fstep.width);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.005);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.005);
@@ -347,7 +347,7 @@ TEST_F(Step, GradAmp)
   fstep.data = generate_data(&fstep, 40);
 
   double goal_val = fstep.amplitude.val();
-  fstep.step.update_indices(fstep.var_count);
+  fstep.step.update_indices(fstep.variable_count);
   survey_grad(&fstep, fstep.amplitude, 0.05);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 4);
   EXPECT_NEAR(check_gradients(false), goal_val, 4);
@@ -358,7 +358,7 @@ TEST_F(Step, GradPos)
   fstep.data = generate_data(&fstep, 40);
 
   double goal_val = fstep.position.val();
-  fstep.step.update_indices(fstep.var_count);
+  fstep.step.update_indices(fstep.variable_count);
   survey_grad(&fstep, fstep.position);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.00001);
   check_gradients(true);

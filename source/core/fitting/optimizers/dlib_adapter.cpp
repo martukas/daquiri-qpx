@@ -1,4 +1,4 @@
-#include <core/fitting/BFGS/dlib.h>
+#include <core/fitting/optimizers/dlib_adapter.h>
 #include <dlib/matrix/matrix_mat.h>
 
 #include <core/util/custom_logger.h>
@@ -6,7 +6,7 @@
 namespace DAQuiri
 {
 
-FitResult DLib::BFGSMin(Fittable* fittable, double tolf)
+FitResult DLib::minimize(FittableFunction* fittable, double tolf)
 {
   function_ = fittable;
 

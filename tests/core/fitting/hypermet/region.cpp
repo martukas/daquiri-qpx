@@ -1,14 +1,14 @@
-#include "gtest_color_print.h"
+#include "function_test.h"
 #include <core/util/visualize_vector.h>
 #include <random>
 
 #include <core/fitting/hypermet/Region.h>
 #include <core/fitting/region_manager.h>
 
-#include <core/fitting/BFGS/BFGS.h>
-#include <core/fitting/BFGS/dlib.h>
+#include <core/fitting/optimizers/BFGS.h>
+#include <core/fitting/optimizers/dlib_adapter.h>
 
-class Region : public TestBase
+class Region : public FunctionTest
 {
   virtual void SetUp()
   {
@@ -21,9 +21,9 @@ class Region : public TestBase
 TEST_F(Region, IndexBackgroundOnly)
 {
   DAQuiri::Region region;
-  EXPECT_EQ(region.variable_count(), 0);
+  EXPECT_EQ(region.variable_count, 0);
   region.map_fit();
-  EXPECT_EQ(region.variable_count(), 3);
+  EXPECT_EQ(region.variable_count, 3);
 }
 
 TEST_F(Region, EvalBackground)
@@ -57,7 +57,7 @@ TEST_F(Region, EvalBackground)
   double delta_curve = (5.0 - region.background.curve.val()) / static_cast<double>(fits);
 
   std::vector<double> chi, base, slope, curve;
-  Eigen::VectorXd grad(region.variable_count());
+  Eigen::VectorXd grad(region.variable_count);
   for (size_t i=0; i < 2*fits; ++i)
   {
     region.background.slope.val(region.background.slope.val() + delta_slope);
@@ -103,7 +103,7 @@ TEST_F(Region, FitBackground)
 
   DAQuiri::DLib opt;
 
-  auto ret = opt.BFGSMin(&region, 0.0);
+  auto ret = opt.minimize(&region, 0.0);
 
   region.save_fit(ret.variables);
 
@@ -187,7 +187,7 @@ TEST_F(Region, FitBackgroundOurImplementation)
   MESSAGE() << "Auto region:\n" << region.to_string(" ") << "\n";
 
   DAQuiri::BFGS optimizer;
-  auto result = optimizer.BFGSMin(&region, 1e-10);
+  auto result = optimizer.minimize(&region, 1e-10);
   region.save_fit_uncerts(result);
 
   MESSAGE() << "Fit region:\n" << region.to_string(" ") << "\n";
@@ -226,7 +226,7 @@ TEST_F(Region, FitNoisyBackgroundOurImplementation)
   MESSAGE() << "Auto region:\n" << region.to_string(" ") << "\n";
 
   DAQuiri::BFGS optimizer;
-  auto result = optimizer.BFGSMin(&region, 1e-10);
+  auto result = optimizer.minimize(&region, 1e-10);
   region.save_fit_uncerts(result);
 
   MESSAGE() << "Fit region:\n" << region.to_string(" ") << "\n";
@@ -289,7 +289,7 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
   double delta_amp = (500.0 - pk2.amplitude.val()) / static_cast<double>(fits);
 
   std::vector<double> chi, width, pos, amp;
-  Eigen::VectorXd grad(region.variable_count());
+  Eigen::VectorXd grad(region.variable_count);
   for (size_t i=0; i < 2*fits; ++i)
   {
     auto& pkk = region.peaks_.begin()->second;
@@ -315,7 +315,7 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
   region.map_fit();
 
   DAQuiri::BFGS optimizer;
-  auto result = optimizer.BFGSMin(&region, 1e-10);
+  auto result = optimizer.minimize(&region, 1e-10);
   region.save_fit_uncerts(result);
 
   MESSAGE() << "Region after fit:\n" << region.to_string(" ") << "\n";
@@ -327,7 +327,7 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
   MESSAGE() << "Fit eval:\n" << visualize(x, y3, 80) << "\n";
 
 
-  result = optimizer.BFGSMin(&region, 1e-10);
+  result = optimizer.minimize(&region, 1e-10);
   region.save_fit_uncerts(result);
 
   MESSAGE() << "Region after fit2:\n" << region.to_string(" ") << "\n";

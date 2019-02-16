@@ -4,10 +4,7 @@
 #include <core/fitting/region_eval.h>
 #include <core/fitting/fit_settings.h>
 
-#include <core/fitting/abstract_optimizer.h>
-
-#include <atomic>
-#include <set>
+#include <core/fitting/optimizers/abstract_optimizer.h>
 
 namespace DAQuiri {
 

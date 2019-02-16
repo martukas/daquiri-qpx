@@ -29,7 +29,7 @@ class FittableBackground : public DAQuiri::FittableRegion
   Eigen::VectorXd variables() const override
   {
     Eigen::VectorXd ret;
-    ret.setConstant(var_count, 0.0);
+    ret.setConstant(variable_count, 0.0);
     background.put(ret);
     return ret;
   }
@@ -212,7 +212,7 @@ TEST_F(PolyBackground, Put)
   EXPECT_EQ(fit[2], 0.0);
   EXPECT_NE(fit[2], fb.background.curve.x());
 
-  fb.background.update_indices(fb.var_count);
+  fb.background.update_indices(fb.variable_count);
   fb.background.put(fit);
   EXPECT_NE(fit[0], 0.0);
   EXPECT_EQ(fit[0], fb.background.base.x());
@@ -238,7 +238,7 @@ TEST_F(PolyBackground, Get)
   EXPECT_NE(fb.background.slope.val(), fb.background.slope.val_at(0.03));
   EXPECT_NE(fb.background.curve.val(), fb.background.curve.val_at(0.05));
 
-  fb.background.update_indices(fb.var_count);
+  fb.background.update_indices(fb.variable_count);
   fb.background.get(fit);
   EXPECT_NE(fb.background.base.val(), 70);
   EXPECT_EQ(fb.background.base.val(), fb.background.base.val_at(10));
@@ -252,10 +252,10 @@ TEST_F(PolyBackground, EvalAt)
 {
   auto goal = fb.background.eval(20);
 
-  fb.background.update_indices(fb.var_count);
+  fb.background.update_indices(fb.variable_count);
 
   Eigen::VectorXd fit;
-  fit.setConstant(fb.var_count, 0.0);
+  fit.setConstant(fb.variable_count, 0.0);
   fb.background.put(fit);
 
   fb.background.base.val(10);
@@ -268,10 +268,10 @@ TEST_F(PolyBackground, EvalAt)
 
 TEST_F(PolyBackground, EvalGrad)
 {
-  fb.background.update_indices(fb.var_count);
+  fb.background.update_indices(fb.variable_count);
 
   Eigen::VectorXd grad;
-  grad.setConstant(fb.var_count, 0.0);
+  grad.setConstant(fb.variable_count, 0.0);
 
   auto result = fb.background.eval_grad(10, grad);
 
@@ -285,15 +285,15 @@ TEST_F(PolyBackground, EvalGrad)
 
 TEST_F(PolyBackground, EvalGradAt)
 {
-  fb.background.update_indices(fb.var_count);
+  fb.background.update_indices(fb.variable_count);
 
   Eigen::VectorXd grad_goal;
-  grad_goal.setConstant(fb.var_count, 0.0);
+  grad_goal.setConstant(fb.variable_count, 0.0);
   fb.background.eval_grad(10, grad_goal);
 
   Eigen::VectorXd fit, grad;
-  fit.setConstant(fb.var_count, 0.0);
-  grad.setConstant(fb.var_count, 0.0);
+  fit.setConstant(fb.variable_count, 0.0);
+  grad.setConstant(fb.variable_count, 0.0);
 
   fb.background.put(fit);
   fb.background.base.val(0.000001);
@@ -314,7 +314,7 @@ TEST_F(PolyBackground, GradPolyBackgroundBase)
 
   // chi-sq is only good if smaller step sizes are used for more granularity
   double goal_val = fb.background.base.val();
-  fb.background.update_indices(fb.var_count);
+  fb.background.update_indices(fb.variable_count);
   survey_grad(&fb, fb.background.base, 0.001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.5);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.1);
@@ -328,7 +328,7 @@ TEST_F(PolyBackground, GradPolyBackgroundSlope)
 
   // chi-sq is only good if smaller step sizes are used for more granularity
   double goal_val = fb.background.slope.val();
-  fb.background.update_indices(fb.var_count);
+  fb.background.update_indices(fb.variable_count);
   survey_grad(&fb, fb.background.slope, 0.01);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.1);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.1);
@@ -339,7 +339,7 @@ TEST_F(PolyBackground, GradPolyBackgroundCurve)
   fb.data = generate_data(&fb, 40);
 
   double goal_val = fb.background.curve.val();
-  fb.background.update_indices(fb.var_count);
+  fb.background.update_indices(fb.variable_count);
   survey_grad(&fb, fb.background.curve);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.02);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.02);

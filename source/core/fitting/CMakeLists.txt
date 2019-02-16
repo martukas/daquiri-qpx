@@ -13,8 +13,6 @@ set(SOURCES
 set(HEADERS
   ${dir}/fit_settings.h
   ${dir}/weighted_data.h
-  ${dir}/fittable_function.h
-  ${dir}/abstract_optimizer.h
   ${dir}/fittable_region.h
   ${dir}/region_eval.h
   ${dir}/region_manager.h
@@ -23,7 +21,7 @@ set(HEADERS
   )
 
 add_subdirectory(sum4)
-add_subdirectory(BFGS)
+add_subdirectory(optimizers)
 add_subdirectory(hypermet)
 add_subdirectory(finders)
 

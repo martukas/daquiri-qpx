@@ -69,7 +69,7 @@ class FittableTail : public DAQuiri::FittableRegion
   Eigen::VectorXd variables() const override
   {
     Eigen::VectorXd ret;
-    ret.setConstant(var_count, 0.0);
+    ret.setConstant(variable_count, 0.0);
     position.put(ret);
     amplitude.put(ret);
     width.put(ret);
@@ -87,15 +87,15 @@ class Tail : public FunctionTest
   {
     ftail.amplitude.bound(0, 1000);
     ftail.amplitude.val(40);
-    ftail.amplitude.update_index(ftail.var_count);
+    ftail.amplitude.update_index(ftail.variable_count);
 
     ftail.width.bound(0.8, 5.0);
     ftail.width.val(2);
-    ftail.width.update_index(ftail.var_count);
+    ftail.width.update_index(ftail.variable_count);
 
     ftail.position.bound(0, 40);
     ftail.position.val(20);
-    ftail.position.update_index(ftail.var_count);
+    ftail.position.update_index(ftail.variable_count);
 
     ftail.tail.amplitude.bound(0.0001, 1.5);
     ftail.tail.amplitude.val(0.5);
@@ -310,10 +310,10 @@ TEST_F(Tail, EvalGrad)
 {
   auto pre = ftail.precalc(10);
 
-  ftail.tail.update_indices(ftail.var_count);
+  ftail.tail.update_indices(ftail.variable_count);
 
   Eigen::VectorXd grad;
-  grad.setConstant(ftail.var_count, 0.0);
+  grad.setConstant(ftail.variable_count, 0.0);
 
   auto result = ftail.tail.eval_grad(pre, grad);
 
@@ -331,15 +331,15 @@ TEST_F(Tail, EvalGradAt)
 {
   auto pre = ftail.precalc(10);
 
-  ftail.tail.update_indices(ftail.var_count);
+  ftail.tail.update_indices(ftail.variable_count);
 
   Eigen::VectorXd grad_goal;
-  grad_goal.setConstant(ftail.var_count, 0.0);
+  grad_goal.setConstant(ftail.variable_count, 0.0);
   ftail.tail.eval_grad(pre, grad_goal);
 
   Eigen::VectorXd fit, grad;
-  fit.setConstant(ftail.var_count, 0.0);
-  grad.setConstant(ftail.var_count, 0.0);
+  fit.setConstant(ftail.variable_count, 0.0);
+  grad.setConstant(ftail.variable_count, 0.0);
 
   ftail.tail.put(fit);
   ftail.tail.amplitude.val(0.000001);
@@ -361,7 +361,7 @@ TEST_F(Tail, GradTailAmp)
   ftail.data = generate_data(&ftail, 40);
 
   double goal_val = ftail.tail.amplitude.val();
-  ftail.tail.update_indices(ftail.var_count);
+  ftail.tail.update_indices(ftail.variable_count);
   survey_grad(&ftail, ftail.tail.amplitude);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.002);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.002);
@@ -372,7 +372,7 @@ TEST_F(Tail, GradTailSlope)
   ftail.data = generate_data(&ftail, 40);
 
   double goal_val = ftail.tail.slope.val();
-  ftail.tail.update_indices(ftail.var_count);
+  ftail.tail.update_indices(ftail.variable_count);
   survey_grad(&ftail, ftail.tail.slope, 0.01);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
@@ -383,7 +383,7 @@ TEST_F(Tail, GradWidth)
   ftail.data = generate_data(&ftail, 40);
 
   double goal_val = ftail.width.val();
-  ftail.tail.update_indices(ftail.var_count);
+  ftail.tail.update_indices(ftail.variable_count);
   survey_grad(&ftail, ftail.width);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.005);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.005);
@@ -394,7 +394,7 @@ TEST_F(Tail, GradAmp)
   ftail.data = generate_data(&ftail, 40);
 
   double goal_val = ftail.amplitude.val();
-  ftail.tail.update_indices(ftail.var_count);
+  ftail.tail.update_indices(ftail.variable_count);
   survey_grad(&ftail, ftail.amplitude, 0.05);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 4);
   check_gradients(true);
@@ -406,7 +406,7 @@ TEST_F(Tail, GradPos)
   ftail.data = generate_data(&ftail, 40);
 
   double goal_val = ftail.position.val();
-  ftail.tail.update_indices(ftail.var_count);
+  ftail.tail.update_indices(ftail.variable_count);
   survey_grad(&ftail, ftail.position);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.00001);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.00001);

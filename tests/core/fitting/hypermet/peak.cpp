@@ -4,7 +4,7 @@
 
 #include <core/fitting/hypermet/Peak.h>
 
-#include <core/fitting/BFGS/BFGS.h>
+#include <core/fitting/optimizers/BFGS.h>
 
 class FittablePeak : public DAQuiri::FittableRegion
 {
@@ -30,7 +30,7 @@ class FittablePeak : public DAQuiri::FittableRegion
   Eigen::VectorXd variables() const override
   {
     Eigen::VectorXd ret;
-    ret.setConstant(var_count, 0.0);
+    ret.setConstant(variable_count, 0.0);
     peak.put(ret);
     return ret;
   }
@@ -197,7 +197,7 @@ TEST_F(Peak, Put)
   EXPECT_EQ(fit[2], 0.0);
   EXPECT_NE(fit[2], fpeak.peak.width.x());
 
-  fpeak.peak.update_indices(fpeak.var_count);
+  fpeak.peak.update_indices(fpeak.variable_count);
   fpeak.peak.put(fit);
   EXPECT_NE(fit[0], 0.0);
   EXPECT_EQ(fit[0], fpeak.peak.position.x());
@@ -223,7 +223,7 @@ TEST_F(Peak, Get)
   EXPECT_NEAR(fpeak.peak.width.val(), 3.2, 0.00001);
   EXPECT_NE(fpeak.peak.width.val(), fpeak.peak.width.val_at(0.01));
 
-  fpeak.peak.update_indices(fpeak.var_count);
+  fpeak.peak.update_indices(fpeak.variable_count);
 
   fpeak.peak.get(fit);
   EXPECT_EQ(fpeak.peak.position.val(), fpeak.peak.position.val_at(0.5));
@@ -236,10 +236,10 @@ TEST_F(Peak, EvalAt)
 {
   auto goal = fpeak.peak.eval(20);
 
-  fpeak.peak.update_indices(fpeak.var_count);
+  fpeak.peak.update_indices(fpeak.variable_count);
 
   Eigen::VectorXd fit;
-  fit.setConstant(fpeak.var_count, 0.0);
+  fit.setConstant(fpeak.variable_count, 0.0);
   fpeak.peak.put(fit);
 
   fpeak.peak.position.val(0.000001);
@@ -252,10 +252,10 @@ TEST_F(Peak, EvalAt)
 
 TEST_F(Peak, EvalGrad)
 {
-  fpeak.peak.update_indices(fpeak.var_count);
+  fpeak.peak.update_indices(fpeak.variable_count);
 
   Eigen::VectorXd grad;
-  grad.setConstant(fpeak.var_count, 0.0);
+  grad.setConstant(fpeak.variable_count, 0.0);
 
   auto result = fpeak.peak.eval_grad(20, grad);
 
@@ -269,15 +269,15 @@ TEST_F(Peak, EvalGrad)
 
 TEST_F(Peak, EvalGradAt)
 {
-  fpeak.peak.update_indices(fpeak.var_count);
+  fpeak.peak.update_indices(fpeak.variable_count);
 
   Eigen::VectorXd grad_goal;
-  grad_goal.setConstant(fpeak.var_count, 0.0);
+  grad_goal.setConstant(fpeak.variable_count, 0.0);
   fpeak.peak.eval_grad(20, grad_goal);
 
   Eigen::VectorXd fit, grad;
-  fit.setConstant(fpeak.var_count, 0.0);
-  grad.setConstant(fpeak.var_count, 0.0);
+  fit.setConstant(fpeak.variable_count, 0.0);
+  grad.setConstant(fpeak.variable_count, 0.0);
 
   fpeak.peak.put(fit);
   fpeak.peak.position.val(0.000001);
@@ -296,7 +296,7 @@ TEST_F(Peak, GradPosition)
 {
   fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.position.val();
-  fpeak.peak.update_indices(fpeak.var_count);
+  fpeak.peak.update_indices(fpeak.variable_count);
   survey_grad(&fpeak, fpeak.peak.position, 0.05);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 3);
   check_gradients(true);
@@ -307,7 +307,7 @@ TEST_F(Peak, GradAmp)
 {
   fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.amplitude.val();
-  fpeak.peak.update_indices(fpeak.var_count);
+  fpeak.peak.update_indices(fpeak.variable_count);
   survey_grad(&fpeak, fpeak.peak.amplitude);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 3);
   EXPECT_NEAR(check_gradients(false), goal_val, 3);
@@ -317,7 +317,7 @@ TEST_F(Peak, GradWidth)
 {
   fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.width.val();
-  fpeak.peak.update_indices(fpeak.var_count);
+  fpeak.peak.update_indices(fpeak.variable_count);
   survey_grad(&fpeak, fpeak.peak.width, 0.05);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.03);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.03);
@@ -329,12 +329,12 @@ TEST_F(Peak, FitPosition)
   double goal_val = fpeak.peak.position.val();
 
   fpeak.peak.position.val(15);
-  fpeak.peak.update_indices(fpeak.var_count);
+  fpeak.peak.update_indices(fpeak.variable_count);
   MESSAGE() << "Will rebuild:\n" << fpeak.peak.to_string() << "\n";
 
   DAQuiri::BFGS optimizer;
 
-  auto result = optimizer.BFGSMin(&fpeak, 0.00001);
+  auto result = optimizer.minimize(&fpeak, 0.00001);
   fpeak.peak.get(result.variables);
 
   MESSAGE() << "Result:\n" << fpeak.peak.to_string() << "\n";
@@ -357,12 +357,12 @@ TEST_F(Peak, FitAmplitude)
   double goal_val = fpeak.peak.amplitude.val();
 
   fpeak.peak.amplitude.val(200);
-  fpeak.peak.update_indices(fpeak.var_count);
+  fpeak.peak.update_indices(fpeak.variable_count);
   MESSAGE() << "Will rebuild:\n" << fpeak.peak.to_string() << "\n";
 
   DAQuiri::BFGS optimizer;
 
-  auto result = optimizer.BFGSMin(&fpeak, 0.00001);
+  auto result = optimizer.minimize(&fpeak, 0.00001);
   fpeak.peak.get(result.variables);
 
   MESSAGE() << "Result:\n" << fpeak.peak.to_string() << "\n";
@@ -386,12 +386,12 @@ TEST_F(Peak, FitWidth)
   double goal_val = fpeak.peak.width.val();
 
   fpeak.peak.width.val(1.0);
-  fpeak.peak.update_indices(fpeak.var_count);
+  fpeak.peak.update_indices(fpeak.variable_count);
   MESSAGE() << "Will rebuild:\n" << fpeak.peak.to_string() << "\n";
 
   DAQuiri::BFGS optimizer;
 
-  auto result = optimizer.BFGSMin(&fpeak, 0.00001);
+  auto result = optimizer.minimize(&fpeak, 0.00001);
   fpeak.peak.get(result.variables);
 
   MESSAGE() << "Result:\n" << fpeak.peak.to_string() << "\n";

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/fitting/abstract_optimizer.h>
+#include <core/fitting/optimizers/abstract_optimizer.h>
 
 namespace DAQuiri
 {
@@ -9,22 +9,22 @@ namespace DAQuiri
 class BFGS : public AbstractOptimizer
 {
  public:
-  FitResult BFGSMin(Fittable* fittable, double tolf) override;
+  FitResult minimize(FittableFunction* fittable, double tolf) override;
 
  private:
   double Sign(double a, double b);
-  double BrentDeriv(Fittable* fittable,
+  double BrentDeriv(FittableFunction* fittable,
                     double a, double b, double c, double tol, double& xmin,
                     const Eigen::VectorXd& variables,
                     const Eigen::VectorXd& hessian);
-  void Bracket(Fittable* fittable,
+  void Bracket(FittableFunction* fittable,
                double& a, double& b, double& c, double& fa, double& fb, double& fc,
                const Eigen::VectorXd& variables, const Eigen::VectorXd& hessian);
-  double fgv(Fittable* fittable, double lambda,
+  double fgv(FittableFunction* fittable, double lambda,
              Eigen::VectorXd variables, Eigen::VectorXd hessian);
-  double dfgv(Fittable* fittable, double lambda,
+  double dfgv(FittableFunction* fittable, double lambda,
               Eigen::VectorXd variables, Eigen::VectorXd hessian);
-  double LinMin(Fittable* fittable,
+  double LinMin(FittableFunction* fittable,
                 Eigen::VectorXd& variables,
                 Eigen::VectorXd hessian);
 };

@@ -274,11 +274,6 @@ void Region::reindex_peaks()
   peaks_ = new_peaks;
 }
 
-size_t Region::variable_count() const
-{
-  return static_cast<size_t>(variable_count_);
-}
-
 void Region::map_fit()
 {
   size_t unique_widths{0};
@@ -300,47 +295,42 @@ void Region::map_fit()
       unique_steps++;
   }
 
-  variable_count_ = 0;
-  background.update_indices(variable_count_);
+  variable_count = 0;
+  background.update_indices(variable_count);
 
   if (!peaks_.empty())
   {
     if (unique_widths < peaks_.size())
-      default_peak_.width.update_index(variable_count_);
+      default_peak_.width.update_index(variable_count);
 
     if (default_peak_.short_tail.enabled &&
         (unique_short_tails < peaks_.size()))
-      default_peak_.short_tail.update_indices(variable_count_);
+      default_peak_.short_tail.update_indices(variable_count);
 
     if (default_peak_.right_tail.enabled &&
         (unique_right_tails < peaks_.size()))
-      default_peak_.right_tail.update_indices(variable_count_);
+      default_peak_.right_tail.update_indices(variable_count);
 
     if (default_peak_.long_tail.enabled &&
         (unique_long_tails < peaks_.size()))
-      default_peak_.long_tail.update_indices(variable_count_);
+      default_peak_.long_tail.update_indices(variable_count);
 
     if (default_peak_.step.enabled &&
         (unique_steps < peaks_.size()))
-      default_peak_.step.update_indices(variable_count_);
+      default_peak_.step.update_indices(variable_count);
   }
 
   for (auto& p : peaks_)
   {
     p.second.apply_defaults(default_peak_);
-    p.second.update_indices(variable_count_);
+    p.second.update_indices(variable_count);
   }
-}
-
-size_t Region::fit_var_count() const
-{
-  return static_cast<size_t>(variable_count_);
 }
 
 Eigen::VectorXd Region::variables() const
 {
   Eigen::VectorXd ret;
-  ret.setConstant(fit_var_count(), 0.0);
+  ret.setConstant(variable_count, 0.0);
 
   background.put(ret);
 
@@ -369,6 +359,7 @@ void Region::save_fit(const Eigen::VectorXd& variables)
 void Region::save_fit_uncerts(const FitResult& result)
 {
   save_fit(result.variables);
+  //auto chi_sq_norm = chi_sq(result.variables);
 
   Eigen::VectorXd diagonals;
   diagonals.resize(result.variables.size());
@@ -377,7 +368,7 @@ void Region::save_fit_uncerts(const FitResult& result)
   for (size_t i = 0; i < static_cast<size_t>(result.variables.size()); ++i)
     diagonals[i] = result.inv_hessian.coeff(i, i) * df;
 
-  double chisq_norm = std::max(chi_sq_normalized(), 1.0) * 0.5;
+  double chisq_norm = std::max(this->chi_sq(result.variables), 1.0) * 0.5;
 
   background.get_uncerts(diagonals, chisq_norm);
   if (!peaks_.empty())
@@ -389,92 +380,28 @@ void Region::save_fit_uncerts(const FitResult& result)
   dirty_ = false;
 }
 
-double Region::chi_sq_normalized() const
+double Region::eval(double chan) const
 {
-  return chi_sq() / degrees_of_freedom();
+  double ret = background.eval(chan);
+  for (auto& p : peaks_)
+    ret += p.second.eval(chan).all();
+  return ret;
 }
 
-double Region::degrees_of_freedom() const
+double Region::eval_at(double chan, const Eigen::VectorXd& fit) const
 {
-  // \todo what if channel range is < fit_var_count?
-  return (data_.data.size() - fit_var_count());
+  double ret = background.eval_at(chan, fit);
+  for (auto& p : peaks_)
+    ret += p.second.eval_at(chan, fit).all();
+  return ret;
 }
 
-//Calculates the Chi-square over a region
-double Region::chi_sq() const
+double Region::eval_grad_at(double chan, const Eigen::VectorXd& fit, Eigen::VectorXd& grads) const
 {
-  double ChiSq = 0;
-  for (const auto& data : data_.data)
-  {
-    double FTotal = background.eval(data.x);
-    for (auto& p : peaks_)
-      FTotal += p.second.eval(data.x).all();
-    ChiSq += square((data.y - FTotal) / data.weight_true);
-  }
-  return ChiSq / degrees_of_freedom();
-}
-
-//Calculates the Chi-square and its gradient
-double Region::grad_chi_sq(Eigen::VectorXd& gradients) const
-{
-  gradients.setConstant(gradients.size(), 0.0);
-  Eigen::VectorXd chan_gradients;
-  chan_gradients.setConstant(gradients.size(), 0.0);
-  double Chisq = 0;
-  for (const auto& data : data_.data)
-  {
-    chan_gradients.setConstant(gradients.size(), 0.0);
-
-    double FTotal = background.eval_grad(data.x, chan_gradients);
-    for (auto& p : peaks_)
-      FTotal += p.second.eval_grad(data.x, chan_gradients).all();
-
-    double t3 = -2.0 * (data.y - FTotal) / square(data.weight_true);
-    for (size_t var = 0; var < fit_var_count(); ++var)
-      gradients[var] += chan_gradients[var] * t3;
-    Chisq += square((data.y - FTotal) / data.weight_true);
-  }
-  //Chisq /= df
-
-  return Chisq / degrees_of_freedom();
-}
-
-//Calculates the Chi-square over a region
-double Region::chi_sq(const Eigen::VectorXd& fit) const
-{
-  double ChiSq = 0;
-  for (const auto& data : data_.data)
-  {
-    double FTotal = background.eval_at(data.x, fit);
-    for (auto& p : peaks_)
-      FTotal += p.second.eval_at(data.x, fit).all();
-    ChiSq += square((data.y - FTotal) / data.weight_phillips_marlow);
-  }
-  return ChiSq / degrees_of_freedom();
-}
-
-//Calculates the Chi-square and its gradient
-double Region::chi_sq_gradient(const Eigen::VectorXd& fit, Eigen::VectorXd& gradients) const
-{
-  gradients.setConstant(fit.size(), 0.0);
-  Eigen::VectorXd chan_gradients;
-  chan_gradients.setConstant(fit.size(), 0.0);
-  double Chisq{0.0};
-  for (const auto& data : data_.data)
-  {
-    chan_gradients.setConstant(fit.size(), 0.0);
-
-    double FTotal = background.eval_grad_at(data.x, fit, chan_gradients);
-    for (auto& p : peaks_)
-      FTotal += p.second.eval_grad_at(data.x, fit, chan_gradients).all();
-
-    double t3 = -2.0 * (data.y - FTotal) / square(data.weight_phillips_marlow);
-    for (size_t var = 0; var < fit_var_count(); ++var)
-      gradients[var] += chan_gradients[var] * t3;
-    Chisq += square((data.y - FTotal) / data.weight_phillips_marlow);
-  }
-  //Chisq /= df
-  return Chisq / degrees_of_freedom();
+  double ret = background.eval_grad_at(chan, fit, grads);
+  for (auto& p : peaks_)
+    ret += p.second.eval_grad_at(chan, fit, grads).all();
+  return ret;
 }
 
 std::string Region::to_string(std::string prepend) const
@@ -483,7 +410,7 @@ std::string Region::to_string(std::string prepend) const
   ss << prepend
      << fmt::format("data_points={} on channels [{},{}] vars={} {}\n",
                                data_.data.size(), left(), right(),
-                               variable_count_, (dirty_ ? " DIRTY" : ""));
+                               variable_count, (dirty_ ? " DIRTY" : ""));
   ss << prepend << "SUM4/LB: " << LB_.to_string() << "\n";
   ss << prepend << "SUM4/RB: " << RB_.to_string() << "\n";
   ss << prepend << "Background:\n";

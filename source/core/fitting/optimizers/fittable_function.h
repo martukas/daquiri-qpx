@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-
 #pragma GCC diagnostic push
 #ifdef __GNUC__
 #ifndef __clang__
@@ -17,11 +15,11 @@
 namespace DAQuiri
 {
 
-class Fittable
+class FittableFunction
 {
  public:
-  Fittable() = default;
-  virtual ~Fittable() = default;
+  FittableFunction() = default;
+  virtual ~FittableFunction() = default;
 
   virtual Eigen::VectorXd variables() const = 0;
   virtual double chi_sq(const Eigen::VectorXd& fit) const = 0;

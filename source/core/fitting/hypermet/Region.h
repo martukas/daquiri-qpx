@@ -1,10 +1,10 @@
 #pragma once
 
+#include <core/fitting/optimizers/fit_results.h>
+#include <core/fitting/fittable_region.h>
+
 #include <core/fitting/hypermet/Peak.h>
 #include <core/fitting/hypermet/PolyBackground.h>
-#include <core/fitting/weighted_data.h>
-
-#include <core/fitting/abstract_optimizer.h>
 
 #include <set>
 
@@ -23,7 +23,7 @@ namespace DAQuiri
 //Type region_type{Type::Normal};
 
 
-class Region : public Fittable
+class Region : public FittableRegion
 {
  public:
   PolyBackground background;
@@ -52,35 +52,27 @@ class Region : public Fittable
   bool remove_peak(double peakID);
   bool remove_peaks(const std::set<double>& ids);
 
-  double chi_sq_normalized() const;
-
   // Fitting related
-  size_t variable_count() const;
   void map_fit();
-  double degrees_of_freedom() const;
   void save_fit(const Eigen::VectorXd& variables);
   void save_fit_uncerts(const FitResult& result);
   // Fittable implementation
   Eigen::VectorXd variables() const override;
-  double chi_sq(const Eigen::VectorXd& fit) const override;
-  double chi_sq_gradient(const Eigen::VectorXd& fit,
-                         Eigen::VectorXd& gradients) const override;
+  double eval(double chan) const override;
+  double eval_at(double chan, const Eigen::VectorXd& fit) const override;
+  double eval_grad_at(double chan, const Eigen::VectorXd& fit, Eigen::VectorXd& grads) const override;
 
   std::string to_string(std::string prepend = "") const;
   friend void to_json(nlohmann::json& j, const Region& s);
   friend void from_json(const nlohmann::json& j, Region& s);
 
  private:
-  int32_t variable_count_{0};
   WeightedData data_;
   bool dirty_{false};
 
   //public: BoronPeak As CBoronPeak
   //public: AnnPeak As CAnnPeak
 
-  size_t fit_var_count() const;
-  double chi_sq() const;
-  double grad_chi_sq(Eigen::VectorXd& gradients) const;
   void init_background();
   void cull_peaks();
   void reindex_peaks();

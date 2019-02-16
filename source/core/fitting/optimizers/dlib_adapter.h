@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/fitting/abstract_optimizer.h>
+#include <core/fitting/optimizers/abstract_optimizer.h>
 
 #include <dlib/optimization.h>
 
@@ -12,10 +12,10 @@ namespace DAQuiri
 class DLib : public AbstractOptimizer
 {
  public:
-  FitResult BFGSMin(Fittable* fittable, double tolf) override;
+  FitResult minimize(FittableFunction* fittable, double tolf) override;
 
  private:
-  Fittable* function_;
+  FittableFunction* function_;
 
   using fitter_vector = dlib::matrix<double, 0, 1>;
   using fitter_matrix = dlib::matrix<double>;

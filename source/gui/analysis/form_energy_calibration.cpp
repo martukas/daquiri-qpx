@@ -1,5 +1,5 @@
 #include <gui/analysis/form_energy_calibration.h>
-#include <core/fitting/BFGS/BFGS.h>
+#include <core/fitting/optimizers/BFGS.h>
 #include "ui_form_energy_calibration.h"
 
 #include <QSettings>

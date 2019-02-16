@@ -6,10 +6,18 @@ namespace DAQuiri
 
 double FittableRegion::degrees_of_freedom() const
 {
-  double dof = static_cast<double>(data.data.size()) - static_cast<double>(var_count);
+  double dof = static_cast<double>(data.data.size()) - static_cast<double>(variable_count);
   if (dof < 0.0)
     return 0.0;
   return dof;
+}
+
+double FittableRegion::chi_sq() const
+{
+  double chi_squared {0.0};
+  for (const auto& p : data.data)
+    chi_squared += square((p.y - this->eval(p.x)) / p.weight_phillips_marlow);
+  return chi_squared / degrees_of_freedom();
 }
 
 double FittableRegion::chi_sq(const Eigen::VectorXd& fit) const

@@ -1,4 +1,4 @@
-#include <core/fitting/BFGS/BFGS.h>
+#include <core/fitting/optimizers/BFGS.h>
 #include <core/util/more_math.h>
 
 #include <core/util/custom_logger.h>
@@ -14,7 +14,7 @@ double BFGS::Sign(double a, double b)
     return -std::abs(a);
 }
 
-double BFGS::BrentDeriv(Fittable* fittable,
+double BFGS::BrentDeriv(FittableFunction* fittable,
                         double a,
                         double b,
                         double c,
@@ -158,7 +158,7 @@ double BFGS::BrentDeriv(Fittable* fittable,
   return fx;
 }
 
-void BFGS::Bracket(Fittable* fittable,
+void BFGS::Bracket(FittableFunction* fittable,
                    double& a, double& b, double& c, double& fa, double& fb, double& fc,
                    const Eigen::VectorXd& variables, const Eigen::VectorXd& hessian)
 {
@@ -258,7 +258,7 @@ void BFGS::Bracket(Fittable* fittable,
 
 }
 
-double BFGS::fgv(Fittable* fittable,
+double BFGS::fgv(FittableFunction* fittable,
                  double lambda,
                  Eigen::VectorXd variables,
                  Eigen::VectorXd hessian)
@@ -270,7 +270,7 @@ double BFGS::fgv(Fittable* fittable,
   return fittable->chi_sq(xlocal);
 }
 
-double BFGS::dfgv(Fittable* fittable,
+double BFGS::dfgv(FittableFunction* fittable,
                   double lambda,
                   Eigen::VectorXd variables,
                   Eigen::VectorXd hessian)
@@ -287,7 +287,7 @@ double BFGS::dfgv(Fittable* fittable,
   return s;
 }
 
-double BFGS::LinMin(Fittable* fittable, Eigen::VectorXd& variables,
+double BFGS::LinMin(FittableFunction* fittable, Eigen::VectorXd& variables,
     Eigen::VectorXd hessian)
 {
   static constexpr float linmin_tol{0.0001};
@@ -308,7 +308,7 @@ double BFGS::LinMin(Fittable* fittable, Eigen::VectorXd& variables,
   return fmin;
 }
 
-FitResult BFGS::BFGSMin(Fittable* fittable, double tolf)
+FitResult BFGS::minimize(FittableFunction* fittable, double tolf)
 {
   static constexpr double eps{0.0000000001};
   static constexpr size_t maxit{500};

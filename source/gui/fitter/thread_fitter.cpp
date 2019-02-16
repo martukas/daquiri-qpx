@@ -2,8 +2,8 @@
 #include <core/util/timer.h>
 #include <core/util/custom_logger.h>
 
-#include <core/fitting/BFGS/BFGS.h>
-#include <core/fitting/BFGS/dlib.h>
+#include <core/fitting/optimizers/BFGS.h>
+#include <core/fitting/optimizers/dlib_adapter.h>
 
 ThreadFitter::ThreadFitter(QObject *parent) :
   QThread(parent),
