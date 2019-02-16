@@ -1,4 +1,4 @@
-#include "function_test.h"
+#include "../function_test.h"
 
 #include <core/util/visualize_vector.h>
 
@@ -114,46 +114,32 @@ TEST_F(Tail, CheckSetup)
 
 TEST_F(Tail, Visualize)
 {
-  std::vector<double> channels;
-  std::vector<double> y;
-  for (size_t i = 0; i < 40; ++i)
-  {
-    channels.push_back(i);
-    y.push_back(ftail.eval(i));
-  }
-  MESSAGE() << "counts(channel):\n" << visualize(channels, y, 100) << "\n";
+  auto data = generate_data(&ftail, 40);
+  visualize_data(data);
 }
 
 
 TEST_F(Tail, WithinBounds)
 {
   auto data = generate_data(&ftail, 40);
-  auto min = std::numeric_limits<double>::max();
-  auto max = std::numeric_limits<double>::min();
-  for (const auto& d : data.data)
-  {
-    min = std::min(min, d.y);
-    max = std::max(max, d.y);
-  }
-
-  EXPECT_LE(max, 20.0);
-  EXPECT_NEAR(min, 0.0, 1e-39);
+  EXPECT_NEAR(data.count_min, 0.0, 1e-39);
+  EXPECT_LE(data.count_max, 20.0);
 }
 
 TEST_F(Tail, LeftOriented)
 {
   ftail.tail.side = DAQuiri::Side::left;
   auto data = generate_data(&ftail, 40);
-  EXPECT_NEAR(data.data.front().y, 14.0, 1.0);
-  EXPECT_NEAR(data.data.back().y, 0.0, 1e-39);
+  EXPECT_NEAR(data.data.front().count, 14.0, 1.0);
+  EXPECT_NEAR(data.data.back().count, 0.0, 1e-39);
 }
 
 TEST_F(Tail, RightOriented)
 {
   ftail.tail.side = DAQuiri::Side::right;
   auto data = generate_data(&ftail, 40);
-  EXPECT_NEAR(data.data.front().y, 0.0, 1e-39);
-  EXPECT_NEAR(data.data.back().y, 14.0, 1.0);
+  EXPECT_NEAR(data.data.front().count, 0.0, 1e-39);
+  EXPECT_NEAR(data.data.back().count, 14.0, 1.0);
 }
 
 TEST_F(Tail, UpdateIndexInvalidThrows)

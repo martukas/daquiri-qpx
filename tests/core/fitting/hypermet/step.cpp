@@ -1,4 +1,4 @@
-#include "function_test.h"
+#include "../function_test.h"
 
 #include <core/util/visualize_vector.h>
 
@@ -112,45 +112,31 @@ TEST_F(Step, CheckSetup)
 
 TEST_F(Step, Visualize)
 {
-  std::vector<double> channels;
-  std::vector<double> y;
-  for (size_t i = 0; i < 40; ++i)
-  {
-    channels.push_back(i);
-    y.push_back(fstep.eval(i));
-  }
-  MESSAGE() << "counts(channel):\n" << visualize(channels, y, 100) << "\n";
+  auto data = generate_data(&fstep, 40);
+  visualize_data(data);
 }
 
 TEST_F(Step, WithinBounds)
 {
   auto data = generate_data(&fstep, 40);
-  auto min = std::numeric_limits<double>::max();
-  auto max = std::numeric_limits<double>::min();
-  for (const auto& d : data.data)
-  {
-    min = std::min(min, d.y);
-    max = std::max(max, d.y);
-  }
-
-  EXPECT_NEAR(max, 2.0, 1e-15);
-  EXPECT_NEAR(min, 0.0, 1e-40);
+  EXPECT_NEAR(data.count_min, 0.0, 1e-40);
+  EXPECT_NEAR(data.count_max, 2.0, 1e-15);
 }
 
 TEST_F(Step, LeftOriented)
 {
   fstep.step.side = DAQuiri::Side::left;
   auto data = generate_data(&fstep, 40);
-  EXPECT_NEAR(data.data.front().y, 2.0, 1e-15);
-  EXPECT_NEAR(data.data.back().y, 0.0, 1e-40);
+  EXPECT_NEAR(data.data.front().count, 2.0, 1e-15);
+  EXPECT_NEAR(data.data.back().count, 0.0, 1e-40);
 }
 
 TEST_F(Step, RightOriented)
 {
   fstep.step.side = DAQuiri::Side::right;
   auto data = generate_data(&fstep, 40);
-  EXPECT_NEAR(data.data.front().y, 0.0, 1e-40);
-  EXPECT_NEAR(data.data.back().y, 2.0, 1e-15);
+  EXPECT_NEAR(data.data.front().count, 0.0, 1e-40);
+  EXPECT_NEAR(data.data.back().count, 2.0, 1e-15);
 }
 
 TEST_F(Step, UpdateIndexInvalidThrows)

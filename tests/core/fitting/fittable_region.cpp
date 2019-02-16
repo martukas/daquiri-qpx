@@ -1,4 +1,4 @@
-#include "hypermet/function_test.h"
+#include "function_test.h"
 
 #include <core/util/visualize_vector.h>
 

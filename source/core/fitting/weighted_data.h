@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include <cinttypes>
 #include <vector>
+#include <limits>
 
 namespace DAQuiri
 {
@@ -23,9 +23,9 @@ double weight_true(double count);
 ///          "Peak Search and Analysis of Gamma-Ray Spectra with Very Low Statistics,"
 ///          IEEE Transactions on Nuclear Science, vol. 24, no. 1, pp. 154-157, Feb. 1977.
 ///          doi: 10.1109/TNS.1977.4328659
-/// \param y vector of channel counts
-/// \param i channel index
-double weight_phillips_marlow(const std::vector<double>& y, size_t i);
+/// \param counts vector of channel counts
+/// \param index channel index
+double weight_phillips_marlow(const std::vector<double>& counts, size_t index);
 
 /// \returns low-count compensated weight for histogram channel using: NEED CITATION!!!
 // \todo NEED CITATION!!!
@@ -35,8 +35,8 @@ double weight_revay_student(double count);
 /// \brief provides all relevant information from the results of an optimization attempt.
 struct WeightedDataPoint
 {
-  double x {0}; /// < channel
-  double y {0}; /// < counts
+  double channel {0};
+  double count {0};
   double weight_true {0};            /// < true statistical weight
   double weight_phillips_marlow {0}; /// < low-count compensated weight (need ref)
   double weight_revay {0};           /// < low-count compensated weight (need ref)
@@ -52,15 +52,15 @@ struct WeightedData
   WeightedData() = default;
 
   /// \brief constructs and calculates weights
-  /// \param x channels/bins
-  /// \param y counts
-  WeightedData(const std::vector<double>& x,
-               const std::vector<double>& y);
+  /// \param channels channels/bins
+  /// \param counts counts
+  WeightedData(const std::vector<double>& channels,
+               const std::vector<double>& counts);
 
   /// \returns a subset of data between two provided channel bounds
-  /// \param b1 first bound (min or max)
-  /// \param b2 second bound (min or max)
-  WeightedData subset(double b1, double b2) const;
+  /// \param bound1 first bound (min or max)
+  /// \param bound2 second bound (min or max)
+  WeightedData subset(double bound1, double bound2) const;
 
   /// \returns a subset of data from the front end
   /// \param size number of bins from the left to include
@@ -77,6 +77,8 @@ struct WeightedData
   bool empty() const;
 
   std::vector<WeightedDataPoint> data;
+  double count_min {std::numeric_limits<double>::quiet_NaN()};
+  double count_max {std::numeric_limits<double>::quiet_NaN()};
 };
 
 }

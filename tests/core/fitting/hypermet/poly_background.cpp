@@ -1,4 +1,4 @@
-#include "function_test.h"
+#include "../function_test.h"
 
 #include <core/util/visualize_vector.h>
 
@@ -64,30 +64,16 @@ TEST_F(PolyBackground, CheckSetup)
 
 TEST_F(PolyBackground, Visualize)
 {
-  std::vector<double> channels;
-  std::vector<double> y;
-  for (size_t i = 0; i < 40; ++i)
-  {
-    channels.push_back(i);
-    y.push_back(fb.background.eval(i));
-  }
-  MESSAGE() << "counts(channel):\n" << visualize(channels, y, 100) << "\n";
+  auto data = generate_data(&fb, 40);
+  visualize_data(data);
 }
 
 
 TEST_F(PolyBackground, WithinBounds)
 {
   auto data = generate_data(&fb, 40);
-  auto min = std::numeric_limits<double>::max();
-  auto max = std::numeric_limits<double>::min();
-  for (const auto& d : data.data)
-  {
-    min = std::min(min, d.y);
-    max = std::max(max, d.y);
-  }
-
-  EXPECT_NEAR(max, 70 + 3 * 39 + 5 * square(39) , 1e-10);
-  EXPECT_NEAR(min, 70, 1e-10);
+  EXPECT_NEAR(data.count_min, 70, 1e-10);
+  EXPECT_NEAR(data.count_max, 70 + 3 * 39 + 5 * square(39) , 1e-10);
 }
 
 TEST_F(PolyBackground, UpdateIndexInvalidThrows)

@@ -31,17 +31,17 @@ SUM4Edge::SUM4Edge(const WeightedData& spectrum_data)
   if (spectrum_data.data.empty())
     return;
 
-  Lchan_ = spectrum_data.data.front().x;
-  Rchan_ = spectrum_data.data.back().x;
+  Lchan_ = spectrum_data.data.front().channel;
+  Rchan_ = spectrum_data.data.back().channel;
 
   min_ = std::numeric_limits<double>::max();
   max_ = std::numeric_limits<double>::min();
 
   for (const auto& p : spectrum_data.data)
   {
-    min_ = std::min(min_, p.y);
-    max_ = std::max(max_, p.y);
-    dsum_ += {p.y, p.weight_true};
+    min_ = std::min(min_, p.count);
+    max_ = std::max(max_, p.count);
+    dsum_ += {p.count, p.weight_true};
   }
 
   davg_ = dsum_ / width();

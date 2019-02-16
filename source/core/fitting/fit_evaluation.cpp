@@ -19,8 +19,8 @@ void FitEvaluation::setNewData(const WeightedData& d)
   weighted_data = d;
   for (const auto& p : d.data)
   {
-    x_.push_back(p.x);
-    y_.push_back(p.y);
+    x_.push_back(p.channel);
+    y_.push_back(p.count);
   }
   reset();
 }

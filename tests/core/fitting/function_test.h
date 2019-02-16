@@ -27,6 +27,18 @@ class FunctionTest : public TestBase
     return DAQuiri::WeightedData(channels, y);
   }
 
+  void visualize_data(const DAQuiri::WeightedData& data) const
+  {
+    std::vector<double> channels;
+    std::vector<double> counts;
+    for (const auto& p : data.data)
+    {
+      channels.push_back(p.channel);
+      counts.push_back(p.count);
+    }
+    MESSAGE() << "counts(channel):\n" << visualize(channels, counts, 100) << "\n";
+  }
+
   void survey_grad(const DAQuiri::FittableRegion* fittable,
       DAQuiri::Value& variable,
       double step_size = 0.1)

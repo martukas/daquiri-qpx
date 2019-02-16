@@ -27,11 +27,11 @@ SUM4::SUM4(const WeightedData& spectrum_data,
   Polynomial background = SUM4Edge::sum4_background(LB, RB);
   double background_variance = square(0.5 * peak_width()) * (LB.variance() + RB.variance());
 
-  Lchan_ = spectrum_data.data.front().x;
-  Rchan_ = spectrum_data.data.back().x;
+  Lchan_ = spectrum_data.data.front().channel;
+  Rchan_ = spectrum_data.data.back().channel;
 
   for (const auto& p : spectrum_data.data)
-    gross_area_ += {p.y, p.weight_true};
+    gross_area_ += {p.count, p.weight_true};
 
   background_area_ = {
       0.5 * peak_width() * (background(Rchan_) + background(Lchan_)),
@@ -42,10 +42,10 @@ SUM4::SUM4(const WeightedData& spectrum_data,
   double sumYnet{0.0}, CsumYnet{0.0}, C2sumYnet{0.0};
   for (const auto& p : spectrum_data.data)
   {
-    double yn = p.y - background(p.x);
+    double yn = p.count - background(p.channel);
     sumYnet += yn;
-    CsumYnet += p.x * yn;
-    C2sumYnet += square(p.x) * yn;
+    CsumYnet += p.channel * yn;
+    C2sumYnet += square(p.channel) * yn;
   }
 
   double centroidval = CsumYnet / sumYnet;

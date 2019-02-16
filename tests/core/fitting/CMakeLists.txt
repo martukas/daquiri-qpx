@@ -1,6 +1,7 @@
 set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(SOURCES
+  ${dir}/function_test.h
   ${dir}/weighted_data.cpp
   ${dir}/fittable_region.cpp
   ${dir}/fit_evaluation.cpp

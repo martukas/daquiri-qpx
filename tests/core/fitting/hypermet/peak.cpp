@@ -1,4 +1,4 @@
-#include "function_test.h"
+#include "../function_test.h"
 
 #include <core/util/visualize_vector.h>
 
@@ -61,30 +61,15 @@ TEST_F(Peak, CheckSetup)
 
 TEST_F(Peak, Visualize)
 {
-  std::vector<double> channels;
-  std::vector<double> y;
-  for (size_t i = 0; i < 40; ++i)
-  {
-    channels.push_back(i);
-    y.push_back(fpeak.peak.eval(i).all());
-  }
-  MESSAGE() << "counts(channel):\n" << visualize(channels, y, 100) << "\n";
+  auto data = generate_data(&fpeak, 40);
+  visualize_data(data);
 }
 
 TEST_F(Peak, WithinBounds)
 {
   auto data = generate_data(&fpeak, 40);
-
-  auto min = std::numeric_limits<double>::max();
-  auto max = std::numeric_limits<double>::min();
-  for (const auto& d : data.data)
-  {
-    min = std::min(min, d.y);
-    max = std::max(max, d.y);
-  }
-
-  EXPECT_LE(max, 400.0);
-  EXPECT_NEAR(min, 0.0, 1e-14);
+  EXPECT_NEAR(data.count_min, 0.0, 1e-14);
+  EXPECT_LE(data.count_max, 400.0);
 }
 
 TEST_F(Peak, UpdateIndexInvalidThrows)

@@ -53,7 +53,7 @@ void Region::replace_data(const WeightedData& data, const SUM4Edge& lb, const SU
   if (data.data.empty())
     throw std::runtime_error("Attempting to construct Region from empty sample");
 
-  if ((lb.left() < data.data.front().x) || (data.data.back().x < rb.right()))
+  if ((lb.left() < data.data.front().channel) || (data.data.back().channel < rb.right()))
     throw std::runtime_error("Sum4 edges outside of region");
 
   LB_ = lb;
@@ -87,14 +87,14 @@ void Region::adjust_RB(const SUM4Edge& rb)
 double Region::left() const
 {
   if (!data_.empty())
-    return data_.data.front().x;
+    return data_.data.front().channel;
   return std::numeric_limits<double>::quiet_NaN();
 }
 
 double Region::right() const
 {
   if (!data_.empty())
-    return data_.data.back().x;
+    return data_.data.back().channel;
   return std::numeric_limits<double>::quiet_NaN();
 }
 
@@ -121,8 +121,8 @@ bool Region::add_peak(double l, double r, double amp_hint)
   double min_bkg{std::numeric_limits<double>::max()};
   for (const auto& v : data_.data)
   {
-    max_val = std::max(max_val, v.y);
-    min_bkg = std::min(min_bkg, background.eval(v.x));
+    max_val = std::max(max_val, v.count);
+    min_bkg = std::min(min_bkg, background.eval(v.channel));
   }
   double amp_max = max_val - min_bkg;
 
@@ -208,9 +208,9 @@ void Region::cull_peaks()
 
 void Region::init_background()
 {
-  double global_min = data_.data.front().y;
+  double global_min = data_.data.front().count;
   for (const auto& d : data_.data)
-    global_min = std::min(global_min, d.y);
+    global_min = std::min(global_min, d.count);
   global_min = std::floor(global_min);
 
   //by default, linear
@@ -251,7 +251,7 @@ void Region::init_background()
   }
 
   background = PolyBackground();
-  background.x_offset = data_.data.front().x;
+  background.x_offset = data_.data.front().channel;
 
   background.base.bound(global_min, ymax);
   background.slope.bound(minslope, maxslope);
