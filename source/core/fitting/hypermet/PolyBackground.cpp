@@ -71,17 +71,20 @@ double PolyBackground::eval_at(double bin, const Eigen::VectorXd& fit) const
 double PolyBackground::eval_grad(double bin, Eigen::VectorXd& gradients) const
 {
   double ret = base.val();
-  gradients[base.index()] = base.grad();
+  if (base.to_fit)
+    gradients[base.index()] = base.grad();
   if (slope_enabled)
   {
     ret += slope.val() * (bin - x_offset);
-    gradients[slope.index()] = (bin - x_offset);
+    if (slope.to_fit)
+      gradients[slope.index()] = (bin - x_offset);
   }
 
   if (curve_enabled)
   {
     ret += curve.val() * square(bin - x_offset);
-    gradients[curve.index()] = square(bin - x_offset);
+    if (curve.to_fit)
+      gradients[curve.index()] = square(bin - x_offset);
   }
   return ret;
 }
@@ -91,19 +94,22 @@ double PolyBackground::eval_grad_at(double bin,
                                     Eigen::VectorXd& gradients) const
 {
   double ret = base.val_from(fit);
-  gradients[base.index()] = base.grad_from(fit);
+  if (base.to_fit)
+    gradients[base.index()] = base.grad_from(fit);
 
   // \todo this might actually need to factor in grad from variables
   if (slope_enabled)
   {
     ret += slope.val_from(fit) * (bin - x_offset);
-    gradients[slope.index()] = (bin - x_offset);
+    if (slope.to_fit)
+      gradients[slope.index()] = (bin - x_offset);
   }
 
   if (curve_enabled)
   {
     ret += curve.val_from(fit) * square(bin - x_offset);
-    gradients[curve.index()] = square(bin - x_offset);
+    if (curve.to_fit)
+      gradients[curve.index()] = square(bin - x_offset);
   }
   return ret;
 }

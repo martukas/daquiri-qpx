@@ -109,15 +109,14 @@ class FunctionTest : public TestBase
                 double wrong_value,
                 size_t attempts = 1)
   {
-    MESSAGE() << "Will refit \n" << variable.to_string()
-              << " from " << wrong_value
-              << " with " << attempts << " attempts\n";
-
     fittable->update_indices();
+    double goal_val = variable.val();
+
+    MESSAGE() << "Will attempt to fit " << wrong_value << " --> " << variable.to_string()
+              << " with " << attempts << " attempts\n";
 
     for (size_t i=0; i < attempts; ++i)
     {
-      double goal_val = variable.val();
       variable.val(wrong_value);
       auto result = optimizer->minimize(fittable, 0.00001);
       fittable->save_fit(result);

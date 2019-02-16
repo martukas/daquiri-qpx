@@ -3,7 +3,8 @@
 #include <core/util/visualize_vector.h>
 
 #include <core/fitting/hypermet/PolyBackground.h>
-#include <core/fitting/weighted_data.h>
+
+#include <core/fitting/optimizers/BFGS.h>
 
 class FittableBackground : public DAQuiri::FittableRegion
 {
@@ -309,7 +310,7 @@ TEST_F(PolyBackground, EvalGradAt)
   EXPECT_EQ(grad[2], grad_goal[2]);
 }
 
-TEST_F(PolyBackground, GradPolyBackgroundBase)
+TEST_F(PolyBackground, GradBase)
 {
   fb.data = generate_data(&fb, 40);
 
@@ -323,16 +324,86 @@ TEST_F(PolyBackground, GradPolyBackgroundBase)
   // gradient is only good if EVEN SMALLER step sizes are used for more granularity
 }
 
-TEST_F(PolyBackground, GradPolyBackgroundSlope)
+
+TEST_F(PolyBackground, FitBaseOnly)
+{
+  fb.data = generate_data(&fb, 40);
+
+  fb.background.slope.to_fit = false;
+  fb.background.curve.to_fit = false;
+  fb.update_indices();
+  MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
+
+  DAQuiri::BFGS optimizer;
+  test_fit(&optimizer, &fb, fb.background.base, 100, 5);
+
+  MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
+  //visualize_data(generate_data(&fb, 40));
+  //EXPECT_NEAR(fpeak.peak.position.val(), goal_val, 0.03);
+}
+
+TEST_F(PolyBackground, FitBase)
+{
+  fb.data = generate_data(&fb, 40);
+
+  fb.update_indices();
+  MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
+
+  DAQuiri::BFGS optimizer;
+  test_fit(&optimizer, &fb, fb.background.base, 100, 5);
+
+  MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
+  //visualize_data(generate_data(&fb, 40));
+  //EXPECT_NEAR(fpeak.peak.position.val(), goal_val, 0.03);
+}
+
+
+TEST_F(PolyBackground, GradSlope)
 {
   fb.data = generate_data(&fb, 40);
 
   // chi-sq is only good if smaller step sizes are used for more granularity
   double goal_val = fb.background.slope.val();
   fb.background.update_indices(fb.variable_count);
-  survey_grad(&fb, fb.background.slope, 0.01);
+  survey_grad(&fb, fb.background.slope, 0.001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.1);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.1);
+}
+
+TEST_F(PolyBackground, FitSlopeOnly)
+{
+  fb.data = generate_data(&fb, 40);
+
+  fb.background.base.to_fit = false;
+  fb.background.curve.to_fit = false;
+  fb.update_indices();
+  MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
+
+  double goal_val = fb.background.slope.val();
+
+  DAQuiri::BFGS optimizer;
+  test_fit(&optimizer, &fb, fb.background.slope, 10, 5);
+
+  MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
+  //visualize_data(generate_data(&fb, 40));
+  //EXPECT_NEAR(fpeak.peak.position.val(), goal_val, 0.03);
+}
+
+TEST_F(PolyBackground, FitSlope)
+{
+  fb.data = generate_data(&fb, 40);
+
+  fb.update_indices();
+  MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
+
+  double goal_val = fb.background.slope.val();
+
+  DAQuiri::BFGS optimizer;
+  test_fit(&optimizer, &fb, fb.background.slope, 10, 5);
+
+  MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
+  //visualize_data(generate_data(&fb, 40));
+  //EXPECT_NEAR(fpeak.peak.position.val(), goal_val, 0.03);
 }
 
 TEST_F(PolyBackground, GradPolyBackgroundCurve)
@@ -346,3 +417,38 @@ TEST_F(PolyBackground, GradPolyBackgroundCurve)
   EXPECT_NEAR(check_gradients(false), goal_val, 0.02);
 }
 
+TEST_F(PolyBackground, FitCurveOnly)
+{
+  fb.data = generate_data(&fb, 40);
+
+  fb.background.base.to_fit = false;
+  fb.background.slope.to_fit = false;
+  fb.update_indices();
+  MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
+
+  double goal_val = fb.background.curve.val();
+
+  DAQuiri::BFGS optimizer;
+  test_fit(&optimizer, &fb, fb.background.curve, 10, 5);
+
+  MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
+  //visualize_data(generate_data(&fb, 40));
+  //EXPECT_NEAR(fpeak.peak.position.val(), goal_val, 0.03);
+}
+
+TEST_F(PolyBackground, FitCurve)
+{
+  fb.data = generate_data(&fb, 40);
+
+  fb.update_indices();
+  MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
+
+  double goal_val = fb.background.curve.val();
+
+  DAQuiri::BFGS optimizer;
+  test_fit(&optimizer, &fb, fb.background.curve, 10, 5);
+
+  MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
+  //visualize_data(generate_data(&fb, 40));
+  //EXPECT_NEAR(fpeak.peak.position.val(), goal_val, 0.03);
+}
