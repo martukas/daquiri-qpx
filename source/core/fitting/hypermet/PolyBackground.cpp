@@ -92,6 +92,8 @@ double PolyBackground::eval_grad_at(double bin,
 {
   double ret = base.val_from(fit);
   gradients[base.index()] = base.grad_from(fit);
+
+  // \todo this might actually need to factor in grad from variables
   if (slope_enabled)
   {
     ret += slope.val_from(fit) * (bin - x_offset);

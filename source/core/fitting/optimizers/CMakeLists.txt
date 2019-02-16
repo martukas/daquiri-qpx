@@ -7,7 +7,7 @@ set(SOURCES
 
 set(HEADERS
   ${dir}/fittable_function.h
-  ${dir}/fit_results.h
+  ${dir}/fit_result.h
   ${dir}/abstract_optimizer.h
   ${dir}/BFGS.h
   ${dir}/dlib_adapter.h

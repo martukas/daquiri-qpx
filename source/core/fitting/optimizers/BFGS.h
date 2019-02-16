@@ -6,9 +6,16 @@ namespace DAQuiri
 {
 
 // \todo add locks
+
+/// \class BFGS BFGS.h <core/fitting/optimizers/BFGS.h>
+/// \brief Implementation of the full-memory Broyden-Fletcher-Goldfarb-Shanno optimizer.
 class BFGS : public AbstractOptimizer
 {
  public:
+  /// \brief minimizes a supplied function
+  /// \returns result of the optimization attempt
+  /// \param fittable a concrete instance of an objective FittableFunction to be minimized
+  /// \param tolf ???
   FitResult minimize(FittableFunction* fittable, double tolf) override;
 
  private:

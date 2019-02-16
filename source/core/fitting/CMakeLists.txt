@@ -4,7 +4,7 @@ set(SOURCES
   ${dir}/fit_settings.cpp
   ${dir}/weighted_data.cpp
   ${dir}/fittable_region.cpp
-  ${dir}/region_eval.cpp
+  ${dir}/fit_evaluation.cpp
   ${dir}/region_manager.cpp
   ${dir}/fitter.cpp
   ${dir}/uncertain.cpp
@@ -14,7 +14,7 @@ set(HEADERS
   ${dir}/fit_settings.h
   ${dir}/weighted_data.h
   ${dir}/fittable_region.h
-  ${dir}/region_eval.h
+  ${dir}/fit_evaluation.h
   ${dir}/region_manager.h
   ${dir}/fitter.h
   ${dir}/uncertain.h

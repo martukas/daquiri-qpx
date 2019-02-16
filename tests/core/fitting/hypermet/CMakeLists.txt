@@ -3,6 +3,7 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 set(SOURCES
   ${dir}/value.cpp
   ${dir}/function_test.h
+  ${dir}/gaussian_precalc.cpp
   ${dir}/step.cpp
   ${dir}/tail.cpp
   ${dir}/poly_background.cpp

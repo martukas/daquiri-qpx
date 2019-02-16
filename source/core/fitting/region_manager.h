@@ -1,7 +1,7 @@
 #pragma once
 
 #include <core/fitting/hypermet/Region.h>
-#include <core/fitting/region_eval.h>
+#include <core/fitting/fit_evaluation.h>
 #include <core/fitting/fit_settings.h>
 
 #include <core/fitting/optimizers/abstract_optimizer.h>

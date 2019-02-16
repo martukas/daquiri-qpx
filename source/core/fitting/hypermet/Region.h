@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/fitting/optimizers/fit_results.h>
+#include <core/fitting/optimizers/fit_result.h>
 #include <core/fitting/fittable_region.h>
 
 #include <core/fitting/hypermet/Peak.h>

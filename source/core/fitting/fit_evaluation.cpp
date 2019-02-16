@@ -1,4 +1,4 @@
-#include <core/fitting/region_eval.h>
+#include <core/fitting/fit_evaluation.h>
 
 namespace DAQuiri
 {

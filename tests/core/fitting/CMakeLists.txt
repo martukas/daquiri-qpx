@@ -2,6 +2,8 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(SOURCES
   ${dir}/weighted_data.cpp
+  ${dir}/fittable_region.cpp
+  ${dir}/fit_evaluation.cpp
   )
 
 add_subdirectory(sum4)
