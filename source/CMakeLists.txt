@@ -8,8 +8,9 @@ find_package(Threads REQUIRED)
 find_package(GraylogLogger REQUIRED)
 add_definitions("-DGRAYLOG")
 
+find_package(GSL REQUIRED)    # See below (2)
 find_package(dlib REQUIRED)
-set(optimizer_LIBRARIES dlib::dlib)
+set(optimizer_LIBRARIES dlib::dlib GSL::gsl GSL::gslcblas)
 
 add_subdirectory(core)
 add_subdirectory(consumers)

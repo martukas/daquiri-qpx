@@ -3,6 +3,7 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 set(SOURCES
   ${dir}/rosenbrock.h
   ${dir}/dlib_adapter.cpp
+  ${dir}/gsl_adapter.cpp
   ${dir}/BFGS.cpp
   )
 

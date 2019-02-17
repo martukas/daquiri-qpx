@@ -3,6 +3,7 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 set(SOURCES
   ${dir}/BFGS.cpp
   ${dir}/dlib_adapter.cpp
+  ${dir}/gsl_adapter.cpp
   )
 
 set(HEADERS
@@ -11,6 +12,7 @@ set(HEADERS
   ${dir}/abstract_optimizer.h
   ${dir}/BFGS.h
   ${dir}/dlib_adapter.h
+  ${dir}/gsl_adapter.h
   )
 
 set(${this_target}_headers ${${this_target}_headers} ${HEADERS} PARENT_SCOPE)
