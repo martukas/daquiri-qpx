@@ -423,7 +423,7 @@ bool RegionManager::rebuild(AbstractOptimizer* optimizer)
   region_.update_indices();
   INFO("Will rebuild\n{}", region_.to_string(" "));
 
-  auto result = optimizer->minimize(&region_, 0.00001);
+  auto result = optimizer->minimize(&region_);
   region_.save_fit(result);
 
   region_.auto_sum4();

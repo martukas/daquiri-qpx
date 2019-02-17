@@ -334,7 +334,7 @@ TEST_F(PolyBackground, FitBaseOnly)
   fb.update_indices();
   MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
 
-  DAQuiri::BFGS optimizer;
+  DAQuiri::BudapestOptimizer optimizer;
   test_fit(&optimizer, &fb, fb.background.base, 100, 5);
 
   MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
@@ -349,7 +349,7 @@ TEST_F(PolyBackground, FitBase)
   fb.update_indices();
   MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
 
-  DAQuiri::BFGS optimizer;
+  DAQuiri::BudapestOptimizer optimizer;
   test_fit(&optimizer, &fb, fb.background.base, 100, 5);
 
   MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
@@ -381,7 +381,7 @@ TEST_F(PolyBackground, FitSlopeOnly)
 
   double goal_val = fb.background.slope.val();
 
-  DAQuiri::BFGS optimizer;
+  DAQuiri::BudapestOptimizer optimizer;
   test_fit(&optimizer, &fb, fb.background.slope, 10, 5);
 
   MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
@@ -398,7 +398,7 @@ TEST_F(PolyBackground, FitSlope)
 
   double goal_val = fb.background.slope.val();
 
-  DAQuiri::BFGS optimizer;
+  DAQuiri::BudapestOptimizer optimizer;
   test_fit(&optimizer, &fb, fb.background.slope, 10, 5);
 
   MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
@@ -428,7 +428,7 @@ TEST_F(PolyBackground, FitCurveOnly)
 
   double goal_val = fb.background.curve.val();
 
-  DAQuiri::BFGS optimizer;
+  DAQuiri::BudapestOptimizer optimizer;
   test_fit(&optimizer, &fb, fb.background.curve, 10, 5);
 
   MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
@@ -445,7 +445,7 @@ TEST_F(PolyBackground, FitCurve)
 
   double goal_val = fb.background.curve.val();
 
-  DAQuiri::BFGS optimizer;
+  DAQuiri::BudapestOptimizer optimizer;
   test_fit(&optimizer, &fb, fb.background.curve, 10, 5);
 
   MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";

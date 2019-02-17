@@ -10,7 +10,7 @@ ThreadFitter::ThreadFitter(QObject *parent) :
   terminating_(false),
   running_(false)
 {
-  optimizer_ = std::make_shared<DAQuiri::BFGS>();
+  optimizer_ = std::make_shared<DAQuiri::BudapestOptimizer>();
 
   action_ = kIdle;
   start(HighPriority);

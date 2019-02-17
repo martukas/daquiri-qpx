@@ -6,7 +6,7 @@
 
 #include <random>
 
-class GSLAdapter : public TestBase
+class GSLOptimizer : public TestBase
 {
  protected:
 
@@ -15,37 +15,50 @@ class GSLAdapter : public TestBase
   }
 };
 
-TEST_F(GSLAdapter, CheckSetup)
+TEST_F(GSLOptimizer, CheckSetup)
 {
   Rosenbrock rb(10);
   MESSAGE() << "Rosenbrock: " << rb.variables().transpose() << "\n";
 }
 
-TEST_F(GSLAdapter, Fit10)
+TEST_F(GSLOptimizer, Fit10)
 {
   Rosenbrock rb(10);
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
 
-  DAQuiri::GSLAdapter optimizer;
-  auto result = optimizer.minimize(&rb, 0.00001);
+  DAQuiri::GSLOptimizer optimizer;
+  auto result = optimizer.minimize(&rb);
 
-  MESSAGE() << "Final: " << result.variables.transpose() << "\n";
+  MESSAGE() << "Result: " << result.to_string() << "\n";
 }
 
-TEST_F(GSLAdapter, Fit10nonzero)
+TEST_F(GSLOptimizer, Fit10nonzero)
 {
   Rosenbrock rb(10);
   for (size_t i=0; i < rb.vals_.size(); ++i)
     rb.vals_[i] = 3;
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
 
-  DAQuiri::GSLAdapter optimizer;
-  auto result = optimizer.minimize(&rb, 0.00001);
+  DAQuiri::GSLOptimizer optimizer;
+  auto result = optimizer.minimize(&rb);
 
-  MESSAGE() << "Final: " << result.variables.transpose() << "\n";
+  MESSAGE() << "Result: " << result.to_string() << "\n";
 }
 
-TEST_F(GSLAdapter, Fit10Random)
+TEST_F(GSLOptimizer, Fit10nonzero2)
+{
+  Rosenbrock rb(10);
+  for (size_t i=0; i < rb.vals_.size(); ++i)
+    rb.vals_[i] = i;
+  MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
+
+  DAQuiri::GSLOptimizer optimizer;
+  auto result = optimizer.minimize(&rb);
+
+  MESSAGE() << "Result: " << result.to_string() << "\n";
+}
+
+TEST_F(GSLOptimizer, Fit10Random)
 {
   Rosenbrock rb(10);
 
@@ -56,9 +69,9 @@ TEST_F(GSLAdapter, Fit10Random)
     rb.vals_[i] = dist6(rng);
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
 
-  DAQuiri::GSLAdapter optimizer;
-  auto result = optimizer.minimize(&rb, 0.00001);
+  DAQuiri::GSLOptimizer optimizer;
+  auto result = optimizer.minimize(&rb);
 
-  MESSAGE() << "Final: " << result.variables.transpose() << "\n";
+  MESSAGE() << "Result: " << result.to_string() << "\n";
 }
 

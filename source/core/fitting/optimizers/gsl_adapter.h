@@ -9,22 +9,24 @@ namespace DAQuiri
 
 // \todo add locks
 
-/// \class DLib dlib_adapter.h <core/fitting/optimizers/dlib_adapter.h>
-/// \brief Interface adapter for the dlib implementation of BFGS. Does not derive uncertainties.
-class GSLAdapter : public AbstractOptimizer
+/// \class GSLOptimizer gsl_adapter.h <core/fitting/optimizers/gsl_adapter.h>
+/// \brief Interface adapter for the GSL implementation of BFGS.
+///         Does not derive uncertainties.
+class GSLOptimizer : public AbstractOptimizer
 {
  public:
   /// \brief minimizes a supplied function
   /// \returns result of the optimization attempt
   /// \param fittable a concrete instance of an objective FittableFunction to be minimized
-  /// \param tolf ???
-  FitResult minimize(FittableFunction* fittable, double tolf) override;
+  FitResult minimize(FittableFunction* fittable) override;
+
+  double first_step_size {0.01};
+  double gradient_tolerance {1e-10};
 
  private:
   FittableFunction* function_; /// < pointer to fittable function for function binding
-
-  Eigen::VectorXd vars;
-  Eigen::VectorXd grads;
+  Eigen::VectorXd variables_;
+  Eigen::VectorXd gradients_;
 
   double my_f(const gsl_vector* v);
   void my_df(const gsl_vector* v, gsl_vector* df);

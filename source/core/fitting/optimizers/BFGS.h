@@ -9,14 +9,23 @@ namespace DAQuiri
 
 /// \class BFGS BFGS.h <core/fitting/optimizers/BFGS.h>
 /// \brief Implementation of the full-memory Broyden-Fletcher-Goldfarb-Shanno optimizer.
-class BFGS : public AbstractOptimizer
+class BudapestOptimizer : public AbstractOptimizer
 {
  public:
   /// \brief minimizes a supplied function
   /// \returns result of the optimization attempt
   /// \param fittable a concrete instance of an objective FittableFunction to be minimized
-  /// \param tolf ???
-  FitResult minimize(FittableFunction* fittable, double tolf) override;
+  FitResult minimize(FittableFunction* fittable) override;
+
+  double eps{1e-10};
+
+  size_t brent_maximum_iterations{500};
+  double brent_zeps{1e-10};
+
+  double bracket_glimit{100.0};
+  double bracket_tiny{1e-20};
+
+  double linmin_tol{0.0001};
 
  private:
   double Sign(double a, double b);

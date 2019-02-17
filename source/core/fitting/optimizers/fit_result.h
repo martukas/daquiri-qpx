@@ -11,6 +11,8 @@
 #include <Eigen/Sparse>
 #pragma GCC diagnostic pop
 
+#include <string>
+
 namespace DAQuiri
 {
 
@@ -22,6 +24,9 @@ struct FitResult
   Eigen::SparseMatrix<double> inv_hessian; /// < inverse Hessian matrix of recent fit iterations
   size_t iterations{0};                    /// < number of iterations used to reach result
   bool converged{false};                   /// < whether convergence was achieved
+  double value;                            /// < most recent evaluation result
+
+  std::string to_string() const;
 };
 
 }

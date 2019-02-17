@@ -327,7 +327,7 @@ TEST_F(Peak, FitPosition)
   fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.position.val();
 
-  DAQuiri::BFGS optimizer;
+  DAQuiri::BudapestOptimizer optimizer;
   test_fit(&optimizer, &fpeak, fpeak.peak.position, 15, 5);
 
   MESSAGE() << "Result:\n" << fpeak.peak.to_string() << "\n";
@@ -340,7 +340,7 @@ TEST_F(Peak, FitAmplitude)
   fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.amplitude.val();
 
-  DAQuiri::BFGS optimizer;
+  DAQuiri::BudapestOptimizer optimizer;
   test_fit(&optimizer, &fpeak, fpeak.peak.amplitude, 200, 5);
 
   MESSAGE() << "Result:\n" << fpeak.peak.to_string() << "\n";
@@ -354,7 +354,7 @@ TEST_F(Peak, FitWidth)
   fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.width.val();
 
-  DAQuiri::BFGS optimizer;
+  DAQuiri::BudapestOptimizer optimizer;
   test_fit(&optimizer, &fpeak, fpeak.peak.width, 1.0, 5);
 
   MESSAGE() << "Result:\n" << fpeak.peak.to_string() << "\n";

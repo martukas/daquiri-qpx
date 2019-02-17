@@ -7,29 +7,29 @@
 namespace DAQuiri
 {
 
-FitResult GSLAdapter::minimize(FittableFunction* fittable, double tolf)
+FitResult GSLOptimizer::minimize(FittableFunction* fittable)
 {
   function_ = fittable;
-  vars = function_->variables();
-  grads.setConstant(vars.size(), 0.0);
+  variables_ = function_->variables();
+  gradients_.setConstant(variables_.size(), 0.0);
 
   gsl_multimin_function_fdf my_func;
 
-  my_func.n = vars.size();
-  my_func.f = &GSLAdapter::my_f;
-  my_func.df = &GSLAdapter::my_df;
-  my_func.fdf = &GSLAdapter::my_fdf;
+  my_func.n = variables_.size();
+  my_func.f = &GSLOptimizer::my_f;
+  my_func.df = &GSLOptimizer::my_df;
+  my_func.fdf = &GSLOptimizer::my_fdf;
   my_func.params = reinterpret_cast<void*>(this);
 
   std::unique_ptr<gsl_vector, decltype(&gsl_vector_free)>
-      x(gsl_vector_alloc(vars.size()), &gsl_vector_free);
-  copy_to_gsl_vector(x.get(), vars);
+      x(gsl_vector_alloc(variables_.size()), &gsl_vector_free);
+  copy_to_gsl_vector(x.get(), variables_);
 
   std::unique_ptr<gsl_multimin_fdfminimizer, decltype(&gsl_multimin_fdfminimizer_free)>
-      minimizer(gsl_multimin_fdfminimizer_alloc(gsl_multimin_fdfminimizer_vector_bfgs2, vars.size()),
+      minimizer(gsl_multimin_fdfminimizer_alloc(gsl_multimin_fdfminimizer_vector_bfgs2, variables_.size()),
                 &gsl_multimin_fdfminimizer_free);
 
-  gsl_multimin_fdfminimizer_set(minimizer.get(), &my_func, x.get(), 0.01, 1e-4);
+  gsl_multimin_fdfminimizer_set(minimizer.get(), &my_func, x.get(), first_step_size, tolerance);
 
   FitResult ret;
   int status;
@@ -41,64 +41,63 @@ FitResult GSLAdapter::minimize(FittableFunction* fittable, double tolf)
     if (status)
       break;
 
-    status = gsl_multimin_test_gradient(minimizer->gradient, 1e-3);
+    status = gsl_multimin_test_gradient(minimizer->gradient, gradient_tolerance);
+
+    ret.variables = variables_;
+    ret.value = minimizer->f;
 
     if (status == GSL_SUCCESS)
       ret.converged = true;
 
-    ret.variables = vars;
-//    std::stringstream ss;
-//    ss << ret.variables.transpose();
-//    INFO("iter={}  vars={}  f={}", ret.iterations, ss.str(), minimizer->f);
+    if (verbose)
+      INFO("{}", ret.to_string());
   }
-  while (status == GSL_CONTINUE && ret.iterations < 3000);
-
-  ret.variables = vars;
+  while (status == GSL_CONTINUE && ret.iterations < maximum_iterations);
 
   return ret;
 }
 
-double GSLAdapter::my_f(const gsl_vector* v)
+double GSLOptimizer::my_f(const gsl_vector* v)
 {
-  copy_from_gsl_vector(vars, v);
-  return function_->chi_sq(vars);
+  copy_from_gsl_vector(variables_, v);
+  return function_->chi_sq(variables_);
 }
 
-void GSLAdapter::my_df(const gsl_vector* v, gsl_vector* df)
+void GSLOptimizer::my_df(const gsl_vector* v, gsl_vector* df)
 {
-  copy_from_gsl_vector(vars, v);
-  grads.setConstant(vars.size(), 0.0);
-  function_->chi_sq_gradient(vars, grads);
-  copy_to_gsl_vector(df, grads);
+  copy_from_gsl_vector(variables_, v);
+  gradients_.setConstant(variables_.size(), 0.0);
+  function_->chi_sq_gradient(variables_, gradients_);
+  copy_to_gsl_vector(df, gradients_);
 }
 
-void GSLAdapter::my_fdf(double* ret, const gsl_vector* x, gsl_vector* df)
+void GSLOptimizer::my_fdf(double* ret, const gsl_vector* x, gsl_vector* df)
 {
-  copy_from_gsl_vector(vars, x);
-  grads.setConstant(vars.size(), 0.0);
-  *ret = function_->chi_sq_gradient(vars, grads);
-  copy_to_gsl_vector(df, grads);
+  copy_from_gsl_vector(variables_, x);
+  gradients_.setConstant(variables_.size(), 0.0);
+  *ret = function_->chi_sq_gradient(variables_, gradients_);
+  copy_to_gsl_vector(df, gradients_);
 }
 
-double GSLAdapter::my_f(const gsl_vector* v, void* params)
+double GSLOptimizer::my_f(const gsl_vector* v, void* params)
 {
-  auto this_adapter = reinterpret_cast<GSLAdapter*>(params);
+  auto this_adapter = reinterpret_cast<GSLOptimizer*>(params);
   return this_adapter->my_f(v);
 }
 
-void GSLAdapter::my_df(const gsl_vector* v, void* params, gsl_vector* df)
+void GSLOptimizer::my_df(const gsl_vector* v, void* params, gsl_vector* df)
 {
-  auto this_adapter = reinterpret_cast<GSLAdapter*>(params);
+  auto this_adapter = reinterpret_cast<GSLOptimizer*>(params);
   this_adapter->my_df(v, df);
 }
 
-void GSLAdapter::my_fdf(const gsl_vector* x, void* params, double* f, gsl_vector* df)
+void GSLOptimizer::my_fdf(const gsl_vector* x, void* params, double* f, gsl_vector* df)
 {
-  auto this_adapter = reinterpret_cast<GSLAdapter*>(params);
+  auto this_adapter = reinterpret_cast<GSLOptimizer*>(params);
   this_adapter->my_fdf(f, x, df);
 }
 
-void GSLAdapter::copy_to_gsl_vector(gsl_vector* gslv, const Eigen::VectorXd& eigenv)
+void GSLOptimizer::copy_to_gsl_vector(gsl_vector* gslv, const Eigen::VectorXd& eigenv)
 {
   if (gslv->size != eigenv.size())
     throw std::runtime_error(
@@ -107,7 +106,7 @@ void GSLAdapter::copy_to_gsl_vector(gsl_vector* gslv, const Eigen::VectorXd& eig
     gsl_vector_set(gslv, i, eigenv[i]);
 }
 
-void GSLAdapter::copy_from_gsl_vector(Eigen::VectorXd& eigenv, const gsl_vector* gslv)
+void GSLOptimizer::copy_from_gsl_vector(Eigen::VectorXd& eigenv, const gsl_vector* gslv)
 {
   if (gslv->size != eigenv.size())
     throw std::runtime_error(

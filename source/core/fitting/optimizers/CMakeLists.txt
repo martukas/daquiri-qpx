@@ -1,6 +1,7 @@
 set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(SOURCES
+  ${dir}/fit_result.cpp
   ${dir}/BFGS.cpp
   ${dir}/dlib_adapter.cpp
   ${dir}/gsl_adapter.cpp

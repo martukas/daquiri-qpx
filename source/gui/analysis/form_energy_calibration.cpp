@@ -279,7 +279,7 @@ void FormEnergyCalibration::toggle_push()
 
 void FormEnergyCalibration::on_pushFit_clicked()
 {
-  DAQuiri::BFGS optimizer;
+  DAQuiri::BudapestOptimizer optimizer;
 
   std::vector<double> x, y;
   x.resize(fit_data_.peaks().size());

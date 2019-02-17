@@ -6,7 +6,7 @@
 
 #include <random>
 
-class DlibAdapter : public TestBase
+class DlibOptimizer : public TestBase
 {
  protected:
 
@@ -15,50 +15,63 @@ class DlibAdapter : public TestBase
   }
 };
 
-TEST_F(DlibAdapter, CheckSetup)
+TEST_F(DlibOptimizer, CheckSetup)
 {
   Rosenbrock rb(10);
   MESSAGE() << "Rosenbrock: " << rb.variables().transpose() << "\n";
 }
 
-TEST_F(DlibAdapter, Fit10)
+TEST_F(DlibOptimizer, Fit10)
 {
   Rosenbrock rb(10);
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
 
-  DAQuiri::DLib optimizer;
-  auto result = optimizer.minimize(&rb, 0.00001);
+  DAQuiri::DLibOptimizer optimizer;
+  auto result = optimizer.minimize(&rb);
 
-  MESSAGE() << "Final: " << result.variables.transpose() << "\n";
+  MESSAGE() << "Result: " << result.to_string() << "\n";
 }
 
-TEST_F(DlibAdapter, Fit10nonzero)
+TEST_F(DlibOptimizer, Fit10nonzero)
 {
   Rosenbrock rb(10);
   for (size_t i=0; i < rb.vals_.size(); ++i)
     rb.vals_[i] = 3;
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
 
-  DAQuiri::DLib optimizer;
-  auto result = optimizer.minimize(&rb, 0.00001);
+  DAQuiri::DLibOptimizer optimizer;
+  auto result = optimizer.minimize(&rb);
 
-  MESSAGE() << "Final: " << result.variables.transpose() << "\n";
+  MESSAGE() << "Result: " << result.to_string() << "\n";
 }
 
-TEST_F(DlibAdapter, Fit10Random)
+TEST_F(DlibOptimizer, Fit10nonzero2)
+{
+  Rosenbrock rb(10);
+  for (size_t i=0; i < rb.vals_.size(); ++i)
+    rb.vals_[i] = i;
+  MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
+
+  DAQuiri::DLibOptimizer optimizer;
+  auto result = optimizer.minimize(&rb);
+
+  MESSAGE() << "Result: " << result.to_string() << "\n";
+}
+
+TEST_F(DlibOptimizer, Fit10Random)
 {
   Rosenbrock rb(10);
 
   std::mt19937 rng;
   rng.seed(std::random_device()());
-  std::uniform_int_distribution<std::mt19937::result_type> dist6(-10, 10);
+  std::uniform_int_distribution<std::mt19937::result_type> dist6(0, 10);
   for (size_t i=0; i < rb.vals_.size(); ++i)
     rb.vals_[i] = dist6(rng);
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
 
-  DAQuiri::DLib optimizer;
-  auto result = optimizer.minimize(&rb, 0.00001);
+  DAQuiri::DLibOptimizer optimizer;
+  auto result = optimizer.minimize(&rb);
 
-  MESSAGE() << "Final: " << result.variables.transpose() << "\n";
+  MESSAGE() << "Result: " << result.to_string() << "\n";
 }
 

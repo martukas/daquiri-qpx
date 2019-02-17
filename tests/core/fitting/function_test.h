@@ -118,7 +118,7 @@ class FunctionTest : public TestBase
     for (size_t i=0; i < attempts; ++i)
     {
       variable.val(wrong_value);
-      auto result = optimizer->minimize(fittable, 0.00001);
+      auto result = optimizer->minimize(fittable);
       fittable->save_fit(result);
       MESSAGE() << "Attempt[" << i << "] = " << variable.to_string()
                 << "  delta=" << (goal_val - variable.val()) << "\n";

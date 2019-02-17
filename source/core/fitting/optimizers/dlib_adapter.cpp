@@ -6,53 +6,47 @@
 namespace DAQuiri
 {
 
-FitResult DLib::minimize(FittableFunction* fittable, double tolf)
+FitResult DLibOptimizer::minimize(FittableFunction* fittable)
 {
   function_ = fittable;
 
-  fitter_vector starting_point = dlib::mat(function_->variables());
-  const auto& fe = std::bind(&DLib::eval, this, std::placeholders::_1);
-  const auto& fd = std::bind(&DLib::derivative, this, std::placeholders::_1);
+  variables_ = function_->variables();
+  gradients_.setConstant(variables_.size(), 0.0);
 
-  dlib::find_min(dlib::bfgs_search_strategy(),
-                 dlib::objective_delta_stop_strategy(1e-7).be_verbose(),
-                 fe, fd, starting_point, -1);
+  fitter_vector variables = dlib::mat(variables_);
+  const auto& fe = std::bind(&DLibOptimizer::eval, this, std::placeholders::_1);
+  const auto& fd = std::bind(&DLibOptimizer::derivative, this, std::placeholders::_1);
 
   FitResult ret;
 
-  ret.variables.setConstant(starting_point.size(), 0.0);
-  for (long i = 0; i < starting_point.size(); ++i)
-    ret.variables[i] = starting_point(i);
+  auto stop_strategy = dlib::objective_delta_stop_strategy(tolerance, maximum_iterations);
+  if (verbose)
+    stop_strategy = stop_strategy.be_verbose();
+
+  ret.value = dlib::find_min(dlib::bfgs_search_strategy(),
+                             stop_strategy, fe, fd, variables, minimum_value);
+
+  ret.variables.setConstant(variables.size(), 0.0);
+  for (long i = 0; i < variables.size(); ++i)
+    ret.variables[i] = variables(i);
 
   return ret;
 }
 
-double DLib::eval(const DLib::fitter_vector& m) const
+double DLibOptimizer::eval(const DLibOptimizer::fitter_vector& vars)
 {
-  Eigen::VectorXd v;
-  v.setConstant(m.size(), 0.0);
-  for (long i = 0; i < m.size(); ++i)
-    v[i] = m(i);
-  return function_->chi_sq(v);
+  for (long i = 0; i < vars.size(); ++i)
+    variables_[i] = vars(i);
+  return function_->chi_sq(variables_);
 }
 
-DLib::fitter_vector DLib::derivative(const DLib::fitter_vector& m) const
+DLibOptimizer::fitter_vector DLibOptimizer::derivative(const DLibOptimizer::fitter_vector& vars)
 {
-  Eigen::VectorXd v;
-  v.setConstant(m.size(), 0.0);
-  for (long i = 0; i < m.size(); ++i)
-    v[i] = m(i);
-  Eigen::VectorXd g;
-  g.setConstant(v.size(), 0.0);
-  function_->chi_sq_gradient(v, g);
-  return dlib::mat(g);
-}
-
-DLib::fitter_matrix DLib::hessian(const DLib::fitter_vector& m) const
-{
-  // \todo implement this
-  (void) m;
-  return fitter_matrix();
+  for (long i = 0; i < vars.size(); ++i)
+    variables_[i] = vars(i);
+  gradients_.setConstant(variables_.size(), 0.0);
+  function_->chi_sq_gradient(variables_, gradients_);
+  return dlib::mat(gradients_);
 }
 
 }

@@ -6,7 +6,7 @@
 namespace DAQuiri
 {
 
-double BFGS::Sign(double a, double b)
+double BudapestOptimizer::Sign(double a, double b)
 {
   if (b >= 0)
     return std::abs(a);
@@ -14,7 +14,7 @@ double BFGS::Sign(double a, double b)
     return -std::abs(a);
 }
 
-double BFGS::BrentDeriv(FittableFunction* fittable,
+double BudapestOptimizer::BrentDeriv(FittableFunction* fittable,
                         double a,
                         double b,
                         double c,
@@ -23,13 +23,10 @@ double BFGS::BrentDeriv(FittableFunction* fittable,
                         const Eigen::VectorXd& variables,
                         const Eigen::VectorXd& hessian)
 {
-  static constexpr int32_t brent_iter{500};
-  static constexpr double zeps{0.0000000001};
-
   double d{0.0}; // \todo is this really the default value?
   double d1, d2, du, dv, dw, dx;
   double fu, fv, fw, fx;
-  int32_t iteration;
+  size_t iteration;
   bool ok1, ok2, done;
   double olde, tol1, tol2, u, u1, u2, v, w, x, xm;
 
@@ -42,10 +39,10 @@ double BFGS::BrentDeriv(FittableFunction* fittable,
 
   double e{0.0};
   // \todo check for cancel
-  for (iteration = 0; iteration < brent_iter; ++iteration)
+  for (iteration = 0; iteration < brent_maximum_iterations; ++iteration)
   {
     xm = 0.5 * (sa + sb);
-    tol1 = tol * std::abs(x) + zeps;
+    tol1 = tol * std::abs(x) + brent_zeps;
     tol2 = 2 * tol1;
     done = (std::abs(x - xm) <= (tol2 - 0.5 * (sb - sa)));
     if (!done)
@@ -151,20 +148,17 @@ double BFGS::BrentDeriv(FittableFunction* fittable,
     if (done)
       break;
   }
-  if (!done)
+  if (!done && verbose)
     WARN("Warning: The maximum number of iterations ({}) reached in Brent line search", iteration);
 
   xmin = x;
   return fx;
 }
 
-void BFGS::Bracket(FittableFunction* fittable,
+void BudapestOptimizer::Bracket(FittableFunction* fittable,
                    double& a, double& b, double& c, double& fa, double& fb, double& fc,
                    const Eigen::VectorXd& variables, const Eigen::VectorXd& hessian)
 {
-  static constexpr double glimit{100.0};
-  static constexpr double tiny{1.0E-20};
-
   double gold = (1.0 + std::sqrt(5.0)) / 2.0;
 
   double ulim, u, r, q, fu, dum;
@@ -192,12 +186,12 @@ void BFGS::Bracket(FittableFunction* fittable,
     q = (b - c) * (fb - fa);
     n = true;
     u = std::abs(q - r);
-    if (tiny > u)
-      u = tiny;
+    if (bracket_tiny > u)
+      u = bracket_tiny;
     if (r > q)
       u = -1 * u;
     u = b - ((b - c) * q - (b - a) * r) / (2 * u);
-    ulim = b + glimit * (c - b);
+    ulim = b + bracket_glimit * (c - b);
     if ((b - u) * (u - c) > 0)
     {
       fu = fgv(fittable, u, variables, hessian);
@@ -258,7 +252,7 @@ void BFGS::Bracket(FittableFunction* fittable,
 
 }
 
-double BFGS::fgv(FittableFunction* fittable,
+double BudapestOptimizer::fgv(FittableFunction* fittable,
                  double lambda,
                  Eigen::VectorXd variables,
                  Eigen::VectorXd hessian)
@@ -270,7 +264,7 @@ double BFGS::fgv(FittableFunction* fittable,
   return fittable->chi_sq(xlocal);
 }
 
-double BFGS::dfgv(FittableFunction* fittable,
+double BudapestOptimizer::dfgv(FittableFunction* fittable,
                   double lambda,
                   Eigen::VectorXd variables,
                   Eigen::VectorXd hessian)
@@ -287,10 +281,9 @@ double BFGS::dfgv(FittableFunction* fittable,
   return s;
 }
 
-double BFGS::LinMin(FittableFunction* fittable, Eigen::VectorXd& variables,
+double BudapestOptimizer::LinMin(FittableFunction* fittable, Eigen::VectorXd& variables,
     Eigen::VectorXd hessian)
 {
-  static constexpr float linmin_tol{0.0001};
   double lambdak, xk, fxk, fa, fb, a, b;
   auto n = static_cast<size_t>(variables.size());
   a = 0.0;
@@ -298,7 +291,8 @@ double BFGS::LinMin(FittableFunction* fittable, Eigen::VectorXd& variables,
   b = 2.0;
   Bracket(fittable, a, xk, b, fa, fxk, fb, variables, hessian);
   double fmin = BrentDeriv(fittable, a, xk, b, linmin_tol, lambdak, variables, hessian);
-  DBG("lambda={}", lambdak);
+  if (verbose)
+    DBG("lambda={}", lambdak);
   for (size_t j = 0; j < n; ++j)
   {
 
@@ -308,11 +302,8 @@ double BFGS::LinMin(FittableFunction* fittable, Eigen::VectorXd& variables,
   return fmin;
 }
 
-FitResult BFGS::minimize(FittableFunction* fittable, double tolf)
+FitResult BudapestOptimizer::minimize(FittableFunction* fittable)
 {
-  static constexpr double eps{0.0000000001};
-  static constexpr size_t maxit{500};
-
   FitResult ret;
 
   ret.variables = fittable->variables();
@@ -328,18 +319,19 @@ FitResult BFGS::minimize(FittableFunction* fittable, double tolf)
   ret.inv_hessian.resize(var_count, var_count);
   ret.inv_hessian.setIdentity();
 
-  for (; ret.iterations < maxit; ++ret.iterations)
+  for (; ret.iterations < maximum_iterations; ++ret.iterations)
   {
     double fmin = LinMin(fittable, ret.variables, hessian);
     //if (std::abs(f - fmin) < 0.000001) { done = true; }
-    ret.converged = (2 * std::abs(fmin - f)) <= (tolf * (std::abs(fmin) + std::abs(f) + eps));
+    ret.converged = (2 * std::abs(fmin - f)) <= (tolerance * (std::abs(fmin) + std::abs(f) + eps));
     f = fmin;
 
     for (size_t i = 0; i < var_count; ++i)
       prev_val[i] = gradients[i];
 
     fmin = fittable->chi_sq_gradient(ret.variables, gradients);
-    INFO("Fitting... Iteration = {}, Chisq = {}", ret.iterations, fmin);
+    if (verbose)
+      INFO("Fitting... Iteration = {}, Chisq = {}", ret.iterations, fmin);
 
     for (size_t i = 0; i < var_count; ++i)
       prev_val[i] = gradients[i] - prev_val[i];
