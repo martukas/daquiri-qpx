@@ -148,10 +148,10 @@ class Value : public AbstractValue
   double min_{0.0};
 };
 
-class ValueGam : public AbstractValue
+class ValuePositive : public AbstractValue
 {
  public:
-  ValueGam() = default;
+  ValuePositive() = default;
 
   using AbstractValue::x;
   using AbstractValue::val;
@@ -162,10 +162,10 @@ class ValueGam : public AbstractValue
   double grad_at(double at_x) const override;
 };
 
-class ValueBkg : public AbstractValue
+class ValueSimple : public AbstractValue
 {
  public:
-  ValueBkg() = default;
+  ValueSimple() = default;
 
   using AbstractValue::x;
   using AbstractValue::val;

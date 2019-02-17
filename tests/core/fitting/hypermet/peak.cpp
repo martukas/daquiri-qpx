@@ -296,7 +296,7 @@ TEST_F(Peak, GradPosition)
   fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.position.val();
   fpeak.peak.update_indices(fpeak.variable_count);
-  survey_grad(&fpeak, fpeak.peak.position, 0.05);
+  survey_grad(&fpeak, &fpeak.peak.position, 0.05);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 3);
   check_gradients(true);
   // \todo false gradient minima, even with multiple data points
@@ -307,7 +307,7 @@ TEST_F(Peak, GradAmp)
   fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.amplitude.val();
   fpeak.peak.update_indices(fpeak.variable_count);
-  survey_grad(&fpeak, fpeak.peak.amplitude);
+  survey_grad(&fpeak, &fpeak.peak.amplitude);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 3);
   EXPECT_NEAR(check_gradients(false), goal_val, 3);
 }
@@ -317,7 +317,7 @@ TEST_F(Peak, GradWidth)
   fpeak.data = generate_data(&fpeak, 40);
   double goal_val = fpeak.peak.width.val();
   fpeak.peak.update_indices(fpeak.variable_count);
-  survey_grad(&fpeak, fpeak.peak.width, 0.05);
+  survey_grad(&fpeak, &fpeak.peak.width, 0.05);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.03);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.03);
 }
@@ -328,7 +328,7 @@ TEST_F(Peak, FitPosition)
   double goal_val = fpeak.peak.position.val();
 
   DAQuiri::BudapestOptimizer optimizer;
-  test_fit(&optimizer, &fpeak, fpeak.peak.position, 15, 5);
+  test_fit(5, &optimizer, &fpeak, &fpeak.peak.position, 15, 6.5);
 
   MESSAGE() << "Result:\n" << fpeak.peak.to_string() << "\n";
   visualize_data(generate_data(&fpeak, 40));
@@ -341,7 +341,7 @@ TEST_F(Peak, FitAmplitude)
   double goal_val = fpeak.peak.amplitude.val();
 
   DAQuiri::BudapestOptimizer optimizer;
-  test_fit(&optimizer, &fpeak, fpeak.peak.amplitude, 200, 5);
+  test_fit(5, &optimizer, &fpeak, &fpeak.peak.amplitude, 200, 250);
 
   MESSAGE() << "Result:\n" << fpeak.peak.to_string() << "\n";
   visualize_data(generate_data(&fpeak, 40));
@@ -355,7 +355,7 @@ TEST_F(Peak, FitWidth)
   double goal_val = fpeak.peak.width.val();
 
   DAQuiri::BudapestOptimizer optimizer;
-  test_fit(&optimizer, &fpeak, fpeak.peak.width, 1.0, 5);
+  test_fit(5, &optimizer, &fpeak, &fpeak.peak.width, 1.0, 2.5);
 
   MESSAGE() << "Result:\n" << fpeak.peak.to_string() << "\n";
   visualize_data(generate_data(&fpeak, 40));

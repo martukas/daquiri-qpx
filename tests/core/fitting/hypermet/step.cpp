@@ -331,7 +331,7 @@ TEST_F(Step, GradStepAmp)
 
   double goal_val = fstep.step.amplitude.val();
   fstep.step.update_indices(fstep.variable_count);
-  survey_grad(&fstep, fstep.step.amplitude);
+  survey_grad(&fstep, &fstep.step.amplitude);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.00001);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.00001);
 }
@@ -342,7 +342,7 @@ TEST_F(Step, GradWidth)
 
   double goal_val = fstep.width.val();
   fstep.step.update_indices(fstep.variable_count);
-  survey_grad(&fstep, fstep.width);
+  survey_grad(&fstep, &fstep.width);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.005);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.005);
 }
@@ -353,7 +353,7 @@ TEST_F(Step, GradAmp)
 
   double goal_val = fstep.amplitude.val();
   fstep.step.update_indices(fstep.variable_count);
-  survey_grad(&fstep, fstep.amplitude, 0.05);
+  survey_grad(&fstep, &fstep.amplitude, 0.05);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 4);
   EXPECT_NEAR(check_gradients(false), goal_val, 4);
 }
@@ -364,7 +364,7 @@ TEST_F(Step, GradPos)
 
   double goal_val = fstep.position.val();
   fstep.step.update_indices(fstep.variable_count);
-  survey_grad(&fstep, fstep.position);
+  survey_grad(&fstep, &fstep.position);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.00001);
   check_gradients(true);
   // \todo gradient not affected!

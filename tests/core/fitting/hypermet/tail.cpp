@@ -367,7 +367,7 @@ TEST_F(Tail, GradTailAmp)
 
   double goal_val = ftail.tail.amplitude.val();
   ftail.tail.update_indices(ftail.variable_count);
-  survey_grad(&ftail, ftail.tail.amplitude);
+  survey_grad(&ftail, &ftail.tail.amplitude);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.002);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.002);
 }
@@ -378,7 +378,7 @@ TEST_F(Tail, GradTailSlope)
 
   double goal_val = ftail.tail.slope.val();
   ftail.tail.update_indices(ftail.variable_count);
-  survey_grad(&ftail, ftail.tail.slope, 0.01);
+  survey_grad(&ftail, &ftail.tail.slope, 0.01);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
 }
@@ -389,7 +389,7 @@ TEST_F(Tail, GradWidth)
 
   double goal_val = ftail.width.val();
   ftail.tail.update_indices(ftail.variable_count);
-  survey_grad(&ftail, ftail.width);
+  survey_grad(&ftail, &ftail.width);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.005);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.005);
 }
@@ -400,7 +400,7 @@ TEST_F(Tail, GradAmp)
 
   double goal_val = ftail.amplitude.val();
   ftail.tail.update_indices(ftail.variable_count);
-  survey_grad(&ftail, ftail.amplitude, 0.05);
+  survey_grad(&ftail, &ftail.amplitude, 0.05);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 4);
   check_gradients(true);
   // \todo false gradient inflection point here, even with multiple data points
@@ -412,7 +412,7 @@ TEST_F(Tail, GradPos)
 
   double goal_val = ftail.position.val();
   ftail.tail.update_indices(ftail.variable_count);
-  survey_grad(&ftail, ftail.position);
+  survey_grad(&ftail, &ftail.position);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.00001);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.00001);
 }

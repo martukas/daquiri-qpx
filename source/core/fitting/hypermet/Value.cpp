@@ -188,34 +188,34 @@ void from_json(const nlohmann::json& j, Value& s)
 
 
 
-void ValueGam::val(double new_val)
+void ValuePositive::val(double new_val)
 {
   x(std::sqrt(new_val));
 }
 
-double ValueGam::val_at(double at_x) const
+double ValuePositive::val_at(double at_x) const
 {
   return square(at_x);
 }
 
-double ValueGam::grad_at(double at_x) const
+double ValuePositive::grad_at(double at_x) const
 {
   return 2.0 * at_x;
 }
 
 
 
-void ValueBkg::val(double new_val)
+void ValueSimple::val(double new_val)
 {
   x(new_val);
 }
 
-double ValueBkg::val_at(double at_x) const
+double ValueSimple::val_at(double at_x) const
 {
   return at_x;
 }
 
-double ValueBkg::grad_at(double at_x) const
+double ValueSimple::grad_at(double at_x) const
 {
   (void) at_x;
   return 1.0;

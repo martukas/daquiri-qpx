@@ -4,7 +4,7 @@
 
 #include <core/fitting/hypermet/PolyBackground.h>
 
-#include <core/fitting/optimizers/BFGS.h>
+#include <core/fitting/optimizers/dlib_adapter.h>
 
 class FittableBackground : public DAQuiri::FittableRegion
 {
@@ -317,7 +317,7 @@ TEST_F(PolyBackground, GradBase)
   // chi-sq is only good if smaller step sizes are used for more granularity
   double goal_val = fb.background.base.val();
   fb.background.update_indices(fb.variable_count);
-  survey_grad(&fb, fb.background.base, 0.001);
+  survey_grad(&fb, &fb.background.base, 0.001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.5);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.1);
   // \todo false gradient inflection point here
@@ -334,8 +334,8 @@ TEST_F(PolyBackground, FitBaseOnly)
   fb.update_indices();
   MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
 
-  DAQuiri::BudapestOptimizer optimizer;
-  test_fit(&optimizer, &fb, fb.background.base, 100, 5);
+  DAQuiri::DLibOptimizer optimizer;
+  test_fit(5, &optimizer, &fb, &fb.background.base, 100, 1e-5);
 
   MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
   //visualize_data(generate_data(&fb, 40));
@@ -349,8 +349,8 @@ TEST_F(PolyBackground, FitBase)
   fb.update_indices();
   MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
 
-  DAQuiri::BudapestOptimizer optimizer;
-  test_fit(&optimizer, &fb, fb.background.base, 100, 5);
+  DAQuiri::DLibOptimizer optimizer;
+  test_fit(5, &optimizer, &fb, &fb.background.base, 100, 20);
 
   MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
   //visualize_data(generate_data(&fb, 40));
@@ -365,7 +365,7 @@ TEST_F(PolyBackground, GradSlope)
   // chi-sq is only good if smaller step sizes are used for more granularity
   double goal_val = fb.background.slope.val();
   fb.background.update_indices(fb.variable_count);
-  survey_grad(&fb, fb.background.slope, 0.001);
+  survey_grad(&fb, &fb.background.slope, 0.001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.1);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.1);
 }
@@ -381,8 +381,8 @@ TEST_F(PolyBackground, FitSlopeOnly)
 
   double goal_val = fb.background.slope.val();
 
-  DAQuiri::BudapestOptimizer optimizer;
-  test_fit(&optimizer, &fb, fb.background.slope, 10, 5);
+  DAQuiri::DLibOptimizer optimizer;
+  test_fit(5, &optimizer, &fb, &fb.background.slope, 10, 1e-5);
 
   MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
   //visualize_data(generate_data(&fb, 40));
@@ -398,8 +398,8 @@ TEST_F(PolyBackground, FitSlope)
 
   double goal_val = fb.background.slope.val();
 
-  DAQuiri::BudapestOptimizer optimizer;
-  test_fit(&optimizer, &fb, fb.background.slope, 10, 5);
+  DAQuiri::DLibOptimizer optimizer;
+  test_fit(5, &optimizer, &fb, &fb.background.slope, 10, 7);
 
   MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
   //visualize_data(generate_data(&fb, 40));
@@ -412,7 +412,7 @@ TEST_F(PolyBackground, GradPolyBackgroundCurve)
 
   double goal_val = fb.background.curve.val();
   fb.background.update_indices(fb.variable_count);
-  survey_grad(&fb, fb.background.curve);
+  survey_grad(&fb, &fb.background.curve);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.02);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.02);
 }
@@ -428,8 +428,8 @@ TEST_F(PolyBackground, FitCurveOnly)
 
   double goal_val = fb.background.curve.val();
 
-  DAQuiri::BudapestOptimizer optimizer;
-  test_fit(&optimizer, &fb, fb.background.curve, 10, 5);
+  DAQuiri::DLibOptimizer optimizer;
+  test_fit(5, &optimizer, &fb, &fb.background.curve, 10, 1e-5);
 
   MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
   //visualize_data(generate_data(&fb, 40));
@@ -445,8 +445,8 @@ TEST_F(PolyBackground, FitCurve)
 
   double goal_val = fb.background.curve.val();
 
-  DAQuiri::BudapestOptimizer optimizer;
-  test_fit(&optimizer, &fb, fb.background.curve, 10, 5);
+  DAQuiri::DLibOptimizer optimizer;
+  test_fit(5, &optimizer, &fb, &fb.background.curve, 10, 1.0);
 
   MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
   //visualize_data(generate_data(&fb, 40));

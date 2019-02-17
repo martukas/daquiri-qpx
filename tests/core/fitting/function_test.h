@@ -9,6 +9,8 @@
 
 #include <core/fitting/hypermet/Value.h>
 
+#include <random>
+
 class FunctionTest : public TestBase
 {
  protected:
@@ -42,10 +44,10 @@ class FunctionTest : public TestBase
   }
 
   void survey_grad(const DAQuiri::FittableRegion* fittable,
-      DAQuiri::Value& variable,
-      double step_size = 0.1)
+                   DAQuiri::AbstractValue* variable,
+                   double step_size = 0.1, double xmin = -M_PI, double xmax = M_PI)
   {
-    size_t chosen_var_idx = variable.index();
+    size_t chosen_var_idx = variable->index();
 
     val_proxy.clear();
     val_val.clear();
@@ -54,12 +56,12 @@ class FunctionTest : public TestBase
 
     Eigen::VectorXd variables = fittable->variables();
     Eigen::VectorXd gradients;
-    for (double proxy = -M_PI; proxy < M_PI; proxy += step_size)
+    for (double proxy = xmin; proxy < xmax; proxy += step_size)
     {
       variables[chosen_var_idx] = proxy;
 
       val_proxy.push_back(proxy);
-      val_val.push_back(variable.val_at(proxy));
+      val_val.push_back(variable->val_at(proxy));
       chi_sq_norm.push_back(fittable->chi_sq_gradient(variables, gradients));
       gradient.push_back(gradients[chosen_var_idx]);
     }
@@ -84,7 +86,7 @@ class FunctionTest : public TestBase
   {
     double min_abs = std::numeric_limits<double>::max();
     size_t grad_i = 0;
-    for (size_t i=0; i < gradient.size(); ++i)
+    for (size_t i = 0; i < gradient.size(); ++i)
     {
       if (std::abs(gradient[i]) < min_abs)
       {
@@ -103,29 +105,57 @@ class FunctionTest : public TestBase
     return val_val[grad_i];
   }
 
-  void test_fit(DAQuiri::AbstractOptimizer* optimizer,
+  void test_fit(size_t attempts,
+                DAQuiri::AbstractOptimizer* optimizer,
                 DAQuiri::FittableRegion* fittable,
-                DAQuiri::Value& variable,
+                DAQuiri::AbstractValue* variable,
                 double wrong_value,
-                size_t attempts = 1)
+                double epsilon)
   {
     fittable->update_indices();
-    double goal_val = variable.val();
+    double goal_val = variable->val();
 
-    MESSAGE() << "Will attempt to fit " << wrong_value << " --> " << variable.to_string()
-              << " with " << attempts << " attempts\n";
+    MESSAGE() << "Will fit " << wrong_value << " --> " << variable->to_string()
+              << " in " << attempts << " attempts with epsilon=" << epsilon << "\n";
 
-    for (size_t i=0; i < attempts; ++i)
+    for (size_t i = 0; i < attempts; ++i)
     {
-      variable.val(wrong_value);
+      variable->val(wrong_value);
       auto result = optimizer->minimize(fittable);
       fittable->save_fit(result);
-      MESSAGE() << "Attempt[" << i << "] = " << variable.to_string()
-                << "  delta=" << (goal_val - variable.val()) << "\n";
-      //EXPECT_NEAR(variable.val(), goal_val, 0.3);
+      MESSAGE() << "Attempt[" << i << "] " << variable->to_string()
+                << "  delta=" << (goal_val - variable->val()) << "\n";
+      EXPECT_NEAR(variable->val(), goal_val, epsilon);
     }
   }
 
+  void test_fit_random(size_t attempts,
+                       DAQuiri::AbstractOptimizer* optimizer,
+                       DAQuiri::FittableRegion* fittable,
+                       DAQuiri::AbstractValue* variable,
+                       double wrong_min, double wrong_max,
+                       double epsilon)
+  {
+    std::mt19937 random_generator;
+    random_generator.seed(std::random_device()());
+    std::uniform_real_distribution<double> distribution(wrong_min, wrong_max);
 
+    fittable->update_indices();
+    double goal_val = variable->val();
 
+    MESSAGE() << "Will fit random(" << wrong_min << "," << wrong_max << ") --> "
+              << variable->to_string() << " in " << attempts
+              << " attempts with epsilon=" << epsilon << "\n";
+
+    for (size_t i = 0; i < attempts; ++i)
+    {
+      double wrong = distribution(random_generator);
+      variable->val(wrong);
+      auto result = optimizer->minimize(fittable);
+      fittable->save_fit(result);
+      MESSAGE() << "Attempt[" << i << "] " << wrong << "->" << variable->to_string()
+                << "  delta=" << (goal_val - variable->val()) << "\n";
+      EXPECT_NEAR(variable->val(), goal_val, epsilon);
+    }
+  }
 };
