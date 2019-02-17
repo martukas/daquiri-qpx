@@ -43,7 +43,7 @@ DLib::fitter_vector DLib::derivative(const DLib::fitter_vector& m) const
   for (long i = 0; i < m.size(); ++i)
     v[i] = m(i);
   Eigen::VectorXd g;
-  g.setConstant(g.size(), 0.0);
+  g.setConstant(v.size(), 0.0);
   function_->chi_sq_gradient(v, g);
   return dlib::mat(g);
 }

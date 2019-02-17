@@ -8,6 +8,7 @@ set(SOURCES
   )
 
 add_subdirectory(sum4)
+add_subdirectory(optimizers)
 add_subdirectory(hypermet)
 
 set(${this_target}_sources ${${this_target}_sources} ${SOURCES} PARENT_SCOPE)
