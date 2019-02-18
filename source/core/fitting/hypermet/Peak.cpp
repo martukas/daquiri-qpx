@@ -364,9 +364,12 @@ Peak::Components Peak::eval_grad(double chan, Eigen::VectorXd& grads) const
 
   ret.gaussian = amplitude.val() * std::exp(-square(pre.spread));
 
-  grads[width.index()] += pre.width_grad * ret.gaussian * 2.0 * square(pre.spread) / pre.width;
-  grads[position.index()] += ret.gaussian * 2.0 * pre.spread / pre.width;
-  grads[amplitude.index()] += ret.gaussian / pre.ampl;
+  if (width.to_fit)
+    grads[width.index()] += pre.width_grad * ret.gaussian * 2.0 * square(pre.spread) / pre.width;
+  if (position.to_fit)
+    grads[position.index()] += pre.pos_grad * (ret.gaussian * 2.0 * pre.spread / pre.width);
+  if (amplitude.to_fit)
+    grads[amplitude.index()] += pre.amp_grad * ret.gaussian / pre.ampl;
 
   if (short_tail.enabled)
     ret.short_tail = short_tail.eval_grad(pre, grads);
@@ -387,11 +390,14 @@ Peak::Components Peak::eval_grad_at(double chan, const Eigen::VectorXd& fit,
 
   auto pre = precalc_vals_at(chan, fit);
 
-  ret.gaussian = amplitude.val_at(fit[amplitude.index()]) * std::exp(-square(pre.spread));
+  ret.gaussian = amplitude.val_from(fit) * std::exp(-square(pre.spread));
 
-  grads[width.index()] += pre.width_grad * ret.gaussian * 2.0 * square(pre.spread) / pre.width;
-  grads[position.index()] += ret.gaussian * 2.0 * pre.spread / pre.width;
-  grads[amplitude.index()] += ret.gaussian / pre.ampl;
+  if (width.to_fit)
+    grads[width.index()] += pre.width_grad * ret.gaussian * 2.0 * square(pre.spread) / pre.width;
+  if (position.to_fit)
+    grads[position.index()] += pre.pos_grad * (ret.gaussian * 2.0 * pre.spread / pre.width);
+  if (amplitude.to_fit)
+    grads[amplitude.index()] += pre.amp_grad * ret.gaussian / pre.ampl;
 
   if (short_tail.enabled)
     ret.short_tail = short_tail.eval_grad_at(pre, fit, grads);

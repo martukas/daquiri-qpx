@@ -122,6 +122,8 @@ class FunctionTest : public TestBase
     {
       variable->val(wrong_value);
       auto result = optimizer->minimize(fittable);
+      if (optimizer->verbose)
+        MESSAGE() << result.to_string() << "\n";
       fittable->save_fit(result);
       MESSAGE() << "Attempt[" << i << "] " << variable->to_string()
                 << "  delta=" << (goal_val - variable->val()) << "\n";
