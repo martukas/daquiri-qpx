@@ -66,7 +66,7 @@ template<typename T>
 std::string visualize(const T& x, const T& y, size_t nstars, bool non_empty_only = false)
 {
   if (y.empty() || (x.size() != y.size()))
-    return {};
+    return "array size mismatch";
 
   auto vmax{y[0]};
   auto vmin{y[0]};
@@ -94,9 +94,19 @@ std::string visualize(const T& x, const T& y, size_t nstars, bool non_empty_only
     return "all zeros";
 
   auto range = vmax - vmin;
-  auto starsize = range / nstars;
-  size_t neg_stars = (signum(vmin) < 0) ? (std::abs(vmin) / starsize) : 0;
-  size_t pos_stars = std::abs(vmax) / starsize;
+  double starsize = range / static_cast<double>(nstars);
+  auto posmin = ((signum(vmin) > 0) ? vmin : 0.0);
+  auto negmax = ((signum(vmax) < 0) ? vmax : 0.0);
+
+  double pos_range = 0.0;
+  if (signum(vmax) > 0)
+    pos_range = vmax - posmin;
+  double neg_range = 0.0;
+  if (signum(vmin) < 0)
+    neg_range = std::abs(vmin - negmax);
+
+  size_t pos_stars = pos_range / starsize;
+  size_t neg_stars = neg_range / starsize;
 
   std::string pad = "{:<" + std::to_string(longest_x) + "}: ";
   std::string pad_neg = pad
@@ -105,7 +115,6 @@ std::string visualize(const T& x, const T& y, size_t nstars, bool non_empty_only
   std::string pad_pos = pad
       + (neg_stars ? std::string(neg_stars, ' ') : " ")
       + (pos_stars ? "{:<" + std::to_string(pos_stars) + "}" : "");
-
   std::stringstream ss;
   for (size_t i = start; i <= end; i++)
   {
@@ -114,7 +123,9 @@ std::string visualize(const T& x, const T& y, size_t nstars, bool non_empty_only
       continue;
     bool is_neg = (signum(val) < 0);
     const std::string& def = is_neg ? pad_neg : pad_pos;
-    size_t count = is_neg ? (neg_stars * val / vmin) : (pos_stars * val / vmax);
+    size_t count = is_neg
+                   ? (std::abs(val - negmax) / starsize)
+                   : ((val - posmin) / starsize);
     char star = is_neg ? '-' : '+';
     auto stars = count ? std::string(count, star) : " ";
     ss << fmt::format(def, x[i], stars) << "  " << val << "\n";
@@ -123,10 +134,10 @@ std::string visualize(const T& x, const T& y, size_t nstars, bool non_empty_only
 }
 
 template<typename T>
-std::string visualize_all(const T& x, const T& y, size_t nstars, bool non_empty_only = false)
+std::string visualize_all(const T& x, const T& y, size_t nstars)
 {
   if (y.empty() || (x.size() != y.size()))
-    return {};
+    return "array size mismatch";
 
   auto vmax{y[0]};
   auto vmin{y[0]};
@@ -146,9 +157,19 @@ std::string visualize_all(const T& x, const T& y, size_t nstars, bool non_empty_
     return "all zeros";
 
   auto range = vmax - vmin;
-  auto starsize = range / nstars;
-  size_t neg_stars = (signum(vmin) < 0) ? (std::abs(vmin) / starsize) : 0;
-  size_t pos_stars = std::abs(vmax) / starsize;
+  double starsize = range / static_cast<double>(nstars);
+  auto posmin = ((signum(vmin) > 0) ? vmin : 0.0);
+  auto negmax = ((signum(vmax) < 0) ? vmax : 0.0);
+
+  double pos_range = 0.0;
+  if (signum(vmax) > 0)
+    pos_range = vmax - posmin;
+  double neg_range = 0.0;
+  if (signum(vmin) < 0)
+    neg_range = std::abs(vmin - negmax);
+
+  size_t pos_stars = pos_range / starsize;
+  size_t neg_stars = neg_range / starsize;
 
   std::string pad = "{:<" + std::to_string(longest_x) + "}: ";
   std::string pad_neg = pad
@@ -162,11 +183,11 @@ std::string visualize_all(const T& x, const T& y, size_t nstars, bool non_empty_
   for (size_t i = 0; i < y.size(); i++)
   {
     auto val = y[i];
-    if (non_empty_only && (val == 0.0))
-      continue;
     bool is_neg = (signum(val) < 0);
     const std::string& def = is_neg ? pad_neg : pad_pos;
-    size_t count = is_neg ? (neg_stars * val / vmin) : (pos_stars * val / vmax);
+    size_t count = is_neg
+        ? (std::abs(val - negmax) / starsize)
+        : ((val - posmin) / starsize);
     char star = is_neg ? '-' : '+';
     auto stars = count ? std::string(count, star) : " ";
     ss << fmt::format(def, x[i], stars) << "  " << val << "\n";

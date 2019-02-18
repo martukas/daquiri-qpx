@@ -243,7 +243,7 @@ TEST_F(FittableRegion, BoundedConstFunctionFit)
 
   DAQuiri::DLibOptimizer optimizer;
   test_fit(5, &optimizer, &fl, &fl.val, 30, 1e-5);
-  test_fit_random(20, &optimizer, &fl, &fl.val, 0, 40, 1e-4);
+  test_fit_random(20, &optimizer, &fl, &fl.val, 0, 40, 1e-3);
 }
 
 TEST_F(FittableRegion, BoundedLinearFunctionSurvey)

@@ -47,10 +47,7 @@ class FittableBackground : public DAQuiri::FittableRegion
 
     // \todo uncerts
   }
-
-
 };
-
 
 class PolyBackground : public FunctionTest
 {
@@ -61,14 +58,25 @@ class PolyBackground : public FunctionTest
   virtual void SetUp()
   {
     fb.background.x_offset = 0;
-    fb.background.base.bound(0, 7792);
+//    fb.background.base.bound(0, 7792);
     fb.background.base.val(70);
-    fb.background.slope.bound(0, 198);
+//    fb.background.slope.bound(0, 198);
     fb.background.slope.val(3);
-    fb.background.curve.bound(0, 15);
+//    fb.background.curve.bound(0, 15);
     fb.background.curve.val(5);
 
     // \todo make these more permissive
+  }
+
+  void auto_bound()
+  {
+    auto lb = DAQuiri::SUM4Edge(fb.data.left(3));
+    auto rb = DAQuiri::SUM4Edge(fb.data.right(3));
+    fb.background = DAQuiri::PolyBackground(fb.data, lb, rb);
+
+    fb.background.base.val(70);
+    fb.background.slope.val(3);
+    fb.background.curve.val(5);
   }
 
 };
@@ -84,12 +92,11 @@ TEST_F(PolyBackground, Visualize)
   visualize_data(data);
 }
 
-
 TEST_F(PolyBackground, WithinBounds)
 {
   auto data = generate_data(&fb, 40);
   EXPECT_NEAR(data.count_min, 70, 1e-10);
-  EXPECT_NEAR(data.count_max, 70 + 3 * 39 + 5 * square(39) , 1e-10);
+  EXPECT_NEAR(data.count_max, 70 + 3 * 39 + 5 * square(39), 1e-10);
 }
 
 TEST_F(PolyBackground, UpdateIndexInvalidThrows)
@@ -236,7 +243,7 @@ TEST_F(PolyBackground, Get)
   EXPECT_NEAR(fb.background.base.val(), 70, 0.00001);
   EXPECT_NEAR(fb.background.slope.val(), 3, 0.00001);
   EXPECT_NEAR(fb.background.curve.val(), 5, 0.00001);
-  EXPECT_NE(fb.background.base.val(),fb.background.base.val_at(10));
+  EXPECT_NE(fb.background.base.val(), fb.background.base.val_at(10));
   EXPECT_NE(fb.background.slope.val(), fb.background.slope.val_at(0.03));
   EXPECT_NE(fb.background.curve.val(), fb.background.curve.val_at(0.05));
 
@@ -310,145 +317,182 @@ TEST_F(PolyBackground, EvalGradAt)
   EXPECT_EQ(grad[2], grad_goal[2]);
 }
 
-TEST_F(PolyBackground, GradBase)
+TEST_F(PolyBackground, GradBaseOnly)
 {
+  double goal_val = fb.background.base.val();
   fb.data = generate_data(&fb, 40);
 
-  // chi-sq is only good if smaller step sizes are used for more granularity
-  double goal_val = fb.background.base.val();
-  fb.background.update_indices(fb.variable_count);
-  survey_grad(&fb, &fb.background.base, 0.001);
+  fb.update_indices();
+  survey_grad(&fb, &fb.background.base, 0.05, std::sqrt(50.0), std::sqrt(100.0));
+//  survey_grad(&fb, &fb.background.base, 0.001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.5);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.1);
-  // \todo false gradient inflection point here
-  // gradient is only good if EVEN SMALLER step sizes are used for more granularity
 }
-
 
 TEST_F(PolyBackground, FitBaseOnly)
 {
   fb.data = generate_data(&fb, 40);
+  auto_bound();
 
   fb.background.slope.to_fit = false;
   fb.background.curve.to_fit = false;
   fb.update_indices();
-  MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
+  MESSAGE() << "Start:\n" << fb.background.to_string();
 
   DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fb, &fb.background.base, 100, 1e-5);
+  test_fit(5, &optimizer, &fb, &fb.background.base, 100, 0.1);
+  auto_bound();
+  test_fit_random(20, &optimizer, &fb, &fb.background.base, 50, 7792, 0.1);
 
-  MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
-  //visualize_data(generate_data(&fb, 40));
-  //EXPECT_NEAR(fpeak.peak.position.val(), goal_val, 0.03);
+  MESSAGE() << "Result:\n" << fb.background.to_string();
 }
 
 TEST_F(PolyBackground, FitBase)
 {
   fb.data = generate_data(&fb, 40);
+  auto_bound();
 
   fb.update_indices();
-  MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
+  MESSAGE() << "Start:\n" << fb.background.to_string();
 
   DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fb, &fb.background.base, 100, 20);
+  test_fit(5, &optimizer, &fb, &fb.background.base, 100, 0.5);
+  auto_bound();
+  test_fit_random(20, &optimizer, &fb, &fb.background.base, 50, 7792, 0.5);
 
-  MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
-  //visualize_data(generate_data(&fb, 40));
-  //EXPECT_NEAR(fpeak.peak.position.val(), goal_val, 0.03);
+  MESSAGE() << "Result:\n" << fb.background.to_string();
 }
-
 
 TEST_F(PolyBackground, GradSlope)
 {
-  fb.data = generate_data(&fb, 40);
-
-  // chi-sq is only good if smaller step sizes are used for more granularity
   double goal_val = fb.background.slope.val();
-  fb.background.update_indices(fb.variable_count);
-  survey_grad(&fb, &fb.background.slope, 0.001);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.1);
-  EXPECT_NEAR(check_gradients(false), goal_val, 0.1);
+  fb.data = generate_data(&fb, 40);
+  fb.update_indices();
+  survey_grad(&fb, &fb.background.slope, 0.001, -460, 460);
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.001);
+  EXPECT_NEAR(check_gradients(false), goal_val, 0.001);
 }
 
 TEST_F(PolyBackground, FitSlopeOnly)
 {
   fb.data = generate_data(&fb, 40);
+  auto_bound();
 
   fb.background.base.to_fit = false;
   fb.background.curve.to_fit = false;
   fb.update_indices();
-  MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
-
-  double goal_val = fb.background.slope.val();
+  MESSAGE() << "Start:\n" << fb.background.to_string();
 
   DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fb, &fb.background.slope, 10, 1e-5);
+  test_fit(5, &optimizer, &fb, &fb.background.slope, 10, 1e-3);
+  auto_bound();
+  test_fit_random(20, &optimizer, &fb, &fb.background.slope, -460, 460, 1e-3);
 
-  MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
-  //visualize_data(generate_data(&fb, 40));
-  //EXPECT_NEAR(fpeak.peak.position.val(), goal_val, 0.03);
+  MESSAGE() << "Result:\n" << fb.background.to_string();
 }
 
 TEST_F(PolyBackground, FitSlope)
 {
   fb.data = generate_data(&fb, 40);
+  auto_bound();
 
   fb.update_indices();
-  MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
-
-  double goal_val = fb.background.slope.val();
+  MESSAGE() << "Start:\n" << fb.background.to_string();
 
   DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fb, &fb.background.slope, 10, 7);
+  test_fit(5, &optimizer, &fb, &fb.background.slope, 10, 0.02);
+  auto_bound();
+  test_fit_random(20, &optimizer, &fb, &fb.background.slope, -460, 460, 0.02);
 
-  MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
-  //visualize_data(generate_data(&fb, 40));
-  //EXPECT_NEAR(fpeak.peak.position.val(), goal_val, 0.03);
+  MESSAGE() << "Result:\n" << fb.background.to_string();
 }
 
-TEST_F(PolyBackground, GradPolyBackgroundCurve)
+TEST_F(PolyBackground, GradCurve)
 {
+  double goal_val = fb.background.curve.val();
   fb.data = generate_data(&fb, 40);
 
-  double goal_val = fb.background.curve.val();
-  fb.background.update_indices(fb.variable_count);
-  survey_grad(&fb, &fb.background.curve);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.02);
-  EXPECT_NEAR(check_gradients(false), goal_val, 0.02);
+  MESSAGE() << "PolyBackground: " << fb.background.to_string();
+
+  fb.background.base.to_fit = false;
+  fb.background.slope.to_fit = false;
+  fb.update_indices();
+  survey_grad(&fb, &fb.background.curve, 0.0001, -10, 10);
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.002);
+  EXPECT_NEAR(check_gradients(false), goal_val, 0.001);
 }
 
 TEST_F(PolyBackground, FitCurveOnly)
 {
   fb.data = generate_data(&fb, 40);
+  auto_bound();
 
   fb.background.base.to_fit = false;
   fb.background.slope.to_fit = false;
   fb.update_indices();
-  MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
-
-  double goal_val = fb.background.curve.val();
+  MESSAGE() << "Start:\n" << fb.background.to_string();
 
   DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fb, &fb.background.curve, 10, 1e-5);
+  test_fit(5, &optimizer, &fb, &fb.background.curve, 0, 1e-4);
+  auto_bound();
+  test_fit_random(20, &optimizer, &fb, &fb.background.curve, -10, 10, 1e-3);
 
-  MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
-  //visualize_data(generate_data(&fb, 40));
-  //EXPECT_NEAR(fpeak.peak.position.val(), goal_val, 0.03);
+  MESSAGE() << "Result:\n" << fb.background.to_string();
 }
 
 TEST_F(PolyBackground, FitCurve)
 {
   fb.data = generate_data(&fb, 40);
+  auto_bound();
 
   fb.update_indices();
-  MESSAGE() << "Start:\n" << fb.background.to_string() << "\n";
-
-  double goal_val = fb.background.curve.val();
+  MESSAGE() << "Start:\n" << fb.background.to_string();
 
   DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fb, &fb.background.curve, 10, 1.0);
+  test_fit(5, &optimizer, &fb, &fb.background.curve, 0, 1e-3);
+  auto_bound();
+  test_fit_random(20, &optimizer, &fb, &fb.background.curve, -10, 10, 1e-3);
 
-  MESSAGE() << "Result:\n" << fb.background.to_string() << "\n";
-  //visualize_data(generate_data(&fb, 40));
-  //EXPECT_NEAR(fpeak.peak.position.val(), goal_val, 0.03);
+  MESSAGE() << "Result:\n" << fb.background.to_string();
+}
+
+TEST_F(PolyBackground, FitAllThree)
+{
+  double goal_base = fb.background.base.val();
+  double goal_slope = fb.background.slope.val();
+  double goal_curve = fb.background.curve.val();
+
+  fb.data = generate_data(&fb, 40);
+  auto_bound();
+
+  fb.update_indices();
+
+  std::mt19937 random_generator;
+  random_generator.seed(std::random_device()());
+  std::uniform_real_distribution<double> base_dist(50, 7792);
+  std::uniform_real_distribution<double> slope_dist(-460, 460);
+  std::uniform_real_distribution<double> curve_dist(-10, 10);
+
+  DAQuiri::DLibOptimizer optimizer;
+
+  for (size_t i = 0; i < 50; ++i)
+  {
+    fb.background.base.val(base_dist(random_generator));
+    fb.background.slope.val(slope_dist(random_generator));
+    fb.background.curve.val(curve_dist(random_generator));
+    MESSAGE() << "Attempt[" << i << "]\n" << fb.background.to_string();
+    fb.save_fit(optimizer.minimize(&fb));
+    MESSAGE() << "Result:               \n"
+              << fb.background.to_string("                      ");
+    MESSAGE() << "           base delta="
+              << (goal_base - fb.background.base.val()) << "\n";
+    MESSAGE() << "          slope delta="
+              << (goal_slope - fb.background.slope.val()) << "\n";
+    MESSAGE() << "          curve delta="
+              << (goal_curve - fb.background.curve.val()) << "\n";
+
+    EXPECT_NEAR(fb.background.base.val(), goal_base, 0.001);
+    EXPECT_NEAR(fb.background.slope.val(), goal_slope, 0.001);
+    EXPECT_NEAR(fb.background.curve.val(), goal_curve, 0.001);
+  }
 }

@@ -56,32 +56,33 @@ void Region::replace_data(const WeightedData& data, const SUM4Edge& lb, const SU
   if ((lb.left() < data.data.front().channel) || (data.data.back().channel < rb.right()))
     throw std::runtime_error("Sum4 edges outside of region");
 
+  // \todo only if edge values changed
   LB_ = lb;
   RB_ = rb;
   data_ = data;
 
-  // \todo only if edge values changed
   init_background();
   cull_peaks();
-  dirty_ = true;
 }
 
 void Region::adjust_LB(const SUM4Edge& lb)
 {
   if ((lb.left() < left()) || (lb.right() > right()))
     return;
+
+  // \todo only if edge values changed
   LB_ = lb;
   init_background();
-  dirty_ = true;
 }
 
 void Region::adjust_RB(const SUM4Edge& rb)
 {
   if ((rb.left() < left()) || (rb.right() > right()))
     return;
+
+  // \todo only if edge values changed
   RB_ = rb;
   init_background();
-  dirty_ = true;
 }
 
 double Region::left() const
@@ -201,66 +202,18 @@ void Region::cull_peaks()
 {
   std::map<double, Peak> peaks;
   for (const auto& p : peaks_)
+  {
     if (p.second.sanity_check(left(), right()))
       peaks[p.first] = p.second;
+  }
+  if (peaks.size() != peaks_.size())
+    dirty_ = true;
   peaks_ = peaks;
 }
 
 void Region::init_background()
 {
-  double global_min = data_.data.front().count;
-  for (const auto& d : data_.data)
-    global_min = std::min(global_min, d.count);
-  global_min = std::floor(global_min);
-
-  //by default, linear
-  double run = RB_.right() - LB_.left();
-
-  INFO("run={}", run);
-
-//  // ascending slope
-//  if (LB_.average() < RB_.average())
-//    run = RB_.right() - LB_.right();
-//  else
-//    run = RB_.left() - LB_.left();
-
-  double ymax = std::max(LB_.max(), RB_.max());
-  double ymin = std::min(LB_.min(), RB_.min());
-
-  INFO("ymax={} ymin={}", ymax, ymin);
-
-  double maxcurve = std::abs((ymax - ymin) / square(run));
-
-  INFO("maxcurve={}", maxcurve);
-
-  double minslope{0.0}, maxslope{0.0};
-  double yav;
-
-  // ascending slope
-  if (LB_.average() < RB_.average())
-  {
-    //minslope = (RB_.min() - LB_.max()) / (RB_.right() - LB_.left());
-    maxslope = (RB_.max() - LB_.min()) / (RB_.left() - LB_.right());
-    yav = LB_.average().value();
-  }
-  else
-  {
-    minslope = (RB_.min() - LB_.max()) / (RB_.left() - LB_.right());
-    //maxslope = (RB_.max() - LB_.min()) / (RB_.right() - LB_.left());
-    yav = RB_.average().value();
-  }
-
-  background = PolyBackground();
-  background.x_offset = data_.data.front().channel;
-
-  background.base.bound(global_min, ymax);
-  background.slope.bound(minslope, maxslope);
-  background.curve.bound(-maxcurve, maxcurve);
-
-  background.base.val(yav);
-  background.slope.val((RB_.average().value() - LB_.average().value()) / run);
-  background.curve.val(0.0);
-
+  background = PolyBackground(data, LB_, RB_);
   // \todo invalidate uncertanties
 
   dirty_ = true;

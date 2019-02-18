@@ -1,6 +1,8 @@
 #pragma once
 
 #include <core/fitting/hypermet/Value.h>
+#include <core/fitting/weighted_data.h>
+#include <core/fitting/sum4/sum4edge.h>
 
 namespace DAQuiri
 {
@@ -8,15 +10,14 @@ namespace DAQuiri
 struct PolyBackground
 {
   PolyBackground();
-  // \todo construct with default vals
+  PolyBackground(const WeightedData& data, const SUM4Edge& lb, const SUM4Edge& rb);
 
-  // \todo why are these unbounded?
   double x_offset {0};
-  Value base;
+  ValuePositive base;
   bool slope_enabled{true};
-  Value slope;
+  ValueSimple slope;
   bool curve_enabled{true};
-  Value curve;
+  ValueSimple curve;
 
   void update_indices(int32_t& i);
   void put(Eigen::VectorXd& fit) const;

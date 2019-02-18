@@ -8,10 +8,59 @@ namespace DAQuiri
 
 PolyBackground::PolyBackground()
 {
-  base.bound(0, 5000000);
+//  base.bound(0, 5000000);
   base.val(0);
-  slope.bound(-100, 100);
-  curve.bound(-10, 10);
+  slope.val(0);
+  curve.val(0);
+//  slope.bound(-100, 100);
+//  curve.bound(-10, 10);
+}
+
+PolyBackground::PolyBackground(const WeightedData& data,
+                               const SUM4Edge& lb, const SUM4Edge& rb)
+{
+  double global_min = data.count_min;
+
+  double run = rb.right() - lb.left();
+
+  double ymax = std::max(lb.max(), rb.max());
+  double ymin = std::min(lb.min(), rb.min());
+
+  double minslope{0.0}, maxslope{0.0};
+  double mincurve{0.0}, maxcurve{0.0};
+
+  double yav;
+
+  if (lb.average() < rb.average())
+  {
+    // apparently ascending slope
+    yav = lb.average().value();
+    maxslope = (rb.max() - global_min) / run;
+    minslope = (rb.min() - lb.max()) / run;
+    maxcurve = (rb.max() - global_min) / square(run);
+    mincurve = (rb.min() - lb.max()) / square(run);
+  }
+  else
+  {
+    // apparently descending slope
+    yav = rb.average().value();
+    minslope = (global_min - lb.max()) / run;
+    maxslope = (rb.max() - lb.min()) / run;
+    mincurve = (global_min - lb.max()) / square(run);
+    maxcurve = (rb.max() - lb.min()) / square(run);
+  }
+
+
+  x_offset = data.data.front().channel;
+
+//  base.bound(global_min, ymax);
+  base.val(yav);
+
+//  slope.bound(minslope, maxslope);
+  slope.val((rb.average().value() - lb.average().value()) / run);
+
+//  curve.bound(mincurve, maxcurve);
+//  curve.val(0.5 * (mincurve + maxcurve));
 }
 
 void PolyBackground::update_indices(int32_t& i)
@@ -77,14 +126,14 @@ double PolyBackground::eval_grad(double bin, Eigen::VectorXd& gradients) const
   {
     ret += slope.val() * (bin - x_offset);
     if (slope.to_fit)
-      gradients[slope.index()] = (bin - x_offset);
+      gradients[slope.index()] = slope.grad() * (bin - x_offset);
   }
 
   if (curve_enabled)
   {
     ret += curve.val() * square(bin - x_offset);
     if (curve.to_fit)
-      gradients[curve.index()] = square(bin - x_offset);
+      gradients[curve.index()] = curve.grad() * square(bin - x_offset);
   }
   return ret;
 }
@@ -102,14 +151,14 @@ double PolyBackground::eval_grad_at(double bin,
   {
     ret += slope.val_from(fit) * (bin - x_offset);
     if (slope.to_fit)
-      gradients[slope.index()] = (bin - x_offset);
+      gradients[slope.index()] = slope.grad_from(fit) * (bin - x_offset);
   }
 
   if (curve_enabled)
   {
     ret += curve.val_from(fit) * square(bin - x_offset);
     if (curve.to_fit)
-      gradients[curve.index()] = square(bin - x_offset);
+      gradients[curve.index()] = curve.grad_from(fit) * square(bin - x_offset);
   }
   return ret;
 }
@@ -118,7 +167,7 @@ void PolyBackground::eval_add(const std::vector<double>& bins, std::vector<doubl
 {
   if (vals.size() != bins.size())
     vals.resize(bins.size(), 0.0);
-  for (size_t i=0; i < bins.size(); ++i)
+  for (size_t i = 0; i < bins.size(); ++i)
     vals[i] += eval(bins[i]);
 }
 
