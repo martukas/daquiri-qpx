@@ -1,242 +1,97 @@
-#include "function_test.h"
+#include "../function_test.h"
 #include <core/util/visualize_vector.h>
 #include <random>
 
 #include <core/fitting/hypermet/Region.h>
 #include <core/fitting/region_manager.h>
 
-#include <core/fitting/optimizers/BFGS.h>
 #include <core/fitting/optimizers/dlib_adapter.h>
 
 class Region : public FunctionTest
 {
+ protected:
+  DAQuiri::Region region;
+  std::mt19937 rng;
+
   virtual void SetUp()
   {
     rng.seed(std::random_device()());
   }
- protected:
-  std::mt19937 rng;
 };
 
 TEST_F(Region, IndexBackgroundOnly)
 {
   DAQuiri::Region region;
   EXPECT_EQ(region.variable_count, 0);
-  region.map_fit();
+  region.update_indices();
   EXPECT_EQ(region.variable_count, 3);
 }
 
-TEST_F(Region, EvalBackground)
+TEST_F(Region, FitBackgroundOnly)
 {
   DAQuiri::Region region;
   region.background.x_offset = 0;
-  region.background.base.val(70);
-  region.background.slope.val(3);
-  region.background.curve.val(5);
+  region.background.base.val(7000);
+  region.background.slope.val(1.2);
+  region.background.curve.val(-0.02);
 
-  MESSAGE() << "Goal region:\n" << region.to_string(" ") << "\n";
+  MESSAGE() << "Start region:\n" << region.to_string(" ") << "\n";
+  auto data = generate_data(&region, 100);
+  visualize_data(data);
 
-  std::vector<double> x;
-  for (size_t i=0; i < 30; ++i)
-    x.push_back(i);
-  auto y = region.background.eval(x);
+  double goal_base = region.background.base.val();
+  double goal_slope = region.background.slope.val();
+  double goal_curve = region.background.curve.val();
 
-  MESSAGE() << "Goal eval:\n" << visualize(x, y, 80) << "\n";
+  region.data = data;
+  region.update_indices();
 
-  DAQuiri::WeightedData wd(x, y);
-  region.replace_data(wd, 1, 1);
-  region.map_fit();
+  survey_grad(&region, &region.background.base, 0.01, std::sqrt(6900), std::sqrt(7100));
+  EXPECT_NEAR(check_chi_sq(false), goal_base, 0.5);
+  EXPECT_NEAR(check_gradients(false), goal_base, 0.1);
 
+  survey_grad(&region, &region.background.slope, 0.01, 0, 5);
+  EXPECT_NEAR(check_chi_sq(false), goal_slope, 0.5);
+  EXPECT_NEAR(check_gradients(false), goal_slope, 0.1);
+
+  survey_grad(&region, &region.background.curve, 0.01, -5, 5);
+  EXPECT_NEAR(check_chi_sq(false), goal_curve, 0.5);
+  EXPECT_NEAR(check_gradients(false), goal_curve, 0.1);
+
+  region.replace_data(data, 3, 3);
+  region.update_indices();
   MESSAGE() << "Auto region:\n" << region.to_string(" ") << "\n";
 
-  auto y2 = region.background.eval(x);
-  MESSAGE() << "Estimate eval:\n" << visualize(x, y2, 80) << "\n";
+  std::uniform_real_distribution<double> base_dist(6900, 7100);
+  std::uniform_real_distribution<double> slope_dist(0, 5);
+  std::uniform_real_distribution<double> curve_dist(-5, 5);
 
-  size_t fits = 20;
-  double delta_slope = (3.0 - region.background.slope.val()) / static_cast<double>(fits);
-  double delta_curve = (5.0 - region.background.curve.val()) / static_cast<double>(fits);
+  DAQuiri::DLibOptimizer optimizer;
 
-  std::vector<double> chi, base, slope, curve;
-  Eigen::VectorXd grad(region.variable_count);
-  for (size_t i=0; i < 2*fits; ++i)
+  for (size_t i = 0; i < 10; ++i)
   {
-    region.background.slope.val(region.background.slope.val() + delta_slope);
-    region.background.curve.val(region.background.curve.val() + delta_curve);
-    Eigen::VectorXd vars = region.variables();
-    chi.push_back(region.chi_sq_gradient(vars, grad));
-    base.push_back(grad[0]);
-    slope.push_back(grad[1]);
-    curve.push_back(grad[2]);
+    region.background.base.val(base_dist(rng));
+    region.background.slope.val(slope_dist(rng));
+    region.background.curve.val(curve_dist(rng));
+    MESSAGE() << "Attempt[" << i << "]\n" << region.background.to_string();
+
+    region.save_fit(optimizer.minimize(&region));
+    MESSAGE() << "Result:               \n"
+              << region.background.to_string("                      ");
+    MESSAGE() << "           base delta="
+              << (goal_base - region.background.base.val()) << "\n";
+    MESSAGE() << "          slope delta="
+              << (goal_slope - region.background.slope.val()) << "\n";
+    MESSAGE() << "          curve delta="
+              << (goal_curve - region.background.curve.val()) << "\n";
+
+    EXPECT_NEAR(region.background.base.val(), goal_base, 1.0);
+    EXPECT_NEAR(region.background.slope.val(), goal_slope, 0.02);
+    EXPECT_NEAR(region.background.curve.val(), goal_curve, 0.001);
   }
-
-  MESSAGE() << "Chi:\n" << visualize(chi, 80) << "\n";
-  MESSAGE() << "Grad(base):\n" << visualize(base, 80) << "\n";
-  MESSAGE() << "Grad(slope):\n" << visualize(slope, 80) << "\n";
-  MESSAGE() << "Grad(curve):\n" << visualize(curve, 80) << "\n";
 }
 
-TEST_F(Region, FitBackground)
-{
-  DAQuiri::Region region;
-  region.background.x_offset = 0;
-  region.background.base.val(70);
-  region.background.slope.val(3);
-  region.background.curve.val(5);
-
-  MESSAGE() << "Goal region:\n" << region.to_string(" ") << "\n";
-
-  std::vector<double> x;
-  for (size_t i=0; i < 30; ++i)
-    x.push_back(i);
-  auto y = region.background.eval(x);
-
-  MESSAGE() << "Goal eval:\n" << visualize(x, y, 80) << "\n";
-
-  DAQuiri::WeightedData wd(x, y);
-  region.replace_data(wd, 1, 1);
-  region.map_fit();
-  auto y2 = region.background.eval(x);
-
-  MESSAGE() << "Auto region:\n" << region.to_string(" ") << "\n";
-
-  MESSAGE() << "Estimate eval:\n" << visualize(x, y2, 80) << "\n";
-
-  DAQuiri::DLib opt;
-
-  auto ret = opt.minimize(&region, 0.0);
-
-  region.save_fit(ret.variables);
-
-  MESSAGE() << "Region after fit:\n" << region.to_string(" ") << "\n";
-
-  auto y3 = region.background.eval(x);
-  MESSAGE() << "Final fit:\n" << visualize(x, y3, 80) << "\n";
-}
-
-
-//TEST_F(Region, FitBackgroundWithNoise)
-//{
-//  DAQuiri::Region region;
-//  region.background.x_offset = 0;
-//  region.background.base.val(70);
-//  region.background.slope.val(3);
-//  region.background.curve.val(5);
-//
-//  MESSAGE() << "Goal region:\n" << region.to_string(" ") << "\n";
-//
-//  std::vector<double> x;
-//  for (size_t i=0; i < 30; ++i)
-//    x.push_back(i);
-//  auto y = region.background.eval(x);
-//  MESSAGE() << "Original val:\n" << visualize(x, y, 80) << "\n";
-//
-//  std::normal_distribution<double> normal_dist(0.0, 5.0);
-//  for (auto& p : y)
-//    p += normal_dist(rng);
-//
-//  MESSAGE() << "Noisy val:\n" << visualize(x, y, 80) << "\n";
-//
-//  DAQuiri::WeightedData wd(x, y);
-//  region.replace_data(wd, 1, 1);
-//  region.map_fit();
-//  auto y2 = region.background.eval(x);
-//
-//  MESSAGE() << "Region with data:\n" << region.to_string(" ") << "\n";
-//
-//  DAQuiri::fitter_vector starting_point = dlib::mat(region.variables());
-//
-//  const auto& fe = std::bind(&DAQuiri::Region::eval, region, std::placeholders::_1);
-//  const auto& fd = std::bind(&DAQuiri::Region::derivative, region, std::placeholders::_1);
-//  dlib::find_min(dlib::bfgs_search_strategy(),
-//                 dlib::objective_delta_stop_strategy(1e-10).be_verbose(),
-//                 fe, fd, starting_point, -1);
-//
-//  Eigen::VectorXd v;
-//  v.setConstant(starting_point.size(), 0.0);
-//  for (long i = 0; i < starting_point.size(); ++i)
-//    v[i] = starting_point(i);
-//  region.save_fit(v);
-//
-//  MESSAGE() << "Region after fit:\n" << region.to_string(" ") << "\n";
-//
-//  auto y3 = region.background.eval(x);
-//  MESSAGE() << "Final fit:\n" << visualize(x, y3, 80) << "\n";
-//}
-
-TEST_F(Region, FitBackgroundOurImplementation)
-{
-  DAQuiri::Region region;
-  region.background.x_offset = 0;
-  region.background.base.val(70);
-  region.background.slope.val(3);
-  region.background.curve.val(5);
-
-  MESSAGE() << "Goal region:\n" << region.to_string(" ") << "\n";
-
-  std::vector<double> x;
-  for (size_t i=0; i < 30; ++i)
-    x.push_back(i);
-  auto y = region.background.eval(x);
-  MESSAGE() << "Goal eval:\n" << visualize(x, y, 80) << "\n";
-
-  DAQuiri::WeightedData wd(x, y);
-  region.replace_data(wd, 1, 1);
-  region.map_fit();
-  auto y2 = region.background.eval(x);
-
-  MESSAGE() << "Auto region:\n" << region.to_string(" ") << "\n";
-
-  DAQuiri::BFGS optimizer;
-  auto result = optimizer.minimize(&region, 1e-10);
-  region.save_fit_uncerts(result);
-
-  MESSAGE() << "Fit region:\n" << region.to_string(" ") << "\n";
-
-  auto y3 = region.background.eval(x);
-  MESSAGE() << "Fit eval:\n" << visualize(x, y3, 80) << "\n";
-}
-
-TEST_F(Region, FitNoisyBackgroundOurImplementation)
-{
-  DAQuiri::Region region;
-  region.background.x_offset = 0;
-  region.background.base.val(70);
-  region.background.slope.val(3);
-  region.background.curve.val(5);
-
-  MESSAGE() << "Goal region:\n" << region.to_string(" ") << "\n";
-
-  std::vector<double> x;
-  for (size_t i=0; i < 30; ++i)
-    x.push_back(i);
-  auto y = region.background.eval(x);
-  MESSAGE() << "Clean eval:\n" << visualize(x, y, 80) << "\n";
-
-  std::normal_distribution<double> normal_dist(0.0, 5.0);
-  for (auto& p : y)
-    p += normal_dist(rng);
-
-  MESSAGE() << "Noisy eval:\n" << visualize(x, y, 80) << "\n";
-
-  DAQuiri::WeightedData wd(x, y);
-  region.replace_data(wd, 3, 3);
-  region.map_fit();
-  auto y2 = region.background.eval(x);
-
-  MESSAGE() << "Auto region:\n" << region.to_string(" ") << "\n";
-
-  DAQuiri::BFGS optimizer;
-  auto result = optimizer.minimize(&region, 1e-10);
-  region.save_fit_uncerts(result);
-
-  MESSAGE() << "Fit region:\n" << region.to_string(" ") << "\n";
-
-  auto y3 = region.background.eval(x);
-  MESSAGE() << "Fit eval:\n" << visualize(x, y3, 80) << "\n";
-}
-
-
-TEST_F(Region, EvalOnePeakGaussianOnly)
+TEST_F(Region, FitGaussianOnly)
 {
   DAQuiri::Region region;
   region.background.x_offset = 0;
@@ -244,98 +99,147 @@ TEST_F(Region, EvalOnePeakGaussianOnly)
   region.background.curve_enabled = false;
 
   auto pk = DAQuiri::Peak().gaussian_only();
-  pk.position.bound(3, 27);
-  pk.position.val(15);
-  pk.amplitude.val(500);
-  pk.width.val(3);
+  pk.position.bound(44, 58);
+  pk.position.val(51);
+  pk.amplitude.val(4000);
+  pk.width.val(3.2);
+
+  double goal_pos = pk.position.val();
+  double goal_width = pk.width.val();
+  double goal_amplitude = pk.amplitude.val();
 
   region.default_peak_ = pk;
 
   region.peaks_[pk.id()] = pk;
 
-  MESSAGE() << "Goal region:\n" << region.to_string(" ") << "\n";
-
-
-  std::vector<double> x;
-  for (size_t i=0; i < 30; ++i)
-    x.push_back(i);
-  auto y = region.background.eval(x);
-  for (size_t i=0; i < 30; ++i)
-    y[i] += pk.eval(x[i]).all();
-
-  MESSAGE() << "Original val:\n" << visualize(x, y, 80) << "\n";
+  MESSAGE() << "Start region:\n" << region.to_string(" ") << "\n";
+  auto data = generate_data(&region, 100);
+  visualize_data(data);
 
   region = DAQuiri::Region();
-  region.background.slope_enabled = false;
-  region.background.curve_enabled = false;
   region.default_peak_ = DAQuiri::Peak().gaussian_only();
 
-  region.replace_data(DAQuiri::WeightedData(x, y), 1, 1);
-  region.add_peak(5, 27);
-  region.map_fit();
+  region.replace_data(data, 3, 3);
+  region.add_peak(44.5, 58.7);
+  region.update_indices();
 
   MESSAGE() << "Region with data:\n" << region.to_string(" ") << "\n";
 
-  auto y2 = region.background.eval(x);
-  auto pk2 = region.peaks_.begin()->second;
-  for (size_t i=0; i < 30; ++i)
-    y2[i] += pk2.eval(x[i]).all();
 
-  MESSAGE() << "Estimate val:\n" << visualize(x, y2, 80) << "\n";
+  std::uniform_real_distribution<double> pos_dist(pk.position.min(),
+                                                  pk.position.max());
+  std::uniform_real_distribution<double> width_dist(pk.width.min(),
+                                                    pk.width.max());
+  std::uniform_real_distribution<double> amplitude_dist(3000, 5000);
 
-  size_t fits = 20;
-  double delta_width = (3.0 - pk2.width.val()) / static_cast<double>(fits);
-  double delta_pos = (5.0 - pk2.position.val()) / static_cast<double>(fits);
-  double delta_amp = (500.0 - pk2.amplitude.val()) / static_cast<double>(fits);
+  DAQuiri::DLibOptimizer optimizer;
 
-  std::vector<double> chi, width, pos, amp;
-  Eigen::VectorXd grad(region.variable_count);
-  for (size_t i=0; i < 2*fits; ++i)
+  for (size_t i = 0; i < 10; ++i)
   {
-    auto& pkk = region.peaks_.begin()->second;
-    pkk.width.val(pkk.width.val() + delta_width);
-    pkk.position.val(pkk.position.val() + delta_pos);
-    pkk.amplitude.val(pkk.amplitude.val() + delta_amp);
-    Eigen::VectorXd vars = region.variables();
-    chi.push_back(region.chi_sq_gradient(vars, grad));
-    width.push_back(grad[3]);
-    pos.push_back(grad[4]);
-    amp.push_back(grad[5]);
-  }
+    auto& pk = region.peaks_.begin()->second;
 
-  MESSAGE() << "Chi:\n" << visualize(chi, 80) << "\n";
-  MESSAGE() << "Grad(width):\n" << visualize(width, 80) << "\n";
-  MESSAGE() << "Grad(pos):\n" << visualize(pos, 80) << "\n";
-  MESSAGE() << "Grad(amp):\n" << visualize(amp, 80) << "\n";
+    pk.position.val(pos_dist(rng));
+    pk.width.val(width_dist(rng));
+    pk.amplitude.val(amplitude_dist(rng));
+    MESSAGE() << "Attempt[" << i << "]\n" << pk.to_string();
+    region.save_fit(optimizer.minimize(&region));
+    MESSAGE() << "Result:               \n"
+              << region.to_string("                      ");
+    MESSAGE() << "       position delta="
+              << (goal_pos - pk.position.val()) << "\n";
+    MESSAGE() << "          width delta="
+              << (goal_width - pk.width.val()) << "\n";
+    MESSAGE() << "      amplitude delta="
+              << (goal_amplitude - pk.amplitude.val()) << "\n";
+
+    EXPECT_NEAR(pk.position.val(), goal_pos, 0.001);
+    EXPECT_NEAR(pk.width.val(), goal_width, 0.001);
+    EXPECT_NEAR(pk.amplitude.val(), goal_amplitude, 0.2);
+  }
+}
+
+TEST_F(Region, FitGaussianBackground)
+{
+  DAQuiri::Region region;
+  region.background.x_offset = 0;
+  region.background.base.val(7000);
+  region.background.slope.val(1.2);
+  region.background.curve.val(-0.02);
+
+  auto pk = DAQuiri::Peak().gaussian_only();
+  pk.position.bound(44, 58);
+  pk.position.val(51);
+  pk.amplitude.val(4000);
+  pk.width.val(3.2);
+
+  double goal_base = region.background.base.val();
+  double goal_slope = region.background.slope.val();
+  double goal_curve = region.background.curve.val();
+  double goal_pos = pk.position.val();
+  double goal_width = pk.width.val();
+  double goal_amplitude = pk.amplitude.val();
+
+  region.default_peak_ = pk;
+
+  region.peaks_[pk.id()] = pk;
+
+  MESSAGE() << "Start region:\n" << region.to_string(" ") << "\n";
+  auto data = generate_data(&region, 100);
+  visualize_data(data);
 
   region = DAQuiri::Region();
   region.default_peak_ = DAQuiri::Peak().gaussian_only();
-  region.replace_data(DAQuiri::WeightedData(x, y), 1 , 1);
-  region.add_peak(5, 27);
-  region.map_fit();
+  region.replace_data(data, 3, 3);
+  region.add_peak(44.5, 58.7);
+  region.update_indices();
 
-  DAQuiri::BFGS optimizer;
-  auto result = optimizer.minimize(&region, 1e-10);
-  region.save_fit_uncerts(result);
+  MESSAGE() << "Region with data:\n" << region.to_string(" ") << "\n";
 
-  MESSAGE() << "Region after fit:\n" << region.to_string(" ") << "\n";
+  std::uniform_real_distribution<double> base_dist(6900, 7100);
+  std::uniform_real_distribution<double> slope_dist(0, 5);
+  std::uniform_real_distribution<double> curve_dist(-5, 5);
+  std::uniform_real_distribution<double> pos_dist(pk.position.min(),
+                                                  pk.position.max());
+  std::uniform_real_distribution<double> width_dist(pk.width.min(),
+                                                    pk.width.max());
+  std::uniform_real_distribution<double> amplitude_dist(3000, 5000);
 
-  auto y3 = region.background.eval(x);
-  auto pk3 = region.peaks_.begin()->second;
-  for (size_t i=0; i < 30; ++i)
-    y3[i] += pk3.eval(x[i]).all();
-  MESSAGE() << "Fit eval:\n" << visualize(x, y3, 80) << "\n";
+  DAQuiri::DLibOptimizer optimizer;
+  optimizer.verbose = true;
 
+  for (size_t i = 0; i < 10; ++i)
+  {
+    auto& pk = region.peaks_.begin()->second;
 
-  result = optimizer.minimize(&region, 1e-10);
-  region.save_fit_uncerts(result);
+    region.background.base.val(base_dist(rng));
+    region.background.slope.val(slope_dist(rng));
+    region.background.curve.val(curve_dist(rng));
+    pk.position.val(pos_dist(rng));
+    pk.width.val(width_dist(rng));
+    pk.amplitude.val(amplitude_dist(rng));
+    MESSAGE() << "Attempt[" << i << "]\n" << region.to_string();
+    region.save_fit(optimizer.minimize(&region));
+    MESSAGE() << "Result:               \n"
+              << region.to_string("                      ");
+    MESSAGE() << "           base delta="
+              << (goal_base - region.background.base.val()) << "\n";
+    MESSAGE() << "          slope delta="
+              << (goal_slope - region.background.slope.val()) << "\n";
+    MESSAGE() << "          curve delta="
+              << (goal_curve - region.background.curve.val()) << "\n";
+    MESSAGE() << "       position delta="
+              << (goal_pos - pk.position.val()) << "\n";
+    MESSAGE() << "          width delta="
+              << (goal_width - pk.width.val()) << "\n";
+    MESSAGE() << "      amplitude delta="
+              << (goal_amplitude - pk.amplitude.val()) << "\n";
 
-  MESSAGE() << "Region after fit2:\n" << region.to_string(" ") << "\n";
-
-  y3 = region.background.eval(x);
-  pk3 = region.peaks_.begin()->second;
-  for (size_t i=0; i < 30; ++i)
-    y3[i] += pk3.eval(x[i]).all();
-  MESSAGE() << "Fit eval2:\n" << visualize(x, y3, 80) << "\n";
-
+    EXPECT_NEAR(region.background.base.val(), goal_base, 1.0);
+    EXPECT_NEAR(region.background.slope.val(), goal_slope, 0.02);
+    EXPECT_NEAR(region.background.curve.val(), goal_curve, 0.001);
+    EXPECT_NEAR(pk.position.val(), goal_pos, 0.001);
+    EXPECT_NEAR(pk.width.val(), goal_width, 0.001);
+    EXPECT_NEAR(pk.amplitude.val(), goal_amplitude, 0.4);
+  }
 }
+

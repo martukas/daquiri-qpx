@@ -51,7 +51,7 @@ PolyBackground::PolyBackground(const WeightedData& data,
   }
 
 
-  x_offset = data.data.front().channel;
+  x_offset = lb.left();
 
 //  base.bound(global_min, ymax);
   base.val(yav);
@@ -121,19 +121,19 @@ double PolyBackground::eval_grad(double bin, Eigen::VectorXd& gradients) const
 {
   double ret = base.val();
   if (base.to_fit)
-    gradients[base.index()] = base.grad();
+    gradients[base.index()] += base.grad();
   if (slope_enabled)
   {
     ret += slope.val() * (bin - x_offset);
     if (slope.to_fit)
-      gradients[slope.index()] = slope.grad() * (bin - x_offset);
+      gradients[slope.index()] += slope.grad() * (bin - x_offset);
   }
 
   if (curve_enabled)
   {
     ret += curve.val() * square(bin - x_offset);
     if (curve.to_fit)
-      gradients[curve.index()] = curve.grad() * square(bin - x_offset);
+      gradients[curve.index()] += curve.grad() * square(bin - x_offset);
   }
   return ret;
 }
@@ -144,21 +144,21 @@ double PolyBackground::eval_grad_at(double bin,
 {
   double ret = base.val_from(fit);
   if (base.to_fit)
-    gradients[base.index()] = base.grad_from(fit);
+    gradients[base.index()] += base.grad_from(fit);
 
   // \todo this might actually need to factor in grad from variables
   if (slope_enabled)
   {
     ret += slope.val_from(fit) * (bin - x_offset);
     if (slope.to_fit)
-      gradients[slope.index()] = slope.grad_from(fit) * (bin - x_offset);
+      gradients[slope.index()] += slope.grad_from(fit) * (bin - x_offset);
   }
 
   if (curve_enabled)
   {
     ret += curve.val_from(fit) * square(bin - x_offset);
     if (curve.to_fit)
-      gradients[curve.index()] = curve.grad_from(fit) * square(bin - x_offset);
+      gradients[curve.index()] += curve.grad_from(fit) * square(bin - x_offset);
   }
   return ret;
 }

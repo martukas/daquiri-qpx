@@ -10,7 +10,7 @@ namespace DAQuiri
 
 Region::Region()
 {
-  default_peak_.width.bound(0.8, 4.0);
+  default_peak_.width.bound(0.8, 8.0);
 
   default_peak_.short_tail.amplitude.bound(0.02, 1.5);
   default_peak_.short_tail.slope.bound(0.2, 0.5);
@@ -22,44 +22,46 @@ Region::Region()
   default_peak_.long_tail.slope.bound(2.5, 50);
 
   default_peak_.step.amplitude.bound(0.000001, 0.05);
+
+//  default_peak_ = default_peak_.gaussian_only();
 }
 
-Region::Region(const WeightedData& data, uint16_t background_samples)
+Region::Region(const WeightedData& new_data, uint16_t background_samples)
     : Region()
 {
-  if (data.data.empty())
+  if (new_data.data.empty())
     throw std::runtime_error("Attempting to construct Region from empty sample");
 
-  data_ = data;
-  LB_ = SUM4Edge(data_.left(background_samples));
-  RB_ = SUM4Edge(data_.right(background_samples));
+  data = new_data;
+  LB_ = SUM4Edge(data.left(background_samples));
+  RB_ = SUM4Edge(data.right(background_samples));
   init_background();
 }
 
-void Region::replace_data(const WeightedData& data)
+void Region::replace_data(const WeightedData& new_data)
 {
-  auto lb = SUM4Edge(data.subset(LB_.left(), LB_.right()));
-  auto rb = SUM4Edge(data.subset(RB_.left(), RB_.right()));
-  replace_data(data, lb, rb);
+  auto lb = SUM4Edge(new_data.subset(LB_.left(), LB_.right()));
+  auto rb = SUM4Edge(new_data.subset(RB_.left(), RB_.right()));
+  replace_data(new_data, lb, rb);
 }
 
-void Region::replace_data(const WeightedData& data, uint16_t left_samples, uint16_t right_samples)
+void Region::replace_data(const WeightedData& new_data, uint16_t left_samples, uint16_t right_samples)
 {
-  replace_data(data, SUM4Edge(data.left(left_samples)), SUM4Edge(data.right(right_samples)));
+  replace_data(new_data, SUM4Edge(new_data.left(left_samples)), SUM4Edge(new_data.right(right_samples)));
 }
 
-void Region::replace_data(const WeightedData& data, const SUM4Edge& lb, const SUM4Edge& rb)
+void Region::replace_data(const WeightedData& new_data, const SUM4Edge& lb, const SUM4Edge& rb)
 {
-  if (data.data.empty())
+  if (new_data.empty())
     throw std::runtime_error("Attempting to construct Region from empty sample");
 
-  if ((lb.left() < data.data.front().channel) || (data.data.back().channel < rb.right()))
+  if ((lb.left() < new_data.data.front().channel) || (new_data.data.back().channel < rb.right()))
     throw std::runtime_error("Sum4 edges outside of region");
 
   // \todo only if edge values changed
   LB_ = lb;
   RB_ = rb;
-  data_ = data;
+  data = new_data;
 
   init_background();
   cull_peaks();
@@ -87,15 +89,15 @@ void Region::adjust_RB(const SUM4Edge& rb)
 
 double Region::left() const
 {
-  if (!data_.empty())
-    return data_.data.front().channel;
+  if (!data.empty())
+    return data.data.front().channel;
   return std::numeric_limits<double>::quiet_NaN();
 }
 
 double Region::right() const
 {
-  if (!data_.empty())
-    return data_.data.back().channel;
+  if (!data.empty())
+    return data.data.back().channel;
   return std::numeric_limits<double>::quiet_NaN();
 }
 
@@ -117,10 +119,10 @@ bool Region::add_peak(double l, double r, double amp_hint)
   p.position.bound(l, r);
   p.position.val(0.5 * (l + r));
 
-  data_.subset(l, r);
+  data.subset(l, r);
   double max_val{0.0};
   double min_bkg{std::numeric_limits<double>::max()};
-  for (const auto& v : data_.data)
+  for (const auto& v : data.data)
   {
     max_val = std::max(max_val, v.count);
     min_bkg = std::min(min_bkg, background.eval(v.channel));
@@ -141,7 +143,7 @@ bool Region::adjust_sum4(double peakID, double left, double right)
 {
   if (!peaks_.count(peakID))
     return false;
-  auto subregion = data_.subset(left, right);
+  auto subregion = data.subset(left, right);
   if (subregion.data.empty())
     return false;
 
@@ -314,6 +316,9 @@ void Region::save_fit(const FitResult& result)
   save_fit(result.variables);
   //auto chi_sq_norm = chi_sq(result.variables);
 
+  if (!result.inv_hessian.innerSize() || !result.inv_hessian.outerSize())
+    return;
+
   Eigen::VectorXd diagonals;
   diagonals.resize(result.variables.size());
 
@@ -336,7 +341,7 @@ void Region::save_fit(const FitResult& result)
 double Region::eval(double chan) const
 {
   double ret = background.eval(chan);
-  for (auto& p : peaks_)
+  for (const auto& p : peaks_)
     ret += p.second.eval(chan).all();
   return ret;
 }
@@ -344,7 +349,7 @@ double Region::eval(double chan) const
 double Region::eval_at(double chan, const Eigen::VectorXd& fit) const
 {
   double ret = background.eval_at(chan, fit);
-  for (auto& p : peaks_)
+  for (const auto& p : peaks_)
     ret += p.second.eval_at(chan, fit).all();
   return ret;
 }
@@ -352,7 +357,7 @@ double Region::eval_at(double chan, const Eigen::VectorXd& fit) const
 double Region::eval_grad_at(double chan, const Eigen::VectorXd& fit, Eigen::VectorXd& grads) const
 {
   double ret = background.eval_grad_at(chan, fit, grads);
-  for (auto& p : peaks_)
+  for (const auto& p : peaks_)
     ret += p.second.eval_grad_at(chan, fit, grads).all();
   return ret;
 }
@@ -362,7 +367,7 @@ std::string Region::to_string(std::string prepend) const
   std::stringstream ss;
   ss << prepend
      << fmt::format("data_points={} on channels [{},{}] vars={} {}\n",
-                               data_.data.size(), left(), right(),
+                               data.data.size(), left(), right(),
                                variable_count, (dirty_ ? " DIRTY" : ""));
   ss << prepend << "SUM4/LB: " << LB_.to_string() << "\n";
   ss << prepend << "SUM4/RB: " << RB_.to_string() << "\n";

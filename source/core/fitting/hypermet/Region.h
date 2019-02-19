@@ -68,7 +68,6 @@ class Region : public FittableRegion
   friend void from_json(const nlohmann::json& j, Region& s);
 
  private:
-  WeightedData data_;
   bool dirty_{false};
 
   //public: BoronPeak As CBoronPeak

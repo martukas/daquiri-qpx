@@ -1,6 +1,8 @@
 #include <core/fitting/fittable_region.h>
 #include <core/util/more_math.h>
 
+#include <core/util/custom_logger.h>
+
 namespace DAQuiri
 {
 
@@ -40,6 +42,7 @@ double FittableRegion::chi_sq_gradient(const Eigen::VectorXd& fit,
     channel_gradients.setConstant(fit.size(), 0.0);
 
     double fit_value = this->eval_grad_at(p.channel, fit, channel_gradients);
+
     chi_squared += square((p.count - fit_value) / p.weight_phillips_marlow);
 
     double grad_norm = -2.0 * (p.count - fit_value) / square(p.weight_phillips_marlow);

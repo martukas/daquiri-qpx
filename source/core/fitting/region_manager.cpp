@@ -423,7 +423,15 @@ bool RegionManager::rebuild(AbstractOptimizer* optimizer)
   region_.update_indices();
   INFO("Will rebuild\n{}", region_.to_string(" "));
 
+  std::stringstream ss;
+  auto vars = region_.variables();
+  ss << vars.transpose();
+  INFO("Initial vars: {}  chisq={}  chisq(at)={}", ss.str(),
+      region_.chi_sq(), region_.chi_sq(vars));
+
   auto result = optimizer->minimize(&region_);
+  if (optimizer->verbose)
+    INFO("Fitter result {}", result.to_string());
   region_.save_fit(result);
 
   region_.auto_sum4();

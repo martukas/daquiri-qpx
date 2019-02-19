@@ -11,6 +11,7 @@ ThreadFitter::ThreadFitter(QObject *parent) :
   running_(false)
 {
   optimizer_ = std::make_shared<DAQuiri::DLibOptimizer>();
+  optimizer_->verbose = true;
 
   action_ = kIdle;
   start(HighPriority);
