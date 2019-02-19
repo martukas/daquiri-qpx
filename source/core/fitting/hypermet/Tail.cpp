@@ -58,9 +58,12 @@ double Tail::eval_grad(const PrecalcVals& pre, Eigen::VectorXd& grads) const
   double spread = flip(side, pre.spread);
   double t2 = (pre.ampl * ampl * std::exp(spread / slp) / std::sqrt(M_PI) *
       std::exp(-1.0 * square(1.0 / (2.0 * slp) + spread)) / pre.width);
-  grads[pre.i_width] += pre.width_grad * (-spread / (pre.width * slp) * ret + t2 * spread);
-  grads[pre.i_pos] += pre.pos_grad * (-1.0 / (slp * pre.width) * ret + t2);
-  grads[pre.i_amp] += pre.amp_grad * ret / ampl;
+  if (pre.i_width > AbstractValue::InvalidIndex)
+    grads[pre.i_width] += pre.width_grad * (-spread / (pre.width * slp) * ret + t2 * spread);
+  if (pre.i_pos > AbstractValue::InvalidIndex)
+    grads[pre.i_pos] += pre.pos_grad * (-1.0 / (slp * pre.width) * ret + t2);
+  if (pre.i_amp > AbstractValue::InvalidIndex)
+    grads[pre.i_amp] += pre.amp_grad * ret / ampl;
 
   if (amplitude.to_fit)
     grads[amplitude.index()] += ret / ampl * amplitude.grad();
@@ -79,9 +82,12 @@ double Tail::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
   double spread = flip(side, pre.spread);
   double t2 = (pre.ampl * ampl * std::exp(spread / slp) / std::sqrt(M_PI) *
       std::exp(-1.0 * square(1.0 / (2.0 * slp) + spread)) / pre.width);
-  grads[pre.i_width] += pre.width_grad * (-spread / (pre.width * slp) * ret + t2 * spread);
-  grads[pre.i_pos] += pre.pos_grad * (-1.0 / (slp * pre.width) * ret + t2);
-  grads[pre.i_amp] += pre.amp_grad * ret / ampl;
+  if (pre.i_width > AbstractValue::InvalidIndex)
+    grads[pre.i_width] += pre.width_grad * (-spread / (pre.width * slp) * ret + t2 * spread);
+  if (pre.i_pos > AbstractValue::InvalidIndex)
+    grads[pre.i_pos] += pre.pos_grad * (-1.0 / (slp * pre.width) * ret + t2);
+  if (pre.i_amp > AbstractValue::InvalidIndex)
+    grads[pre.i_amp] += pre.amp_grad * ret / ampl;
 
   if (amplitude.to_fit)
     grads[amplitude.index()] += ret / ampl * amplitude.grad_from(fit);
@@ -119,7 +125,5 @@ void from_json(const nlohmann::json& j, Tail& s)
   s.amplitude = j["amplitude"];
   s.slope = j["slope"];
 }
-
-
 
 }

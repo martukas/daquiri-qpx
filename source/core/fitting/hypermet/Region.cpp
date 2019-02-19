@@ -127,11 +127,11 @@ bool Region::add_peak(double l, double r, double amp_hint)
   }
   double amp_max = max_val - min_bkg;
 
-  p.amplitude.bound(0, 1.1 * amp_max);
+  //p.amplitude.bound(0, 1.1 * amp_max);
   if (amp_hint > 0.0)
     p.amplitude.val(amp_hint);
   else
-    p.amplitude.val(0.9 * amp_max);
+    p.amplitude.val(amp_max);
   peaks_[p.id()] = p;
   dirty_ = true;
   return true;

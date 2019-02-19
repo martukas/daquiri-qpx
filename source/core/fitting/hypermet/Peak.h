@@ -66,7 +66,7 @@ class Peak
 
   // These are unique to peak
   Value position;
-  Value amplitude; // was ValueGam
+  ValuePositive amplitude; // was ValueGam
 
   // By default these are not unique to peak
   bool width_override{false};

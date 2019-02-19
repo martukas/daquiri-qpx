@@ -23,7 +23,7 @@ double Peak::Components::all() const
 
 Peak::Peak()
 {
-  amplitude.bound(0, 1000);
+  //amplitude.bound(0, 1000);
 
   width.bound(0.8, 5.0);
 

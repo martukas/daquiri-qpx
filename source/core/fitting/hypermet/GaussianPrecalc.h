@@ -17,9 +17,9 @@ struct PrecalcVals
   double pos_grad;
   double amp_grad;
 
-  size_t i_width;
-  size_t i_pos;
-  size_t i_amp;
+  int32_t i_width;
+  int32_t i_pos;
+  int32_t i_amp;
 };
 
 enum class Side

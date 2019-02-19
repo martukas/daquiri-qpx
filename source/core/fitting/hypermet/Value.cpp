@@ -19,7 +19,7 @@ void AbstractValue::update_index(int32_t& idx)
 
 void AbstractValue::reset_index()
 {
-  index_ = -1;
+  index_ = InvalidIndex;
 }
 
 int32_t AbstractValue::index() const
@@ -50,7 +50,7 @@ double AbstractValue::grad() const
 double AbstractValue::val_from(const Eigen::VectorXd& fit) const
 {
   // \todo access without range checking once we have tests
-  if (index_ >= 0)
+  if (index_ > InvalidIndex)
     return this->val_at(fit(static_cast<size_t>(index_)));
   return val();
 }
@@ -58,7 +58,7 @@ double AbstractValue::val_from(const Eigen::VectorXd& fit) const
 double AbstractValue::grad_from(const Eigen::VectorXd& fit) const
 {
   // \todo access without range checking once we have tests
-  if (index_ >= 0)
+  if (index_ > InvalidIndex)
     return this->grad_at(fit(static_cast<size_t>(index_)));
   return grad();
 }
@@ -70,19 +70,19 @@ double AbstractValue::uncert() const
 
 void AbstractValue::put(Eigen::VectorXd& fit) const
 {
-  if (index_ >= 0)
+  if (index_ > InvalidIndex)
     fit[index_] = x();
 }
 
 void AbstractValue::get(const Eigen::VectorXd& fit)
 {
-  if (index_ >= 0)
+  if (index_ > InvalidIndex)
     x(fit[index_]);
 }
 
 void AbstractValue::get_uncert(const Eigen::VectorXd& diagonals, double chisq_norm)
 {
-  if (index_ >= 0)
+  if (index_ > InvalidIndex)
     val_uncert_ = std::sqrt(std::abs(diagonals[index_] * this->grad() * chisq_norm));
 }
 

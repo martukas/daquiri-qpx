@@ -26,6 +26,8 @@ class AbstractValue
 
   bool to_fit{true}; ///< flags Value for fitting
 
+  static constexpr int32_t InvalidIndex {-1};
+
   /// \brief if Value is flagged for fitting, saves and increments index
   ///        otherwise, invalidates internally stored index
   /// \param idx index from parent model
@@ -99,7 +101,7 @@ class AbstractValue
   double dx_{0.0};
 
   double val_uncert_{0.0};
-  int32_t index_{-1};
+  int32_t index_{InvalidIndex};
 };
 
 class Value : public AbstractValue

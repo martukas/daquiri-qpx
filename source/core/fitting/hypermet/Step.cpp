@@ -47,9 +47,11 @@ double Step::eval_grad(const PrecalcVals& pre, Eigen::VectorXd& grads) const
   double ampl = amplitude.val();
   double ret = eval_with(pre, ampl);
 
-  grads[pre.i_width] += pre.width_grad * (pre.ampl * flip(side, ampl) / std::sqrt(M_PI) *
-      std::exp(-square(pre.spread)) * pre.spread / pre.width);
-  grads[pre.i_amp] += pre.pos_grad * ret / pre.ampl;
+  if (pre.i_width > AbstractValue::InvalidIndex)
+    grads[pre.i_width] += pre.width_grad * (pre.ampl * flip(side, ampl) / std::sqrt(M_PI) *
+        std::exp(-square(pre.spread)) * pre.spread / pre.width);
+  if (pre.i_amp > AbstractValue::InvalidIndex)
+    grads[pre.i_amp] += pre.pos_grad * ret / pre.ampl;
   // \todo pos unused?
 
   if (amplitude.to_fit)
@@ -64,9 +66,11 @@ double Step::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
   double ampl = amplitude.val_from(fit);
   double ret = eval_with(pre, ampl);
 
-  grads[pre.i_width] += pre.width_grad * (pre.ampl * flip(side, ampl) / std::sqrt(M_PI) *
-      std::exp(-square(pre.spread)) * pre.spread / pre.width);
-  grads[pre.i_amp] += pre.pos_grad * ret / pre.ampl;
+  if (pre.i_width > AbstractValue::InvalidIndex)
+    grads[pre.i_width] += pre.width_grad * (pre.ampl * flip(side, ampl) / std::sqrt(M_PI) *
+        std::exp(-square(pre.spread)) * pre.spread / pre.width);
+  if (pre.i_amp > AbstractValue::InvalidIndex)
+    grads[pre.i_amp] += pre.pos_grad * ret / pre.ampl;
   // \todo pos unused?
 
   if (amplitude.to_fit)

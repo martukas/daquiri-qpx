@@ -3,13 +3,15 @@
 #include <core/util/visualize_vector.h>
 
 #include <core/fitting/hypermet/Step.h>
-#include <core/fitting/weighted_data.h>
+
+#include <core/fitting/optimizers/dlib_adapter.h>
+
 
 class FittableStep : public DAQuiri::FittableRegion
 {
  public:
   DAQuiri::Value position;
-  DAQuiri::Value amplitude;
+  DAQuiri::ValuePositive amplitude;
   DAQuiri::Value width;
 
   DAQuiri::Step step;
@@ -100,62 +102,62 @@ class FittableStep : public DAQuiri::FittableRegion
 class Step : public FunctionTest
 {
  protected:
-  FittableStep fstep;
+  FittableStep fs;
 
   virtual void SetUp()
   {
-    fstep.amplitude.bound(0, 1000);
-    fstep.amplitude.val(40);
-    fstep.amplitude.update_index(fstep.variable_count);
+    //fs.amplitude.bound(0, 100000);
+    fs.amplitude.val(40000);
+    fs.amplitude.update_index(fs.variable_count);
 
-    fstep.width.bound(0.8, 5.0);
-    fstep.width.val(2);
-    fstep.width.update_index(fstep.variable_count);
+    fs.width.bound(0.8, 5.0);
+    fs.width.val(3.2);
+    fs.width.update_index(fs.variable_count);
 
-    fstep.position.bound(0, 40);
-    fstep.position.val(20);
-    fstep.position.update_index(fstep.variable_count);
+    fs.position.bound(14, 28);
+    fs.position.val(21);
+    fs.position.update_index(fs.variable_count);
 
-    fstep.step.amplitude.bound(0.000001, 0.05);
-    fstep.step.amplitude.val(0.05);
+    fs.step.amplitude.bound(1e-6, 0.05);
+    fs.step.amplitude.val(0.0005);
   }
 };
 
 TEST_F(Step, CheckSetup)
 {
-  MESSAGE() << "Gaussian amp: " << fstep.amplitude.to_string() << "\n";
-  MESSAGE() << "Gaussian pos: " << fstep.position.to_string() << "\n";
-  MESSAGE() << "Gaussian width: " << fstep.width.to_string() << "\n";
-  MESSAGE() << "Step: " << fstep.step.to_string() << "\n";
+  MESSAGE() << "Gaussian amp: " << fs.amplitude.to_string() << "\n";
+  MESSAGE() << "Gaussian pos: " << fs.position.to_string() << "\n";
+  MESSAGE() << "Gaussian width: " << fs.width.to_string() << "\n";
+  MESSAGE() << "Step: " << fs.step.to_string() << "\n";
 }
 
 TEST_F(Step, Visualize)
 {
-  auto data = generate_data(&fstep, 40);
+  auto data = generate_data(&fs, 40);
   visualize_data(data);
 }
 
 TEST_F(Step, WithinBounds)
 {
-  auto data = generate_data(&fstep, 40);
-  EXPECT_NEAR(data.count_min, 0.0, 1e-40);
-  EXPECT_NEAR(data.count_max, 2.0, 1e-15);
+  auto data = generate_data(&fs, 40);
+  EXPECT_NEAR(data.count_min, 0.0, 1e-13);
+  EXPECT_NEAR(data.count_max, 20.0, 1e-13);
 }
 
 TEST_F(Step, LeftOriented)
 {
-  fstep.step.side = DAQuiri::Side::left;
-  auto data = generate_data(&fstep, 40);
-  EXPECT_NEAR(data.data.front().count, 2.0, 1e-15);
-  EXPECT_NEAR(data.data.back().count, 0.0, 1e-40);
+  fs.step.side = DAQuiri::Side::left;
+  auto data = generate_data(&fs, 40);
+  EXPECT_NEAR(data.data.front().count, 20.0, 1e-13);
+  EXPECT_NEAR(data.data.back().count, 0.0, 1e-13);
 }
 
 TEST_F(Step, RightOriented)
 {
-  fstep.step.side = DAQuiri::Side::right;
-  auto data = generate_data(&fstep, 40);
-  EXPECT_NEAR(data.data.front().count, 0.0, 1e-40);
-  EXPECT_NEAR(data.data.back().count, 2.0, 1e-15);
+  fs.step.side = DAQuiri::Side::right;
+  auto data = generate_data(&fs, 40);
+  EXPECT_NEAR(data.data.front().count, 0.0, 1e-13);
+  EXPECT_NEAR(data.data.back().count, 20.0, 1e-13);
 }
 
 TEST_F(Step, UpdateIndexInvalidThrows)
@@ -163,10 +165,10 @@ TEST_F(Step, UpdateIndexInvalidThrows)
   int32_t i;
 
   i = -1;
-  EXPECT_ANY_THROW(fstep.step.update_indices(i));
+  EXPECT_ANY_THROW(fs.step.update_indices(i));
 
   i = -42;
-  EXPECT_ANY_THROW(fstep.step.update_indices(i));
+  EXPECT_ANY_THROW(fs.step.update_indices(i));
 }
 
 TEST_F(Step, UpdateIndex)
@@ -174,17 +176,17 @@ TEST_F(Step, UpdateIndex)
   int32_t i;
 
   i = 0;
-  fstep.step.update_indices(i);
-  EXPECT_EQ(fstep.step.amplitude.index(), 0);
+  fs.step.update_indices(i);
+  EXPECT_EQ(fs.step.amplitude.index(), 0);
   EXPECT_EQ(i, 1);
 
-  fstep.step.update_indices(i);
-  EXPECT_EQ(fstep.step.amplitude.index(), 1);
+  fs.step.update_indices(i);
+  EXPECT_EQ(fs.step.amplitude.index(), 1);
   EXPECT_EQ(i, 2);
 
   i = 42;
-  fstep.step.update_indices(i);
-  EXPECT_EQ(fstep.step.amplitude.index(), 42);
+  fs.step.update_indices(i);
+  EXPECT_EQ(fs.step.amplitude.index(), 42);
   EXPECT_EQ(i, 43);
 }
 
@@ -193,32 +195,32 @@ TEST_F(Step, UpdateIndexInvalidates)
   int32_t i;
 
   i = 0;
-  fstep.step.update_indices(i);
-  EXPECT_EQ(fstep.step.amplitude.index(), 0);
+  fs.step.update_indices(i);
+  EXPECT_EQ(fs.step.amplitude.index(), 0);
   EXPECT_EQ(i, 1);
 
-  fstep.step.amplitude.to_fit = false;
-  fstep.step.update_indices(i);
-  EXPECT_EQ(fstep.step.amplitude.index(), -1);
+  fs.step.amplitude.to_fit = false;
+  fs.step.update_indices(i);
+  EXPECT_EQ(fs.step.amplitude.index(), -1);
   EXPECT_EQ(i, 1);
 
-  fstep.step.update_indices(i);
-  EXPECT_EQ(fstep.step.amplitude.index(), -1);
+  fs.step.update_indices(i);
+  EXPECT_EQ(fs.step.amplitude.index(), -1);
   EXPECT_EQ(i, 1);
 }
 
 TEST_F(Step, UpdateIndexDisabled)
 {
-  fstep.step.enabled = false;
+  fs.step.enabled = false;
   int32_t i;
 
   i = 0;
-  fstep.step.update_indices(i);
-  EXPECT_EQ(fstep.step.amplitude.index(), -1);
+  fs.step.update_indices(i);
+  EXPECT_EQ(fs.step.amplitude.index(), -1);
   EXPECT_EQ(i, 0);
 
-  fstep.step.update_indices(i);
-  EXPECT_EQ(fstep.step.amplitude.index(), -1);
+  fs.step.update_indices(i);
+  EXPECT_EQ(fs.step.amplitude.index(), -1);
   EXPECT_EQ(i, 0);
 
   // \todo test resetting of indices
@@ -229,17 +231,17 @@ TEST_F(Step, Put)
   Eigen::VectorXd fit;
   fit.setConstant(1, 0.0);
 
-  fstep.step.put(fit);
+  fs.step.put(fit);
   EXPECT_EQ(fit[0], 0.0);
-  EXPECT_NE(fit[0], fstep.step.amplitude.x());
+  EXPECT_NE(fit[0], fs.step.amplitude.x());
 
   int32_t i{0};
-  fstep.step.update_indices(i);
-  EXPECT_EQ(fstep.step.amplitude.index(), 0);
+  fs.step.update_indices(i);
+  EXPECT_EQ(fs.step.amplitude.index(), 0);
 
-  fstep.step.put(fit);
+  fs.step.put(fit);
   EXPECT_NE(fit[0], 0.0);
-  EXPECT_EQ(fit[0], fstep.step.amplitude.x());
+  EXPECT_EQ(fit[0], fs.step.amplitude.x());
 }
 
 TEST_F(Step, Get)
@@ -247,49 +249,49 @@ TEST_F(Step, Get)
   Eigen::VectorXd fit;
   fit.setConstant(1, 0.005);
 
-  fstep.step.get(fit);
-  EXPECT_EQ(fstep.step.amplitude.val(), 0.05);
+  fs.step.get(fit);
+  EXPECT_NEAR(fs.step.amplitude.val(), 0.0005, 1e-15);
 
   int32_t i{0};
-  fstep.step.update_indices(i);
-  EXPECT_EQ(fstep.step.amplitude.index(), 0);
+  fs.step.update_indices(i);
+  EXPECT_DOUBLE_EQ(fs.step.amplitude.index(), 0.0);
 
-  fstep.step.get(fit);
-  EXPECT_NE(fstep.step.amplitude.val(), 0.05);
-  EXPECT_EQ(fstep.step.amplitude.val(), fstep.step.amplitude.val_at(0.005));
+  fs.step.get(fit);
+  EXPECT_NE(fs.step.amplitude.val(), 0.0005);
+  EXPECT_DOUBLE_EQ(fs.step.amplitude.val(), fs.step.amplitude.val_at(0.005));
 }
 
 TEST_F(Step, EvalAt)
 {
-  auto pre = fstep.precalc(20);
+  auto pre = fs.precalc(20);
 
-  auto goal = fstep.step.eval(pre);
+  auto goal = fs.step.eval(pre);
 
   int32_t i{0};
-  fstep.step.update_indices(i);
+  fs.step.update_indices(i);
 
   Eigen::VectorXd fit;
   fit.setConstant(1, 0.0);
-  fstep.step.put(fit);
+  fs.step.put(fit);
 
-  fstep.step.amplitude.val(0.000001);
+  fs.step.amplitude.val(0.000001);
 
-  EXPECT_NE(fstep.step.eval(pre), goal);
-  EXPECT_EQ(fstep.step.eval_at(pre, fit), goal);
+  EXPECT_NE(fs.step.eval(pre), goal);
+  EXPECT_EQ(fs.step.eval_at(pre, fit), goal);
 }
 
 TEST_F(Step, EvalGrad)
 {
-  auto pre = fstep.precalc(10);
+  auto pre = fs.precalc(10);
 
-  fstep.step.update_indices(fstep.variable_count);
+  fs.step.update_indices(fs.variable_count);
 
   Eigen::VectorXd grad;
-  grad.setConstant(fstep.variable_count, 0.0);
+  grad.setConstant(fs.variable_count, 0.0);
 
-  auto result = fstep.step.eval_grad(pre, grad);
+  auto result = fs.step.eval_grad(pre, grad);
 
-  EXPECT_EQ(result, fstep.step.eval(pre));
+  EXPECT_EQ(result, fs.step.eval(pre));
   EXPECT_NE(grad[0], 0.0);
   EXPECT_NE(grad[1], 0.0);
   EXPECT_EQ(grad[2], 0.0); // pos gradient should be unaffected?
@@ -300,72 +302,125 @@ TEST_F(Step, EvalGrad)
 
 TEST_F(Step, EvalGradAt)
 {
-  auto pre = fstep.precalc(10);
+  auto pre = fs.precalc(10);
 
   int32_t i{3};
-  fstep.step.update_indices(i);
+  fs.step.update_indices(i);
 
   Eigen::VectorXd grad_goal;
   grad_goal.setConstant(i, 0.0);
-  fstep.step.eval_grad(pre, grad_goal);
+  fs.step.eval_grad(pre, grad_goal);
 
   Eigen::VectorXd fit, grad;
   fit.setConstant(i, 0.0);
   grad.setConstant(i, 0.0);
 
-  fstep.step.put(fit);
-  fstep.step.amplitude.val(0.000001);
+  fs.step.put(fit);
+  fs.step.amplitude.val(0.000001);
 
-  auto result = fstep.step.eval_grad_at(pre, fit, grad);
+  auto result = fs.step.eval_grad_at(pre, fit, grad);
 
-  EXPECT_EQ(result, fstep.step.eval_at(pre, fit));
+  EXPECT_EQ(result, fs.step.eval_at(pre, fit));
   EXPECT_EQ(grad[0], grad_goal[0]);
   EXPECT_EQ(grad[1], grad_goal[1]);
   EXPECT_EQ(grad[2], grad_goal[2]);
   EXPECT_EQ(grad[3], grad_goal[3]);
 }
 
-TEST_F(Step, GradStepAmp)
+TEST_F(Step, GradAmplitude)
 {
-  fstep.data = generate_data(&fstep, 40);
+  double goal_val = fs.step.amplitude.val();
+  fs.data = generate_data(&fs, 40);
 
-  double goal_val = fstep.step.amplitude.val();
-  fstep.step.update_indices(fstep.variable_count);
-  survey_grad(&fstep, &fstep.step.amplitude);
+  fs.width.to_fit = false;
+  fs.position.to_fit = false;
+  fs.amplitude.to_fit = false;
+  fs.update_indices();
+  survey_grad(&fs, &fs.step.amplitude, 0.00001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.00001);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.00001);
 }
 
-TEST_F(Step, GradWidth)
+TEST_F(Step, FitAmplitudeOnly)
 {
-  fstep.data = generate_data(&fstep, 40);
+  fs.data = generate_data(&fs, 40);
 
-  double goal_val = fstep.width.val();
-  fstep.step.update_indices(fstep.variable_count);
-  survey_grad(&fstep, &fstep.width);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.005);
-  EXPECT_NEAR(check_gradients(false), goal_val, 0.005);
+  fs.width.to_fit = false;
+  fs.position.to_fit = false;
+  fs.amplitude.to_fit = false;
+  fs.update_indices();
+
+  DAQuiri::DLibOptimizer optimizer;
+  test_fit(5, &optimizer, &fs, &fs.step.amplitude, 0.005, 1e-5);
+
+  fs.step.amplitude.val(0.0005);
+  test_fit_random(20, &optimizer, &fs, &fs.step.amplitude,
+                  fs.step.amplitude.min(), fs.step.amplitude.max(), 1e-5);
 }
 
-TEST_F(Step, GradAmp)
+TEST_F(Step, GradParentWidth)
 {
-  fstep.data = generate_data(&fstep, 40);
+  double goal_val = fs.width.val();
+  fs.data = generate_data(&fs, 40);
 
-  double goal_val = fstep.amplitude.val();
-  fstep.step.update_indices(fstep.variable_count);
-  survey_grad(&fstep, &fstep.amplitude, 0.05);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 4);
-  EXPECT_NEAR(check_gradients(false), goal_val, 4);
+  fs.position.to_fit = false;
+  fs.amplitude.to_fit = false;
+  fs.step.amplitude.to_fit = false;
+  fs.update_indices();
+  survey_grad(&fs, &fs.width, 0.001);
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
+  EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
 }
 
-TEST_F(Step, GradPos)
+TEST_F(Step, FitParentWidthOnly)
 {
-  fstep.data = generate_data(&fstep, 40);
+  fs.data = generate_data(&fs, 40);
 
-  double goal_val = fstep.position.val();
-  fstep.step.update_indices(fstep.variable_count);
-  survey_grad(&fstep, &fstep.position);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.00001);
-  check_gradients(true);
-  // \todo gradient not affected!
+  fs.position.to_fit = false;
+  fs.amplitude.to_fit = false;
+  fs.step.amplitude.to_fit = false;
+  fs.update_indices();
+
+  DAQuiri::DLibOptimizer optimizer;
+  test_fit(5, &optimizer, &fs, &fs.width, 1.0, 0.5);
+
+  fs.width.val(3.2);
+  test_fit_random(20, &optimizer, &fs, &fs.width,
+                  fs.width.min(), fs.width.max(), 0.5);
 }
+
+// \todo this is failing
+
+TEST_F(Step, GradParentAmplitude)
+{
+  double goal_val = fs.amplitude.val();
+  fs.data = generate_data(&fs, 40);
+
+  fs.width.to_fit = false;
+  fs.position.to_fit = false;
+  fs.step.amplitude.to_fit = false;
+  fs.update_indices();
+  survey_grad(&fs, &fs.amplitude, 0.1, std::sqrt(30000), std::sqrt(40000));
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 50);
+  EXPECT_NEAR(check_gradients(false), goal_val, 50);
+}
+
+TEST_F(Step, FitParentAmplitudeOnly)
+{
+  fs.data = generate_data(&fs, 40);
+
+  fs.width.to_fit = false;
+  fs.position.to_fit = false;
+  fs.step.amplitude.to_fit = false;
+  fs.update_indices();
+
+  DAQuiri::DLibOptimizer optimizer;
+  optimizer.tolerance = 1e-12;
+  test_fit(5, &optimizer, &fs, &fs.amplitude, 30000, 0.5);
+
+  fs.width.val(40000);
+  test_fit_random(20, &optimizer, &fs, &fs.amplitude,
+                  30000, 50000, 260);
+}
+
+// \todo parent position should play a role?
