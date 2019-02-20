@@ -1,5 +1,6 @@
 // CppNumericalSolver
 #include <iostream>
+#include <iomanip>
 #include <Eigen/LU>
 #include "isolver.h"
 #include "../linesearch/morethuente.h"
@@ -54,21 +55,20 @@ class BfgsSolver : public ISolver<ProblemType, 1>
           * (s * s.transpose());
       if (Superclass::m_debug >= DebugLevel::Low)
       {
-        std::cout << "iter: " << this->m_current.iterations << " f = " << objFunc.value(x0)
-                  << " ||g||_inf " << this->m_current.gradNorm << std::endl;
+        std::cout << "iter: " << std::right << std::setw(8) << this->m_current.iterations
+                  << "     f = " << std::right << std::setw(12) << objFunc.value(x0)
+                  << "     ||g||_inf = " << std::right << std::setw(12)
+                  << this->m_current.gradNorm << std::endl;
       }
 
-      if ((x_old - x0).template lpNorm<Eigen::Infinity>() < 1e-7)
-        break;
+      this->m_current.xDelta = (x_old - x0).template lpNorm<Eigen::Infinity>();
       x_old = x0;
       ++this->m_current.iterations;
       this->m_current.gradNorm = grad.template lpNorm<Eigen::Infinity>();
       this->m_status = checkConvergence(this->m_stop, this->m_current);
     }
     while (objFunc.callback(this->m_current, x0) && (this->m_status == Status::Continue));
-
   }
-
 };
 
 }

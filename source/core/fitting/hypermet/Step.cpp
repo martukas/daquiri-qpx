@@ -6,6 +6,11 @@
 namespace DAQuiri
 {
 
+void Step::reset_indices()
+{
+  amplitude.reset_index();
+}
+
 void Step::update_indices(int32_t& i)
 {
   if (enabled)

@@ -39,6 +39,7 @@ class Peak
   void full_energy_peak(bool flag);
   bool operator<(const Peak& other) const;
 
+  void reset_indices();
   void update_indices(int32_t& i);
   void put(Eigen::VectorXd& fit) const;
   void get(const Eigen::VectorXd& fit);

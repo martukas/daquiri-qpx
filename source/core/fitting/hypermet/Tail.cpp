@@ -6,6 +6,12 @@
 namespace DAQuiri
 {
 
+void Tail::reset_indices()
+{
+  amplitude.reset_index();
+  slope.reset_index();
+}
+
 void Tail::update_indices(int32_t& i)
 {
   if (enabled)

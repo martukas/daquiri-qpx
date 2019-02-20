@@ -253,6 +253,7 @@ void Region::update_indices()
   variable_count = 0;
   background.update_indices(variable_count);
 
+  default_peak_.reset_indices();
   if (!peaks_.empty())
   {
     if (unique_widths < peaks_.size())

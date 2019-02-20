@@ -17,6 +17,8 @@ class Step
   Side side{Side::left};
   Value amplitude;
 
+  void reset_indices();
+
   /// \brief if enabled, saves and increments indices for variables flagged for fitting
   /// \param idx index from parent model
   void update_indices(int32_t& i);

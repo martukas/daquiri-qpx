@@ -226,6 +226,17 @@ UncertainDouble Peak::fwhm_energy(const Calibration& cal) const
   return {val, 0.5 * (max - min)};
 }
 
+void Peak::reset_indices()
+{
+  position.reset_index();
+  amplitude.reset_index();
+  width.reset_index();
+
+  short_tail.reset_indices();
+  right_tail.reset_indices();
+  long_tail.reset_indices();
+  step.reset_indices();
+}
 
 void Peak::update_indices(int32_t& i)
 {

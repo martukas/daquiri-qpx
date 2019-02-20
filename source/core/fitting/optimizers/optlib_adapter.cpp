@@ -28,11 +28,20 @@ class OptlibFittableWrapper : public cppoptlib::Problem<double>
     function_->chi_sq_gradient(x, grad);
   }
 
-  bool callback(const cppoptlib::Criteria<double> &state, const TVector &x)
+  bool callback(const cppoptlib::Criteria<double>& state, const TVector& x)
   {
     return !cancel_->load();
   }
 };
+
+bool OptlibOptimizer::check_gradient(FittableFunction* fittable) const
+{
+  Eigen::VectorXd x = fittable->variables();
+
+  OptlibFittableWrapper f;
+  f.function_ = fittable;
+  return f.checkGradient(x);
+}
 
 FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
 {
@@ -49,20 +58,22 @@ FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
   crit.gradNorm = tolerance;
   solver.setStopCriteria(crit);
 
+  FitResult ret;
+  solver.minimize(f, x);
+  auto status = solver.status();
+
   if (verbose)
   {
     std::stringstream ss;
-    ss << solver.status();
+    ss << status;
     INFO("Optimization stopped with {}", ss.str());
   }
 
-  FitResult ret;
-  solver.minimize(f, x);
   ret.variables = x;
   ret.value = fittable->chi_sq(x);
-  ret.converged = (solver.status() == cppoptlib::Status::GradNormTolerance)
-      || (solver.status() == cppoptlib::Status::FDeltaTolerance)
-      || (solver.status() == cppoptlib::Status::XDeltaTolerance);
+  ret.converged = (status == cppoptlib::Status::GradNormTolerance)
+      || (status == cppoptlib::Status::FDeltaTolerance)
+      || (status == cppoptlib::Status::XDeltaTolerance);
   ret.iterations = solver.criteria().iterations;
   return ret;
 }
