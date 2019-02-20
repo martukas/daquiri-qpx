@@ -59,8 +59,8 @@ class Peak : public FunctionTest
     fp.peak = fp.peak.gaussian_only();
     //fp.peak.amplitude.bound(0, 500);
     fp.peak.amplitude.val(4000);
-    fp.peak.position.bound(14, 28);
-    fp.peak.position.val(21);
+    fp.peak.position.bound(44, 68);
+    fp.peak.position.val(51);
     fp.peak.width_override = true;
     fp.peak.width.bound(0.8, 5.0);
     fp.peak.width.val(3.2);
@@ -74,13 +74,13 @@ TEST_F(Peak, CheckSetup)
 
 TEST_F(Peak, Visualize)
 {
-  auto data = generate_data(&fp, 40);
+  auto data = generate_data(&fp, 100);
   visualize_data(data);
 }
 
 TEST_F(Peak, WithinBounds)
 {
-  auto data = generate_data(&fp, 40);
+  auto data = generate_data(&fp, 100);
   EXPECT_NEAR(data.count_min, 0.0, 1e-14);
   EXPECT_NEAR(data.count_max, 4000.0, 1e-7);
 }
@@ -214,7 +214,7 @@ TEST_F(Peak, Get)
   fit[2] = 0.01;
 
   fp.peak.get(fit);
-  EXPECT_NEAR(fp.peak.position.val(), 21, 0.00001);
+  EXPECT_NEAR(fp.peak.position.val(), 51, 0.00001);
   EXPECT_NE(fp.peak.position.val(), fp.peak.position.val_at(0.5));
   EXPECT_NEAR(fp.peak.amplitude.val(), 4000, 0.00001);
   EXPECT_NE(fp.peak.amplitude.val(), fp.peak.amplitude.val_at(0.03));
@@ -292,7 +292,7 @@ TEST_F(Peak, EvalGradAt)
 TEST_F(Peak, GradPosition)
 {
   double goal_val = fp.peak.position.val();
-  fp.data = generate_data(&fp, 40);
+  fp.data = generate_data(&fp, 100);
 
   fp.peak.width.to_fit = false;
   fp.peak.amplitude.to_fit = false;
@@ -304,35 +304,35 @@ TEST_F(Peak, GradPosition)
 
 TEST_F(Peak, FitPositionOnly)
 {
-  fp.data = generate_data(&fp, 40);
+  fp.data = generate_data(&fp, 100);
 
   fp.peak.width.to_fit = false;
   fp.peak.amplitude.to_fit = false;
   fp.update_indices();
 
   DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fp, &fp.peak.position, 17, 0.5);
+  test_fit(5, &optimizer, &fp, &fp.peak.position, 47, 0.5);
 
-  fp.peak.position.val(21);
-  test_fit_random(20, &optimizer, &fp, &fp.peak.position, 14, 28, 0.5);
+  fp.peak.position.val(51);
+  test_fit_random(20, &optimizer, &fp, &fp.peak.position, 44, 68, 0.5);
 }
 
 TEST_F(Peak, FitPositionRelaxed)
 {
-  fp.data = generate_data(&fp, 40);
+  fp.data = generate_data(&fp, 100);
   fp.update_indices();
 
   DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fp, &fp.peak.position, 17, 0.5);
+  test_fit(5, &optimizer, &fp, &fp.peak.position, 47, 0.5);
 
-  fp.peak.position.val(21);
-  test_fit_random(20, &optimizer, &fp, &fp.peak.position, 14, 28, 0.5);
+  fp.peak.position.val(51);
+  test_fit_random(20, &optimizer, &fp, &fp.peak.position, 44, 68, 0.5);
 }
 
 TEST_F(Peak, GradWidth)
 {
   double goal_val = fp.peak.width.val();
-  fp.data = generate_data(&fp, 40);
+  fp.data = generate_data(&fp, 100);
 
   fp.peak.position.to_fit = false;
   fp.peak.amplitude.to_fit = false;
@@ -344,7 +344,7 @@ TEST_F(Peak, GradWidth)
 
 TEST_F(Peak, FitWidthOnly)
 {
-  fp.data = generate_data(&fp, 40);
+  fp.data = generate_data(&fp, 100);
 
   fp.peak.position.to_fit = false;
   fp.peak.amplitude.to_fit = false;
@@ -360,7 +360,7 @@ TEST_F(Peak, FitWidthOnly)
 
 TEST_F(Peak, FitWidthRelaxed)
 {
-  fp.data = generate_data(&fp, 40);
+  fp.data = generate_data(&fp, 100);
   fp.update_indices();
 
   DAQuiri::DLibOptimizer optimizer;
@@ -374,7 +374,7 @@ TEST_F(Peak, FitWidthRelaxed)
 TEST_F(Peak, GradAmplitude)
 {
   double goal_val = fp.peak.amplitude.val();
-  fp.data = generate_data(&fp, 40);
+  fp.data = generate_data(&fp, 100);
 
   fp.peak.width.to_fit = false;
   fp.peak.position.to_fit = false;
@@ -386,7 +386,7 @@ TEST_F(Peak, GradAmplitude)
 
 TEST_F(Peak, FitAmplitudeOnly)
 {
-  fp.data = generate_data(&fp, 40);
+  fp.data = generate_data(&fp, 100);
 
   fp.peak.width.to_fit = false;
   fp.peak.position.to_fit = false;
@@ -402,7 +402,7 @@ TEST_F(Peak, FitAmplitudeOnly)
 
 TEST_F(Peak, FitAmplitudeRelaxed)
 {
-  fp.data = generate_data(&fp, 40);
+  fp.data = generate_data(&fp, 100);
   fp.update_indices();
 
   DAQuiri::DLibOptimizer optimizer;
@@ -415,117 +415,52 @@ TEST_F(Peak, FitAmplitudeRelaxed)
 
 TEST_F(Peak, FitAllThree)
 {
-  double goal_pos = fp.peak.position.val();
-  double goal_width = fp.peak.width.val();
-  double goal_amplitude = fp.peak.amplitude.val();
-
-  fp.data = generate_data(&fp, 40);
+  fp.data = generate_data(&fp, 100);
   fp.update_indices();
 
-  std::mt19937 random_generator;
-  random_generator.seed(std::random_device()());
-  std::uniform_real_distribution<double> pos_dist(fp.peak.position.min(),
-                                                  fp.peak.position.max());
-  std::uniform_real_distribution<double> width_dist(fp.peak.width.min(),
-                                                    fp.peak.width.max());
-  std::uniform_real_distribution<double> amplitude_dist(3000, 5000);
+  std::vector<ValueToVary> vals;
+  vals.push_back({"position", &fp.peak.position,
+                  fp.peak.position.min(),
+                  fp.peak.position.max(), 0.001});
+  vals.push_back({"width", &fp.peak.width,
+                  fp.peak.width.min(),
+                  fp.peak.width.max(), 0.001});
+  vals.push_back({"amplitude", &fp.peak.amplitude,
+                  3000, 5000, 0.01});
 
   DAQuiri::DLibOptimizer optimizer;
-
-  for (size_t i = 0; i < 50; ++i)
-  {
-    fp.peak.position.val(pos_dist(random_generator));
-    fp.peak.width.val(width_dist(random_generator));
-    fp.peak.amplitude.val(amplitude_dist(random_generator));
-    MESSAGE() << "Attempt[" << i << "]\n" << fp.peak.to_string();
-    fp.save_fit(optimizer.minimize(&fp));
-    MESSAGE() << "Result:               \n"
-              << fp.peak.to_string("                      ");
-    MESSAGE() << "       position delta="
-              << (goal_pos - fp.peak.position.val()) << "\n";
-    MESSAGE() << "          width delta="
-              << (goal_width - fp.peak.width.val()) << "\n";
-    MESSAGE() << "      amplitude delta="
-              << (goal_amplitude - fp.peak.amplitude.val()) << "\n";
-
-    EXPECT_NEAR(fp.peak.position.val(), goal_pos, 0.001);
-    EXPECT_NEAR(fp.peak.width.val(), goal_width, 0.001);
-    EXPECT_NEAR(fp.peak.amplitude.val(), goal_amplitude, 0.01);
-  }
+  test_fit_random(100, &optimizer, &fp, vals);
 }
 
-TEST_F(Peak, WithSkews)
-{
-  fp.peak.short_tail.enabled = true;
-  fp.peak.right_tail.enabled = true;
-  fp.data = generate_data(&fp, 40);
-  fp.update_indices();
-
-  MESSAGE() << "Peak:\n" << fp.peak.to_string() << "\n";
-  visualize_data(fp.data);
-
-  double goal_pos = fp.peak.position.val();
-  double goal_width = fp.peak.width.val();
-  double goal_amplitude = fp.peak.amplitude.val();
-  double goal_ls_amp = fp.peak.short_tail.amplitude.val();
-  double goal_ls_slope = fp.peak.short_tail.slope.val();
-  double goal_rs_amp = fp.peak.right_tail.amplitude.val();
-  double goal_rs_slope = fp.peak.right_tail.slope.val();
-
-  std::mt19937 random_generator;
-  random_generator.seed(std::random_device()());
-  std::uniform_real_distribution<double> pos_dist(fp.peak.position.min(),
-                                                  fp.peak.position.max());
-  std::uniform_real_distribution<double> width_dist(fp.peak.width.min(),
-                                                    fp.peak.width.max());
-  std::uniform_real_distribution<double> amplitude_dist(3000, 5000);
-  std::uniform_real_distribution<double> ls_amplitude_dist(fp.peak.short_tail.amplitude.min(),
-                                                           fp.peak.short_tail.amplitude.max());
-  std::uniform_real_distribution<double> ls_slope_dist(fp.peak.short_tail.slope.min(),
-                                                       fp.peak.short_tail.slope.max());
-  std::uniform_real_distribution<double> rs_amplitude_dist(fp.peak.right_tail.amplitude.min(),
-                                                           fp.peak.right_tail.amplitude.max());
-  std::uniform_real_distribution<double> rs_slope_dist(fp.peak.right_tail.slope.min(),
-                                                       fp.peak.right_tail.slope.max());
-
-  DAQuiri::DLibOptimizer optimizer;
-
-  for (size_t i = 0; i < 10; ++i)
-  {
-    fp.peak.position.val(pos_dist(random_generator));
-    fp.peak.width.val(width_dist(random_generator));
-    fp.peak.amplitude.val(amplitude_dist(random_generator));
-    fp.peak.short_tail.amplitude.val(ls_amplitude_dist(random_generator));
-    fp.peak.short_tail.slope.val(ls_slope_dist(random_generator));
-    fp.peak.right_tail.amplitude.val(rs_amplitude_dist(random_generator));
-    fp.peak.right_tail.slope.val(rs_slope_dist(random_generator));
-
-    MESSAGE() << "Attempt[" << i << "]\n" << fp.peak.to_string();
-    fp.save_fit(optimizer.minimize(&fp));
-    MESSAGE() << "Result:               \n"
-              << fp.peak.to_string("                      ");
-    MESSAGE() << "       position delta="
-              << (goal_pos - fp.peak.position.val()) << "\n";
-    MESSAGE() << "          width delta="
-              << (goal_width - fp.peak.width.val()) << "\n";
-    MESSAGE() << "      amplitude delta="
-              << (goal_amplitude - fp.peak.amplitude.val()) << "\n";
-    MESSAGE() << "   ls_amplitude delta="
-              << (goal_ls_amp - fp.peak.short_tail.amplitude.val()) << "\n";
-    MESSAGE() << "       ls_slope delta="
-              << (goal_ls_slope - fp.peak.short_tail.slope.val()) << "\n";
-    MESSAGE() << "   rs_amplitude delta="
-              << (goal_rs_amp - fp.peak.right_tail.amplitude.val()) << "\n";
-    MESSAGE() << "       rs_slope delta="
-              << (goal_rs_slope - fp.peak.right_tail.slope.val()) << "\n";
-
-    EXPECT_NEAR(fp.peak.position.val(), goal_pos, 7);
-    EXPECT_NEAR(fp.peak.width.val(), goal_width, 2.4);
-    EXPECT_NEAR(fp.peak.amplitude.val(), goal_amplitude, 1500);
-    EXPECT_NEAR(fp.peak.short_tail.amplitude.val(), goal_ls_amp, 0.75);
-    EXPECT_NEAR(fp.peak.short_tail.slope.val(), goal_ls_slope, 0.15);
-    EXPECT_NEAR(fp.peak.right_tail.amplitude.val(), goal_rs_amp, 0.45);
-    EXPECT_NEAR(fp.peak.right_tail.slope.val(), goal_rs_slope, 0.57);
-  }
-
-}
+//TEST_F(Peak, FitWithSkews)
+//{
+//  fp.peak.short_tail.enabled = true;
+//  fp.peak.right_tail.enabled = true;
+//  fp.data = generate_data(&fp, 100);
+//  fp.update_indices();
+//
+//  std::vector<ValueToVary> vals;
+//  vals.push_back({"position", &fp.peak.position,
+//                  fp.peak.position.min(),
+//                  fp.peak.position.max(), 0.001});
+//  vals.push_back({"width", &fp.peak.width,
+//                  fp.peak.width.min(),
+//                  fp.peak.width.max(), 0.001});
+//  vals.push_back({"amplitude", &fp.peak.amplitude,
+//                  3000, 5000, 0.01});
+//  vals.push_back({"ls_amp", &fp.peak.short_tail.amplitude,
+//                  fp.peak.short_tail.amplitude.min(),
+//                  fp.peak.short_tail.amplitude.max(), 0.75});
+//  vals.push_back({"ls_slope", &fp.peak.short_tail.slope,
+//                  fp.peak.short_tail.slope.min(),
+//                  fp.peak.short_tail.slope.max(), 0.15});
+//  vals.push_back({"rs_amp", &fp.peak.right_tail.amplitude,
+//                  fp.peak.right_tail.amplitude.min(),
+//                  fp.peak.right_tail.amplitude.max(), 0.45});
+//  vals.push_back({"rs_slope", &fp.peak.right_tail.slope,
+//                  fp.peak.right_tail.slope.min(),
+//                  fp.peak.right_tail.slope.max(), 0.57});
+//
+//  DAQuiri::DLibOptimizer optimizer;
+//  test_fit_random(1000, &optimizer, &fp, vals);
+//}

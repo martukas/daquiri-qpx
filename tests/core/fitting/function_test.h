@@ -1,15 +1,46 @@
 #pragma once
 
 #include "gtest_color_print.h"
-
-#include <core/util/visualize_vector.h>
+#include "clever_hist.h"
 
 #include <core/fitting/fittable_region.h>
 #include <core/fitting/optimizers/abstract_optimizer.h>
-
 #include <core/fitting/hypermet/Value.h>
 
 #include <random>
+
+struct ValueToVary
+{
+  ValueToVary() = default;
+  ValueToVary(std::string var_name, DAQuiri::AbstractValue* var,
+              double minimum, double maximum, double eps);
+
+  DAQuiri::AbstractValue* variable;
+  double min, max;
+  double epsilon;
+  std::uniform_real_distribution<double> distribution;
+  std::string name;
+  double goal;
+
+  double max_delta{0};
+  std::vector<double> deltas;
+
+  std::string name_var() const;
+
+  std::string declare() const;
+
+  void vary(std::mt19937& rng);
+
+  void record_delta();
+
+  double get_delta() const;
+
+  std::string print_delta();
+
+  std::string summary() const;
+
+  CleverHist deltas_hist() const;
+};
 
 class FunctionTest : public TestBase
 {
@@ -19,145 +50,36 @@ class FunctionTest : public TestBase
   std::vector<double> chi_sq_norm;
   std::vector<double> gradient;
 
-  DAQuiri::WeightedData generate_data(const DAQuiri::FittableRegion* fittable, size_t bins) const
-  {
-    std::vector<double> channels;
-    std::vector<double> y;
-    for (size_t i = 0; i < bins; ++i)
-    {
-      channels.push_back(i);
-      y.push_back(fittable->eval(i));
-    }
-    return DAQuiri::WeightedData(channels, y);
-  }
+  DAQuiri::WeightedData generate_data(
+      const DAQuiri::FittableRegion* fittable, size_t bins) const;
 
-  void visualize_data(const DAQuiri::WeightedData& data) const
-  {
-    std::vector<double> channels;
-    std::vector<double> counts;
-    for (const auto& p : data.data)
-    {
-      channels.push_back(p.channel);
-      counts.push_back(p.count);
-    }
-    MESSAGE() << "counts(channel):\n" << visualize(channels, counts, 100) << "\n";
-  }
+  void visualize_data(const DAQuiri::WeightedData& data) const;
 
   void survey_grad(const DAQuiri::FittableRegion* fittable,
                    DAQuiri::AbstractValue* variable,
-                   double step_size = 0.1, double xmin = -M_PI, double xmax = M_PI)
-  {
-    size_t chosen_var_idx = variable->index();
+                   double step_size = 0.1, double xmin = -M_PI, double xmax = M_PI);
 
-    val_proxy.clear();
-    val_val.clear();
-    chi_sq_norm.clear();
-    gradient.clear();
+  double check_chi_sq(bool print) const;
 
-    Eigen::VectorXd variables = fittable->variables();
-    Eigen::VectorXd gradients;
-    for (double proxy = xmin; proxy < xmax; proxy += step_size)
-    {
-      variables[chosen_var_idx] = proxy;
-
-      val_proxy.push_back(proxy);
-      val_val.push_back(variable->val_at(proxy));
-      chi_sq_norm.push_back(fittable->chi_sq_gradient(variables, gradients));
-      gradient.push_back(gradients[chosen_var_idx]);
-    }
-  }
-
-  double check_chi_sq(bool print) const
-  {
-    auto min_chi = std::min_element(chi_sq_norm.begin(), chi_sq_norm.end());
-    auto min_chi_i = std::distance(chi_sq_norm.begin(), min_chi);
-
-    if (print)
-    {
-//      MESSAGE() << "chi_sq(proxy):\n" << visualize(val_proxy, chi_sq_norm, 100) << "\n";
-      MESSAGE() << "chi_sq(val):\n" << visualize_all(val_val, chi_sq_norm, 100) << "\n";
-    }
-    MESSAGE() << "min(chi_sq)=" << chi_sq_norm[min_chi_i] << " at val=" << val_val[min_chi_i] << "\n";
-
-    return val_val[min_chi_i];
-  }
-
-  double check_gradients(bool print) const
-  {
-    double min_abs = std::numeric_limits<double>::max();
-    size_t grad_i = 0;
-    for (size_t i = 0; i < gradient.size(); ++i)
-    {
-      if (std::abs(gradient[i]) < min_abs)
-      {
-        grad_i = i;
-        min_abs = std::abs(gradient[i]);
-      }
-    }
-
-    if (print)
-    {
-//      MESSAGE() << "gradient(proxy):\n" << visualize(val_proxy, gradient, 100) << "\n";
-      MESSAGE() << "gradient(val):\n" << visualize_all(val_val, gradient, 100) << "\n";
-    }
-    MESSAGE() << "min(abs(grad))=" << gradient[grad_i] << " at val=" << val_val[grad_i] << "\n";
-
-    return val_val[grad_i];
-  }
+  double check_gradients(bool print) const;
 
   void test_fit(size_t attempts,
                 DAQuiri::AbstractOptimizer* optimizer,
                 DAQuiri::FittableRegion* fittable,
                 DAQuiri::AbstractValue* variable,
                 double wrong_value,
-                double epsilon)
-  {
-    fittable->update_indices();
-    double goal_val = variable->val();
-
-    MESSAGE() << "Will fit " << wrong_value << " --> " << variable->to_string()
-              << " in " << attempts << " attempts with epsilon=" << epsilon << "\n";
-
-    for (size_t i = 0; i < attempts; ++i)
-    {
-      variable->val(wrong_value);
-      auto result = optimizer->minimize(fittable);
-      if (optimizer->verbose)
-        MESSAGE() << result.to_string() << "\n";
-      fittable->save_fit(result);
-      MESSAGE() << "Attempt[" << i << "] " << variable->to_string()
-                << "  delta=" << (goal_val - variable->val()) << "\n";
-      EXPECT_NEAR(variable->val(), goal_val, epsilon);
-    }
-  }
+                double epsilon);
 
   void test_fit_random(size_t attempts,
                        DAQuiri::AbstractOptimizer* optimizer,
                        DAQuiri::FittableRegion* fittable,
                        DAQuiri::AbstractValue* variable,
                        double wrong_min, double wrong_max,
-                       double epsilon)
-  {
-    std::mt19937 random_generator;
-    random_generator.seed(std::random_device()());
-    std::uniform_real_distribution<double> distribution(wrong_min, wrong_max);
+                       double epsilon);
 
-    fittable->update_indices();
-    double goal_val = variable->val();
-
-    MESSAGE() << "Will fit random(" << wrong_min << "," << wrong_max << ") --> "
-              << variable->to_string() << " in " << attempts
-              << " attempts with epsilon=" << epsilon << "\n";
-
-    for (size_t i = 0; i < attempts; ++i)
-    {
-      double wrong = distribution(random_generator);
-      variable->val(wrong);
-      auto result = optimizer->minimize(fittable);
-      fittable->save_fit(result);
-      MESSAGE() << "Attempt[" << i << "] " << wrong << "->" << variable->to_string()
-                << "  delta=" << (goal_val - variable->val()) << "\n";
-      EXPECT_NEAR(variable->val(), goal_val, epsilon);
-    }
-  }
+  void test_fit_random(size_t attempts,
+                       DAQuiri::AbstractOptimizer* optimizer,
+                       DAQuiri::FittableRegion* fittable,
+                       std::vector<ValueToVary> vals,
+                       bool verbose = false);
 };
