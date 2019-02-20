@@ -5,6 +5,7 @@ set(SOURCES
   ${dir}/BFGS.cpp
   ${dir}/dlib_adapter.cpp
   ${dir}/gsl_adapter.cpp
+  ${dir}/optlib_adapter.cpp
   )
 
 set(HEADERS
@@ -14,6 +15,7 @@ set(HEADERS
   ${dir}/BFGS.h
   ${dir}/dlib_adapter.h
   ${dir}/gsl_adapter.h
+  ${dir}/optlib_adapter.h
   )
 
 set(${this_target}_headers ${${this_target}_headers} ${HEADERS} PARENT_SCOPE)

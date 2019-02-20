@@ -2,15 +2,14 @@
 #include <core/util/timer.h>
 #include <core/util/custom_logger.h>
 
-#include <core/fitting/optimizers/BFGS.h>
-#include <core/fitting/optimizers/dlib_adapter.h>
+#include <core/fitting/optimizers/optlib_adapter.h>
 
 ThreadFitter::ThreadFitter(QObject *parent) :
   QThread(parent),
   terminating_(false),
   running_(false)
 {
-  optimizer_ = std::make_shared<DAQuiri::DLibOptimizer>();
+  optimizer_ = std::make_shared<DAQuiri::OptlibOptimizer>();
   optimizer_->verbose = true;
 
   action_ = kIdle;

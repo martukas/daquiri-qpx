@@ -4,6 +4,7 @@ set(SOURCES
   ${dir}/rosenbrock.h
   ${dir}/dlib_adapter.cpp
   ${dir}/gsl_adapter.cpp
+  ${dir}/optlib_adapter.cpp
   ${dir}/BFGS.cpp
   )
 
