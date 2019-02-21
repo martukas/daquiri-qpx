@@ -30,6 +30,8 @@ class OptlibFittableWrapper : public cppoptlib::Problem<double>
 
   bool callback(const cppoptlib::Criteria<double>& state, const TVector& x)
   {
+    (void) state; // unused
+    (void) x;     // unused
     return !cancel_->load();
   }
 };
@@ -69,13 +71,15 @@ FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
   }
 
   FitResult ret;
-  ret.variables = x;
-  ret.value = fittable->chi_sq(x);
   ret.converged = (status == cppoptlib::Status::GradNormTolerance)
       || (status == cppoptlib::Status::FDeltaTolerance)
       || (status == cppoptlib::Status::XDeltaTolerance);
   ret.iterations = solver.criteria().iterations;
   f.finiteHessian(x, ret.inv_hessian);
+  // \todo do we need to invert?
+//  ret.inv_hessian = ret.inv_hessian.inverse();
+  ret.variables = x;
+  ret.value = fittable->chi_sq(x);
   return ret;
 }
 

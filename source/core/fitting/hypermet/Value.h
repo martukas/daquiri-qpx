@@ -18,6 +18,8 @@
 namespace DAQuiri
 {
 
+// \todo invalidate uncertainties automatically when changing value
+
 class AbstractValue
 {
  public:
