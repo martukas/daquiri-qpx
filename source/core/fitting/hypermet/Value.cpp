@@ -88,9 +88,13 @@ void AbstractValue::get_uncert(const Eigen::VectorXd& diagonals, double chisq_no
 
 std::string AbstractValue::to_string() const
 {
-  return fmt::format("{}\u00B1{}(x={},i={}{})",
-      val(), val_uncert_, x_, index_,
-      to_fit ? " fit" : "");
+  auto val_part = fmt::format("{}\u00B1{}", val(), val_uncert_);
+  auto x_part = fmt::format("(x={})", x_);
+  auto i_part = fmt::format("{}[{}]",
+      (to_fit ? "F" : ""),
+      ((index_ > InvalidIndex) ? std::to_string(index_) : "-"));
+  return fmt::format("{:>20} {:<17} {:>8}",
+                     val_part, x_part, i_part);
 }
 
 void to_json(nlohmann::json& j, const AbstractValue& s)
@@ -163,7 +167,8 @@ double Value::grad_at(double at_x) const
 
 std::string Value::to_string() const
 {
-  return fmt::format("{} [{},{}]", AbstractValue::to_string(), min_, max_);
+  auto bounds_part = fmt::format("[{:<14}-{:>14}]", min_, max_);
+  return fmt::format("{} {:>30}", AbstractValue::to_string(), bounds_part);
 }
 
 void to_json(nlohmann::json& j, const Value& s)

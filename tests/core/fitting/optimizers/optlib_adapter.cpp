@@ -32,7 +32,7 @@ TEST_F(OptlibOptimizer, Fit10)
 {
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
   auto result = optimizer.minimize(&rb);
-  MESSAGE() << "Result: " << result.to_string() << "\n";
+  MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
 }
 
@@ -43,7 +43,7 @@ TEST_F(OptlibOptimizer, Fit10nonzero)
 
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
   auto result = optimizer.minimize(&rb);
-  MESSAGE() << "Result: " << result.to_string() << "\n";
+  MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
 }
 
@@ -54,7 +54,7 @@ TEST_F(OptlibOptimizer, Fit10nonzero2)
 
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
   auto result = optimizer.minimize(&rb);
-  MESSAGE() << "Result: " << result.to_string() << "\n";
+  MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
 }
 
@@ -68,7 +68,7 @@ TEST_F(OptlibOptimizer, Fit10Random)
 
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
   auto result = optimizer.minimize(&rb);
-  MESSAGE() << "Result: " << result.to_string() << "\n";
+  MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
 }
 

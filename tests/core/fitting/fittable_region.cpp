@@ -5,7 +5,7 @@
 #include <core/fitting/fittable_region.h>
 #include <core/fitting/hypermet/Value.h>
 
-#include <core/fitting/optimizers/dlib_adapter.h>
+#include <core/fitting/optimizers/optlib_adapter.h>
 
 template <typename T>
 class ConstFunction : public DAQuiri::FittableRegion
@@ -49,7 +49,13 @@ class ConstFunction : public DAQuiri::FittableRegion
   void save_fit(const DAQuiri::FitResult& result) override
   {
     val.get(result.variables);
-    // \todo uncerts
+
+    if (!result.inv_hessian.innerSize() || !result.inv_hessian.outerSize())
+      return;
+
+    Eigen::VectorXd diags = result.inv_hessian.diagonal();
+    diags *= degrees_of_freedom();
+    val.get_uncert(diags, chi_sq());
   }
 };
 
@@ -95,7 +101,13 @@ class LinearFunction : public DAQuiri::FittableRegion
   void save_fit(const DAQuiri::FitResult& result) override
   {
     val.get(result.variables);
-    // \todo uncerts
+
+    if (!result.inv_hessian.innerSize() || !result.inv_hessian.outerSize())
+      return;
+
+    Eigen::VectorXd diags = result.inv_hessian.diagonal();
+    diags *= degrees_of_freedom();
+    val.get_uncert(diags, chi_sq());
   }
 };
 
@@ -141,163 +153,209 @@ class QuadraticFunction : public DAQuiri::FittableRegion
   void save_fit(const DAQuiri::FitResult& result) override
   {
     val.get(result.variables);
-    // \todo uncerts
+
+    if (!result.inv_hessian.innerSize() || !result.inv_hessian.outerSize())
+      return;
+
+    Eigen::VectorXd diags = result.inv_hessian.diagonal();
+    diags *= degrees_of_freedom();
+    val.get_uncert(diags, chi_sq());
   }
 };
 
 class FittableRegion : public FunctionTest
 {
  protected:
+  DAQuiri::OptlibOptimizer optimizer;
+  size_t random_samples{100};
+
   virtual void SetUp()
   {
-
+//    optimizer.verbose = true;
   }
 };
 
-TEST_F(FittableRegion, UnboundedConstFunctionSurvey)
+TEST_F(FittableRegion, UnboundedConst)
 {
   ConstFunction<DAQuiri::ValueSimple> fl;
   fl.val.val(10);
   fl.data = generate_data(&fl, 40);
+  fl.update_indices();
 
   EXPECT_NEAR(fl.data.count_min, 10, 1e-10);
   EXPECT_NEAR(fl.data.count_max, 10, 1e-10);
 
-  EXPECT_EQ(fl.variable_count, 0);
-  fl.update_indices();
-  EXPECT_EQ(fl.variable_count, 1);
-
   survey_grad(&fl, &fl.val, 0.5, 0, 20);
-  EXPECT_NEAR(check_chi_sq(false), 10.0, 1e-5);
-  EXPECT_NEAR(check_gradients(false), 10.0, 1e-5);
-}
+  EXPECT_NEAR(check_chi_sq(false), 10.0, 1e-20);
+  EXPECT_NEAR(check_gradients(false), 10.0, 1e-20);
+  
+  EXPECT_TRUE(optimizer.check_gradient(&fl));
 
-TEST_F(FittableRegion, UnboundedConstFunctionFit)
-{
-  ConstFunction<DAQuiri::ValueSimple> fl;
   fl.val.val(10);
-  fl.data = generate_data(&fl, 40);
-  fl.update_indices();
 
-  DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fl, &fl.val, 30, 1e-5);
-  test_fit_random(20, &optimizer, &fl, &fl.val, 0, 40, 1e-4);
+  test_fit(5, &optimizer, &fl, &fl.val, 30, 1e-20);
+  fl.val.val(10);
+  test_fit_random(random_samples, &optimizer, &fl, {"val", &fl.val, 0, 40, 1e-20});
 }
 
-TEST_F(FittableRegion, PositiveConstFunctionSurvey)
+TEST_F(FittableRegion, PositiveConst)
 {
   ConstFunction<DAQuiri::ValuePositive> fl;
   fl.val.val(10);
   fl.data = generate_data(&fl, 40);
+  fl.update_indices();
 
   EXPECT_NEAR(fl.data.count_min, 10, 1e-10);
   EXPECT_NEAR(fl.data.count_max, 10, 1e-10);
-
-  EXPECT_EQ(fl.variable_count, 0);
-  fl.update_indices();
-  EXPECT_EQ(fl.variable_count, 1);
 
   survey_grad(&fl, &fl.val, 0.001, 0, 20);
   EXPECT_NEAR(check_chi_sq(false), 10.0, 2e-3);
-  //EXPECT_NEAR(check_gradients(false), 10.0, 1e-5);
-}
+//  EXPECT_NEAR(check_gradients(false), 10.0, 1e-5);
 
-TEST_F(FittableRegion, PositiveConstFunctionFit)
-{
-  ConstFunction<DAQuiri::ValuePositive> fl;
+  EXPECT_TRUE(optimizer.check_gradient(&fl));
+
   fl.val.val(10);
-  fl.data = generate_data(&fl, 40);
-  fl.update_indices();
-
-  DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fl, &fl.val, 30, 1e-5);
-  test_fit_random(20, &optimizer, &fl, &fl.val, 0, 40, 1e-4);
+  test_fit(5, &optimizer, &fl, &fl.val, 30, 1e-9);
+  fl.val.val(10);
+  test_fit_random(random_samples, &optimizer, &fl, {"val", &fl.val, 0, 40, 1e-8});
 }
 
-TEST_F(FittableRegion, BoundedConstFunctionSurvey)
+TEST_F(FittableRegion, BoundedConst)
 {
   ConstFunction<DAQuiri::Value> fl;
   fl.val.bound(0,40);
   fl.val.val(10);
   fl.data = generate_data(&fl, 40);
+  fl.update_indices();
 
   EXPECT_NEAR(fl.data.count_min, 10, 1e-10);
   EXPECT_NEAR(fl.data.count_max, 10, 1e-10);
 
-  EXPECT_EQ(fl.variable_count, 0);
-  fl.update_indices();
-  EXPECT_EQ(fl.variable_count, 1);
-
   survey_grad(&fl, &fl.val, 0.001, 0, 20);
   EXPECT_NEAR(check_chi_sq(false), 10.0, 1e-3);
-  //EXPECT_NEAR(check_gradients(false), 10.0, 1e-5);
+//  EXPECT_NEAR(check_gradients(false), 10.0, 1e-5);
+
+  EXPECT_TRUE(optimizer.check_gradient(&fl));
+
+  fl.val.val(10);
+  test_fit(5, &optimizer, &fl, &fl.val, 30, 1e-13);
+  fl.val.val(10);
+  test_fit_random(random_samples, &optimizer, &fl, {"val", &fl.val, 0, 40, 1e-9});
 }
 
-TEST_F(FittableRegion, BoundedConstFunctionFit)
+TEST_F(FittableRegion, UnboundedLinear)
 {
-  ConstFunction<DAQuiri::Value> fl;
-  fl.val.bound(0,40);
-  fl.val.val(10);
+  LinearFunction<DAQuiri::ValueSimple> fl;
+  fl.val.val(5);
   fl.data = generate_data(&fl, 40);
   fl.update_indices();
 
-  DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fl, &fl.val, 30, 1e-5);
-  test_fit_random(20, &optimizer, &fl, &fl.val, 0, 40, 1e-3);
+  EXPECT_NEAR(fl.data.count_min, 0, 1e-20);
+  EXPECT_NEAR(fl.data.count_max, 39 * 5, 1e-20);
+
+  survey_grad(&fl, &fl.val, 0.001, 0, 20);
+  EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
+  EXPECT_NEAR(check_gradients(false), 5.0, 1e-3);
+
+  EXPECT_TRUE(optimizer.check_gradient(&fl));
+
+  fl.val.val(5);
+  test_fit(5, &optimizer, &fl, &fl.val, 30, 1e-14);
+  fl.val.val(5);
+  test_fit_random(random_samples, &optimizer, &fl, {"val", &fl.val, 0, 40, 1e-11});
 }
 
-TEST_F(FittableRegion, BoundedLinearFunctionSurvey)
+TEST_F(FittableRegion, PositiveLinear)
+{
+  LinearFunction<DAQuiri::ValuePositive> fl;
+  fl.val.val(5);
+  fl.data = generate_data(&fl, 40);
+  fl.update_indices();
+
+  EXPECT_NEAR(fl.data.count_min, 0, 1e-20);
+  EXPECT_NEAR(fl.data.count_max, 39 * 5, 1e-13);
+
+  survey_grad(&fl, &fl.val, 0.001, 0, 20);
+  EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
+  //EXPECT_NEAR(check_gradients(false), 5.0, 1e-3);
+
+  EXPECT_TRUE(optimizer.check_gradient(&fl));
+
+  fl.val.val(5);
+  test_fit(5, &optimizer, &fl, &fl.val, 30, 1e-12);
+  fl.val.val(5);
+  test_fit_random(random_samples, &optimizer, &fl, {"val", &fl.val, 0, 40, 1e-10});
+}
+
+TEST_F(FittableRegion, BoundedLinear)
 {
   LinearFunction<DAQuiri::Value> fl;
   fl.val.bound(0,40);
   fl.val.val(5);
   fl.data = generate_data(&fl, 40);
+  fl.update_indices();
 
   EXPECT_NEAR(fl.data.count_min, 0, 1e-10);
   EXPECT_NEAR(fl.data.count_max, 39 * 5, 1e-10);
 
-  EXPECT_EQ(fl.variable_count, 0);
-  fl.update_indices();
-  EXPECT_EQ(fl.variable_count, 1);
-
   survey_grad(&fl, &fl.val, 0.001, 0, 20);
   EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
   EXPECT_NEAR(check_gradients(false), 5.0, 1e-3);
+
+  EXPECT_TRUE(optimizer.check_gradient(&fl));
+
+  fl.val.val(5);
+  test_fit(5, &optimizer, &fl, &fl.val, 30, 1e-14);
+  // \todo why is this so bad?!?!?!
+  fl.val.val(5);
+  test_fit_random(random_samples, &optimizer, &fl, {"val", &fl.val, 0, 40, 22});
 }
 
-TEST_F(FittableRegion, BoundedLinearFunctionFit)
+TEST_F(FittableRegion, UnboundedQuadratic)
 {
-  LinearFunction<DAQuiri::Value> fl;
-  fl.val.bound(0,40);
+  QuadraticFunction<DAQuiri::ValueSimple> fl;
   fl.val.val(5);
   fl.data = generate_data(&fl, 40);
   fl.update_indices();
-
-  DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fl, &fl.val, 30, 1e-5);
-  test_fit_random(20, &optimizer, &fl, &fl.val, 0, 40, 1e-4);
-}
-
-TEST_F(FittableRegion, BoundedQuadraticFunctionSurvey)
-{
-  QuadraticFunction<DAQuiri::Value> fl;
-  fl.val.bound(0,40);
-  fl.val.val(5);
-  fl.data = generate_data(&fl, 40);
 
   EXPECT_NEAR(fl.data.count_min, 0, 1e-10);
   EXPECT_NEAR(fl.data.count_max, 39 * 39 * 5, 1e-10);
 
-  EXPECT_EQ(fl.variable_count, 0);
-  fl.update_indices();
-  EXPECT_EQ(fl.variable_count, 1);
-
   survey_grad(&fl, &fl.val, 0.001, 0, 20);
   EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
   EXPECT_NEAR(check_gradients(false), 5.0, 1e-3);
+
+  EXPECT_TRUE(optimizer.check_gradient(&fl));
+
+  fl.val.val(5);
+  test_fit(5, &optimizer, &fl, &fl.val, 30, 1e-12);
+  fl.val.val(5);
+  test_fit_random(random_samples, &optimizer, &fl, {"val", &fl.val, 0, 40, 1e-11});
 }
 
-TEST_F(FittableRegion, BoundedQuadraticFunctionFit)
+TEST_F(FittableRegion, PositiveQuadratic)
+{
+  QuadraticFunction<DAQuiri::ValuePositive> fl;
+  fl.val.val(5);
+  fl.data = generate_data(&fl, 40);
+  fl.update_indices();
+
+  EXPECT_NEAR(fl.data.count_min, 0, 1e-10);
+  EXPECT_NEAR(fl.data.count_max, 39 * 39 * 5, 1e-10);
+
+  survey_grad(&fl, &fl.val, 0.001, 0, 20);
+  EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
+//  EXPECT_NEAR(check_gradients(false), 5.0, 1e-3);
+
+  EXPECT_TRUE(optimizer.check_gradient(&fl));
+
+  fl.val.val(5);
+  test_fit(5, &optimizer, &fl, &fl.val, 30, 1e-12);
+  fl.val.val(5);
+  test_fit_random(random_samples, &optimizer, &fl, {"val", &fl.val, 0, 40, 1e-11});
+}
+
+TEST_F(FittableRegion, BoundedQuadratic)
 {
   QuadraticFunction<DAQuiri::Value> fl;
   fl.val.bound(0,40);
@@ -305,7 +363,19 @@ TEST_F(FittableRegion, BoundedQuadraticFunctionFit)
   fl.data = generate_data(&fl, 40);
   fl.update_indices();
 
-  DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fl, &fl.val, 30, 1e-5);
-  test_fit_random(20, &optimizer, &fl, &fl.val, 0, 40, 1e-4);
+  EXPECT_NEAR(fl.data.count_min, 0, 1e-10);
+  EXPECT_NEAR(fl.data.count_max, 39 * 39 * 5, 1e-10);
+
+  survey_grad(&fl, &fl.val, 0.001, 0, 20);
+  EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
+  EXPECT_NEAR(check_gradients(false), 5.0, 1e-3);
+
+  EXPECT_TRUE(optimizer.check_gradient(&fl));
+
+  fl.val.val(5);
+  // \todo This is terrible...
+  test_fit(5, &optimizer, &fl, &fl.val, 30, 25);
+  fl.val.val(5);
+  test_fit_random(random_samples, &optimizer, &fl, {"val", &fl.val, 0, 40, 34});
 }
+

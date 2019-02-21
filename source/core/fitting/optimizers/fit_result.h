@@ -21,12 +21,13 @@ namespace DAQuiri
 struct FitResult
 {
   Eigen::VectorXd variables;               /// < variable values arrived at
-  Eigen::SparseMatrix<double> inv_hessian; /// < inverse Hessian matrix of recent fit iterations
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
+      inv_hessian; /// < inverse Hessian matrix of recent fit iterations
   size_t iterations{0};                    /// < number of iterations used to reach result
   bool converged{false};                   /// < whether convergence was achieved
   double value;                            /// < most recent evaluation result
 
-  std::string to_string() const;
+  std::string to_string(bool with_hessian = false) const;
 };
 
 }

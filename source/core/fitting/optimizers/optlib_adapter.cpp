@@ -58,7 +58,6 @@ FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
   crit.gradNorm = tolerance;
   solver.setStopCriteria(crit);
 
-  FitResult ret;
   solver.minimize(f, x);
   auto status = solver.status();
 
@@ -69,12 +68,14 @@ FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
     INFO("Optimization stopped with {}", ss.str());
   }
 
+  FitResult ret;
   ret.variables = x;
   ret.value = fittable->chi_sq(x);
   ret.converged = (status == cppoptlib::Status::GradNormTolerance)
       || (status == cppoptlib::Status::FDeltaTolerance)
       || (status == cppoptlib::Status::XDeltaTolerance);
   ret.iterations = solver.criteria().iterations;
+  f.finiteHessian(x, ret.inv_hessian);
   return ret;
 }
 

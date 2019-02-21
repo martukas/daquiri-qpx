@@ -80,6 +80,12 @@ class FunctionTest : public TestBase
   void test_fit_random(size_t attempts,
                        DAQuiri::AbstractOptimizer* optimizer,
                        DAQuiri::FittableRegion* fittable,
+                       ValueToVary var,
+                       bool verbose = false);
+
+  void test_fit_random(size_t attempts,
+                       DAQuiri::AbstractOptimizer* optimizer,
+                       DAQuiri::FittableRegion* fittable,
                        std::vector<ValueToVary> vals,
                        bool verbose = false);
 };

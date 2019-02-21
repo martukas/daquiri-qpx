@@ -307,3 +307,14 @@ TEST_F(Value, Visualize)
   MESSAGE() << "grad(val):\n" << visualize(y, grad, 100) << "\n";
 }
 
+TEST_F(Value, Print)
+{
+  DAQuiri::ValueSimple sval;
+  sval.val(1235678e99);
+  MESSAGE() << "|" << sval.to_string() << "|\n";
+
+  DAQuiri::Value val;
+  val.bound(-87654321e19, 87654321e19);
+  val.val(1235678e5);
+  MESSAGE() << "|" << val.to_string() << "|\n";
+}

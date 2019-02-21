@@ -23,7 +23,7 @@ std::string ValueToVary::name_var() const
 std::string ValueToVary::declare() const
 {
   auto minmax = fmt::format("dist({},{})", min, max);
-  return fmt::format("{:<55} {:<25}  e={:>10}",
+  return fmt::format("{:<55} {:<25}  epsilon={:>10}",
                      name_var(), minmax, epsilon);
 }
 
@@ -201,8 +201,20 @@ void FunctionTest::test_fit_random(size_t attempts,
     fittable->save_fit(result);
     MESSAGE() << "Attempt[" << i << "] " << wrong << "->" << variable->to_string()
               << "  delta=" << (goal_val - variable->val()) << "\n";
+    if (optimizer->verbose)
+      MESSAGE() << "     " << result.to_string(true) << "\n";
     EXPECT_NEAR(variable->val(), goal_val, epsilon);
   }
+}
+
+void FunctionTest::test_fit_random(size_t attempts,
+                     DAQuiri::AbstractOptimizer* optimizer,
+                     DAQuiri::FittableRegion* fittable,
+                     ValueToVary var, bool verbose)
+{
+  std::vector<ValueToVary> vals;
+  vals.push_back(var);
+  test_fit_random(attempts, optimizer, fittable, vals, verbose);
 }
 
 void FunctionTest::test_fit_random(size_t attempts,
@@ -235,7 +247,7 @@ void FunctionTest::test_fit_random(size_t attempts,
 
     auto result = optimizer->minimize(fittable);
     if (optimizer->verbose)
-      MESSAGE() << "        " << result.to_string() << "\n";
+      MESSAGE() << "        " << result.to_string(optimizer->verbose) << "\n";
     fittable->save_fit(result);
 
     for (auto& v : vals)
