@@ -4,8 +4,7 @@
 
 #include <core/fitting/hypermet/Tail.h>
 
-#include <core/fitting/optimizers/dlib_adapter.h>
-
+#include <core/fitting/optimizers/optlib_adapter.h>
 
 class FittableTail : public DAQuiri::FittableRegion
 {
@@ -95,7 +94,17 @@ class FittableTail : public DAQuiri::FittableRegion
     position.get(result.variables);
     tail.get(result.variables);
 
-    // \todo uncerts
+    if (!result.inv_hessian.innerSize() || !result.inv_hessian.outerSize())
+      return;
+
+    Eigen::VectorXd diags = result.inv_hessian.diagonal();
+    diags *= degrees_of_freedom();
+
+    auto chi = chi_sq();
+    amplitude.get_uncert(diags, chi);
+    width.get_uncert(diags, chi);
+    position.get_uncert(diags, chi);
+    tail.get_uncerts(diags, chi);
   }
 };
 
@@ -103,6 +112,9 @@ class Tail : public FunctionTest
 {
  protected:
   FittableTail ft;
+  DAQuiri::OptlibOptimizer optimizer;
+  size_t region_size{40};
+  size_t random_samples{100};
 
   virtual void SetUp()
   {
@@ -362,38 +374,31 @@ TEST_F(Tail, EvalGradAt)
   EXPECT_EQ(grad[4], grad_goal[4]);
 }
 
-TEST_F(Tail, GradAmplitude)
+TEST_F(Tail, FitAmplitude)
 {
   double goal_val = ft.tail.amplitude.val();
-  ft.data = generate_data(&ft, 40);
-
+  ft.data = generate_data(&ft, region_size);
   ft.tail.slope.to_fit = false;
   ft.width.to_fit = false;
   ft.position.to_fit = false;
   ft.amplitude.to_fit = false;
   ft.update_indices();
+
+  EXPECT_TRUE(optimizer.check_gradient(&ft));
+
   survey_grad(&ft, &ft.tail.amplitude, 0.000005);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.00001);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.00001);
+
+  SetUp();
+  test_fit(5, &optimizer, &ft, &ft.tail.amplitude, 1.0, 0.96);
+  SetUp();
+  test_fit_random(random_samples, &optimizer, &ft,
+                  {"amplitude", &ft.tail.amplitude,
+                   ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1.399});
 }
 
-TEST_F(Tail, FitAmplitudeOnly)
-{
-  ft.data = generate_data(&ft, 40);
-
-  ft.tail.slope.to_fit = false;
-  ft.width.to_fit = false;
-  ft.position.to_fit = false;
-  ft.amplitude.to_fit = false;
-  ft.update_indices();
-
-  DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &ft, &ft.tail.amplitude, 1.0, 1e-5);
-
-  ft.tail.amplitude.val(0.05);
-  test_fit_random(20, &optimizer, &ft, &ft.tail.amplitude,
-                  ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-4);
-}
+/*
 
 TEST_F(Tail, GradSlope)
 {
@@ -420,7 +425,7 @@ TEST_F(Tail, FitSlopeOnly)
   ft.amplitude.to_fit = false;
   ft.update_indices();
 
-  DAQuiri::DLibOptimizer optimizer;
+  
   test_fit(5, &optimizer, &ft, &ft.tail.slope, 1.0, 1e-4);
 
   ft.tail.slope.val(30);
@@ -446,7 +451,7 @@ TEST_F(Tail, FitAmplitudeAndSlope)
   std::uniform_real_distribution<double> slope_dist(ft.tail.slope.min(),
                                                     ft.tail.slope.max());
 
-  DAQuiri::DLibOptimizer optimizer;
+  
 
   for (size_t i = 0; i < 50; ++i)
   {
@@ -490,7 +495,7 @@ TEST_F(Tail, FitParentWidthOnly)
   ft.tail.slope.to_fit = false;
   ft.update_indices();
 
-  DAQuiri::DLibOptimizer optimizer;
+  
   test_fit(5, &optimizer, &ft, &ft.width, 1.0, 0.05);
 
   ft.width.val(3.2);
@@ -523,13 +528,15 @@ TEST_F(Tail, FitParentPositionOnly)
   ft.tail.slope.to_fit = false;
   ft.update_indices();
 
-  DAQuiri::DLibOptimizer optimizer;
+  
   test_fit(5, &optimizer, &ft, &ft.position, 16, 0.05);
 
   ft.position.val(21);
   test_fit_random(20, &optimizer, &ft, &ft.position,
                   ft.position.min(), ft.position.max(), 0.05);
 }
+
+ */
 
 // \todo Nowhere close. Might be implemented wrong
 
@@ -558,7 +565,7 @@ TEST_F(Tail, FitParentPositionOnly)
 //  ft.tail.slope.to_fit = false;
 //  ft.update_indices();
 //
-//  DAQuiri::DLibOptimizer optimizer;
+//  
 //  optimizer.tolerance = 1e-12;
 //  test_fit(5, &optimizer, &ft, &ft.amplitude, 30000, 0.5);
 //

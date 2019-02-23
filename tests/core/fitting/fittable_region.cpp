@@ -171,6 +171,7 @@ class FittableRegion : public FunctionTest
 
   virtual void SetUp()
   {
+    optimizer.maximum_iterations = 10000;
 //    optimizer.verbose = true;
   }
 };

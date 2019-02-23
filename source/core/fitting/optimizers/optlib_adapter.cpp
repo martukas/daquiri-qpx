@@ -63,20 +63,19 @@ FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
   solver.minimize(f, x);
   auto status = solver.status();
 
-  if (verbose)
-  {
-    std::stringstream ss;
-    ss << status;
-    INFO("Optimization stopped with {}", ss.str());
-  }
-
   FitResult ret;
   ret.converged = (status == cppoptlib::Status::GradNormTolerance)
       || (status == cppoptlib::Status::FDeltaTolerance)
       || (status == cppoptlib::Status::XDeltaTolerance);
+  if (!ret.converged)
+  {
+    std::stringstream ss;
+    ss << status;
+    ret.error_message = ss.str();
+  }
   ret.iterations = solver.criteria().iterations;
   f.finiteHessian(x, ret.inv_hessian);
-  // \todo do we need to invert?
+  // \todo do we need to invert? normalize?
 //  ret.inv_hessian = ret.inv_hessian.inverse();
   ret.variables = x;
   ret.value = fittable->chi_sq(x);

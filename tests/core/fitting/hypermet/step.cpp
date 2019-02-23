@@ -4,7 +4,7 @@
 
 #include <core/fitting/hypermet/Step.h>
 
-#include <core/fitting/optimizers/dlib_adapter.h>
+#include <core/fitting/optimizers/optlib_adapter.h>
 
 
 class FittableStep : public DAQuiri::FittableRegion
@@ -95,7 +95,17 @@ class FittableStep : public DAQuiri::FittableRegion
     position.get(result.variables);
     step.get(result.variables);
 
-    // \todo uncerts
+    if (!result.inv_hessian.innerSize() || !result.inv_hessian.outerSize())
+      return;
+
+    Eigen::VectorXd diags = result.inv_hessian.diagonal();
+    diags *= degrees_of_freedom();
+
+    auto chi = chi_sq();
+    amplitude.get_uncert(diags, chi);
+    width.get_uncert(diags, chi);
+    position.get_uncert(diags, chi);
+    step.get_uncerts(diags, chi);
   }
 };
 
@@ -103,6 +113,9 @@ class Step : public FunctionTest
 {
  protected:
   FittableStep fs;
+  DAQuiri::OptlibOptimizer optimizer;
+  size_t region_size{40};
+  size_t random_samples{100};
 
   virtual void SetUp()
   {
@@ -327,100 +340,87 @@ TEST_F(Step, EvalGradAt)
   EXPECT_EQ(grad[3], grad_goal[3]);
 }
 
-TEST_F(Step, GradAmplitude)
+TEST_F(Step, FitAmplitude)
 {
   double goal_val = fs.step.amplitude.val();
-  fs.data = generate_data(&fs, 40);
-
+  fs.data = generate_data(&fs, region_size);
   fs.width.to_fit = false;
   fs.position.to_fit = false;
   fs.amplitude.to_fit = false;
   fs.update_indices();
-  survey_grad(&fs, &fs.step.amplitude, 0.00001);
+
+  EXPECT_TRUE(optimizer.check_gradient(&fs));
+
+  survey_grad(&fs, &fs.step.amplitude, 0.001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.00001);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.00001);
+
+  SetUp();
+  test_fit(5, &optimizer, &fs, &fs.step.amplitude, 0.005, 0.0045);
+  SetUp();
+  test_fit_random(random_samples, &optimizer, &fs,
+                  {"amplitude", &fs.step.amplitude,
+                   fs.step.amplitude.min(), fs.step.amplitude.max(), 0.0475});
 }
 
-TEST_F(Step, FitAmplitudeOnly)
-{
-  fs.data = generate_data(&fs, 40);
-
-  fs.width.to_fit = false;
-  fs.position.to_fit = false;
-  fs.amplitude.to_fit = false;
-  fs.update_indices();
-
-  DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fs, &fs.step.amplitude, 0.005, 1e-5);
-
-  fs.step.amplitude.val(0.0005);
-  test_fit_random(20, &optimizer, &fs, &fs.step.amplitude,
-                  fs.step.amplitude.min(), fs.step.amplitude.max(), 1e-5);
-}
-
-TEST_F(Step, GradParentWidth)
+TEST_F(Step, FitParentWidth)
 {
   double goal_val = fs.width.val();
-  fs.data = generate_data(&fs, 40);
-
+  fs.data = generate_data(&fs, region_size);
   fs.position.to_fit = false;
   fs.amplitude.to_fit = false;
   fs.step.amplitude.to_fit = false;
   fs.update_indices();
+
+  EXPECT_TRUE(optimizer.check_gradient(&fs));
+
   survey_grad(&fs, &fs.width, 0.001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
+
+  SetUp();
+  test_fit(5, &optimizer, &fs, &fs.width, 1.0, 1e-10);
+  SetUp();
+  test_fit_random(random_samples, &optimizer, &fs,
+                  {"parent_width", &fs.width,
+                   fs.width.min(), fs.width.max(), 1e-7});
 }
 
-TEST_F(Step, FitParentWidthOnly)
-{
-  fs.data = generate_data(&fs, 40);
-
-  fs.position.to_fit = false;
-  fs.amplitude.to_fit = false;
-  fs.step.amplitude.to_fit = false;
-  fs.update_indices();
-
-  DAQuiri::DLibOptimizer optimizer;
-  test_fit(5, &optimizer, &fs, &fs.width, 1.0, 0.5);
-
-  fs.width.val(3.2);
-  test_fit_random(20, &optimizer, &fs, &fs.width,
-                  fs.width.min(), fs.width.max(), 0.5);
-}
-
-// \todo this is failing
-
-TEST_F(Step, GradParentAmplitude)
+TEST_F(Step, FitParentAmplitude)
 {
   double goal_val = fs.amplitude.val();
-  fs.data = generate_data(&fs, 40);
-
+  fs.data = generate_data(&fs, region_size);
   fs.width.to_fit = false;
   fs.position.to_fit = false;
   fs.step.amplitude.to_fit = false;
   fs.update_indices();
+
+  EXPECT_TRUE(optimizer.check_gradient(&fs));
+
   survey_grad(&fs, &fs.amplitude, 0.1, std::sqrt(30000), std::sqrt(40000));
   EXPECT_NEAR(check_chi_sq(false), goal_val, 50);
   EXPECT_NEAR(check_gradients(false), goal_val, 50);
-}
 
-TEST_F(Step, FitParentAmplitudeOnly)
-{
-  fs.data = generate_data(&fs, 40);
-
-  fs.width.to_fit = false;
-  fs.position.to_fit = false;
-  fs.step.amplitude.to_fit = false;
-  fs.update_indices();
-
-  DAQuiri::DLibOptimizer optimizer;
-  optimizer.tolerance = 1e-12;
-  test_fit(5, &optimizer, &fs, &fs.amplitude, 30000, 0.5);
-
-  fs.width.val(40000);
-  test_fit_random(20, &optimizer, &fs, &fs.amplitude,
-                  30000, 50000, 260);
+  SetUp();
+  test_fit(5, &optimizer, &fs, &fs.amplitude, 30000, 1e-4);
+  SetUp();
+  test_fit_random(random_samples, &optimizer, &fs,
+                  {"parent_amplitude", &fs.amplitude,
+                   30000, 50000, 0.02});
 }
 
 // \todo parent position should play a role?
+
+TEST_F(Step, FitThreeParams)
+{
+  fs.data = generate_data(&fs, region_size);
+  fs.update_indices();
+
+  // \todo some of these are insane...
+  std::vector<ValueToVary> vals;
+  vals.push_back({"amplitude", &fs.step.amplitude,
+                  fs.step.amplitude.min(), fs.step.amplitude.max(), 0.0475});
+  vals.push_back({"parent_width", &fs.width, fs.width.min(), fs.width.max(), 2.29});
+  vals.push_back({"parent_amplitude", &fs.amplitude, 30000, 50000, 110000});
+  test_fit_random(random_samples, &optimizer, &fs, vals);
+}

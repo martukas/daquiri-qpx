@@ -339,8 +339,6 @@ TEST_F(PolyBackground, GradBaseOnly)
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.5);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.1);
 
-  EXPECT_TRUE(optimizer.check_gradient(&fb));
-
   auto_bound();
   test_fit(5, &optimizer, &fb, &fb.background.base, 100, 1e-8);
   auto_bound();
