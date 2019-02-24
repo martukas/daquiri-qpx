@@ -9,8 +9,12 @@ ThreadFitter::ThreadFitter(QObject *parent) :
   terminating_(false),
   running_(false)
 {
-  optimizer_ = std::make_shared<DAQuiri::OptlibOptimizer>();
-  optimizer_->verbose = true;
+  auto opt = std::make_shared<DAQuiri::OptlibOptimizer>();
+//  opt->verbose = true;
+  opt->default_to_finite_gradient = true;
+  opt->maximum_iterations = 500;
+
+  optimizer_ = opt;
 
   action_ = kIdle;
   start(HighPriority);

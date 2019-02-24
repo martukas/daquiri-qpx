@@ -106,6 +106,22 @@ class FittableTail : public DAQuiri::FittableRegion
     position.get_uncert(diags, chi);
     tail.get_uncerts(diags, chi);
   }
+
+  std::string to_string(std::string prepend = "") const override
+  {
+    Eigen::VectorXd grads;
+    auto x = variables();
+    chi_sq_gradient(x, grads);
+    std::stringstream ss;
+
+    ss << "parent_pos = " << position.to_string() << "\n";
+    ss << prepend << "parent_amp = " << amplitude.to_string() << "\n";
+    ss << prepend << "parent_width = "  << width.to_string() << "\n";
+    ss << prepend << "tail = " << tail.to_string() << "\n";
+    ss << prepend << "  chi2=" + std::to_string(chi_sq());
+    ss << "  grads=" << grads.transpose() << "\n";
+    return ss.str();
+  }
 };
 
 class Tail : public FunctionTest
@@ -113,11 +129,20 @@ class Tail : public FunctionTest
  protected:
   FittableTail ft;
   DAQuiri::OptlibOptimizer optimizer;
-  size_t region_size{40};
-  size_t random_samples{100};
+  size_t region_size{100};
+  size_t random_samples{200};
 
   virtual void SetUp()
   {
+    //    optimizer.verbose = true;
+    optimizer.maximum_iterations = 100;
+    optimizer.default_to_finite_gradient = true;
+
+    ft.tail.amplitude.bound(0.0001, 1.5);
+    ft.tail.amplitude.val(0.05);
+    ft.tail.slope.bound(0.2, 50);
+    ft.tail.slope.val(30);
+
     //ft.amplitude.bound(0, 10000);
     ft.amplitude.val(40000);
     ft.amplitude.update_index(ft.variable_count);
@@ -126,14 +151,9 @@ class Tail : public FunctionTest
     ft.width.val(3.2);
     ft.width.update_index(ft.variable_count);
 
-    ft.position.bound(14, 28);
-    ft.position.val(21);
+    ft.position.bound(44, 68);
+    ft.position.val(51);
     ft.position.update_index(ft.variable_count);
-
-    ft.tail.amplitude.bound(0.0001, 1.5);
-    ft.tail.amplitude.val(0.05);
-    ft.tail.slope.bound(0.2, 50);
-    ft.tail.slope.val(30);
   }
 };
 
@@ -147,14 +167,14 @@ TEST_F(Tail, CheckSetup)
 
 TEST_F(Tail, Visualize)
 {
-  auto data = generate_data(&ft, 40);
+  auto data = generate_data(&ft, region_size);
   visualize_data(data);
 }
 
 
 TEST_F(Tail, WithinBounds)
 {
-  auto data = generate_data(&ft, 40);
+  auto data = generate_data(&ft, region_size);
   EXPECT_NEAR(data.count_min, 0.0, 1.0);
   EXPECT_NEAR(data.count_max, 1871, 1.0);
 }
@@ -162,17 +182,17 @@ TEST_F(Tail, WithinBounds)
 TEST_F(Tail, LeftOriented)
 {
   ft.tail.side = DAQuiri::Side::left;
-  auto data = generate_data(&ft, 40);
-  EXPECT_NEAR(data.data.front().count, 1607, 1.0);
+  auto data = generate_data(&ft, region_size);
+  EXPECT_NEAR(data.data.front().count, 1175, 1.0);
   EXPECT_NEAR(data.data.back().count, 0.0, 1.0);
 }
 
 TEST_F(Tail, RightOriented)
 {
   ft.tail.side = DAQuiri::Side::right;
-  auto data = generate_data(&ft, 40);
+  auto data = generate_data(&ft, region_size);
   EXPECT_NEAR(data.data.front().count, 0.0, 1.0);
-  EXPECT_NEAR(data.data.back().count, 1658, 1.0);
+  EXPECT_NEAR(data.data.back().count, 1213, 1.0);
 }
 
 TEST_F(Tail, UpdateIndexInvalidThrows)
@@ -386,190 +406,161 @@ TEST_F(Tail, FitAmplitude)
 
   EXPECT_TRUE(optimizer.check_gradient(&ft));
 
-  survey_grad(&ft, &ft.tail.amplitude, 0.000005);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.00001);
-  EXPECT_NEAR(check_gradients(false), goal_val, 0.00001);
+  survey_grad(&ft, &ft.tail.amplitude, 0.01);
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
+  //EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
 
   SetUp();
-  test_fit(5, &optimizer, &ft, &ft.tail.amplitude, 1.0, 0.96);
+  test_fit(5, &optimizer, &ft, &ft.tail.amplitude, 1.0, 1e-11);
   SetUp();
   test_fit_random(random_samples, &optimizer, &ft,
                   {"amplitude", &ft.tail.amplitude,
-                   ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1.399});
+                   ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-11});
 }
-
-/*
 
 TEST_F(Tail, GradSlope)
 {
   double goal_val = ft.tail.slope.val();
-  ft.data = generate_data(&ft, 40);
-
+  ft.data = generate_data(&ft, region_size);
   ft.tail.amplitude.to_fit = false;
   ft.width.to_fit = false;
   ft.position.to_fit = false;
   ft.amplitude.to_fit = false;
   ft.update_indices();
+
+  EXPECT_TRUE(optimizer.check_gradient(&ft));
+
   survey_grad(&ft, &ft.tail.slope, 0.01);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.1);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.1);
-}
 
-TEST_F(Tail, FitSlopeOnly)
-{
-  ft.data = generate_data(&ft, 40);
-
-  ft.tail.amplitude.to_fit = false;
-  ft.width.to_fit = false;
-  ft.position.to_fit = false;
-  ft.amplitude.to_fit = false;
-  ft.update_indices();
-
-  
-  test_fit(5, &optimizer, &ft, &ft.tail.slope, 1.0, 1e-4);
-
-  ft.tail.slope.val(30);
-  test_fit_random(20, &optimizer, &ft, &ft.tail.slope,
-                  ft.tail.slope.min(), ft.tail.slope.max(), 1e-3);
+  SetUp();
+  test_fit(5, &optimizer, &ft, &ft.tail.slope, 1.0, 1e-12);
+  SetUp();
+  test_fit_random(random_samples, &optimizer, &ft,
+                  {"slope", &ft.tail.slope,
+                   ft.tail.slope.min(), ft.tail.slope.max(), 1e-9});
 }
 
 TEST_F(Tail, FitAmplitudeAndSlope)
 {
-  double goal_amplitude = ft.tail.amplitude.val();
-  double goal_slope = ft.tail.slope.val();
-
-  ft.data = generate_data(&ft, 40);
+  ft.data = generate_data(&ft, region_size);
   ft.width.to_fit = false;
   ft.position.to_fit = false;
   ft.amplitude.to_fit = false;
   ft.update_indices();
 
-  std::mt19937 random_generator;
-  random_generator.seed(std::random_device()());
-  std::uniform_real_distribution<double> amplitude_dist(ft.tail.amplitude.min(),
-                                                        ft.tail.amplitude.max());
-  std::uniform_real_distribution<double> slope_dist(ft.tail.slope.min(),
-                                                    ft.tail.slope.max());
-
-  
-
-  for (size_t i = 0; i < 50; ++i)
-  {
-    ft.tail.amplitude.val(amplitude_dist(random_generator));
-    ft.tail.slope.val(slope_dist(random_generator));
-    MESSAGE() << "Attempt[" << i << "] " << ft.tail.to_string() << "\n";
-    ft.save_fit(optimizer.minimize(&ft));
-    MESSAGE() << "Result:               " << ft.tail.to_string() << "\n";
-    MESSAGE() << "      amplitude delta="
-              << (goal_amplitude - ft.tail.amplitude.val()) << "\n";
-    MESSAGE() << "          slope delta="
-              << (goal_slope - ft.tail.slope.val()) << "\n";
-
-    EXPECT_NEAR(ft.tail.amplitude.val(), goal_amplitude, 0.01);
-    EXPECT_NEAR(ft.tail.slope.val(), goal_slope, 0.1);
-  }
+  std::vector<ValueToVary> vals;
+  vals.push_back({"amplitude", &ft.tail.amplitude,
+                  ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-10});
+  vals.push_back({"slope", &ft.tail.slope,
+                  ft.tail.slope.min(), ft.tail.slope.max(), 1e-7});
+  test_fit_random(random_samples, &optimizer, &ft, vals);
 }
 
-TEST_F(Tail, GradParentWidth)
+TEST_F(Tail, FitParentWidth)
 {
   double goal_val = ft.width.val();
-  ft.data = generate_data(&ft, 40);
-
+  ft.data = generate_data(&ft, region_size);
   ft.position.to_fit = false;
   ft.amplitude.to_fit = false;
   ft.tail.amplitude.to_fit = false;
   ft.tail.slope.to_fit = false;
   ft.update_indices();
+
+  EXPECT_TRUE(optimizer.check_gradient(&ft));
+
   survey_grad(&ft, &ft.width, 0.001);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.005);
-  EXPECT_NEAR(check_gradients(false), goal_val, 0.005);
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
+  EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
+
+  SetUp();
+  test_fit(5, &optimizer, &ft, &ft.width, 1.0, 1e-14);
+  SetUp();
+  test_fit_random(random_samples, &optimizer, &ft,
+                  {"parent_width", &ft.width,
+                   ft.width.min(), ft.width.max(), 1e-10});
 }
 
-TEST_F(Tail, FitParentWidthOnly)
-{
-  ft.data = generate_data(&ft, 40);
-
-  ft.position.to_fit = false;
-  ft.amplitude.to_fit = false;
-  ft.tail.amplitude.to_fit = false;
-  ft.tail.slope.to_fit = false;
-  ft.update_indices();
-
-  
-  test_fit(5, &optimizer, &ft, &ft.width, 1.0, 0.05);
-
-  ft.width.val(3.2);
-  test_fit_random(20, &optimizer, &ft, &ft.width,
-                  ft.width.min(), ft.width.max(), 0.05);
-}
-
-TEST_F(Tail, GradParentPosition)
+TEST_F(Tail, FitParentPosition)
 {
   double goal_val = ft.position.val();
-  ft.data = generate_data(&ft, 40);
-
+  ft.data = generate_data(&ft, region_size);
   ft.width.to_fit = false;
   ft.amplitude.to_fit = false;
   ft.tail.amplitude.to_fit = false;
   ft.tail.slope.to_fit = false;
   ft.update_indices();
+
+  EXPECT_TRUE(optimizer.check_gradient(&ft));
+
   survey_grad(&ft, &ft.position, 0.001);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.005);
-  EXPECT_NEAR(check_gradients(false), goal_val, 0.005);
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
+//  EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
+
+  SetUp();
+  test_fit(5, &optimizer, &ft, &ft.position, 48, 1e-12);
+  SetUp();
+  test_fit_random(random_samples, &optimizer, &ft,
+                  {"parent_position", &ft.position,
+                   ft.position.min(), ft.position.max(), 1e-9});
 }
 
-TEST_F(Tail, FitParentPositionOnly)
+TEST_F(Tail, FitParentAmplitude)
 {
-  ft.data = generate_data(&ft, 40);
-
+  double goal_val = ft.amplitude.val();
+  ft.data = generate_data(&ft, region_size);
   ft.width.to_fit = false;
-  ft.amplitude.to_fit = false;
+  ft.position.to_fit = false;
   ft.tail.amplitude.to_fit = false;
   ft.tail.slope.to_fit = false;
   ft.update_indices();
 
-  
-  test_fit(5, &optimizer, &ft, &ft.position, 16, 0.05);
+  EXPECT_TRUE(optimizer.check_gradient(&ft));
 
-  ft.position.val(21);
-  test_fit_random(20, &optimizer, &ft, &ft.position,
-                  ft.position.min(), ft.position.max(), 0.05);
+  survey_grad(&ft, &ft.amplitude, 0.1, std::sqrt(30000), std::sqrt(40000));
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 50);
+  EXPECT_NEAR(check_gradients(false), goal_val, 50);
+
+  SetUp();
+  test_fit(5, &optimizer, &ft, &ft.amplitude, 30000, 1e-4);
+  SetUp();
+  test_fit_random(random_samples, &optimizer, &ft,
+                  {"parent_amplitude", &ft.amplitude,
+                   30000, 50000, 1e-3});
 }
 
- */
+// the 2 amplitudes are degenerate. can't deconvolute without peak
+// so we must test their fitting separately in these tests
+TEST_F(Tail, FitAllAmp1)
+{
+  ft.data = generate_data(&ft, region_size);
+  ft.amplitude.to_fit = false;
+  ft.update_indices();
 
-// \todo Nowhere close. Might be implemented wrong
+  std::vector<ValueToVary> vals;
+  vals.push_back({"amplitude", &ft.tail.amplitude,
+                  ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-10});
+  vals.push_back({"slope", &ft.tail.slope,
+                  ft.tail.slope.min(), ft.tail.slope.max(), 1e-8});
+  vals.push_back({"parent_width", &ft.width, ft.width.min(), ft.width.max(), 1e-8});
+  vals.push_back({"parent_position", &ft.position,
+                  ft.position.min(), ft.position.max(), 1e-8});
+  test_fit_random(random_samples, &optimizer, &ft, vals);
+}
 
-//TEST_F(Tail, GradParentAmplitude)
-//{
-//  double goal_val = ft.amplitude.val();
-//  ft.data = generate_data(&ft, 40);
-//
-//  ft.width.to_fit = false;
-//  ft.position.to_fit = false;
-//  ft.tail.amplitude.to_fit = false;
-//  ft.tail.slope.to_fit = false;
-//  ft.update_indices();
-//  survey_grad(&ft, &ft.amplitude, 0.1, std::sqrt(30000), std::sqrt(40000));
-//  EXPECT_NEAR(check_chi_sq(false), goal_val, 40);
-//  EXPECT_NEAR(check_gradients(false), goal_val, 40);
-//}
-//
-//TEST_F(Tail, FitParentAmplitudeOnly)
-//{
-//  ft.data = generate_data(&ft, 40);
-//
-//  ft.width.to_fit = false;
-//  ft.position.to_fit = false;
-//  ft.tail.amplitude.to_fit = false;
-//  ft.tail.slope.to_fit = false;
-//  ft.update_indices();
-//
-//  
-//  optimizer.tolerance = 1e-12;
-//  test_fit(5, &optimizer, &ft, &ft.amplitude, 30000, 0.5);
-//
-//  ft.width.val(40000);
-//  test_fit_random(20, &optimizer, &ft, &ft.amplitude,
-//                  30000, 50000, 260);
-//}
+TEST_F(Tail, FitAllAmp2)
+{
+  ft.data = generate_data(&ft, region_size);
+  ft.tail.amplitude.to_fit = false;
+  ft.update_indices();
+
+  std::vector<ValueToVary> vals;
+  vals.push_back({"slope", &ft.tail.slope,
+                  ft.tail.slope.min(), ft.tail.slope.max(), 1e-7});
+  vals.push_back({"parent_width", &ft.width, ft.width.min(), ft.width.max(), 1e-8});
+  vals.push_back({"parent_position", &ft.position,
+                  ft.position.min(), ft.position.max(), 1e-8});
+  vals.push_back({"parent_amplitude", &ft.amplitude, 30000, 50000, 1e-5});
+  test_fit_random(random_samples, &optimizer, &ft, vals);
+}

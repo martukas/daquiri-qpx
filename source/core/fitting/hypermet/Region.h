@@ -63,7 +63,7 @@ class Region : public FittableRegion
   // \todo deprecate this
   void save_fit(const Eigen::VectorXd& variables);
 
-  std::string to_string(std::string prepend = "") const;
+  std::string to_string(std::string prepend = "") const override;
   friend void to_json(nlohmann::json& j, const Region& s);
   friend void from_json(const nlohmann::json& j, Region& s);
 

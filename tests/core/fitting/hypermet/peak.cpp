@@ -47,6 +47,10 @@ class FittablePeak : public DAQuiri::FittableRegion
     // \todo uncerts
   }
 
+  std::string to_string(std::string prepend = "") const override
+  {
+    /// \todo implement
+  }
 };
 
 class Peak : public FunctionTest

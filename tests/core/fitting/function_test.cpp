@@ -223,7 +223,6 @@ void FunctionTest::test_fit_random(size_t attempts,
                                    std::vector<ValueToVary> vals,
                                    bool verbose)
 {
-  size_t unconverged {0};
   std::mt19937 random_generator;
   random_generator.seed(std::random_device()());
 
@@ -250,15 +249,19 @@ void FunctionTest::test_fit_random(size_t attempts,
     if (optimizer->verbose)
       MESSAGE() << "        " << result.to_string(optimizer->verbose) << "\n";
 
+    fittable->save_fit(result);
+
     if (result.converged)
     {
-      fittable->save_fit(result);
+      max_iterations_to_converge = std::max(max_iterations_to_converge, result.iterations);
       for (auto& v : vals)
         v.record_delta();
     }
     else
     {
-      MESSAGE() << "        " << result.to_string() << "\n";
+      MESSAGE() << "        " << result.to_string() << "\n"
+                << "                       F=" <<
+                fittable->to_string("                         ") << "\n";
       unconverged++;
     }
 
@@ -272,6 +275,7 @@ void FunctionTest::test_fit_random(size_t attempts,
 
   MESSAGE() << "Summary:\n";
   MESSAGE() << " Unconverged:" << unconverged << "\n";
+  MESSAGE() << " Max iterations to converge:" << max_iterations_to_converge << "\n";
   for (const auto& v : vals)
   {
     auto deltas = v.deltas_hist();

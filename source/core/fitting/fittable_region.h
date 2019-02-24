@@ -48,6 +48,9 @@ class FittableRegion : public FittableFunction
   /// \param result result of optimization attempt
   virtual void save_fit(const FitResult& result) = 0;
 
+  // \todo document
+  virtual std::string to_string(std::string prepend = "") const = 0;
+
   /// \returns chi squared of the current state of the model function as compared to
   ///             the empirical data
   double chi_sq() const;

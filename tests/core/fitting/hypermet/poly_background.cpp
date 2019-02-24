@@ -52,6 +52,18 @@ class FittableBackground : public DAQuiri::FittableRegion
     diags *= degrees_of_freedom();
     background.get_uncerts(diags, chi_sq());
   }
+
+  std::string to_string(std::string prepend = "") const override
+  {
+    Eigen::VectorXd grads;
+    auto x = variables();
+    chi_sq_gradient(x, grads);
+    std::stringstream ss;
+    ss << grads.transpose();
+    return prepend + background.to_string(prepend)
+        + prepend + "  chi2=" + std::to_string(chi_sq())
+        + "  grads=" + ss.str();
+  }
 };
 
 class PolyBackground : public FunctionTest
@@ -65,6 +77,8 @@ class PolyBackground : public FunctionTest
   virtual void SetUp()
   {
 //    optimizer.verbose = true;
+    optimizer.maximum_iterations = 1000;
+    optimizer.default_to_finite_gradient = true;
 
     fb.background.x_offset = 0;
 //    fb.background.base.bound(0, 7792);
@@ -419,7 +433,6 @@ TEST_F(PolyBackground, FitCurveRelaxed)
   auto_bound();
   fb.update_indices();
 
-
   auto_bound();
   test_fit(5, &optimizer, &fb, &fb.background.curve, 0, 1e-12);
   auto_bound();
@@ -434,8 +447,8 @@ TEST_F(PolyBackground, FitAllThree)
   fb.update_indices();
 
   std::vector<ValueToVary> vals;
-  vals.push_back({"base", &fb.background.base, 50, 7792, 1e-7});
+  vals.push_back({"base", &fb.background.base, 50, 7792, 1e-6});
   vals.push_back({"slope", &fb.background.slope, -460, 460, 1e-7});
-  vals.push_back({"curve", &fb.background.curve, -10, 10, 1e-9});
+  vals.push_back({"curve", &fb.background.curve, -10, 10, 1e-8});
   test_fit_random(random_samples, &optimizer, &fb, vals);
 }

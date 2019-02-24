@@ -7,7 +7,7 @@
 
 #include <core/fitting/optimizers/optlib_adapter.h>
 
-template <typename T>
+template<typename T>
 class ConstFunction : public DAQuiri::FittableRegion
 {
  public:
@@ -57,9 +57,21 @@ class ConstFunction : public DAQuiri::FittableRegion
     diags *= degrees_of_freedom();
     val.get_uncert(diags, chi_sq());
   }
+
+  std::string to_string(std::string prepend = "") const override
+  {
+    Eigen::VectorXd grads;
+    auto x = variables();
+    chi_sq_gradient(x, grads);
+    std::stringstream ss;
+    ss << grads.transpose();
+    return prepend + val.to_string()
+        + "  chi2=" + std::to_string(chi_sq())
+        + "  grads=" + ss.str();
+  }
 };
 
-template <typename T>
+template<typename T>
 class LinearFunction : public DAQuiri::FittableRegion
 {
  public:
@@ -109,9 +121,21 @@ class LinearFunction : public DAQuiri::FittableRegion
     diags *= degrees_of_freedom();
     val.get_uncert(diags, chi_sq());
   }
+
+  std::string to_string(std::string prepend = "") const override
+  {
+    Eigen::VectorXd grads;
+    auto x = variables();
+    chi_sq_gradient(x, grads);
+    std::stringstream ss;
+    ss << grads.transpose();
+    return prepend + val.to_string()
+        + "  chi2=" + std::to_string(chi_sq())
+        + "  grads=" + ss.str();
+  }
 };
 
-template <typename T>
+template<typename T>
 class QuadraticFunction : public DAQuiri::FittableRegion
 {
  public:
@@ -161,17 +185,30 @@ class QuadraticFunction : public DAQuiri::FittableRegion
     diags *= degrees_of_freedom();
     val.get_uncert(diags, chi_sq());
   }
+
+  std::string to_string(std::string prepend = "") const override
+  {
+    Eigen::VectorXd grads;
+    auto x = variables();
+    chi_sq_gradient(x, grads);
+    std::stringstream ss;
+    ss << grads.transpose();
+    return prepend + val.to_string()
+        + "  chi2=" + std::to_string(chi_sq())
+        + "  grads=" + ss.str();
+  }
 };
 
 class FittableRegion : public FunctionTest
 {
  protected:
   DAQuiri::OptlibOptimizer optimizer;
-  size_t random_samples{100};
+  size_t random_samples{1000};
 
   virtual void SetUp()
   {
-    optimizer.maximum_iterations = 10000;
+    optimizer.maximum_iterations = 1000;
+    optimizer.default_to_finite_gradient = true;
 //    optimizer.verbose = true;
   }
 };
@@ -189,7 +226,7 @@ TEST_F(FittableRegion, UnboundedConst)
   survey_grad(&fl, &fl.val, 0.5, 0, 20);
   EXPECT_NEAR(check_chi_sq(false), 10.0, 1e-20);
   EXPECT_NEAR(check_gradients(false), 10.0, 1e-20);
-  
+
   EXPECT_TRUE(optimizer.check_gradient(&fl));
 
   fl.val.val(10);
@@ -224,7 +261,7 @@ TEST_F(FittableRegion, PositiveConst)
 TEST_F(FittableRegion, BoundedConst)
 {
   ConstFunction<DAQuiri::Value> fl;
-  fl.val.bound(0,40);
+  fl.val.bound(0, 40);
   fl.val.val(10);
   fl.data = generate_data(&fl, 40);
   fl.update_indices();
@@ -291,7 +328,7 @@ TEST_F(FittableRegion, PositiveLinear)
 TEST_F(FittableRegion, BoundedLinear)
 {
   LinearFunction<DAQuiri::Value> fl;
-  fl.val.bound(0,40);
+  fl.val.bound(0, 40);
   fl.val.val(5);
   fl.data = generate_data(&fl, 40);
   fl.update_indices();
@@ -359,7 +396,7 @@ TEST_F(FittableRegion, PositiveQuadratic)
 TEST_F(FittableRegion, BoundedQuadratic)
 {
   QuadraticFunction<DAQuiri::Value> fl;
-  fl.val.bound(0,40);
+  fl.val.bound(0, 40);
   fl.val.val(5);
   fl.data = generate_data(&fl, 40);
   fl.update_indices();

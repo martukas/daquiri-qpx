@@ -50,6 +50,10 @@ class FunctionTest : public TestBase
   std::vector<double> chi_sq_norm;
   std::vector<double> gradient;
 
+  size_t unconverged {0};
+  size_t max_iterations_to_converge{0};
+
+
   DAQuiri::WeightedData generate_data(
       const DAQuiri::FittableRegion* fittable, size_t bins) const;
 

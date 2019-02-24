@@ -23,7 +23,7 @@ Region::Region()
 
   default_peak_.step.amplitude.bound(0.000001, 0.05);
 
-  default_peak_ = default_peak_.gaussian_only();
+//  default_peak_ = default_peak_.gaussian_only();
 }
 
 Region::Region(const WeightedData& new_data, uint16_t background_samples)

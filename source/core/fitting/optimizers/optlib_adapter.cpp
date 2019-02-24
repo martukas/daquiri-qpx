@@ -14,6 +14,7 @@ class OptlibFittableWrapper : public cppoptlib::Problem<double>
  public:
   FittableFunction* function_; /// < pointer to fittable function for function binding
   std::atomic<bool>* cancel_;
+  bool use_finite_gradient_ {false};
 
   using typename cppoptlib::Problem<double>::Scalar;
   using typename cppoptlib::Problem<double>::TVector;
@@ -25,7 +26,10 @@ class OptlibFittableWrapper : public cppoptlib::Problem<double>
 
   void gradient(const TVector& x, TVector& grad) override
   {
-    function_->chi_sq_gradient(x, grad);
+    if (!use_finite_gradient_)
+      function_->chi_sq_gradient(x, grad);
+    else
+      finiteGradient(x, grad);
   }
 
   bool callback(const cppoptlib::Criteria<double>& state, const TVector& x)
@@ -67,11 +71,23 @@ FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
   ret.converged = (status == cppoptlib::Status::GradNormTolerance)
       || (status == cppoptlib::Status::FDeltaTolerance)
       || (status == cppoptlib::Status::XDeltaTolerance);
+
+  if (default_to_finite_gradient && !ret.converged)
+  {
+    ret.error_message = "Retry with finite gradient: ";
+    f.use_finite_gradient_ = true;
+    solver.minimize(f, x);
+    auto status = solver.status();
+    ret.converged = (status == cppoptlib::Status::GradNormTolerance)
+        || (status == cppoptlib::Status::FDeltaTolerance)
+        || (status == cppoptlib::Status::XDeltaTolerance);
+  }
+
   if (!ret.converged)
   {
     std::stringstream ss;
     ss << status;
-    ret.error_message = ss.str();
+    ret.error_message += ss.str();
   }
   ret.iterations = solver.criteria().iterations;
   f.finiteHessian(x, ret.inv_hessian);

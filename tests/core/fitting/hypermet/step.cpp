@@ -107,6 +107,22 @@ class FittableStep : public DAQuiri::FittableRegion
     position.get_uncert(diags, chi);
     step.get_uncerts(diags, chi);
   }
+
+  std::string to_string(std::string prepend = "") const override
+  {
+    Eigen::VectorXd grads;
+    auto x = variables();
+    chi_sq_gradient(x, grads);
+    std::stringstream ss;
+
+    ss << "parent_pos = " << position.to_string() << "\n";
+    ss << prepend << "parent_amp = " << amplitude.to_string() << "\n";
+    ss << prepend << "parent_width = "  << width.to_string() << "\n";
+    ss << prepend << "step = " << step.to_string() << "\n";
+    ss << prepend << "  chi2=" + std::to_string(chi_sq());
+    ss << "  grads=" << grads.transpose() << "\n";
+    return ss.str();
+  }
 };
 
 class Step : public FunctionTest
@@ -114,11 +130,15 @@ class Step : public FunctionTest
  protected:
   FittableStep fs;
   DAQuiri::OptlibOptimizer optimizer;
-  size_t region_size{40};
-  size_t random_samples{100};
+  size_t region_size{100};
+  size_t random_samples{1000};
 
   virtual void SetUp()
   {
+    //    optimizer.verbose = true;
+    optimizer.maximum_iterations = 30;
+    optimizer.default_to_finite_gradient = true;
+
     //fs.amplitude.bound(0, 100000);
     fs.amplitude.val(40000);
     fs.amplitude.update_index(fs.variable_count);
@@ -127,8 +147,8 @@ class Step : public FunctionTest
     fs.width.val(3.2);
     fs.width.update_index(fs.variable_count);
 
-    fs.position.bound(14, 28);
-    fs.position.val(21);
+    fs.position.bound(44, 68);
+    fs.position.val(51);
     fs.position.update_index(fs.variable_count);
 
     fs.step.amplitude.bound(1e-6, 0.05);
@@ -146,13 +166,13 @@ TEST_F(Step, CheckSetup)
 
 TEST_F(Step, Visualize)
 {
-  auto data = generate_data(&fs, 40);
+  auto data = generate_data(&fs, region_size);
   visualize_data(data);
 }
 
 TEST_F(Step, WithinBounds)
 {
-  auto data = generate_data(&fs, 40);
+  auto data = generate_data(&fs, region_size);
   EXPECT_NEAR(data.count_min, 0.0, 1e-13);
   EXPECT_NEAR(data.count_max, 20.0, 1e-13);
 }
@@ -160,7 +180,7 @@ TEST_F(Step, WithinBounds)
 TEST_F(Step, LeftOriented)
 {
   fs.step.side = DAQuiri::Side::left;
-  auto data = generate_data(&fs, 40);
+  auto data = generate_data(&fs, region_size);
   EXPECT_NEAR(data.data.front().count, 20.0, 1e-13);
   EXPECT_NEAR(data.data.back().count, 0.0, 1e-13);
 }
@@ -168,7 +188,7 @@ TEST_F(Step, LeftOriented)
 TEST_F(Step, RightOriented)
 {
   fs.step.side = DAQuiri::Side::right;
-  auto data = generate_data(&fs, 40);
+  auto data = generate_data(&fs, region_size);
   EXPECT_NEAR(data.data.front().count, 0.0, 1e-13);
   EXPECT_NEAR(data.data.back().count, 20.0, 1e-13);
 }
@@ -356,11 +376,11 @@ TEST_F(Step, FitAmplitude)
   EXPECT_NEAR(check_gradients(false), goal_val, 0.00001);
 
   SetUp();
-  test_fit(5, &optimizer, &fs, &fs.step.amplitude, 0.005, 0.0045);
+  test_fit(5, &optimizer, &fs, &fs.step.amplitude, 0.005, 1e-13);
   SetUp();
   test_fit_random(random_samples, &optimizer, &fs,
                   {"amplitude", &fs.step.amplitude,
-                   fs.step.amplitude.min(), fs.step.amplitude.max(), 0.0475});
+                   fs.step.amplitude.min(), fs.step.amplitude.max(), 1e-12});
 }
 
 TEST_F(Step, FitParentWidth)
@@ -379,7 +399,7 @@ TEST_F(Step, FitParentWidth)
   EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
 
   SetUp();
-  test_fit(5, &optimizer, &fs, &fs.width, 1.0, 1e-10);
+  test_fit(5, &optimizer, &fs, &fs.width, 1.0, 1e-9);
   SetUp();
   test_fit_random(random_samples, &optimizer, &fs,
                   {"parent_width", &fs.width,
@@ -406,21 +426,36 @@ TEST_F(Step, FitParentAmplitude)
   SetUp();
   test_fit_random(random_samples, &optimizer, &fs,
                   {"parent_amplitude", &fs.amplitude,
-                   30000, 50000, 0.02});
+                   30000, 50000, 0.01});
 }
 
 // \todo parent position should play a role?
 
-TEST_F(Step, FitThreeParams)
+// the 2 amplitudes are degenerate. can't deconvolute without peak
+// so we must test their fitting separately in these tests
+TEST_F(Step, FitAllAmp1)
 {
   fs.data = generate_data(&fs, region_size);
+  fs.position.to_fit = false;
+  fs.amplitude.to_fit = false;
   fs.update_indices();
 
-  // \todo some of these are insane...
   std::vector<ValueToVary> vals;
   vals.push_back({"amplitude", &fs.step.amplitude,
-                  fs.step.amplitude.min(), fs.step.amplitude.max(), 0.0475});
-  vals.push_back({"parent_width", &fs.width, fs.width.min(), fs.width.max(), 2.29});
-  vals.push_back({"parent_amplitude", &fs.amplitude, 30000, 50000, 110000});
+                  fs.step.amplitude.min(), fs.step.amplitude.max(), 1e-12});
+  vals.push_back({"parent_width", &fs.width, fs.width.min(), fs.width.max(), 1e-5});
+  test_fit_random(random_samples, &optimizer, &fs, vals);
+}
+
+TEST_F(Step, FitAllAmp2)
+{
+  fs.data = generate_data(&fs, region_size);
+  fs.position.to_fit = false;
+  fs.step.amplitude.to_fit = false;
+  fs.update_indices();
+
+  std::vector<ValueToVary> vals;
+  vals.push_back({"parent_width", &fs.width, fs.width.min(), fs.width.max(), 1e-6});
+  vals.push_back({"parent_amplitude", &fs.amplitude, 30000, 50000, 0.01});
   test_fit_random(random_samples, &optimizer, &fs, vals);
 }

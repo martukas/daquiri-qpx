@@ -20,6 +20,8 @@ class OptlibOptimizer : public AbstractOptimizer
 
   bool check_gradient(FittableFunction* fittable) const;
 
+  bool default_to_finite_gradient {false};
+
  private:
 
 };
