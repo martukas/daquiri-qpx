@@ -26,6 +26,8 @@ struct FitResult
   size_t iterations{0};                    /// < number of iterations used to reach result
   bool converged{false};                   /// < whether convergence was achieved
   double value;                            /// < most recent evaluation result
+  bool used_finite_grads {false};
+  size_t perturbations{0};
   std::string error_message;
 
   std::string to_string(bool with_hessian = false) const;

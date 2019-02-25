@@ -11,6 +11,7 @@
 #include <Eigen/Sparse>
 #pragma GCC diagnostic pop
 
+#include <random>
 
 namespace DAQuiri
 {
@@ -39,6 +40,9 @@ class FittableFunction
   /// \param gradients a vector into which gradients for each variable will be written.
   virtual double chi_sq_gradient(const Eigen::VectorXd& fit,
                                  Eigen::VectorXd& gradients) const = 0;
+
+  // \todo document this
+  virtual bool perturb(std::mt19937&) { return false; }
 
 //  virtual double chi_sq_gradient_hessian(const column_vector& x, column_vector& der,
 //      general_matrix& hess) const = 0;

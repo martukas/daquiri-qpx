@@ -136,7 +136,8 @@ class Tail : public FunctionTest
   {
     //    optimizer.verbose = true;
     optimizer.maximum_iterations = 100;
-    optimizer.default_to_finite_gradient = true;
+    optimizer.gradient_selection =
+        DAQuiri::OptlibOptimizer::GradientSelection::DefaultToFinite;
 
     ft.tail.amplitude.bound(0.0001, 1.5);
     ft.tail.amplitude.val(0.05);

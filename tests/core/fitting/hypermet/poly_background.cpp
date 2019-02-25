@@ -78,7 +78,8 @@ class PolyBackground : public FunctionTest
   {
 //    optimizer.verbose = true;
     optimizer.maximum_iterations = 1000;
-    optimizer.default_to_finite_gradient = true;
+    optimizer.gradient_selection =
+        DAQuiri::OptlibOptimizer::GradientSelection::DefaultToFinite;
 
     fb.background.x_offset = 0;
 //    fb.background.base.bound(0, 7792);

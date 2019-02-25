@@ -9,9 +9,12 @@ std::string FitResult::to_string(bool with_hessian) const
 {
   std::stringstream ss;
   ss << variables.transpose();
-  auto ret = fmt::format("{} at val={} after {} iterations  vars={} {}",
-                     (converged ? "CONVERGED" : "NO CONVERGENCE"),
-                     value, iterations, ss.str(), error_message);
+  auto ret =
+      fmt::format("{}{}{} at val={} after {} iterations  vars={} {}",
+                  (converged ? "CONVERGED" : "NO CONVERGENCE"),
+                  (used_finite_grads ? " FINITE" : ""),
+                  ((perturbations > 0) ? (" Perturbation:" + std::to_string(perturbations)) : ""),
+                  value, iterations, ss.str(), error_message);
 
   if (with_hessian && inv_hessian.innerSize() && inv_hessian.outerSize())
   {

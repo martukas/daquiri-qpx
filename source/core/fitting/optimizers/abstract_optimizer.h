@@ -16,6 +16,7 @@ class AbstractOptimizer
 
   bool verbose{false};
   size_t maximum_iterations{3000};
+  size_t maximum_perturbations{10};
   double tolerance{1e-7};
 
   /// \brief minimizes a supplied function

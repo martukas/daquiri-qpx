@@ -20,9 +20,17 @@ class OptlibOptimizer : public AbstractOptimizer
 
   bool check_gradient(FittableFunction* fittable) const;
 
-  bool default_to_finite_gradient {false};
+  enum class GradientSelection
+  {
+    AnalyticalAlways,
+    FiniteAlways,
+    DefaultToFinite
+  };
+
+  GradientSelection gradient_selection;
 
  private:
+
 
 };
 

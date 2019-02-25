@@ -137,7 +137,8 @@ class Step : public FunctionTest
   {
     //    optimizer.verbose = true;
     optimizer.maximum_iterations = 30;
-    optimizer.default_to_finite_gradient = true;
+    optimizer.gradient_selection =
+        DAQuiri::OptlibOptimizer::GradientSelection::DefaultToFinite;
 
     //fs.amplitude.bound(0, 100000);
     fs.amplitude.val(40000);

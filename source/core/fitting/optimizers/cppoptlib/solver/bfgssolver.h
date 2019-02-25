@@ -58,8 +58,7 @@ class BfgsSolver : public ISolver<ProblemType, 1>
         std::cout << "iter: " << std::right << std::setw(8) << this->m_current.iterations
                   << "     f = " << std::right << std::setw(12) << objFunc.value(x0)
                   << "     ||g||_inf = " << std::right << std::setw(12)
-                  << this->m_current.gradNorm
-                  << "     x=" << x0.transpose() << std::endl;
+                  << this->m_current.gradNorm << std::endl;
       }
 
       this->m_current.xDelta = (x_old - x0).template lpNorm<Eigen::Infinity>();

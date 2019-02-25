@@ -253,7 +253,14 @@ void FunctionTest::test_fit_random(size_t attempts,
 
     if (result.converged)
     {
-      max_iterations_to_converge = std::max(max_iterations_to_converge, result.iterations);
+      max_iterations_to_converge =
+          std::max(max_iterations_to_converge, result.iterations);
+      max_perturbations_to_converge =
+          std::max(max_perturbations_to_converge, result.perturbations);
+      if (result.used_finite_grads)
+        converged_finite++;
+      if (result.perturbations > 0)
+        converged_perturbed++;
       for (auto& v : vals)
         v.record_delta();
     }
@@ -274,8 +281,14 @@ void FunctionTest::test_fit_random(size_t attempts,
   }
 
   MESSAGE() << "Summary:\n";
-  MESSAGE() << " Unconverged:" << unconverged << "\n";
+  MESSAGE() << " Unconverged:" << unconverged << " ("
+            << std::to_string(double(unconverged) / double(attempts) * 100.0) << "%)\n";
+  MESSAGE() << " Converged as finite:" << converged_finite << " ("
+            << std::to_string(double(converged_finite) / double(attempts) * 100.0) << "%)\n";
+  MESSAGE() << " Converged perturbed:" << converged_perturbed << " ("
+            << std::to_string(double(converged_perturbed) / double(attempts) * 100.0) << "%)\n";
   MESSAGE() << " Max iterations to converge:" << max_iterations_to_converge << "\n";
+  MESSAGE() << " Max perturbations to converge:" << max_perturbations_to_converge << "\n";
   for (const auto& v : vals)
   {
     auto deltas = v.deltas_hist();
