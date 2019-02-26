@@ -59,7 +59,7 @@ double Step::eval_grad(const PrecalcVals& pre, Eigen::VectorXd& grads) const
     grads[pre.i_amp] += pre.pos_grad * ret / pre.ampl;
   // \todo pos unused?
 
-  if (amplitude.to_fit)
+  if (amplitude.valid_index())
     grads[amplitude.index()] += ret / ampl * amplitude.grad();
 
   return ret;
@@ -78,7 +78,7 @@ double Step::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
     grads[pre.i_amp] += pre.pos_grad * ret / pre.ampl;
   // \todo pos unused?
 
-  if (amplitude.to_fit)
+  if (amplitude.valid_index())
     grads[amplitude.index()] += ret / ampl * amplitude.grad_from(fit);
 
   return ret;

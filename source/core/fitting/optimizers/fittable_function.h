@@ -12,6 +12,8 @@
 #pragma GCC diagnostic pop
 
 #include <random>
+#include <core/fitting/optimizers/fit_result.h>
+
 
 namespace DAQuiri
 {
@@ -41,8 +43,16 @@ class FittableFunction
   virtual double chi_sq_gradient(const Eigen::VectorXd& fit,
                                  Eigen::VectorXd& gradients) const = 0;
 
+  // \todo make this function pure virtual?
+  /// \brief saves fit result, possibly with uncertainties
+  /// \param result result of optimization attempt
+  virtual void save_fit(const FitResult&) {};
+
   // \todo document this
   virtual bool perturb(std::mt19937&) { return false; }
+
+  // \todo document this
+  virtual bool sane() const { return true; }
 
 //  virtual double chi_sq_gradient_hessian(const column_vector& x, column_vector& der,
 //      general_matrix& hess) const = 0;

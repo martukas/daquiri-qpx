@@ -72,12 +72,12 @@ class PolyBackground : public FunctionTest
   FittableBackground fb;
   DAQuiri::OptlibOptimizer optimizer;
   size_t region_size{40};
-  size_t random_samples{1000};
+  size_t random_samples{10000};
 
   virtual void SetUp()
   {
 //    optimizer.verbose = true;
-    optimizer.maximum_iterations = 1000;
+    optimizer.maximum_iterations = 30;
     optimizer.gradient_selection =
         DAQuiri::OptlibOptimizer::GradientSelection::DefaultToFinite;
 
@@ -339,117 +339,155 @@ TEST_F(PolyBackground, EvalGradAt)
   EXPECT_EQ(grad[2], grad_goal[2]);
 }
 
-TEST_F(PolyBackground, GradBaseOnly)
+TEST_F(PolyBackground, SruveyGradients)
 {
-  double goal_val = fb.background.base.val();
   fb.data = generate_data(&fb, region_size);
-  fb.background.slope.to_fit = false;
-  fb.background.curve.to_fit = false;
   fb.update_indices();
 
   EXPECT_TRUE(optimizer.check_gradient(&fb));
 
+  double goal_val = fb.background.base.val();
   survey_grad(&fb, &fb.background.base, 0.05, std::sqrt(50.0), std::sqrt(100.0));
 //  survey_grad(&fb, &fb.background.base, 0.001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.5);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.1);
 
-  auto_bound();
-  test_fit(5, &optimizer, &fb, &fb.background.base, 100, 1e-8);
+  goal_val = fb.background.slope.val();
+  survey_grad(&fb, &fb.background.slope, 0.001, -460, 460);
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.001);
+  EXPECT_NEAR(check_gradients(false), goal_val, 0.001);
+
+  goal_val = fb.background.curve.val();
+  survey_grad(&fb, &fb.background.curve, 0.0001, -10, 10);
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.002);
+  EXPECT_NEAR(check_gradients(false), goal_val, 0.001);
+}
+
+
+TEST_F(PolyBackground, FitBaseOnly)
+{
+  fb.data = generate_data(&fb, region_size);
+  fb.background.slope.to_fit = false;
+  fb.background.curve.to_fit = false;
+  fb.update_indices();
+
   auto_bound();
   test_fit_random(random_samples, &optimizer, &fb,
                   {"base", &fb.background.base, 50, 7792, 1e-6});
+
+  EXPECT_EQ(unconverged, 0);
+  EXPECT_EQ(not_sane, 0);
+  EXPECT_EQ(converged_finite, 0);
+  EXPECT_EQ(converged_perturbed, 0);
+  EXPECT_LE(max_iterations_to_converge, 15);
+  EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
 TEST_F(PolyBackground, FitBaseRelaxed)
 {
   fb.data = generate_data(&fb, region_size);
-  auto_bound();
   fb.update_indices();
 
-  test_fit(5, &optimizer, &fb, &fb.background.base, 100, 1e-8);
   auto_bound();
   test_fit_random(random_samples, &optimizer, &fb,
                   {"base", &fb.background.base, 50, 7792, 1e-6});
+
+  EXPECT_EQ(unconverged, 0);
+  EXPECT_EQ(not_sane, 0);
+  EXPECT_EQ(converged_finite, 0);
+  EXPECT_EQ(converged_perturbed, 0);
+  EXPECT_LE(max_iterations_to_converge, 15);
+  EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
-TEST_F(PolyBackground, GradSlopeOnly)
+TEST_F(PolyBackground, FitSlopeOnly)
 {
-  double goal_val = fb.background.slope.val();
   fb.data = generate_data(&fb, region_size);
   fb.background.base.to_fit = false;
   fb.background.curve.to_fit = false;
   fb.update_indices();
 
-  EXPECT_TRUE(optimizer.check_gradient(&fb));
-
-  survey_grad(&fb, &fb.background.slope, 0.001, -460, 460);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.001);
-  EXPECT_NEAR(check_gradients(false), goal_val, 0.001);
-
-  auto_bound();
-  test_fit(5, &optimizer, &fb, &fb.background.slope, 10, 1e-10);
   auto_bound();
   test_fit_random(random_samples, &optimizer, &fb,
                   {"slope", &fb.background.slope, -460, 460, 1e-7});
+
+  EXPECT_EQ(unconverged, 0);
+  EXPECT_EQ(not_sane, 0);
+  EXPECT_EQ(converged_finite, 0);
+  EXPECT_EQ(converged_perturbed, 0);
+  EXPECT_LE(max_iterations_to_converge, 18);
+  EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
 TEST_F(PolyBackground, FitSlopeRelaxed)
 {
   fb.data = generate_data(&fb, region_size);
-  auto_bound();
   fb.update_indices();
 
   auto_bound();
-  test_fit(5, &optimizer, &fb, &fb.background.slope, 10, 1e-10);
-  auto_bound();
   test_fit_random(random_samples, &optimizer, &fb,
                   {"slope", &fb.background.slope, -460, 460, 1e-7});
+
+  EXPECT_EQ(unconverged, 0);
+  EXPECT_EQ(not_sane, 0);
+  EXPECT_EQ(converged_finite, 0);
+  EXPECT_EQ(converged_perturbed, 0);
+  EXPECT_LE(max_iterations_to_converge, 19);
+  EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
-TEST_F(PolyBackground, GradCurveOnly)
+TEST_F(PolyBackground, FitCurveOnly)
 {
-  double goal_val = fb.background.curve.val();
   fb.data = generate_data(&fb, region_size);
   fb.background.base.to_fit = false;
   fb.background.slope.to_fit = false;
   fb.update_indices();
 
-  EXPECT_TRUE(optimizer.check_gradient(&fb));
-
-  survey_grad(&fb, &fb.background.curve, 0.0001, -10, 10);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.002);
-  EXPECT_NEAR(check_gradients(false), goal_val, 0.001);
-
-  auto_bound();
-  test_fit(5, &optimizer, &fb, &fb.background.curve, 0, 1e-12);
   auto_bound();
   test_fit_random(random_samples, &optimizer, &fb,
-                  {"curve", &fb.background.curve, -10, 10, 1e-9});
+                  {"curve", &fb.background.curve, -10, 10, 1e-8});
+
+  EXPECT_EQ(unconverged, 0);
+  EXPECT_EQ(not_sane, 0);
+  EXPECT_EQ(converged_finite, 0);
+  EXPECT_EQ(converged_perturbed, 0);
+  EXPECT_LE(max_iterations_to_converge, 8);
+  EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
 TEST_F(PolyBackground, FitCurveRelaxed)
 {
   fb.data = generate_data(&fb, region_size);
-  auto_bound();
   fb.update_indices();
 
   auto_bound();
-  test_fit(5, &optimizer, &fb, &fb.background.curve, 0, 1e-12);
-  auto_bound();
   test_fit_random(random_samples, &optimizer, &fb,
                   {"curve", &fb.background.curve, -10, 10, 1e-8});
+
+  EXPECT_EQ(unconverged, 0);
+  EXPECT_EQ(not_sane, 0);
+  EXPECT_EQ(converged_finite, 0);
+  EXPECT_EQ(converged_perturbed, 0);
+  EXPECT_LE(max_iterations_to_converge, 8);
+  EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
 TEST_F(PolyBackground, FitAllThree)
 {
   fb.data = generate_data(&fb, region_size);
-  auto_bound();
   fb.update_indices();
 
+  auto_bound();
   std::vector<ValueToVary> vals;
   vals.push_back({"base", &fb.background.base, 50, 7792, 1e-6});
   vals.push_back({"slope", &fb.background.slope, -460, 460, 1e-7});
   vals.push_back({"curve", &fb.background.curve, -10, 10, 1e-8});
   test_fit_random(random_samples, &optimizer, &fb, vals);
+
+  EXPECT_EQ(unconverged, 0);
+  EXPECT_EQ(not_sane, 0);
+  EXPECT_EQ(converged_finite, 0);
+  EXPECT_EQ(converged_perturbed, 0);
+  EXPECT_LE(max_iterations_to_converge, 19);
+  EXPECT_LE(max_perturbations_to_converge, 0);
 }

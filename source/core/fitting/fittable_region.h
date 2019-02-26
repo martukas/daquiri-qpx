@@ -44,11 +44,7 @@ class FittableRegion : public FittableFunction
   virtual double eval_grad_at(double chan, const Eigen::VectorXd& fit,
       Eigen::VectorXd& grads) const = 0;
 
-  /// \brief saves fit result, possibly with uncertainties
-  /// \param result result of optimization attempt
-  virtual void save_fit(const FitResult& result) = 0;
-
-  // \todo document
+  // \todo document this
   virtual std::string to_string(std::string prepend = "") const = 0;
 
   /// \returns chi squared of the current state of the model function as compared to

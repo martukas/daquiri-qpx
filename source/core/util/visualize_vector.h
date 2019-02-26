@@ -4,6 +4,25 @@
 #include <core/util/more_math.h>
 
 template<typename T>
+std::string print_vector(const T& vector, size_t row_max = 0, std::string sep = " ")
+{
+  std::stringstream ss;
+  size_t i = 0;
+  for (const auto& v : vector)
+  {
+    ss << v << sep;
+    i++;
+    if (row_max && (i == row_max))
+    {
+      ss << "\n";
+      i = 0;
+    }
+  }
+  return ss.str();
+}
+
+
+template<typename T>
 std::string visualize(const T& hist, size_t nstars, bool non_empty_only = false)
 {
   if (hist.empty())

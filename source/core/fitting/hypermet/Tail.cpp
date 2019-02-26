@@ -71,9 +71,9 @@ double Tail::eval_grad(const PrecalcVals& pre, Eigen::VectorXd& grads) const
   if (pre.i_amp > AbstractValue::InvalidIndex)
     grads[pre.i_amp] += pre.amp_grad * ret / ampl;
 
-  if (amplitude.index() > AbstractValue::InvalidIndex)
+  if (amplitude.valid_index())
     grads[amplitude.index()] += amplitude.grad() * ret / ampl;
-  if (slope.index() > AbstractValue::InvalidIndex)
+  if (slope.valid_index())
     grads[slope.index()] += slope.grad() * ((-spread / square(slp)) *
         ret + (pre.width / (2.0 * square(slp)) * t2));
   return ret;
@@ -95,9 +95,9 @@ double Tail::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
   if (pre.i_amp > AbstractValue::InvalidIndex)
     grads[pre.i_amp] += pre.amp_grad * ret / ampl;
 
-  if (amplitude.index() > AbstractValue::InvalidIndex)
+  if (amplitude.valid_index())
     grads[amplitude.index()] += amplitude.grad_from(fit) * ret / ampl;
-  if (slope.index() > AbstractValue::InvalidIndex)
+  if (slope.valid_index())
     grads[slope.index()] += slope.grad_from(fit) * ((-spread / square(slp)) *
         ret + (pre.width / (2.0 * square(slp)) * t2));
   return ret;

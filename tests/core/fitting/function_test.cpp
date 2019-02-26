@@ -156,72 +156,89 @@ void FunctionTest::test_fit(size_t attempts,
                             double wrong_value,
                             double epsilon)
 {
-  fittable->update_indices();
   double goal_val = variable->val();
 
-  MESSAGE() << "Will fit " << wrong_value << " --> " << variable->to_string()
-            << " in " << attempts << " attempts with epsilon=" << epsilon << "\n";
+  fittable->update_indices();
+
+  if (verbose)
+    MESSAGE() << "Will fit " << wrong_value << " --> " << variable->to_string()
+              << " in " << attempts << " attempts with epsilon=" << epsilon << "\n";
 
   for (size_t i = 0; i < attempts; ++i)
   {
     variable->val(wrong_value);
     auto result = optimizer->minimize(fittable);
-    if (optimizer->verbose)
+    if (verbose)
       MESSAGE() << result.to_string() << "\n";
     fittable->save_fit(result);
-    MESSAGE() << "Attempt[" << i << "] " << variable->to_string()
+    EXPECT_NEAR(variable->val(), goal_val, epsilon)
+              << "Attempt[" << i << "] " << variable->to_string()
               << "  delta=" << (goal_val - variable->val()) << "\n";
-    EXPECT_NEAR(variable->val(), goal_val, epsilon);
   }
+
+  variable->val(goal_val);
 }
 
-void FunctionTest::test_fit_random(size_t attempts,
-                                   DAQuiri::AbstractOptimizer* optimizer,
-                                   DAQuiri::FittableRegion* fittable,
-                                   DAQuiri::AbstractValue* variable,
-                                   double wrong_min, double wrong_max,
-                                   double epsilon)
+void FunctionTest::deterministic_test(size_t attempts,
+                                      DAQuiri::AbstractOptimizer* optimizer,
+                                      DAQuiri::FittableRegion* fittable,
+                                      DAQuiri::AbstractValue* variable,
+                                      double wrong_value)
 {
-  std::mt19937 random_generator;
-  random_generator.seed(std::random_device()());
-  std::uniform_real_distribution<double> distribution(wrong_min, wrong_max);
-
-  fittable->update_indices();
   double goal_val = variable->val();
 
-  MESSAGE() << "Will fit random(" << wrong_min << "," << wrong_max << ") --> "
-            << variable->to_string() << " in " << attempts
-            << " attempts with epsilon=" << epsilon << "\n";
+  fittable->update_indices();
 
+  std::vector<double> vals;
+  std::vector<double> uncerts;
   for (size_t i = 0; i < attempts; ++i)
   {
-    double wrong = distribution(random_generator);
-    variable->val(wrong);
-    auto result = optimizer->minimize(fittable);
-    fittable->save_fit(result);
-    MESSAGE() << "Attempt[" << i << "] " << wrong << "->" << variable->to_string()
-              << "  delta=" << (goal_val - variable->val()) << "\n";
-    if (optimizer->verbose)
-      MESSAGE() << "     " << result.to_string(true) << "\n";
-    EXPECT_NEAR(variable->val(), goal_val, epsilon);
+    variable->val(wrong_value);
+    fittable->save_fit(optimizer->minimize(fittable));
+    vals.push_back(variable->val());
+    uncerts.push_back(variable->uncert());
   }
+
+  double val1 = vals.front();
+  bool vals_ok = true;
+  for (const auto& v : vals)
+  {
+    if (v != val1)
+      vals_ok = false;
+  }
+
+  EXPECT_TRUE(vals_ok);
+  if (!vals_ok || verbose)
+    MESSAGE() << "Vals: " << print_vector(vals) << "\n";
+
+  double uncert1 = uncerts.front();
+  bool uncerts_ok = true;
+  for (const auto& v : uncerts)
+  {
+    if (v != uncert1)
+      uncerts_ok = false;
+  }
+
+  EXPECT_TRUE(uncerts_ok);
+  if (!uncerts_ok || verbose)
+    MESSAGE() << "Uncerts: " << print_vector(uncerts) << "\n";
+
+  variable->val(goal_val);
 }
+
 
 void FunctionTest::test_fit_random(size_t attempts,
                      DAQuiri::AbstractOptimizer* optimizer,
                      DAQuiri::FittableRegion* fittable,
-                     ValueToVary var, bool verbose)
+                     ValueToVary var)
 {
-  std::vector<ValueToVary> vals;
-  vals.push_back(var);
-  test_fit_random(attempts, optimizer, fittable, vals, verbose);
+  test_fit_random(attempts, optimizer, fittable, std::vector<ValueToVary>{var});
 }
 
 void FunctionTest::test_fit_random(size_t attempts,
                                    DAQuiri::AbstractOptimizer* optimizer,
                                    DAQuiri::FittableRegion* fittable,
-                                   std::vector<ValueToVary> vals,
-                                   bool verbose)
+                                   std::vector<ValueToVary> vals)
 {
   std::mt19937 random_generator;
   random_generator.seed(std::random_device()());
@@ -251,24 +268,33 @@ void FunctionTest::test_fit_random(size_t attempts,
 
     fittable->save_fit(result);
 
-    if (result.converged)
+    if (!fittable->sane())
+      not_sane++;
+    else if (result.converged)
     {
       max_iterations_to_converge =
           std::max(max_iterations_to_converge, result.iterations);
       max_perturbations_to_converge =
           std::max(max_perturbations_to_converge, result.perturbations);
-      if (result.used_finite_grads)
-        converged_finite++;
       if (result.perturbations > 0)
         converged_perturbed++;
+      else if (result.used_finite_grads)
+        converged_finite++;
       for (auto& v : vals)
+      {
         v.record_delta();
+        if (print_outside_tolerance && (v.get_delta() > v.epsilon))
+          MESSAGE() << "        " << result.to_string() << "\n"
+                    << "                       F=" <<
+                    fittable->to_string("                         ") << "\n";
+      }
     }
     else
     {
-      MESSAGE() << "        " << result.to_string() << "\n"
-                << "                       F=" <<
-                fittable->to_string("                         ") << "\n";
+      if (print_unconverged)
+        MESSAGE() << "        " << result.to_string() << "\n"
+                  << "                       F=" <<
+                  fittable->to_string("                         ") << "\n";
       unconverged++;
     }
 
@@ -283,6 +309,8 @@ void FunctionTest::test_fit_random(size_t attempts,
   MESSAGE() << "Summary:\n";
   MESSAGE() << " Unconverged:" << unconverged << " ("
             << std::to_string(double(unconverged) / double(attempts) * 100.0) << "%)\n";
+  MESSAGE() << " Not sane:" << not_sane << " ("
+            << std::to_string(double(not_sane) / double(attempts) * 100.0) << "%)\n";
   MESSAGE() << " Converged as finite:" << converged_finite << " ("
             << std::to_string(double(converged_finite) / double(attempts) * 100.0) << "%)\n";
   MESSAGE() << " Converged perturbed:" << converged_perturbed << " ("
@@ -299,4 +327,6 @@ void FunctionTest::test_fit_random(size_t attempts,
   for (auto& v : vals)
     EXPECT_LE(v.max_delta, v.epsilon);
 
+  for (auto& v : vals)
+    v.variable->val(v.goal);
 }

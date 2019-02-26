@@ -2,7 +2,6 @@
 
 #include <atomic>
 #include <core/fitting/optimizers/fittable_function.h>
-#include <core/fitting/optimizers/fit_result.h>
 
 namespace DAQuiri
 {

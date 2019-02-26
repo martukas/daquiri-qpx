@@ -61,11 +61,11 @@ class BfgsSolver : public ISolver<ProblemType, 1>
                   << this->m_current.gradNorm << std::endl;
       }
 
-      this->m_current.xDelta = (x_old - x0).template lpNorm<Eigen::Infinity>();
-      x_old = x0;
       ++this->m_current.iterations;
+      this->m_current.xDelta = (x_old - x0).template lpNorm<Eigen::Infinity>();
       this->m_current.gradNorm = grad.template lpNorm<Eigen::Infinity>();
       this->m_status = checkConvergence(this->m_stop, this->m_current);
+      x_old = x0;
     }
     while (objFunc.callback(this->m_current, x0) && (this->m_status == Status::Continue));
   }

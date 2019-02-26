@@ -303,7 +303,7 @@ TEST_F(Value, Visualize)
     grad.push_back(val.grad_at(v));
   }
 
-  MESSAGE() << "Value::val_at(x):\n" << visualize(x, y, 100) << "\n";
+//  MESSAGE() << "Value::val_at(x):\n" << visualize(x, y, 100) << "\n";
   MESSAGE() << "grad(val):\n" << visualize(y, grad, 100) << "\n";
 }
 
@@ -318,3 +318,23 @@ TEST_F(Value, Print)
   val.val(1235678e5);
   MESSAGE() << "|" << val.to_string() << "|\n";
 }
+
+
+//TEST_F(Value, Visualize2)
+//{
+//  DAQuiri::Value2 val;
+//  val.bound(10, 20);
+//
+//  std::vector<double> x;
+//  std::vector<double> y;
+//  std::vector<double> grad;
+//  for (double v = -7.0; v < 7.0; v+=0.1)
+//  {
+//    x.push_back(v);
+//    y.push_back(val.val_at(v));
+//    grad.push_back(val.grad_at(v));
+//  }
+//
+////  MESSAGE() << "Value::val_at(x):\n" << visualize(x, y, 100) << "\n";
+//  MESSAGE() << "grad(val):\n" << visualize(y, grad, 100) << "\n";
+//}

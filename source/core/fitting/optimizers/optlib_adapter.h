@@ -28,6 +28,7 @@ class OptlibOptimizer : public AbstractOptimizer
   };
 
   GradientSelection gradient_selection;
+  bool perform_sanity_checks {false};
 
  private:
 

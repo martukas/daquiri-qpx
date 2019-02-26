@@ -50,7 +50,12 @@ class FunctionTest : public TestBase
   std::vector<double> chi_sq_norm;
   std::vector<double> gradient;
 
+  bool verbose {false};
+  bool print_outside_tolerance {false};
+  bool print_unconverged {true};
+
   size_t unconverged {0};
+  size_t not_sane {0};
   size_t converged_finite {0};
   size_t converged_perturbed {0};
   size_t max_iterations_to_converge{0};
@@ -63,11 +68,17 @@ class FunctionTest : public TestBase
 
   void survey_grad(const DAQuiri::FittableRegion* fittable,
                    DAQuiri::AbstractValue* variable,
-                   double step_size = 0.1, double xmin = -M_PI, double xmax = M_PI);
+                   double step_size = 0.1, double xmin = -M_PI_2, double xmax = M_PI_2);
 
   double check_chi_sq(bool print) const;
 
   double check_gradients(bool print) const;
+
+  void deterministic_test(size_t attempts,
+                          DAQuiri::AbstractOptimizer* optimizer,
+                          DAQuiri::FittableRegion* fittable,
+                          DAQuiri::AbstractValue* variable,
+                          double wrong_value);
 
   void test_fit(size_t attempts,
                 DAQuiri::AbstractOptimizer* optimizer,
@@ -79,19 +90,10 @@ class FunctionTest : public TestBase
   void test_fit_random(size_t attempts,
                        DAQuiri::AbstractOptimizer* optimizer,
                        DAQuiri::FittableRegion* fittable,
-                       DAQuiri::AbstractValue* variable,
-                       double wrong_min, double wrong_max,
-                       double epsilon);
+                       ValueToVary var);
 
   void test_fit_random(size_t attempts,
                        DAQuiri::AbstractOptimizer* optimizer,
                        DAQuiri::FittableRegion* fittable,
-                       ValueToVary var,
-                       bool verbose = false);
-
-  void test_fit_random(size_t attempts,
-                       DAQuiri::AbstractOptimizer* optimizer,
-                       DAQuiri::FittableRegion* fittable,
-                       std::vector<ValueToVary> vals,
-                       bool verbose = false);
+                       std::vector<ValueToVary> vals);
 };

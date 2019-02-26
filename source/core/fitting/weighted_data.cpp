@@ -29,7 +29,7 @@ double weight_phillips_marlow(const std::vector<double>& counts, size_t index)
   {
     k0 = 1.0;
     if ((index > 0) && ((index + 1) < counts.size()))
-      k0 = counts[index - 1] + counts[index] + counts[index + 1] / 3.0;
+      k0 = (counts[index - 1] + counts[index] + counts[index + 1]) / 3.0;
     // \todo what if on edges?
     return std::max(std::sqrt(k0), 1.0);
   }

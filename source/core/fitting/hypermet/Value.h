@@ -35,11 +35,14 @@ class AbstractValue
   /// \param idx index from parent model
   void update_index(int32_t& idx);
 
-  // \todo document this
+  /// \brief invalidates internally stored index
   void reset_index();
 
   /// \returns internally stored index for fitting
   int32_t index() const;
+
+  /// \returns true if index is valid
+  bool valid_index() const;
 
   /// \returns current proxy variable
   double x() const;
@@ -77,6 +80,9 @@ class AbstractValue
   /// \returns current uncertainty
   double uncert() const;
 
+  /// \brief sets current uncertainty
+  void uncert(double new_uncert);
+
   /// \brief writes current proxy variable into fit vector for optimization, only
   ///        if variable index is valid
   /// \param fit variables to be optimized
@@ -95,8 +101,7 @@ class AbstractValue
   friend void to_json(nlohmann::json& j, const AbstractValue& s);
   friend void from_json(const nlohmann::json& j, AbstractValue& s);
 
-  // \todo make this private
- protected:
+ private:
   double x_{0.0};
 
   // \todo what's this for?
@@ -106,10 +111,10 @@ class AbstractValue
   int32_t index_{InvalidIndex};
 };
 
-class Value : public AbstractValue
+class BoundedValue : public AbstractValue
 {
  public:
-  Value() = default;
+  BoundedValue() = default;
 
   using AbstractValue::x;
   using AbstractValue::val;
@@ -131,39 +136,13 @@ class Value : public AbstractValue
   /// \param v2 second value, either minimum or maximum
   void bound(double v1, double v2);
 
-  /// \brief sets current proxy variable so that nominal value equals new_val
-  /// \param new_val new nominal value to set
-  void val(double new_val) override;
-
-  /// \returns transforms proxy variable into nominal value
-  /// \param at_x proxy variable to be evaluated
-  double val_at(double at_x) const override;
-
-  /// \returns transforms proxy variable into gradient (slope)
-  /// \param at_x proxy variable to be evaluated
-  double grad_at(double at_x) const override;
-
   std::string to_string() const override;
-  friend void to_json(nlohmann::json& j, const Value& s);
-  friend void from_json(const nlohmann::json& j, Value& s);
+  friend void to_json(nlohmann::json& j, const BoundedValue& s);
+  friend void from_json(const nlohmann::json& j, BoundedValue& s);
 
  private:
   double max_{1.0};
   double min_{0.0};
-};
-
-class ValuePositive : public AbstractValue
-{
- public:
-  ValuePositive() = default;
-
-  using AbstractValue::x;
-  using AbstractValue::val;
-  using AbstractValue::grad;
-
-  void val(double new_val) override;
-  double val_at(double at_x) const override;
-  double grad_at(double at_x) const override;
 };
 
 class ValueSimple : public AbstractValue
@@ -175,8 +154,88 @@ class ValueSimple : public AbstractValue
   using AbstractValue::val;
   using AbstractValue::grad;
 
+  /// \brief sets current proxy variable so that nominal value equals new_val
+  /// \param new_val new nominal value to set
   void val(double new_val) override;
+
+  /// \returns transforms proxy variable into nominal value
+  /// \param at_x proxy variable to be evaluated
   double val_at(double at_x) const override;
+
+  /// \returns transforms proxy variable into gradient (slope)
+  /// \param at_x proxy variable to be evaluated
+  double grad_at(double at_x) const override;
+};
+
+class ValuePositive : public AbstractValue
+{
+ public:
+  ValuePositive() = default;
+
+  using AbstractValue::x;
+  using AbstractValue::val;
+  using AbstractValue::grad;
+
+  /// \brief sets current proxy variable so that nominal value equals new_val
+  /// \param new_val new nominal value to set
+  void val(double new_val) override;
+
+  /// \returns transforms proxy variable into nominal value
+  /// \param at_x proxy variable to be evaluated
+  double val_at(double at_x) const override;
+
+  /// \returns transforms proxy variable into gradient (slope)
+  /// \param at_x proxy variable to be evaluated
+  double grad_at(double at_x) const override;
+};
+
+class Value : public BoundedValue
+{
+ public:
+  Value() = default;
+
+  using AbstractValue::x;
+  using AbstractValue::val;
+  using AbstractValue::grad;
+  using BoundedValue::min;
+  using BoundedValue::max;
+  using BoundedValue::bound;
+
+  /// \brief sets current proxy variable so that nominal value equals new_val
+  /// \param new_val new nominal value to set
+  void val(double new_val) override;
+
+  /// \returns transforms proxy variable into nominal value
+  /// \param at_x proxy variable to be evaluated
+  double val_at(double at_x) const override;
+
+  /// \returns transforms proxy variable into gradient (slope)
+  /// \param at_x proxy variable to be evaluated
+  double grad_at(double at_x) const override;
+};
+
+class Value2 : public BoundedValue
+{
+ public:
+  Value2() = default;
+
+  using AbstractValue::x;
+  using AbstractValue::val;
+  using AbstractValue::grad;
+  using BoundedValue::min;
+  using BoundedValue::max;
+  using BoundedValue::bound;
+
+  /// \brief sets current proxy variable so that nominal value equals new_val
+  /// \param new_val new nominal value to set
+  void val(double new_val) override;
+
+  /// \returns transforms proxy variable into nominal value
+  /// \param at_x proxy variable to be evaluated
+  double val_at(double at_x) const override;
+
+  /// \returns transforms proxy variable into gradient (slope)
+  /// \param at_x proxy variable to be evaluated
   double grad_at(double at_x) const override;
 };
 

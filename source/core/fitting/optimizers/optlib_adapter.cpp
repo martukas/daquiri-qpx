@@ -2,7 +2,10 @@
 
 #include <core/fitting/optimizers/cppoptlib/meta.h>
 #include <core/fitting/optimizers/cppoptlib/problem.h>
+
 #include <core/fitting/optimizers/cppoptlib/solver/bfgssolver.h>
+#include <core/fitting/optimizers/cppoptlib/solver/cmaessolver.h>
+#include <core/fitting/optimizers/cppoptlib/solver/neldermeadsolver.h>
 
 #include <core/util/custom_logger.h>
 
@@ -12,9 +15,11 @@ namespace DAQuiri
 class OptlibFittableWrapper : public cppoptlib::Problem<double>
 {
  public:
+  OptlibFittableWrapper() = default;
+
   FittableFunction* function_; /// < pointer to fittable function for function binding
   std::atomic<bool>* cancel_;
-  bool use_finite_gradient_ {false};
+  bool use_finite_gradient_{false};
 
   using typename cppoptlib::Problem<double>::Scalar;
   using typename cppoptlib::Problem<double>::TVector;
@@ -54,10 +59,11 @@ FitResult solve(cppoptlib::BfgsSolver<OptlibFittableWrapper> solver,
                 OptlibOptimizer::GradientSelection grad_select);
 
 FitResult solve(cppoptlib::BfgsSolver<OptlibFittableWrapper> solver,
-                   OptlibFittableWrapper f,
-                   OptlibOptimizer::GradientSelection grad_select)
+                OptlibFittableWrapper f,
+                OptlibOptimizer::GradientSelection grad_select)
 {
-  f.use_finite_gradient_ = (grad_select == OptlibOptimizer::GradientSelection::FiniteAlways);
+  f.use_finite_gradient_ =
+      (grad_select == OptlibOptimizer::GradientSelection::FiniteAlways);
 
   Eigen::VectorXd x = f.function_->variables();
   solver.minimize(f, x);
@@ -89,7 +95,6 @@ FitResult solve(cppoptlib::BfgsSolver<OptlibFittableWrapper> solver,
   return ret;
 }
 
-
 FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
 {
   std::mt19937 random_generator;
@@ -101,6 +106,8 @@ FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
   cppoptlib::Criteria<double> crit = cppoptlib::Criteria<double>::defaults();
   crit.iterations = maximum_iterations;
   crit.gradNorm = tolerance;
+//  crit.gradNorm = 0.0;
+//  crit.xDelta = tolerance;
   solver.setStopCriteria(crit);
 
   OptlibFittableWrapper f;

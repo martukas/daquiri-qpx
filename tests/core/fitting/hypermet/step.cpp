@@ -36,6 +36,20 @@ class FittableStep : public DAQuiri::FittableRegion
     return ret;
   }
 
+  bool sane() const override
+  {
+    if ((step.amplitude.val() == step.amplitude.min()) ||
+        (step.amplitude.val() == step.amplitude.max()))
+      return false;
+    if ((width.val() == width.min()) ||
+        (width.val() == width.max()))
+      return false;
+    if ((position.val() == position.min()) ||
+        (position.val() == position.max()))
+      return false;
+    return true;
+  }
+
   DAQuiri::PrecalcVals precalc(double chan) const
   {
     DAQuiri::PrecalcVals ret;
@@ -361,80 +375,92 @@ TEST_F(Step, EvalGradAt)
   EXPECT_EQ(grad[3], grad_goal[3]);
 }
 
+TEST_F(Step, SurveyGradients)
+{
+  fs.data = generate_data(&fs, region_size);
+  fs.update_indices();
+
+  EXPECT_TRUE(optimizer.check_gradient(&fs));
+
+  double goal_val = fs.step.amplitude.val();
+  survey_grad(&fs, &fs.step.amplitude, 0.001);
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.00001);
+//  EXPECT_NEAR(check_gradients(false), goal_val, 0.00001);
+
+  goal_val = fs.width.val();
+  survey_grad(&fs, &fs.width, 0.001);
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
+//  EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
+
+  goal_val = fs.amplitude.val();
+  survey_grad(&fs, &fs.amplitude, 0.1, std::sqrt(30000), std::sqrt(40000));
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 50);
+  EXPECT_NEAR(check_gradients(false), goal_val, 50);
+}
+
 TEST_F(Step, FitAmplitude)
 {
-  double goal_val = fs.step.amplitude.val();
   fs.data = generate_data(&fs, region_size);
   fs.width.to_fit = false;
   fs.position.to_fit = false;
   fs.amplitude.to_fit = false;
   fs.update_indices();
 
-  EXPECT_TRUE(optimizer.check_gradient(&fs));
-
-  survey_grad(&fs, &fs.step.amplitude, 0.001);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.00001);
-  EXPECT_NEAR(check_gradients(false), goal_val, 0.00001);
-
-  SetUp();
-  test_fit(5, &optimizer, &fs, &fs.step.amplitude, 0.005, 1e-13);
   SetUp();
   test_fit_random(random_samples, &optimizer, &fs,
                   {"amplitude", &fs.step.amplitude,
                    fs.step.amplitude.min(), fs.step.amplitude.max(), 1e-12});
+  EXPECT_EQ(unconverged, 0);
+  EXPECT_EQ(not_sane, 0);
+  EXPECT_LE(converged_finite, 0.80 * random_samples);
+  EXPECT_EQ(converged_perturbed, 0);
+  EXPECT_LE(max_iterations_to_converge, 7);
+  EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
 TEST_F(Step, FitParentWidth)
 {
-  double goal_val = fs.width.val();
   fs.data = generate_data(&fs, region_size);
   fs.position.to_fit = false;
   fs.amplitude.to_fit = false;
   fs.step.amplitude.to_fit = false;
   fs.update_indices();
 
-  EXPECT_TRUE(optimizer.check_gradient(&fs));
-
-  survey_grad(&fs, &fs.width, 0.001);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
-  EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
-
-  SetUp();
-  test_fit(5, &optimizer, &fs, &fs.width, 1.0, 1e-9);
   SetUp();
   test_fit_random(random_samples, &optimizer, &fs,
-                  {"parent_width", &fs.width,
-                   fs.width.min(), fs.width.max(), 1e-7});
+                  {"parent_width", &fs.width, fs.width.min(), fs.width.max(), 1e-7});
+  EXPECT_EQ(unconverged, 0);
+  EXPECT_EQ(not_sane, 0);
+  EXPECT_EQ(converged_finite, 0);
+  EXPECT_EQ(converged_perturbed, 0);
+  EXPECT_LE(max_iterations_to_converge, 4);
+  EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
 TEST_F(Step, FitParentAmplitude)
 {
-  double goal_val = fs.amplitude.val();
   fs.data = generate_data(&fs, region_size);
   fs.width.to_fit = false;
   fs.position.to_fit = false;
   fs.step.amplitude.to_fit = false;
   fs.update_indices();
 
-  EXPECT_TRUE(optimizer.check_gradient(&fs));
-
-  survey_grad(&fs, &fs.amplitude, 0.1, std::sqrt(30000), std::sqrt(40000));
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 50);
-  EXPECT_NEAR(check_gradients(false), goal_val, 50);
-
-  SetUp();
-  test_fit(5, &optimizer, &fs, &fs.amplitude, 30000, 1e-4);
   SetUp();
   test_fit_random(random_samples, &optimizer, &fs,
-                  {"parent_amplitude", &fs.amplitude,
-                   30000, 50000, 0.01});
+                  {"parent_amplitude", &fs.amplitude, 30000, 50000, 0.01});
+  EXPECT_EQ(unconverged, 0);
+  EXPECT_EQ(not_sane, 0);
+  EXPECT_EQ(converged_finite, 0);
+  EXPECT_EQ(converged_perturbed, 0);
+  EXPECT_LE(max_iterations_to_converge, 3);
+  EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
 // \todo parent position should play a role?
 
 // the 2 amplitudes are degenerate. can't deconvolute without peak
 // so we must test their fitting separately in these tests
-TEST_F(Step, FitAllAmp1)
+TEST_F(Step, FitAll1)
 {
   fs.data = generate_data(&fs, region_size);
   fs.position.to_fit = false;
@@ -446,9 +472,16 @@ TEST_F(Step, FitAllAmp1)
                   fs.step.amplitude.min(), fs.step.amplitude.max(), 1e-12});
   vals.push_back({"parent_width", &fs.width, fs.width.min(), fs.width.max(), 1e-5});
   test_fit_random(random_samples, &optimizer, &fs, vals);
+
+  EXPECT_EQ(unconverged, 0);
+  EXPECT_EQ(not_sane, 0);
+  EXPECT_LE(converged_finite, 0.80 * random_samples);
+  EXPECT_EQ(converged_perturbed, 0);
+  EXPECT_LE(max_iterations_to_converge, 14);
+  EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
-TEST_F(Step, FitAllAmp2)
+TEST_F(Step, FitAll2)
 {
   fs.data = generate_data(&fs, region_size);
   fs.position.to_fit = false;
@@ -459,4 +492,11 @@ TEST_F(Step, FitAllAmp2)
   vals.push_back({"parent_width", &fs.width, fs.width.min(), fs.width.max(), 1e-6});
   vals.push_back({"parent_amplitude", &fs.amplitude, 30000, 50000, 0.01});
   test_fit_random(random_samples, &optimizer, &fs, vals);
+
+  EXPECT_EQ(unconverged, 0);
+  EXPECT_EQ(not_sane, 0);
+  EXPECT_EQ(converged_finite, 0);
+  EXPECT_EQ(converged_perturbed, 0);
+  EXPECT_LE(max_iterations_to_converge, 22);
+  EXPECT_LE(max_perturbations_to_converge, 0);
 }
