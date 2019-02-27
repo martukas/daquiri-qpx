@@ -91,6 +91,11 @@ bool Peak::sanity_check(double min_x, double max_x) const
       std::isfinite(pos) && (min_x < pos) && (pos < max_x);
 }
 
+bool Peak::sane() const
+{
+  return true;
+}
+
 bool Peak::full_energy_peak() const
 {
   return (step.side == Side::left);

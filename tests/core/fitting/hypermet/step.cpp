@@ -38,14 +38,11 @@ class FittableStep : public DAQuiri::FittableRegion
 
   bool sane() const override
   {
-    if ((step.amplitude.val() == step.amplitude.min()) ||
-        (step.amplitude.val() == step.amplitude.max()))
+    if (!step.sane(0.0, 0.0))
       return false;
-    if ((width.val() == width.min()) ||
-        (width.val() == width.max()))
+    if (width.to_fit && width.at_extremum(0.0, 0.0))
       return false;
-    if ((position.val() == position.min()) ||
-        (position.val() == position.max()))
+    if (position.to_fit && position.at_extremum(0.0, 0.0))
       return false;
     return true;
   }

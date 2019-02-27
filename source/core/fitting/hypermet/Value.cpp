@@ -154,6 +154,11 @@ void BoundedValue::bound(double v1, double v2)
   max(std::max(v1, v2));
 }
 
+bool BoundedValue::at_extremum(double min_epsilon, double max_epsilon) const
+{
+  return ((val() - min()) < min_epsilon) || ((max() - val()) < max_epsilon);
+}
+
 std::string BoundedValue::to_string() const
 {
   auto bounds_part = fmt::format("[{:<14}-{:>14}]", min_, max_);

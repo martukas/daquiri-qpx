@@ -34,6 +34,7 @@ class Peak
   bool is_gaussian_only() const;
 
   bool sanity_check(double min_x, double max_x) const;
+  bool sane() const;
 
   bool full_energy_peak() const;
   void full_energy_peak(bool flag);

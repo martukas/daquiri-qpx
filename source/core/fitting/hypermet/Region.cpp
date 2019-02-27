@@ -116,8 +116,10 @@ bool Region::add_peak(double l, double r, double amp_hint)
   if ((l < left()) || (right() < r))
     throw std::runtime_error("Attempting to add peak outside of region bounds");
   Peak p = default_peak_;
-  p.position.bound(l, r);
-  p.position.val(0.5 * (l + r));
+  double center = 0.5 * (l + r);
+  double radius = (r - l) * 0.5;
+  p.position.bound(center - 0.5 * radius, center + 0.5 * radius);
+  p.position.val(center);
 
   data.subset(l, r);
   double max_val{0.0};

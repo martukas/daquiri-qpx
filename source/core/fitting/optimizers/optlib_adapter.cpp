@@ -106,8 +106,8 @@ FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
   cppoptlib::Criteria<double> crit = cppoptlib::Criteria<double>::defaults();
   crit.iterations = maximum_iterations;
   crit.gradNorm = tolerance;
-//  crit.gradNorm = 0.0;
-//  crit.xDelta = tolerance;
+// \todo use different tolerance for this?
+//  crit.xDelta = 1e-12;
   solver.setStopCriteria(crit);
 
   OptlibFittableWrapper f;

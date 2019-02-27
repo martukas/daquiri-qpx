@@ -128,13 +128,20 @@ class BoundedValue : public AbstractValue
   /// \brief sets new upper bound for the variable
   /// \param new_max new upper bound for the variable
   void max(double new_max);
+
   /// \brief sets new lower bound for the variable
   /// \param new_min new lower bound for the variable
   void min(double new_min);
+
   /// \brief sets new bounds for the variable
   /// \param v1 first value, either minimum or maximum
   /// \param v2 second value, either minimum or maximum
   void bound(double v1, double v2);
+
+  /// \returns if current value is at extermum
+  /// \param min_epsilon maximum different between value and min to yield true
+  /// \param max_epsilon maximum different between value and max to yield true
+  bool at_extremum(double min_epsilon, double max_epsilon) const;
 
   std::string to_string() const override;
   friend void to_json(nlohmann::json& j, const BoundedValue& s);

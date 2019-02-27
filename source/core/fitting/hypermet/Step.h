@@ -57,6 +57,8 @@ class Step
   double eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
                       Eigen::VectorXd& grads) const;
 
+  bool sane(double amp_min_epsilon, double amp_max_epsilon) const;
+
   std::string to_string() const;
 
  private:

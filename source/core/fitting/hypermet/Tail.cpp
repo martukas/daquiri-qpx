@@ -103,6 +103,15 @@ double Tail::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
   return ret;
 }
 
+bool Tail::sane(double amp_min_epsilon, double amp_max_epsilon, double slope_epsilon) const
+{
+  if (amplitude.to_fit && amplitude.at_extremum(amp_min_epsilon, amp_max_epsilon))
+    return false;
+  if (slope.to_fit && slope.at_extremum(slope_epsilon, slope_epsilon))
+    return false;
+  return true;
+}
+
 std::string Tail::to_string() const
 {
   return fmt::format("{}{} {}  amp={}  slope={}",

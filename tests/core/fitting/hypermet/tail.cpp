@@ -54,14 +54,11 @@ class FittableTail : public DAQuiri::FittableRegion
 
   bool sane() const override
   {
-    if ((tail.amplitude.val() == tail.amplitude.min()) ||
-        (tail.amplitude.val() == tail.amplitude.max()))
+    if (!tail.sane(1e-5, 1e-4, 1e-3))
       return false;
-    if ((width.val() == width.min()) ||
-        (width.val() == width.max()))
+    if (width.to_fit && width.at_extremum(1e-3, 1e-3))
       return false;
-    if ((position.val() == position.min()) ||
-        (position.val() == position.max()))
+    if (position.to_fit && position.at_extremum(1e-2, 1e-2))
       return false;
     return true;
   }
@@ -161,12 +158,13 @@ class Tail : public FunctionTest
   FittableTail ft;
   DAQuiri::OptlibOptimizer optimizer;
   size_t region_size{100};
-  size_t random_samples{100};
+  size_t random_samples{1000};
 
-  virtual void SetUp()
+  void SetUp() override
   {
-    //    optimizer.verbose = true;
-    optimizer.maximum_iterations = 200;
+    optimizer.tolerance = 1e-7;
+    optimizer.maximum_perturbations = 10;
+    optimizer.maximum_iterations = 80;
     optimizer.gradient_selection =
         DAQuiri::OptlibOptimizer::GradientSelection::DefaultToFinite;
 
@@ -475,12 +473,12 @@ TEST_F(Tail, FitAmplitude)
                   {"amplitude", &ft.tail.amplitude,
                    ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-10});
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
   EXPECT_LE(converged_finite, 0.70 * random_samples);
   EXPECT_LE(converged_perturbed, 0.40 * random_samples);
-  EXPECT_LE(max_iterations_to_converge, 6);
-  EXPECT_LE(max_perturbations_to_converge, 3);
+  EXPECT_LE(max_iterations_to_converge, 7u);
+  EXPECT_LE(max_perturbations_to_converge, 5u);
 }
 
 TEST_F(Tail, FitSlope)
@@ -497,12 +495,12 @@ TEST_F(Tail, FitSlope)
                   {"slope", &ft.tail.slope,
                    ft.tail.slope.min(), ft.tail.slope.max(), 1e-9});
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, 0);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 5);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 6u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(Tail, FitBoth)
@@ -520,12 +518,12 @@ TEST_F(Tail, FitBoth)
                   ft.tail.slope.min(), ft.tail.slope.max(), 1e-7});
   test_fit_random(random_samples, &optimizer, &ft, vals);
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
   EXPECT_LE(converged_finite, 0.95 * random_samples);
   EXPECT_LE(converged_perturbed, 0.15 * random_samples);
-  EXPECT_LE(max_iterations_to_converge, 200);
-  EXPECT_LE(max_perturbations_to_converge, 2);
+  EXPECT_LE(max_iterations_to_converge, 200u);
+  EXPECT_LE(max_perturbations_to_converge, 3u);
 }
 
 TEST_F(Tail, FitParentWidth)
@@ -542,12 +540,12 @@ TEST_F(Tail, FitParentWidth)
                   {"parent_width", &ft.width,
                    ft.width.min(), ft.width.max(), 1e-10});
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, 0);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 5);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 5u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(Tail, FitParentPosition)
@@ -564,12 +562,12 @@ TEST_F(Tail, FitParentPosition)
                   {"parent_position", &ft.position,
                    ft.position.min(), ft.position.max(), 1e-9});
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
   EXPECT_LE(converged_finite, 0.65 * random_samples);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 6);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 7u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(Tail, FitParentAmplitude)
@@ -586,12 +584,12 @@ TEST_F(Tail, FitParentAmplitude)
                   {"parent_amplitude", &ft.amplitude,
                    30000, 50000, 1e-3});
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, random_samples);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 3);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 3u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 // the 2 amplitudes are degenerate. can't deconvolute without peak
@@ -608,18 +606,18 @@ TEST_F(Tail, FitAll1)
   vals.push_back({"amplitude", &ft.tail.amplitude,
                   ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-10});
   vals.push_back({"slope", &ft.tail.slope,
-                  ft.tail.slope.min(), ft.tail.slope.max(), 1e-7});
+                  ft.tail.slope.min(), ft.tail.slope.max(), 1e-6});
   vals.push_back({"parent_width", &ft.width, ft.width.min(), ft.width.max(), 1e-8});
   vals.push_back({"parent_position", &ft.position,
                   ft.position.min(), ft.position.max(), 1e-8});
   test_fit_random(random_samples, &optimizer, &ft, vals);
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_LE(converged_finite, 0.95 * random_samples);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 60);
-  EXPECT_LE(max_perturbations_to_converge, 1);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_LE(not_sane, 0.05 * random_samples);
+  EXPECT_LE(converged_finite, 0.97 * random_samples);
+  EXPECT_LE(converged_perturbed, 0.10 * random_samples);
+  EXPECT_LE(max_iterations_to_converge, 60u);
+  EXPECT_LE(max_perturbations_to_converge, 2u);
 }
 
 TEST_F(Tail, FitAll2)
@@ -628,19 +626,21 @@ TEST_F(Tail, FitAll2)
   ft.tail.amplitude.to_fit = false;
   ft.update_indices();
 
+  print_outside_tolerance = true;
+
   std::vector<ValueToVary> vals;
   vals.push_back({"slope", &ft.tail.slope,
                   ft.tail.slope.min(), ft.tail.slope.max(), 1e-6});
   vals.push_back({"parent_width", &ft.width, ft.width.min(), ft.width.max(), 1e-8});
   vals.push_back({"parent_position", &ft.position,
                   ft.position.min(), ft.position.max(), 1e-8});
-  vals.push_back({"parent_amplitude", &ft.amplitude, 30000, 50000, 1e-4});
+  vals.push_back({"parent_amplitude", &ft.amplitude, 30000, 50000, 2e-4});
   test_fit_random(random_samples, &optimizer, &ft, vals);
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, random_samples);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 60);
-  EXPECT_LE(max_perturbations_to_converge, 1);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_LE(not_sane, 0.01 * random_samples);
+  //EXPECT_EQ(converged_finite, random_samples);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 75u);
+  EXPECT_LE(max_perturbations_to_converge, 1u);
 }
