@@ -23,7 +23,7 @@ std::string ValueToVary::name_var() const
 std::string ValueToVary::declare() const
 {
   auto minmax = fmt::format("dist({},{})", min, max);
-  return fmt::format("{:<55} {:<25}  epsilon={:>10}",
+  return fmt::format("{:<96} {:<25}  epsilon={:>10}",
                      name_var(), minmax, epsilon);
 }
 
@@ -292,7 +292,8 @@ void FunctionTest::test_fit_random(size_t attempts,
     else
     {
       if (print_unconverged)
-        MESSAGE() << "        " << result.to_string() << "\n"
+        MESSAGE() << "        attempt:" << i << "  "
+                  << result.to_string() << "\n"
                   << "                       F=" <<
                   fittable->to_string("                         ") << "\n";
       unconverged++;

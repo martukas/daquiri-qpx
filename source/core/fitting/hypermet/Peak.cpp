@@ -35,6 +35,8 @@ Peak::Peak()
 
   long_tail.amplitude.bound(0.0001, 0.15);
   long_tail.slope.bound(2.5, 50);
+  long_tail.slope.val(52.5  / 2.0);
+  // \todo bound and set to midpoint
 
   step.amplitude.bound(0.000001, 0.05);
 }
@@ -93,6 +95,20 @@ bool Peak::sanity_check(double min_x, double max_x) const
 
 bool Peak::sane() const
 {
+  if (width.to_fit && width.at_extremum(1e-3, 1e-3))
+    return false;
+  if (position.to_fit && position.at_extremum(1e-2, 1e-2))
+    return false;
+  if (!short_tail.sane(1e-5, 1e-4, 1e-3))
+    return false;
+  if (!right_tail.sane(1e-5, 1e-4, 1e-3))
+    return false;
+  if (!long_tail.sane(1e-4, 1e-7, 1e-7))
+    return false;
+  if (!step.sane(0.0, 1e-4))
+    return false;
+  if (amplitude.val() < 1e-5)
+    return false;
   return true;
 }
 
@@ -430,15 +446,16 @@ Peak::Components Peak::eval_grad_at(double chan, const Eigen::VectorXd& fit,
 std::string Peak::to_string(std::string prepend) const
 {
   std::stringstream ss;
-  ss << prepend << "pos = " << position.to_string() << "\n";
-  ss << prepend << "amp = " << amplitude.to_string() << "\n";
+  ss << prepend << "pos              = " << position.to_string() << "\n";
+  ss << prepend << "amp              = " << amplitude.to_string() << "\n";
   ss << prepend << "width"
-     << (width_override ? "(OVERRIDEN) = " : " = ")
+     << (width_override ? "(OVERRIDEN) = "
+                        : "            = ")
      << width.to_string() << "\n";
-  ss << prepend << "left_skew = " << short_tail.to_string() << "\n";
+  ss << prepend << "left_skew  = " << short_tail.to_string() << "\n";
   ss << prepend << "right_skew = " << right_tail.to_string() << "\n";
-  ss << prepend << "long_tail = " << long_tail.to_string() << "\n";
-  ss << prepend << "step = " << step.to_string() << "\n";
+  ss << prepend << "long_tail  = " << long_tail.to_string() << "\n";
+  ss << prepend << "step       = " << step.to_string() << "\n";
   return ss.str();
 }
 

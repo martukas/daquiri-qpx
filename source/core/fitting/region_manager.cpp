@@ -430,9 +430,13 @@ bool RegionManager::rebuild(AbstractOptimizer* optimizer)
       region_.chi_sq(), region_.chi_sq(vars));
 
   auto result = optimizer->minimize(&region_);
-  if (optimizer->verbose)
-    INFO("Fitter result {}", result.to_string());
+  //if (optimizer->verbose)
+  INFO("Fitter result {}", result.to_string());
   region_.save_fit(result);
+  region_.reindex_peaks();
+
+  if (!region_.sane())
+    INFO("!!!!! RESULT NOT SANE !!!!!");
 
   region_.auto_sum4();
   save_current_fit("Rebuild");

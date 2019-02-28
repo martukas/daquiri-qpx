@@ -37,7 +37,7 @@ class OptlibFittableWrapper : public cppoptlib::Problem<double>
       finiteGradient(x, grad);
   }
 
-  bool callback(const cppoptlib::Criteria<double>& state, const TVector& x)
+  bool callback(const cppoptlib::Criteria<double>& state, const TVector& x) override
   {
     (void) state; // unused
     (void) x;     // unused
@@ -115,14 +115,17 @@ FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
   f.cancel_ = &cancel;
 
   auto ret = solve(solver, f, gradient_selection);
+  fittable->save_fit(ret);
 
   size_t perturbations = 0;
-  while (!ret.converged &&
+  while ((!ret.converged ||
+          (perform_sanity_checks && !fittable->sane())) &&
       (perturbations < maximum_perturbations) &&
       fittable->perturb(random_generator))
   {
     perturbations++;
     ret = solve(solver, f, gradient_selection);
+    fittable->save_fit(ret);
   }
 
   ret.perturbations = perturbations;

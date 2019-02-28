@@ -181,12 +181,12 @@ std::vector<double> PolyBackground::eval(const std::vector<double>& bins) const
 std::string PolyBackground::to_string(std::string prepend) const
 {
   std::stringstream ss;
-  ss << prepend << "x=bin-" << x_offset << "\n";
-  ss << prepend << "base=" << base.to_string() << "\n";
+  ss << prepend << "x = bin - " << x_offset << "\n";
+  ss << prepend <<   "base  = " << base.to_string() << "\n";
   if (slope_enabled)
-    ss << prepend << "slope=" << slope.to_string() << "\n";
+    ss << prepend << "slope = " << slope.to_string() << "\n";
   if (curve_enabled)
-    ss << prepend << "curve=" << curve.to_string() << "\n";
+    ss << prepend << "curve = " << curve.to_string() << "\n";
   return ss.str();
 }
 

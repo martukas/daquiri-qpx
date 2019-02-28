@@ -25,6 +25,8 @@ namespace DAQuiri
 
 class Region : public FittableRegion
 {
+  std::uniform_real_distribution<double> x_dist {-M_PI_2, M_PI_2};
+
  public:
   PolyBackground background;
   Peak default_peak_;
@@ -60,8 +62,11 @@ class Region : public FittableRegion
   double eval_grad_at(double chan, const Eigen::VectorXd& fit, Eigen::VectorXd& grads) const override;
   void save_fit(const FitResult& result) override;
 
-  // \todo deprecate this
+  bool perturb(std::mt19937& rng) override;
+  bool sane() const override;
+
   void save_fit(const Eigen::VectorXd& variables);
+  void reindex_peaks();
 
   std::string to_string(std::string prepend = "") const override;
   friend void to_json(nlohmann::json& j, const Region& s);
@@ -75,7 +80,6 @@ class Region : public FittableRegion
 
   void init_background();
   void cull_peaks();
-  void reindex_peaks();
 };
 
 }

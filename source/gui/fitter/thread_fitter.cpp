@@ -14,6 +14,7 @@ ThreadFitter::ThreadFitter(QObject *parent) :
   opt->gradient_selection =
       DAQuiri::OptlibOptimizer::GradientSelection::DefaultToFinite;
   opt->maximum_iterations = 500;
+  opt->perform_sanity_checks = true;
 
   optimizer_ = opt;
 

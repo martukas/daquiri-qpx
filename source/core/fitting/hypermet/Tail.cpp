@@ -114,8 +114,8 @@ bool Tail::sane(double amp_min_epsilon, double amp_max_epsilon, double slope_eps
 
 std::string Tail::to_string() const
 {
-  return fmt::format("{}{} {}  amp={}  slope={}",
-                     enabled ? "ON" : "OFF",
+  return fmt::format("{}{:<9} {:<5}  amp={}  slope={}",
+                     enabled ? "ON " : "OFF",
                      override ? " OVERRIDE" : "",
                      DAQuiri::to_string(side),
                      amplitude.to_string(),

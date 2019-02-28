@@ -59,32 +59,7 @@ class FittablePeak : public DAQuiri::FittableRegion
 
   bool sane() const override
   {
-    if (peak.width.at_extremum(1e-3, 1e-3))
-      return false;
-    if (peak.position.at_extremum(1e-2, 1e-2))
-      return false;
-    if (peak.short_tail.amplitude.at_extremum(1e-5, 1e-4))
-      return false;
-    if (peak.short_tail.slope.at_extremum(1e-3, 1e-3))
-      return false;
-    if (peak.right_tail.amplitude.at_extremum(1e-5, 1e-4))
-      return false;
-    if (peak.right_tail.slope.at_extremum(1e-3, 1e-3))
-      return false;
-//    if ((peak.long_tail.amplitude.val() - peak.long_tail.amplitude.min()) < 1e-6 ||
-//        (peak.long_tail.amplitude.max() - peak.long_tail.amplitude.val()) < 1e-4)
-//      return false;
-    if ((peak.long_tail.amplitude.max() - peak.long_tail.amplitude.val()) < 1e-4)
-      return false;
-//    if ((peak.long_tail.slope.val() - peak.long_tail.slope.min()) < 1e-3 ||
-//        (peak.long_tail.slope.max() - peak.long_tail.slope.val()) < 1e-3)
-//      return false;
-//    if ((peak.step.amplitude.val() - peak.step.amplitude.min()) < 1e-5 ||
-//        (peak.step.amplitude.max() - peak.step.amplitude.val()) < 1e-4)
-//      return false;
-    if ((peak.step.amplitude.max() - peak.step.amplitude.val()) < 1e-4)
-      return false;
-    return true;
+    return peak.sane();
   }
 
   double eval(double chan) const override

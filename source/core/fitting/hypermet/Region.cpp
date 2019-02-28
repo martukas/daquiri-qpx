@@ -10,19 +10,6 @@ namespace DAQuiri
 
 Region::Region()
 {
-  default_peak_.width.bound(0.8, 8.0);
-
-  default_peak_.short_tail.amplitude.bound(0.02, 1.5);
-  default_peak_.short_tail.slope.bound(0.2, 0.5);
-
-  default_peak_.right_tail.amplitude.bound(0.01, 0.9);
-  default_peak_.right_tail.slope.bound(0.3, 1.5);
-
-  default_peak_.long_tail.amplitude.bound(0.0001, 0.15);
-  default_peak_.long_tail.slope.bound(2.5, 50);
-
-  default_peak_.step.amplitude.bound(0.000001, 0.05);
-
 //  default_peak_ = default_peak_.gaussian_only();
 }
 
@@ -226,7 +213,7 @@ void Region::init_background()
 void Region::reindex_peaks()
 {
   std::map<double, Peak> new_peaks;
-  for (const auto& p : peaks_)
+  for (auto& p : peaks_)
     new_peaks[p.second.id()] = p.second;
   peaks_ = new_peaks;
 }
@@ -310,8 +297,6 @@ void Region::save_fit(const Eigen::VectorXd& variables)
 
   for (auto& p : peaks_)
     p.second.get(variables);
-
-  reindex_peaks();
 }
 
 void Region::save_fit(const FitResult& result)
@@ -363,6 +348,54 @@ double Region::eval_grad_at(double chan, const Eigen::VectorXd& fit, Eigen::Vect
   for (const auto& p : peaks_)
     ret += p.second.eval_grad_at(chan, fit, grads).all();
   return ret;
+}
+
+bool Region::perturb(std::mt19937& rng)
+{
+//  if (background.base.valid_index())
+//    background.base.x(background.base.x() + x_dist(rng));
+//  if (background.slope.valid_index())
+//    background.slope.x(background.slope.x() + x_dist(rng));
+//  if (background.curve.valid_index())
+//    background.curve.x(background.curve.x() + x_dist(rng));
+
+  for (auto& p : peaks_)
+  {
+    if (p.second.width.valid_index())
+      p.second.width.x(x_dist(rng));
+    if (p.second.position.valid_index())
+      p.second.position.x(x_dist(rng));
+    if (p.second.amplitude.valid_index())
+      p.second.amplitude.x(p.second.amplitude.x() + x_dist(rng));
+
+    if (p.second.short_tail.amplitude.valid_index())
+      p.second.short_tail.amplitude.x(x_dist(rng));
+    if (p.second.short_tail.slope.valid_index())
+      p.second.short_tail.slope.x(x_dist(rng));
+
+    if (p.second.right_tail.amplitude.valid_index())
+      p.second.right_tail.amplitude.x(x_dist(rng));
+    if (p.second.right_tail.slope.valid_index())
+      p.second.right_tail.slope.x(x_dist(rng));
+
+    if (p.second.long_tail.amplitude.valid_index())
+      p.second.long_tail.amplitude.x(x_dist(rng));
+    if (p.second.long_tail.slope.valid_index())
+      p.second.long_tail.slope.x(x_dist(rng));
+
+//    if (p.second.step.amplitude.valid_index())
+//      p.second.step.amplitude.x(x_dist(rng));
+  }
+
+  return true;
+}
+
+bool Region::sane() const
+{
+  for (const auto& p : peaks_)
+    if (!p.second.sane())
+      return false;
+  return true;
 }
 
 std::string Region::to_string(std::string prepend) const

@@ -93,8 +93,8 @@ bool Step::sane(double amp_min_epsilon, double amp_max_epsilon) const
 
 std::string Step::to_string() const
 {
-  return fmt::format("{}{} {}  amp={}",
-                     enabled ? "ON" : "OFF",
+  return fmt::format("{}{:<9} {:<5}  amp={}",
+                     enabled ? "ON " : "OFF",
                      override ? " OVERRIDE" : "",
                      DAQuiri::to_string(side),
                      amplitude.to_string());
