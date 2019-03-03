@@ -435,26 +435,41 @@ TEST_F(Tail, SurveyGradients)
   survey_grad(&ft, &ft.tail.amplitude, 0.01);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
   //EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
+  survey_grad(&ft, &ft.tail.amplitude, 0.05);
+  check_gradients(true);
+  check_gradient_deltas(true);
 
   goal_val = ft.tail.slope.val();
   survey_grad(&ft, &ft.tail.slope, 0.01);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.1);
 //  EXPECT_NEAR(check_gradients(false), goal_val, 0.1);
+  survey_grad(&ft, &ft.tail.slope, 0.05);
+  check_gradients(true);
+  check_gradient_deltas(true);
 
   goal_val = ft.width.val();
   survey_grad(&ft, &ft.width, 0.001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
 //  EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
+  survey_grad(&ft, &ft.width, 0.05);
+  check_gradients(true);
+  check_gradient_deltas(true);
 
   goal_val = ft.position.val();
   survey_grad(&ft, &ft.position, 0.001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
 //  EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
+  survey_grad(&ft, &ft.position, 0.05);
+  check_gradients(true);
+  check_gradient_deltas(true);
 
   goal_val = ft.amplitude.val();
   survey_grad(&ft, &ft.amplitude, 0.1, std::sqrt(30000), std::sqrt(40000));
   EXPECT_NEAR(check_chi_sq(false), goal_val, 50);
   EXPECT_NEAR(check_gradients(false), goal_val, 50);
+  survey_grad(&ft, &ft.amplitude, 0.5, std::sqrt(30000), std::sqrt(40000));
+  check_gradients(true);
+  check_gradient_deltas(true);
 
 }
 
@@ -469,7 +484,7 @@ TEST_F(Tail, FitAmplitude)
 
   SetUp();
 //  print_outside_tolerance = true;
-  test_fit_random(random_samples, &optimizer, &ft,
+  test_fit_random(random_samples, &ft,
                   {"amplitude", &ft.tail.amplitude,
                    ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-10});
 
@@ -491,7 +506,7 @@ TEST_F(Tail, FitSlope)
   ft.update_indices();
 
   SetUp();
-  test_fit_random(random_samples, &optimizer, &ft,
+  test_fit_random(random_samples, &ft,
                   {"slope", &ft.tail.slope,
                    ft.tail.slope.min(), ft.tail.slope.max(), 1e-9});
 
@@ -516,7 +531,7 @@ TEST_F(Tail, FitBoth)
                   ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-10});
   vals.push_back({"slope", &ft.tail.slope,
                   ft.tail.slope.min(), ft.tail.slope.max(), 1e-7});
-  test_fit_random(random_samples, &optimizer, &ft, vals);
+  test_fit_random(random_samples, &ft, vals);
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
@@ -536,7 +551,7 @@ TEST_F(Tail, FitParentWidth)
   ft.update_indices();
 
   SetUp();
-  test_fit_random(random_samples, &optimizer, &ft,
+  test_fit_random(random_samples, &ft,
                   {"parent_width", &ft.width,
                    ft.width.min(), ft.width.max(), 1e-10});
 
@@ -558,7 +573,7 @@ TEST_F(Tail, FitParentPosition)
   ft.update_indices();
 
   SetUp();
-  test_fit_random(random_samples, &optimizer, &ft,
+  test_fit_random(random_samples, &ft,
                   {"parent_position", &ft.position,
                    ft.position.min(), ft.position.max(), 1e-9});
 
@@ -580,7 +595,7 @@ TEST_F(Tail, FitParentAmplitude)
   ft.update_indices();
 
   SetUp();
-  test_fit_random(random_samples, &optimizer, &ft,
+  test_fit_random(random_samples, &ft,
                   {"parent_amplitude", &ft.amplitude,
                    30000, 50000, 1e-3});
 
@@ -610,7 +625,7 @@ TEST_F(Tail, FitAll1)
   vals.push_back({"parent_width", &ft.width, ft.width.min(), ft.width.max(), 1e-8});
   vals.push_back({"parent_position", &ft.position,
                   ft.position.min(), ft.position.max(), 1e-8});
-  test_fit_random(random_samples, &optimizer, &ft, vals);
+  test_fit_random(random_samples, &ft, vals);
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_LE(not_sane, 0.05 * random_samples);
@@ -635,7 +650,7 @@ TEST_F(Tail, FitAll2)
   vals.push_back({"parent_position", &ft.position,
                   ft.position.min(), ft.position.max(), 1e-8});
   vals.push_back({"parent_amplitude", &ft.amplitude, 30000, 50000, 2e-4});
-  test_fit_random(random_samples, &optimizer, &ft, vals);
+  test_fit_random(random_samples, &ft, vals);
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_LE(not_sane, 0.01 * random_samples);

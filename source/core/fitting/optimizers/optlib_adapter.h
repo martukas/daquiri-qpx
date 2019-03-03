@@ -20,6 +20,10 @@ class OptlibOptimizer : public AbstractOptimizer
 
   bool check_gradient(FittableFunction* fittable) const;
 
+  void finite_gradient(FittableFunction* fittable,
+                       const Eigen::VectorXd& x,
+                       Eigen::VectorXd& gradients) const;
+
   enum class GradientSelection
   {
     AnalyticalAlways,
@@ -29,6 +33,7 @@ class OptlibOptimizer : public AbstractOptimizer
 
   GradientSelection gradient_selection;
   bool perform_sanity_checks {false};
+  double epsilon{1e-10};
 
  private:
 

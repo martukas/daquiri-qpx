@@ -4,8 +4,9 @@
 #include "clever_hist.h"
 
 #include <core/fitting/fittable_region.h>
-#include <core/fitting/optimizers/abstract_optimizer.h>
 #include <core/fitting/hypermet/Value.h>
+
+#include <core/fitting/optimizers/optlib_adapter.h>
 
 #include <random>
 
@@ -45,10 +46,14 @@ struct ValueToVary
 class FunctionTest : public TestBase
 {
  protected:
+  DAQuiri::OptlibOptimizer optimizer;
+
   std::vector<double> val_proxy;
   std::vector<double> val_val;
   std::vector<double> chi_sq_norm;
   std::vector<double> gradient;
+  std::vector<double> finite_gradient;
+  std::vector<double> gradient_delta;
 
   bool verbose {false};
   bool print_outside_tolerance {false};
@@ -66,7 +71,7 @@ class FunctionTest : public TestBase
 
   void visualize_data(const DAQuiri::WeightedData& data) const;
 
-  void survey_grad(const DAQuiri::FittableRegion* fittable,
+  void survey_grad(DAQuiri::FittableRegion* fittable,
                    DAQuiri::AbstractValue* variable,
                    double step_size = 0.1, double xmin = -M_PI_2, double xmax = M_PI_2);
 
@@ -74,26 +79,24 @@ class FunctionTest : public TestBase
 
   double check_gradients(bool print) const;
 
+  double check_gradient_deltas(bool print) const;
+
   void deterministic_test(size_t attempts,
-                          DAQuiri::AbstractOptimizer* optimizer,
                           DAQuiri::FittableRegion* fittable,
                           DAQuiri::AbstractValue* variable,
                           double wrong_value);
 
   void test_fit(size_t attempts,
-                DAQuiri::AbstractOptimizer* optimizer,
                 DAQuiri::FittableRegion* fittable,
                 DAQuiri::AbstractValue* variable,
                 double wrong_value,
                 double epsilon);
 
   void test_fit_random(size_t attempts,
-                       DAQuiri::AbstractOptimizer* optimizer,
                        DAQuiri::FittableRegion* fittable,
                        ValueToVary var);
 
   void test_fit_random(size_t attempts,
-                       DAQuiri::AbstractOptimizer* optimizer,
                        DAQuiri::FittableRegion* fittable,
                        std::vector<ValueToVary> vals);
 };

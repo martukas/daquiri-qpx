@@ -14,7 +14,8 @@ class OptlibOptimizer : public TestBase
 
   virtual void SetUp()
   {
-    //optimizer.verbose = true;
+//    optimizer.verbose = true;
+//    optimizer.maximum_iterations = 200;
   }
 };
 
@@ -34,6 +35,8 @@ TEST_F(OptlibOptimizer, Fit10)
   auto result = optimizer.minimize(&rb);
   MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
+  EXPECT_LE(result.iterations, 25);
+  EXPECT_FALSE(result.used_finite_grads);
 }
 
 TEST_F(OptlibOptimizer, Fit10nonzero)
@@ -45,6 +48,8 @@ TEST_F(OptlibOptimizer, Fit10nonzero)
   auto result = optimizer.minimize(&rb);
   MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
+  EXPECT_LE(result.iterations, 67);
+  EXPECT_FALSE(result.used_finite_grads);
 }
 
 TEST_F(OptlibOptimizer, Fit10nonzero2)
@@ -56,6 +61,8 @@ TEST_F(OptlibOptimizer, Fit10nonzero2)
   auto result = optimizer.minimize(&rb);
   MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
+  EXPECT_LE(result.iterations, 210);
+  EXPECT_FALSE(result.used_finite_grads);
 }
 
 TEST_F(OptlibOptimizer, Fit10Random)
@@ -70,5 +77,7 @@ TEST_F(OptlibOptimizer, Fit10Random)
   auto result = optimizer.minimize(&rb);
   MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
+  EXPECT_LE(result.iterations, 300);
+  EXPECT_FALSE(result.used_finite_grads);
 }
 

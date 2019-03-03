@@ -74,7 +74,7 @@ TEST_F(Region, FitBackgroundOnly)
   vals.push_back({"base", &region.background.base, 50, 7792, 1e-6});
   vals.push_back({"slope", &region.background.slope, -460, 460, 1e-7});
   vals.push_back({"curve", &region.background.curve, -10, 10, 1e-8});
-  test_fit_random(random_samples, &optimizer, &region, vals);
+  test_fit_random(random_samples, &region, vals);
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
@@ -121,7 +121,7 @@ TEST_F(Region, FitOnePeak)
                   pp.position.min(), pp.position.max(), 1e-8});
   vals.push_back({"amplitude", &pp.amplitude,
                   30000, 50000, 2e-4});
-  test_fit_random(random_samples, &optimizer, &region, vals);
+  test_fit_random(random_samples, &region, vals);
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
@@ -167,7 +167,7 @@ TEST_F(Region, FitTwoPeaks)
                   pp2.position.min(), pp2.position.max(), 1e-8});
   vals.push_back({"amplitude2", &pp2.amplitude,
                   25000, 45000, 2e-4});
-  test_fit_random(random_samples, &optimizer, &region, vals);
+  test_fit_random(random_samples, &region, vals);
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
@@ -197,11 +197,11 @@ TEST_F(Region, FitTwoPeaksWithEverything)
 
   MESSAGE() << region.to_string() << "\n";
 
-  optimizer.maximum_iterations = 500;
+  optimizer.maximum_iterations = 600;
   optimizer.perform_sanity_checks = true;
 
   std::vector<ValueToVary> vals;
-  vals.push_back({"base", &region.background.base, 50, 7792, 1e-6});
+  vals.push_back({"base", &region.background.base, 50, 7792, 1e-5});
   vals.push_back({"slope", &region.background.slope, -460, 460, 1e-7});
   vals.push_back({"curve", &region.background.curve, -10, 10, 1e-8});
   vals.push_back({"width", &region.default_peak_.width,
@@ -215,12 +215,12 @@ TEST_F(Region, FitTwoPeaksWithEverything)
                   pp2.position.min(), pp2.position.max(), 1e-8});
   vals.push_back({"amplitude2", &pp2.amplitude,
                   25000, 45000, 2e-4});
-  test_fit_random(random_samples, &optimizer, &region, vals);
+  test_fit_random(random_samples, &region, vals);
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
   //EXPECT_EQ(converged_finite, 0u);
   EXPECT_LE(converged_perturbed, 0.60 * random_samples);
-  EXPECT_LE(max_iterations_to_converge, 120u);
+  EXPECT_LE(max_iterations_to_converge, 500u);
   EXPECT_LE(max_perturbations_to_converge, 2u);
 }

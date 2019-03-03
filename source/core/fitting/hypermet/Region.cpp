@@ -323,7 +323,7 @@ void Region::save_fit(const FitResult& result)
   for (auto& p : peaks_)
     p.second.get_uncerts(diagonals, chisq_norm);
 
-  dirty_ = false;
+  dirty_ = !result.converged;
 }
 
 double Region::eval(double chan) const

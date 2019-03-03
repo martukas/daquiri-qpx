@@ -87,7 +87,7 @@ void FunctionTest::visualize_data(const DAQuiri::WeightedData& data) const
   MESSAGE() << "counts(channel):\n" << visualize(channels, counts, 100) << "\n";
 }
 
-void FunctionTest::survey_grad(const DAQuiri::FittableRegion* fittable,
+void FunctionTest::survey_grad(DAQuiri::FittableRegion* fittable,
                                DAQuiri::AbstractValue* variable,
                                double step_size, double xmin, double xmax)
 {
@@ -97,6 +97,8 @@ void FunctionTest::survey_grad(const DAQuiri::FittableRegion* fittable,
   val_val.clear();
   chi_sq_norm.clear();
   gradient.clear();
+  gradient_delta.clear();
+  finite_gradient.clear();
 
   Eigen::VectorXd variables = fittable->variables();
   Eigen::VectorXd gradients;
@@ -107,7 +109,17 @@ void FunctionTest::survey_grad(const DAQuiri::FittableRegion* fittable,
     val_proxy.push_back(proxy);
     val_val.push_back(variable->val_at(proxy));
     chi_sq_norm.push_back(fittable->chi_sq_gradient(variables, gradients));
-    gradient.push_back(gradients[chosen_var_idx]);
+
+    double analytical_grad = gradients[chosen_var_idx];
+    optimizer.finite_gradient(fittable, variables, gradients);
+    double finite_grad = gradients[chosen_var_idx];
+
+    gradient.push_back(analytical_grad);
+    finite_gradient.push_back(finite_grad);
+    double gdelta = analytical_grad / finite_grad;
+    if (!std::isfinite(gdelta))
+      gdelta = 0.0;
+    gradient_delta.push_back(gdelta);
   }
 }
 
@@ -149,8 +161,25 @@ double FunctionTest::check_gradients(bool print) const
   return val_val[grad_i];
 }
 
+double FunctionTest::check_gradient_deltas(bool print) const
+{
+  auto max_gd = std::max_element(gradient_delta.begin(), gradient_delta.end());
+  auto max_gd_i = std::distance(gradient_delta.begin(), max_gd);
+
+  if (print)
+  {
+//      MESSAGE() << "chi_sq(proxy):\n" << visualize(val_proxy, chi_sq_norm, 100) << "\n";
+    MESSAGE() << "finite_grad(val):\n" << visualize_all(val_val, finite_gradient, 100) << "\n";
+    MESSAGE() << "grad_delta(val):\n" << visualize_all(val_val, gradient_delta, 100) << "\n";
+  }
+  MESSAGE() << "max(grad_delta)=" << gradient_delta[max_gd_i] <<
+            " at val=" << val_val[max_gd_i] << "\n";
+
+  return gradient_delta[max_gd_i];
+
+}
+
 void FunctionTest::test_fit(size_t attempts,
-                            DAQuiri::AbstractOptimizer* optimizer,
                             DAQuiri::FittableRegion* fittable,
                             DAQuiri::AbstractValue* variable,
                             double wrong_value,
@@ -167,7 +196,7 @@ void FunctionTest::test_fit(size_t attempts,
   for (size_t i = 0; i < attempts; ++i)
   {
     variable->val(wrong_value);
-    auto result = optimizer->minimize(fittable);
+    auto result = optimizer.minimize(fittable);
     if (verbose)
       MESSAGE() << result.to_string() << "\n";
     fittable->save_fit(result);
@@ -180,7 +209,6 @@ void FunctionTest::test_fit(size_t attempts,
 }
 
 void FunctionTest::deterministic_test(size_t attempts,
-                                      DAQuiri::AbstractOptimizer* optimizer,
                                       DAQuiri::FittableRegion* fittable,
                                       DAQuiri::AbstractValue* variable,
                                       double wrong_value)
@@ -194,7 +222,7 @@ void FunctionTest::deterministic_test(size_t attempts,
   for (size_t i = 0; i < attempts; ++i)
   {
     variable->val(wrong_value);
-    fittable->save_fit(optimizer->minimize(fittable));
+    fittable->save_fit(optimizer.minimize(fittable));
     vals.push_back(variable->val());
     uncerts.push_back(variable->uncert());
   }
@@ -228,15 +256,13 @@ void FunctionTest::deterministic_test(size_t attempts,
 
 
 void FunctionTest::test_fit_random(size_t attempts,
-                     DAQuiri::AbstractOptimizer* optimizer,
                      DAQuiri::FittableRegion* fittable,
                      ValueToVary var)
 {
-  test_fit_random(attempts, optimizer, fittable, std::vector<ValueToVary>{var});
+  test_fit_random(attempts, fittable, std::vector<ValueToVary>{var});
 }
 
 void FunctionTest::test_fit_random(size_t attempts,
-                                   DAQuiri::AbstractOptimizer* optimizer,
                                    DAQuiri::FittableRegion* fittable,
                                    std::vector<ValueToVary> vals)
 {
@@ -262,9 +288,9 @@ void FunctionTest::test_fit_random(size_t attempts,
         MESSAGE() << "     " << v.name_var() << "\n";
     }
 
-    auto result = optimizer->minimize(fittable);
-    if (optimizer->verbose)
-      MESSAGE() << "        " << result.to_string(optimizer->verbose) << "\n";
+    auto result = optimizer.minimize(fittable);
+    if (optimizer.verbose)
+      MESSAGE() << "        " << result.to_string(optimizer.verbose) << "\n";
 
     fittable->save_fit(result);
 

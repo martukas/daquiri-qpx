@@ -19,6 +19,7 @@ namespace DAQuiri
 {
 
 // \todo invalidate uncertainties automatically when changing value
+// \todo sanity checks for nan and inf
 
 class AbstractValue
 {

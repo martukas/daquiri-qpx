@@ -21,6 +21,10 @@ class OptlibFittableWrapper : public cppoptlib::Problem<double>
   std::atomic<bool>* cancel_;
   bool use_finite_gradient_{false};
 
+  double epsilon{1e-10};
+  double tolerance{1e-7};
+
+
   using typename cppoptlib::Problem<double>::Scalar;
   using typename cppoptlib::Problem<double>::TVector;
 
@@ -39,9 +43,17 @@ class OptlibFittableWrapper : public cppoptlib::Problem<double>
 
   bool callback(const cppoptlib::Criteria<double>& state, const TVector& x) override
   {
-    (void) state; // unused
-    (void) x;     // unused
-    return !cancel_->load();
+    bool converged = false;
+    if (std::isfinite(state.fDelta))
+    {
+      auto f = value(x);
+      auto old_f = value(x) - state.fDelta;
+      converged = ((2.0 * std::abs(state.fDelta)) <=
+          (tolerance * (std::abs(f) + std::abs(old_f) + epsilon)));
+//      INFO("{} = {} <= {}", converged, (2.0 * std::abs(state.fDelta)),
+//           (tolerance * (std::abs(f) + std::abs(old_f) + epsilon)));
+    }
+    return !converged && !cancel_->load();
   }
 };
 
@@ -51,7 +63,42 @@ bool OptlibOptimizer::check_gradient(FittableFunction* fittable) const
 
   OptlibFittableWrapper f;
   f.function_ = fittable;
+
   return f.checkGradient(x);
+}
+
+void OptlibOptimizer::finite_gradient(FittableFunction* fittable,
+                                      const Eigen::VectorXd& x,
+                                      Eigen::VectorXd& gradients) const
+{
+  OptlibFittableWrapper f;
+  f.function_ = fittable;
+  f.use_finite_gradient_ = true;
+
+  gradients.setConstant(x.size(), 0.0);
+  f.gradient(x, gradients);
+}
+
+
+FitResult extract_status(const cppoptlib::Status& status, std::atomic<bool>* cancel)
+{
+  bool interrupted = cancel->load();
+  FitResult ret;
+  ret.converged = (status == cppoptlib::Status::GradNormTolerance)
+      || (status == cppoptlib::Status::FDeltaTolerance)
+      || (status == cppoptlib::Status::XDeltaTolerance)
+      || ((status == cppoptlib::Status::UserDefined) && !interrupted);
+
+  if (interrupted)
+    ret.error_message = "Externally interrupted";
+  else
+  {
+    std::stringstream ss;
+    ss << status;
+    ret.error_message = ss.str();
+  }
+
+  return ret;
 }
 
 FitResult solve(cppoptlib::BfgsSolver<OptlibFittableWrapper> solver,
@@ -67,16 +114,9 @@ FitResult solve(cppoptlib::BfgsSolver<OptlibFittableWrapper> solver,
 
   Eigen::VectorXd x = f.function_->variables();
   solver.minimize(f, x);
-  auto status = solver.status();
 
-  FitResult ret;
-  ret.converged = (status == cppoptlib::Status::GradNormTolerance)
-      || (status == cppoptlib::Status::FDeltaTolerance)
-      || (status == cppoptlib::Status::XDeltaTolerance);
+  FitResult ret = extract_status(solver.status(), f.cancel_);
 
-  std::stringstream ss;
-  ss << status;
-  ret.error_message += ss.str();
   ret.iterations = solver.criteria().iterations;
   f.finiteHessian(x, ret.inv_hessian);
 // \todo do we need to invert? normalize?
@@ -90,6 +130,7 @@ FitResult solve(cppoptlib::BfgsSolver<OptlibFittableWrapper> solver,
     ret = solve(solver, f, OptlibOptimizer::GradientSelection::FiniteAlways);
     ret.error_message = "Retry with finite gradient: " + ret.error_message;
     ret.used_finite_grads = true;
+    f.use_finite_gradient_ = false;
   }
 
   return ret;
@@ -105,7 +146,8 @@ FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
     solver.setDebug(cppoptlib::DebugLevel::Low);
   cppoptlib::Criteria<double> crit = cppoptlib::Criteria<double>::defaults();
   crit.iterations = maximum_iterations;
-  crit.gradNorm = tolerance;
+  //crit.gradNorm = tolerance;
+  crit.gradNorm = 0;
 // \todo use different tolerance for this?
 //  crit.xDelta = 1e-12;
   solver.setStopCriteria(crit);
@@ -113,6 +155,8 @@ FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
   OptlibFittableWrapper f;
   f.function_ = fittable;
   f.cancel_ = &cancel;
+  f.tolerance = tolerance;
+  f.epsilon = epsilon;
 
   auto ret = solve(solver, f, gradient_selection);
   fittable->save_fit(ret);

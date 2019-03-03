@@ -372,7 +372,7 @@ TEST_F(PolyBackground, FitBaseOnly)
   fb.update_indices();
 
   auto_bound();
-  test_fit_random(random_samples, &optimizer, &fb,
+  test_fit_random(random_samples, &fb,
                   {"base", &fb.background.base, 50, 7792, 1e-6});
 
   EXPECT_EQ(unconverged, 0);
@@ -389,7 +389,7 @@ TEST_F(PolyBackground, FitBaseRelaxed)
   fb.update_indices();
 
   auto_bound();
-  test_fit_random(random_samples, &optimizer, &fb,
+  test_fit_random(random_samples, &fb,
                   {"base", &fb.background.base, 50, 7792, 1e-6});
 
   EXPECT_EQ(unconverged, 0);
@@ -408,7 +408,7 @@ TEST_F(PolyBackground, FitSlopeOnly)
   fb.update_indices();
 
   auto_bound();
-  test_fit_random(random_samples, &optimizer, &fb,
+  test_fit_random(random_samples, &fb,
                   {"slope", &fb.background.slope, -460, 460, 1e-7});
 
   EXPECT_EQ(unconverged, 0);
@@ -425,7 +425,7 @@ TEST_F(PolyBackground, FitSlopeRelaxed)
   fb.update_indices();
 
   auto_bound();
-  test_fit_random(random_samples, &optimizer, &fb,
+  test_fit_random(random_samples, &fb,
                   {"slope", &fb.background.slope, -460, 460, 1e-7});
 
   EXPECT_EQ(unconverged, 0);
@@ -444,7 +444,7 @@ TEST_F(PolyBackground, FitCurveOnly)
   fb.update_indices();
 
   auto_bound();
-  test_fit_random(random_samples, &optimizer, &fb,
+  test_fit_random(random_samples, &fb,
                   {"curve", &fb.background.curve, -10, 10, 1e-8});
 
   EXPECT_EQ(unconverged, 0);
@@ -461,7 +461,7 @@ TEST_F(PolyBackground, FitCurveRelaxed)
   fb.update_indices();
 
   auto_bound();
-  test_fit_random(random_samples, &optimizer, &fb,
+  test_fit_random(random_samples, &fb,
                   {"curve", &fb.background.curve, -10, 10, 1e-8});
 
   EXPECT_EQ(unconverged, 0);
@@ -482,7 +482,7 @@ TEST_F(PolyBackground, FitAllThree)
   vals.push_back({"base", &fb.background.base, 50, 7792, 1e-6});
   vals.push_back({"slope", &fb.background.slope, -460, 460, 1e-7});
   vals.push_back({"curve", &fb.background.curve, -10, 10, 1e-8});
-  test_fit_random(random_samples, &optimizer, &fb, vals);
+  test_fit_random(random_samples, &fb, vals);
 
   EXPECT_EQ(unconverged, 0);
   EXPECT_EQ(not_sane, 0);

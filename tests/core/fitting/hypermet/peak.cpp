@@ -384,7 +384,7 @@ TEST_F(Peak, FitPosition)
   fp.update_indices();
 
   SetUp();
-  test_fit_random(random_samples, &optimizer, &fp,
+  test_fit_random(random_samples, &fp,
                   {"position", &fp.peak.position,
                    fp.peak.position.min(), fp.peak.position.max(), 1e-9});
 
@@ -406,7 +406,7 @@ TEST_F(Peak, FitWidthOnly)
 
 
   SetUp();
-  test_fit_random(random_samples, &optimizer, &fp,
+  test_fit_random(random_samples, &fp,
                   {"width", &fp.peak.width,
                    fp.peak.width.min(), fp.peak.width.max(), 1e-10});
 
@@ -426,7 +426,7 @@ TEST_F(Peak, FitAmplitude)
   fp.update_indices();
 
   SetUp();
-  test_fit_random(random_samples, &optimizer, &fp,
+  test_fit_random(random_samples, &fp,
                   {"amplitude", &fp.peak.amplitude,
                    30000, 40000, 1e-3});
 
@@ -452,7 +452,7 @@ TEST_F(Peak, FitAllThree)
                   fp.peak.position.min(), fp.peak.position.max(), 1e-8});
   vals.push_back({"amplitude", &fp.peak.amplitude,
                   30000, 50000, 2e-4});
-  test_fit_random(random_samples, &optimizer, &fp, vals);
+  test_fit_random(random_samples, &fp, vals);
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
@@ -496,7 +496,7 @@ TEST_F(Peak, FitWithSkews)
   vals.push_back({"rs_slope", &fp.peak.right_tail.slope,
                   fp.peak.right_tail.slope.min(),
                   fp.peak.right_tail.slope.max(), 1e-6});
-  test_fit_random(random_samples, &optimizer, &fp, vals);
+  test_fit_random(random_samples, &fp, vals);
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
@@ -553,7 +553,7 @@ TEST_F(Peak, FitWithEverything)
   vals.push_back({"step_amp", &fp.peak.step.amplitude,
                   fp.peak.step.amplitude.min(),
                   fp.peak.step.amplitude.max(), 1e-8});
-  test_fit_random(random_samples, &optimizer, &fp, vals);
+  test_fit_random(random_samples, &fp, vals);
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);

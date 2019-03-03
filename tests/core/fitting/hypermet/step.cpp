@@ -383,16 +383,25 @@ TEST_F(Step, SurveyGradients)
   survey_grad(&fs, &fs.step.amplitude, 0.001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.00001);
 //  EXPECT_NEAR(check_gradients(false), goal_val, 0.00001);
+  survey_grad(&fs, &fs.step.amplitude, 0.05);
+  check_gradients(true);
+  check_gradient_deltas(true);
 
   goal_val = fs.width.val();
   survey_grad(&fs, &fs.width, 0.001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
 //  EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
+  survey_grad(&fs, &fs.width, 0.05);
+  check_gradients(true);
+  check_gradient_deltas(true);
 
   goal_val = fs.amplitude.val();
   survey_grad(&fs, &fs.amplitude, 0.1, std::sqrt(30000), std::sqrt(40000));
   EXPECT_NEAR(check_chi_sq(false), goal_val, 50);
   EXPECT_NEAR(check_gradients(false), goal_val, 50);
+  survey_grad(&fs, &fs.amplitude, 0.5, std::sqrt(30000), std::sqrt(40000));
+  check_gradients(true);
+  check_gradient_deltas(true);
 }
 
 TEST_F(Step, FitAmplitude)
@@ -404,7 +413,7 @@ TEST_F(Step, FitAmplitude)
   fs.update_indices();
 
   SetUp();
-  test_fit_random(random_samples, &optimizer, &fs,
+  test_fit_random(random_samples, &fs,
                   {"amplitude", &fs.step.amplitude,
                    fs.step.amplitude.min(), fs.step.amplitude.max(), 1e-12});
   EXPECT_EQ(unconverged, 0);
@@ -424,7 +433,7 @@ TEST_F(Step, FitParentWidth)
   fs.update_indices();
 
   SetUp();
-  test_fit_random(random_samples, &optimizer, &fs,
+  test_fit_random(random_samples, &fs,
                   {"parent_width", &fs.width, fs.width.min(), fs.width.max(), 1e-7});
   EXPECT_EQ(unconverged, 0);
   EXPECT_EQ(not_sane, 0);
@@ -443,7 +452,7 @@ TEST_F(Step, FitParentAmplitude)
   fs.update_indices();
 
   SetUp();
-  test_fit_random(random_samples, &optimizer, &fs,
+  test_fit_random(random_samples, &fs,
                   {"parent_amplitude", &fs.amplitude, 30000, 50000, 0.01});
   EXPECT_EQ(unconverged, 0);
   EXPECT_EQ(not_sane, 0);
@@ -468,7 +477,7 @@ TEST_F(Step, FitAll1)
   vals.push_back({"amplitude", &fs.step.amplitude,
                   fs.step.amplitude.min(), fs.step.amplitude.max(), 1e-12});
   vals.push_back({"parent_width", &fs.width, fs.width.min(), fs.width.max(), 1e-5});
-  test_fit_random(random_samples, &optimizer, &fs, vals);
+  test_fit_random(random_samples, &fs, vals);
 
   EXPECT_EQ(unconverged, 0);
   EXPECT_EQ(not_sane, 0);
@@ -488,7 +497,7 @@ TEST_F(Step, FitAll2)
   std::vector<ValueToVary> vals;
   vals.push_back({"parent_width", &fs.width, fs.width.min(), fs.width.max(), 1e-6});
   vals.push_back({"parent_amplitude", &fs.amplitude, 30000, 50000, 0.01});
-  test_fit_random(random_samples, &optimizer, &fs, vals);
+  test_fit_random(random_samples, &fs, vals);
 
   EXPECT_EQ(unconverged, 0);
   EXPECT_EQ(not_sane, 0);
