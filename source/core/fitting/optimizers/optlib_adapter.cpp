@@ -22,7 +22,7 @@ class OptlibFittableWrapper : public cppoptlib::Problem<double>
   bool use_finite_gradient_{false};
 
   double epsilon{1e-10};
-  double tolerance{1e-7};
+  double tolerance{10 * std::numeric_limits<double>::min()};
 
 
   using typename cppoptlib::Problem<double>::Scalar;

@@ -133,7 +133,8 @@ double FunctionTest::check_chi_sq(bool print) const
 //      MESSAGE() << "chi_sq(proxy):\n" << visualize(val_proxy, chi_sq_norm, 100) << "\n";
     MESSAGE() << "chi_sq(val):\n" << visualize_all(val_val, chi_sq_norm, 100) << "\n";
   }
-  MESSAGE() << "min(chi_sq)=" << chi_sq_norm[min_chi_i] << " at val=" << val_val[min_chi_i] << "\n";
+  MESSAGE() << "min(chi_sq)=" << chi_sq_norm[min_chi_i] << " at val=" << val_val[min_chi_i]
+            << " x=" << val_proxy[min_chi_i] << "\n";
 
   return val_val[min_chi_i];
 }
@@ -156,7 +157,8 @@ double FunctionTest::check_gradients(bool print) const
 //      MESSAGE() << "gradient(proxy):\n" << visualize(val_proxy, gradient, 100) << "\n";
     MESSAGE() << "gradient(val):\n" << visualize_all(val_val, gradient, 100) << "\n";
   }
-  MESSAGE() << "min(abs(grad))=" << gradient[grad_i] << " at val=" << val_val[grad_i] << "\n";
+  MESSAGE() << "min(abs(grad))=" << gradient[grad_i] << " at val=" << val_val[grad_i]
+            << " x=" << val_proxy[grad_i] << "\n";
 
   return val_val[grad_i];
 }
