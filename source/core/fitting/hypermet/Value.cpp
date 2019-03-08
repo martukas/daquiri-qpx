@@ -254,49 +254,22 @@ double Value::grad_at(double at_x) const
 
 double Value2::val_at(double at_x) const
 {
-  if (at_x <= -M_PI_2)
-  {
-    return min() + (at_x + M_PI_2) * (max() - min()) / 2.0;
-  }
-  else if (at_x >= M_PI_2)
-  {
-    return max() + (at_x - M_PI_2) * (max() - min()) / 2.0;
-  }
-  return (1.0 + std::sin(at_x)) * (max() - min()) / 2.0 + min();
+  return (M_PI_2 + std::atan(slope_ * at_x)) * (max() - min()) * M_1_PI + min();
 }
 
 double Value2::grad_at(double at_x) const
 {
-  if (at_x <= -M_PI_2)
-  {
-    return -(max() - min()) / 2.0;
-  }
-  else if (at_x >= M_PI_2)
-  {
-    return (max() - min()) / 2.0;
-  }
-  return std::cos(at_x) * (max() - min()) / 2.0;
+  return (1.0 / (1.0 + square(at_x))) * slope_ * (max() - min()) * M_1_PI;
 }
 
 void Value2::val(double new_val)
 {
-  if (new_val > max())
-  {
-    x(new_val - max() + M_PI_2);
-    return;
-  }
-  else if (new_val < min())
-  {
-    x(new_val - min() - M_PI_2);
-    return;
-  }
-  double t = (min() + max() - 2.0 * new_val) / (min() - max());
-  if (std::abs(t) <= 1)
-    x(std::asin((min() + max() - 2.0 * new_val) / (min() - max())));
-  else if (signum(t) < 0)
-    x(std::asin(-1));
+  if (new_val >= max())
+    x(std::numeric_limits<double>::max());
+  else if (new_val <= min())
+    x(-std::numeric_limits<double>::max());
   else
-    x(std::asin(1));
+    x(std::tan(M_PI * (new_val - min()) / (max() - min()) - M_PI_2) / slope_);
 }
 
 

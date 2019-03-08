@@ -8,10 +8,10 @@ find_package(Threads REQUIRED)
 find_package(GraylogLogger REQUIRED)
 add_definitions("-DGRAYLOG")
 
-find_package(GSL REQUIRED)
-find_package(dlib REQUIRED)
+#find_package(GSL REQUIRED)
+#find_package(dlib REQUIRED)
 #find_package(MPFR REQUIRED)
-set(optimizer_LIBRARIES dlib::dlib GSL::gsl GSL::gslcblas)
+#set(optimizer_LIBRARIES dlib::dlib GSL::gsl GSL::gslcblas)
 #${MPFR_LIBRARIES})
 
 add_subdirectory(core)

@@ -3,8 +3,6 @@
 
 #include <core/util/custom_logger.h>
 
-#include <dlib/matrix/matrix_mat.h>
-
 namespace DAQuiri
 {
 

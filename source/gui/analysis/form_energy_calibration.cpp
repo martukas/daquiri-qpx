@@ -1,6 +1,7 @@
 #include <gui/analysis/form_energy_calibration.h>
-#include <core/fitting/optimizers/BFGS.h>
 #include "ui_form_energy_calibration.h"
+
+#include <core/fitting/optimizers/optlib_adapter.h>
 
 #include <QSettings>
 //#include "widget_detectors.h"
@@ -279,7 +280,7 @@ void FormEnergyCalibration::toggle_push()
 
 void FormEnergyCalibration::on_pushFit_clicked()
 {
-  DAQuiri::BudapestOptimizer optimizer;
+  DAQuiri::OptlibOptimizer optimizer;
 
   std::vector<double> x, y;
   x.resize(fit_data_.peaks().size());

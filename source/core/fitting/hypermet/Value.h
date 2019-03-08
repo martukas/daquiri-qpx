@@ -225,6 +225,8 @@ class Value : public BoundedValue
 class Value2 : public BoundedValue
 {
  public:
+  double slope_ {1.0};
+
   Value2() = default;
 
   using AbstractValue::x;

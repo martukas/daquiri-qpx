@@ -319,22 +319,34 @@ TEST_F(Value, Print)
   MESSAGE() << "|" << val.to_string() << "|\n";
 }
 
+TEST_F(Value, Val2MapsOneToOne)
+{
+  DAQuiri::Value2 val;
+  val.slope_ = 0.001;
 
-//TEST_F(Value, Visualize2)
-//{
-//  DAQuiri::Value2 val;
-//  val.bound(10, 20);
-//
-//  std::vector<double> x;
-//  std::vector<double> y;
-//  std::vector<double> grad;
-//  for (double v = -7.0; v < 7.0; v+=0.1)
-//  {
-//    x.push_back(v);
-//    y.push_back(val.val_at(v));
-//    grad.push_back(val.grad_at(v));
-//  }
-//
-////  MESSAGE() << "Value::val_at(x):\n" << visualize(x, y, 100) << "\n";
-//  MESSAGE() << "grad(val):\n" << visualize(y, grad, 100) << "\n";
-//}
+  for (double v = val.min(); v < val.max(); v += 0.0001)
+  {
+    val.val(v);
+    EXPECT_NEAR(v, val.val(), 0.00000000000000012);
+  }
+}
+
+TEST_F(Value, Visualize2)
+{
+  DAQuiri::Value2 val;
+  val.slope_ = 0.001;
+  val.bound(10, 20);
+
+  std::vector<double> x;
+  std::vector<double> y;
+  std::vector<double> grad;
+  for (double v = -5000; v < 5000; v+=100)
+  {
+    x.push_back(v);
+    y.push_back(val.val_at(v));
+    grad.push_back(val.grad_at(v));
+  }
+
+  MESSAGE() << "Value::val_at(x):\n" << visualize(x, y, 100) << "\n";
+  MESSAGE() << "grad(val):\n" << visualize(y, grad, 100) << "\n";
+}
