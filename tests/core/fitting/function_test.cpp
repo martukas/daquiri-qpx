@@ -97,8 +97,9 @@ void FunctionTest::survey_grad(DAQuiri::FittableRegion* fittable,
   val_val.clear();
   chi_sq_norm.clear();
   gradient.clear();
-  gradient_delta.clear();
   finite_gradient.clear();
+  gradient_delta.clear();
+  gradient_ok.clear();
 
   Eigen::VectorXd variables = fittable->variables();
   Eigen::VectorXd gradients;
@@ -117,12 +118,8 @@ void FunctionTest::survey_grad(DAQuiri::FittableRegion* fittable,
     double finite_grad = gradients[chosen_var_idx];
     finite_gradient.push_back(finite_grad);
 
+    gradient_delta.push_back(analytical_grad - finite_grad);
     gradient_ok.push_back(optimizer.check_gradient(fittable, variables));
-
-    double gdelta = analytical_grad / finite_grad;
-    if (!std::isfinite(gdelta))
-      gdelta = 0.0;
-    gradient_delta.push_back(gdelta);
   }
 }
 
@@ -178,10 +175,7 @@ double FunctionTest::check_gradient_deltas(bool print) const
   }
 
   for (size_t i = 0; i < gradient_ok.size(); ++i)
-  {
-    if (!gradient_ok[i])
-      MESSAGE() << "Bad grad at " << val_val[i] << "\n";
-  }
+    EXPECT_TRUE(gradient_ok[i]) << "Bad grad at " << val_val[i] << "\n";
 
   MESSAGE() << "max(\u0394grad)=" << gradient_delta[max_gd_i] <<
             " at val=" << val_val[max_gd_i] << "\n";

@@ -143,10 +143,10 @@ FitResult solve(cppoptlib::BfgsSolver<OptlibFittableWrapper> solver,
 //  ret.inv_hessian = ret.inv_hessian.inverse();
   ret.variables = x;
   ret.value = f.function_->chi_sq(x);
-  if (grad_select == OptlibOptimizer::GradientSelection::AnalyticalAlways)
-    ret.total_analytic_attempts++;
   if (grad_select == OptlibOptimizer::GradientSelection::FiniteAlways)
     ret.total_finite_attempts++;
+  else
+    ret.total_analytic_attempts++;
   if (!ret.converged)
     ret.total_nonconvergences++;
 

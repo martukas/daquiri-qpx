@@ -79,7 +79,7 @@ TEST_F(OptlibOptimizer, Fit10Random)
 {
   std::mt19937 rng;
   rng.seed(std::random_device()());
-  std::uniform_int_distribution<std::mt19937::result_type> dist6(0, 10);
+  std::uniform_real_distribution<double> dist6 (-10.0, 10.0);
   for (size_t i=0; i < rb.vals_.size(); ++i)
     rb.vals_[i] = dist6(rng);
 

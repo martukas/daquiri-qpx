@@ -19,7 +19,8 @@ double FittableRegion::chi_sq() const
   double chi_squared {0.};
   for (const auto& p : data.data)
     chi_squared += square((p.count - this->eval(p.channel)) / p.weight_phillips_marlow);
-  return chi_squared / degrees_of_freedom();
+  return chi_squared;
+  // / degrees_of_freedom();
 }
 
 double FittableRegion::chi_sq(const Eigen::VectorXd& fit) const
@@ -27,7 +28,8 @@ double FittableRegion::chi_sq(const Eigen::VectorXd& fit) const
   double chi_squared {0.};
   for (const auto& p : data.data)
     chi_squared += square((p.count - this->eval_at(p.channel, fit)) / p.weight_phillips_marlow);
-  return chi_squared / degrees_of_freedom();
+  return chi_squared;
+  // / degrees_of_freedom();
 }
 
 double FittableRegion::chi_sq_gradient(const Eigen::VectorXd& fit,
@@ -48,14 +50,20 @@ double FittableRegion::chi_sq_gradient(const Eigen::VectorXd& fit,
 
     double grad_norm = -2. * (p.count - fit_value) / square(p.weight_phillips_marlow);
 
-    DBG("grad_norm = {} = -2. * {} / {} = -2. ({} - {}) / square({})",
-        grad_norm, (p.count - fit_value), square(p.weight_phillips_marlow),
-        p.count, fit_value, p.weight_phillips_marlow);
+    std::stringstream ss;
+    ss << fit.transpose();
+//    DBG("grad_norm = {} = -2 * {} = -2 * {} / {} = -2 * ({} - {}) / square({}) at chan={} for x={}",
+//        grad_norm,
+//        (p.count - fit_value) / square(p.weight_phillips_marlow),
+//        (p.count - fit_value), square(p.weight_phillips_marlow),
+//        p.count, fit_value, p.weight_phillips_marlow,
+//        p.channel, ss.str());
 
     for (size_t var = 0; var < fit.size(); ++var)
       gradients[var] += channel_gradients[var] * grad_norm;
   }
-  return chi_squared / degrees_of_freedom();
+  return chi_squared;
+  // / degrees_of_freedom();
 }
 
 }
