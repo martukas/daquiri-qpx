@@ -3,7 +3,7 @@ coverage_on = "ubuntu18"
 
 images = [
         'ubuntu18' : [
-                'name'  : 'essdmscdm/ubuntu18.04-build-node:1.2.0'
+                'name'  : 'essdmscdm/ubuntu18.04-build-node:2.1.0'
         ]
 ]
 
@@ -14,8 +14,6 @@ def failure_function(exception_obj, failureMessage) {
     emailext body: '${DEFAULT_CONTENT}\n\"' + failureMessage + '\"\n\nCheck console output at $BUILD_URL to view the results.',
             recipientProviders: toEmails,
             subject: '${DEFAULT_SUBJECT}'
-    slackSend color: 'danger',
-            message: "${base_container_name}: " + failureMessage
     throw exception_obj
 }
 
