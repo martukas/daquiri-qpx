@@ -1,9 +1,9 @@
 #include "ImporterAVA.h"
-#include <boost/algorithm/string.hpp>
 #include <core/consumer_factory.h>
 #include <importers/string_to_chans.h>
 #include <pugixml.hpp>
 #include <date/date.h>
+#include <core/util/string_extensions.h>
 
 #include <core/util/custom_logger.h>
 
@@ -49,21 +49,21 @@ void ImporterAVA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
 
   data = node.attribute("elapsed_real").value();
   if (!data.empty()) {
-    auto rt_ms = static_cast<int64_t>(std::stod(boost::algorithm::trim_copy(data)) * 1000.0);
+    auto rt_ms = static_cast<int64_t>(std::stod(trim_copy(data)) * 1000.0);
     //DBG("parsing real time = '{}' -> {}", data, rt_ms);
     hist->set_attribute(DAQuiri::Setting("real_time", std::chrono::milliseconds(rt_ms)));
   }
 
   data = node.attribute("elapsed_live").value();
   if (!data.empty()) {
-    auto lt_ms = static_cast<int64_t>(std::stod(boost::algorithm::trim_copy(data)) * 1000.0);
+    auto lt_ms = static_cast<int64_t>(std::stod(trim_copy(data)) * 1000.0);
     //DBG("parsing live time = '{}' -> {}", data, lt_ms);
     hist->set_attribute(DAQuiri::Setting("live_time", std::chrono::milliseconds(lt_ms)));
   }
 
   data = root.child_value("spectrum");
   std::replace( data.begin(), data.end(), ',', ' ');
-  boost::algorithm::trim(data);
+  trim(data);
 
   std::stringstream channel_data(data);
   entry_list = string_to_chans(channel_data);
@@ -85,8 +85,8 @@ void ImporterAVA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
     std::vector<double> encalib;
     for (auto &p : q.child("model").children("coefficient"))
     {
-      std::string coefvalstr = boost::algorithm::trim_copy(std::string(p.attribute("value").value()));
-      encalib.push_back(boost::lexical_cast<double>(coefvalstr));
+      std::string coefvalstr = trim_copy(std::string(p.attribute("value").value()));
+      encalib.push_back(std::stod(coefvalstr));
     }
     newcalib.function(ctype, encalib);
     //DBG("newcalib = {}", newcalib.debug());

@@ -1,5 +1,4 @@
 #include "ImporterN42.h"
-#include <boost/algorithm/string.hpp>
 #include <core/consumer_factory.h>
 #include <importers/string_to_chans.h>
 #include <pugixml.hpp>
@@ -41,7 +40,7 @@ void ImporterN42::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   data = node.child_value("RealTime");
   if (!data.empty())
   {
-    boost::algorithm::trim(data);
+    trim(data);
     if (data.size() > 3)
       data = data.substr(2, data.size() - 3); //to trim PTnnnS to nnn
     auto rt_ms = static_cast<int64_t>(std::stod(data) * 1000.0);
@@ -51,7 +50,7 @@ void ImporterN42::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   data = node.child_value("LiveTime");
   if (!data.empty())
   {
-    boost::algorithm::trim(data);
+    trim(data);
     if (data.size() > 3)
       data = data.substr(2, data.size() - 3); //to trim PTnnnS to nnn
     auto lt_ms = static_cast<int64_t>(std::stod(data) * 1000.0);
@@ -65,7 +64,7 @@ void ImporterN42::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   }
 
   data = node.child_value("ChannelData");
-  boost::algorithm::trim(data);
+  trim(data);
   std::stringstream channel_data(data);
 
   entry_list = string_to_chans_zero_suppressed(channel_data);

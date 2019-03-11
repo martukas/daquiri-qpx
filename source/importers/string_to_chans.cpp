@@ -1,6 +1,4 @@
 #include "string_to_chans.h"
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string.hpp>
 
 DAQuiri::EntryList_t string_to_chans(std::istream& data_stream)
 {
@@ -38,7 +36,7 @@ DAQuiri::EntryList_t string_to_chans_zero_suppressed(std::istream& data_stream)
     if (numero == "0")
     {
       data_stream >> numero_z;
-      i += boost::lexical_cast<uint16_t>(numero_z);
+      i += std::stod(numero_z);
     }
     else
     {
