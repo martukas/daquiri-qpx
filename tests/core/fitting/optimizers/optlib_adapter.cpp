@@ -14,7 +14,7 @@ class OptlibOptimizer : public TestBase
 
   virtual void SetUp()
   {
-//    optimizer.verbose = true;
+    optimizer.verbosity = 5;
 //    optimizer.maximum_iterations = 200;
   }
 };
@@ -29,39 +29,49 @@ TEST_F(OptlibOptimizer, CheckGradient)
   EXPECT_TRUE(optimizer.check_gradient(&rb));
 }
 
-TEST_F(OptlibOptimizer, Fit10)
+TEST_F(OptlibOptimizer, Fit10zerosEpsilon)
 {
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
   auto result = optimizer.minimize(&rb);
   MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
-  EXPECT_LE(result.iterations, 25);
+  EXPECT_LE(result.iterations, 28u);
   EXPECT_FALSE(result.used_finite_grads);
 }
 
-TEST_F(OptlibOptimizer, Fit10nonzero)
+TEST_F(OptlibOptimizer, Fit10zerosMinDX)
 {
-  for (size_t i=0; i < rb.vals_.size(); ++i)
-    rb.vals_[i] = 3;
-
+  optimizer.use_epsilon_check = false;
+  optimizer.min_x_delta = 100 * std::numeric_limits<double>::min();
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
   auto result = optimizer.minimize(&rb);
   MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
-  EXPECT_LE(result.iterations, 67);
+  EXPECT_LE(result.iterations, 28u);
   EXPECT_FALSE(result.used_finite_grads);
 }
 
-TEST_F(OptlibOptimizer, Fit10nonzero2)
+TEST_F(OptlibOptimizer, Fit10zerosMinDF)
 {
-  for (size_t i=0; i < rb.vals_.size(); ++i)
-    rb.vals_[i] = i;
-
+  optimizer.use_epsilon_check = false;
+  optimizer.min_f_delta = 100 * std::numeric_limits<double>::min();
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
   auto result = optimizer.minimize(&rb);
   MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
-  EXPECT_LE(result.iterations, 210);
+  EXPECT_LE(result.iterations, 28u);
+  EXPECT_FALSE(result.used_finite_grads);
+}
+
+TEST_F(OptlibOptimizer, Fit10zerosMinGNorm)
+{
+  optimizer.use_epsilon_check = false;
+  optimizer.min_g_norm = 100 * std::numeric_limits<double>::min();
+  MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
+  auto result = optimizer.minimize(&rb);
+  MESSAGE() << "Result: " << result.to_string(true) << "\n";
+  EXPECT_TRUE(result.converged);
+  EXPECT_LE(result.iterations, 27u);
   EXPECT_FALSE(result.used_finite_grads);
 }
 

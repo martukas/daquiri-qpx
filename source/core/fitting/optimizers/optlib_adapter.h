@@ -15,29 +15,24 @@ class OptlibOptimizer : public AbstractOptimizer
  public:
   /// \brief minimizes a supplied function
   /// \returns result of the optimization attempt
-  /// \param fittable a concrete instance of an objective FittableFunction to be minimized
+  /// \param fittable instance of an objective FittableFunction to be minimized
   FitResult minimize(FittableFunction* fittable) override;
 
-  bool check_gradient(FittableFunction* fittable) const;
-
+  /// \brief calculates finite gradient for supplied function
+  /// \param fittable instance of an objective FittableFunction
+  /// \param x function variables at which to evaluate
+  /// \param gradients output vector for gradients
   void finite_gradient(FittableFunction* fittable,
                        const Eigen::VectorXd& x,
-                       Eigen::VectorXd& gradients) const;
+                       Eigen::VectorXd& gradients) const override;
 
-  enum class GradientSelection
-  {
-    AnalyticalAlways,
-    FiniteAlways,
-    DefaultToFinite
-  };
-
-  GradientSelection gradient_selection;
-  bool perform_sanity_checks {false};
-  double epsilon{1e-10};
-
- private:
+  /// \brief checks if analytical gradient is ok
+  /// \returns true if gradiengt is probably ok, not a guarantee
+  /// \param fittable instance of an objective FittableFunction
+  bool check_gradient(FittableFunction* fittable) const override;
 
 
+  std::string print_config(std::string prepend = "") const;
 };
 
 }

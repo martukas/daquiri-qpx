@@ -1,12 +1,11 @@
+#pragma once
+
 // CppNumericalSolver
 #include <iostream>
 #include <iomanip>
 #include <Eigen/LU>
 #include "isolver.h"
 #include "../linesearch/morethuente.h"
-
-#ifndef BFGSSOLVER_H_
-#define BFGSSOLVER_H_
 
 namespace cppoptlib
 {
@@ -41,6 +40,8 @@ class BfgsSolver : public ISolver<ProblemType, 1>
       if ((phi > 0) || (phi != phi))
       {
         // no, we reset the hessian approximation
+        if (Superclass::m_debug >= DebugLevel::High)
+          std::cout << "resetting Hessian approximation, phi=" << phi;
         H = THessian::Identity(DIM, DIM);
         searchDir = -1 * grad;
       }
@@ -59,21 +60,17 @@ class BfgsSolver : public ISolver<ProblemType, 1>
 
       if (this->m_current.iterations)
         this->m_current.fDelta = objFunc.value(x0) - objFunc.value(x_old);
-      this->m_current.xDelta = (x_old - x0).template lpNorm<Eigen::Infinity>();
+      this->m_current.xDelta = (x_old - x0).norm();
       this->m_current.gradNorm = grad.template lpNorm<Eigen::Infinity>();
       this->m_status = checkConvergence(this->m_stop, this->m_current);
 
       if (Superclass::m_debug >= DebugLevel::Low)
       {
-        std::cout << "iter: " << std::right << std::setw(8) << this->m_current.iterations
-                  << "     f = " << std::right << std::setw(12) << objFunc.value(x0)
-                  << "     ||g||_inf = "
-                  << std::right << std::setw(12) << this->m_current.gradNorm
-                  << "     x_delta = "
-                  << std::right << std::setw(12) << this->m_current.xDelta
-                  << "     f_delta = "
-                  << std::right << std::setw(12) << this->m_current.fDelta
-                  << std::endl;
+        std::cout << this->m_current;
+        std::cout << "     f=" << std::right << std::setw(12) << objFunc.value(x0);
+        if (Superclass::m_debug >= DebugLevel::High)
+          std::cout << "     x=" << x0.transpose();
+        std::cout << std::endl;
       }
       ++this->m_current.iterations;
 
@@ -86,5 +83,3 @@ class BfgsSolver : public ISolver<ProblemType, 1>
 
 }
 /* namespace cppoptlib */
-
-#endif /* BFGSSOLVER_H_ */

@@ -291,8 +291,8 @@ void FunctionTest::test_fit_random(size_t attempts,
     }
 
     auto result = optimizer.minimize(fittable);
-    if (optimizer.verbose)
-      MESSAGE() << "        " << result.to_string(optimizer.verbose) << "\n";
+    if (optimizer.verbosity)
+      MESSAGE() << "        " << result.to_string(optimizer.verbosity) << "\n";
 
     fittable->save_fit(result);
 
@@ -303,8 +303,8 @@ void FunctionTest::test_fit_random(size_t attempts,
       max_iterations_to_converge =
           std::max(max_iterations_to_converge, result.iterations);
       max_perturbations_to_converge =
-          std::max(max_perturbations_to_converge, result.perturbations);
-      if (result.perturbations > 0)
+          std::max(max_perturbations_to_converge, result.total_perturbations);
+      if (result.total_perturbations > 0)
         converged_perturbed++;
       else if (result.used_finite_grads)
         converged_finite++;
