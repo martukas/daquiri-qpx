@@ -23,21 +23,21 @@ double weight_phillips_marlow(const std::vector<double>& counts, size_t index)
 {
   double k0 = counts[index];
 
-  if (k0 >= 25)
+  if (k0 >= 25.)
     return std::sqrt(k0);
   else
   {
-    k0 = 1.0;
+    k0 = 1.;
     if ((index > 0) && ((index + 1) < counts.size()))
-      k0 = (counts[index - 1] + counts[index] + counts[index + 1]) / 3.0;
+      k0 = (counts[index - 1] + counts[index] + counts[index + 1]) / 3.;
     // \todo what if on edges?
-    return std::max(std::sqrt(k0), 1.0);
+    return std::max(std::sqrt(k0), 1.);
   }
 }
 
 double weight_revay_student(double count)
 {
-  return std::sqrt(count + 1.0);
+  return std::sqrt(count + 1.);
 }
 
 WeightedData::WeightedData(const std::vector<double>& channels,

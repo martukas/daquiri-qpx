@@ -62,6 +62,17 @@ class AbstractOptimizer
     (void) fittable; // < unused
     return false;
   }
+
+  /// \brief checks if analytical gradient is ok
+  /// \returns true if gradiengt is probably ok, not a guarantee
+  /// \param fittable instance of an objective FittableFunction
+  /// \param x function variables at which to evaluate
+  virtual bool check_gradient(FittableFunction* fittable, const Eigen::VectorXd& x) const
+  {
+    (void) fittable; // < unused
+    (void) x; // < unused
+    return false;
+  }
 };
 
 }

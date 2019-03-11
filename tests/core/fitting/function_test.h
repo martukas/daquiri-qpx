@@ -54,6 +54,7 @@ class FunctionTest : public TestBase
   std::vector<double> gradient;
   std::vector<double> finite_gradient;
   std::vector<double> gradient_delta;
+  std::vector<bool> gradient_ok;
 
   bool verbose {false};
   bool print_outside_tolerance {false};

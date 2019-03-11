@@ -46,13 +46,13 @@ double ValueToVary::get_delta() const
 
 std::string ValueToVary::print_delta()
 {
-  return fmt::format("{:<55} delta={:>10}",
+  return fmt::format("{:<55} \u0394={:>10}",
                      name_var(), get_delta());
 }
 
 std::string ValueToVary::summary() const
 {
-  return fmt::format("{:<15} max_delta={:>10}",
+  return fmt::format("{:<15} max(\u0394)={:>10}",
                      name, max_delta);
 }
 
@@ -108,14 +108,17 @@ void FunctionTest::survey_grad(DAQuiri::FittableRegion* fittable,
 
     val_proxy.push_back(proxy);
     val_val.push_back(variable->val_at(proxy));
-    chi_sq_norm.push_back(fittable->chi_sq_gradient(variables, gradients));
 
+    chi_sq_norm.push_back(fittable->chi_sq_gradient(variables, gradients));
     double analytical_grad = gradients[chosen_var_idx];
+    gradient.push_back(analytical_grad);
+
     optimizer.finite_gradient(fittable, variables, gradients);
     double finite_grad = gradients[chosen_var_idx];
-
-    gradient.push_back(analytical_grad);
     finite_gradient.push_back(finite_grad);
+
+    gradient_ok.push_back(optimizer.check_gradient(fittable, variables));
+
     double gdelta = analytical_grad / finite_grad;
     if (!std::isfinite(gdelta))
       gdelta = 0.0;
@@ -155,10 +158,9 @@ double FunctionTest::check_gradients(bool print) const
   if (print)
   {
 //      MESSAGE() << "gradient(proxy):\n" << visualize(val_proxy, gradient, 100) << "\n";
-    MESSAGE() << "gradient(val):\n" << visualize_all(val_val, gradient, 100) << "\n";
+    MESSAGE() << "grad(val):\n" << visualize_all(val_val, gradient, 100) << "\n";
   }
-  MESSAGE() << "min(abs(grad))=" << gradient[grad_i] << " at val=" << val_val[grad_i]
-            << " x=" << val_proxy[grad_i] << "\n";
+  MESSAGE() << "min(|grad|)=" << gradient[grad_i] << " at val=" << val_val[grad_i] << "\n";
 
   return val_val[grad_i];
 }
@@ -172,13 +174,19 @@ double FunctionTest::check_gradient_deltas(bool print) const
   {
 //      MESSAGE() << "chi_sq(proxy):\n" << visualize(val_proxy, chi_sq_norm, 100) << "\n";
     MESSAGE() << "finite_grad(val):\n" << visualize_all(val_val, finite_gradient, 100) << "\n";
-    MESSAGE() << "grad_delta(val):\n" << visualize_all(val_val, gradient_delta, 100) << "\n";
+    MESSAGE() << "\u0394grad(val):\n" << visualize_all(val_val, gradient_delta, 100) << "\n";
   }
-  MESSAGE() << "max(grad_delta)=" << gradient_delta[max_gd_i] <<
+
+  for (size_t i = 0; i < gradient_ok.size(); ++i)
+  {
+    if (!gradient_ok[i])
+      MESSAGE() << "Bad grad at " << val_val[i] << "\n";
+  }
+
+  MESSAGE() << "max(\u0394grad)=" << gradient_delta[max_gd_i] <<
             " at val=" << val_val[max_gd_i] << "\n";
 
   return gradient_delta[max_gd_i];
-
 }
 
 void FunctionTest::test_fit(size_t attempts,
@@ -204,7 +212,7 @@ void FunctionTest::test_fit(size_t attempts,
     fittable->save_fit(result);
     EXPECT_NEAR(variable->val(), goal_val, epsilon)
               << "Attempt[" << i << "] " << variable->to_string()
-              << "  delta=" << (goal_val - variable->val()) << "\n";
+              << "  \u0394=" << (goal_val - variable->val()) << "\n";
   }
 
   variable->val(goal_val);

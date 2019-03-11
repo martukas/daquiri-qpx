@@ -77,11 +77,14 @@ std::string OptlibOptimizer::print_config(std::string prepend) const
 
 bool OptlibOptimizer::check_gradient(FittableFunction* fittable) const
 {
-  Eigen::VectorXd x = fittable->variables();
+  return check_gradient(fittable, fittable->variables());
+}
 
+bool OptlibOptimizer::check_gradient(FittableFunction* fittable,
+                                     const Eigen::VectorXd& x) const
+{
   OptlibFittableWrapper f;
   f.function_ = fittable;
-
   return f.checkGradient(x);
 }
 

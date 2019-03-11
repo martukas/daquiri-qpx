@@ -69,7 +69,10 @@ class BfgsSolver : public ISolver<ProblemType, 1>
         std::cout << this->m_current;
         std::cout << "     f=" << std::right << std::setw(12) << objFunc.value(x0);
         if (Superclass::m_debug >= DebugLevel::High)
-          std::cout << "     x=" << x0.transpose();
+        {
+          std::cout << "\n     x=" << x0.transpose();
+          std::cout << "\n     g=" << grad.transpose();
+        }
         std::cout << std::endl;
       }
       ++this->m_current.iterations;

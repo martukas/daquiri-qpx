@@ -31,6 +31,11 @@ class OptlibOptimizer : public AbstractOptimizer
   /// \param fittable instance of an objective FittableFunction
   bool check_gradient(FittableFunction* fittable) const override;
 
+  /// \brief checks if analytical gradient is ok
+  /// \returns true if gradiengt is probably ok, not a guarantee
+  /// \param fittable instance of an objective FittableFunction
+  bool check_gradient(FittableFunction* fittable,
+                      const Eigen::VectorXd& x) const override;
 
   std::string print_config(std::string prepend = "") const;
 };
