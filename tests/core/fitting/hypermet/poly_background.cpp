@@ -72,21 +72,27 @@ class PolyBackground : public FunctionTest
   FittableBackground fb;
   DAQuiri::OptlibOptimizer optimizer;
   size_t region_size{40};
-  size_t random_samples{10000};
+  size_t random_samples{1000};
 
   virtual void SetUp()
   {
 //    optimizer.verbose = true;
-    optimizer.maximum_iterations = 30;
-    optimizer.gradient_selection =
-        DAQuiri::OptlibOptimizer::GradientSelection::DefaultToFinite;
+    optimizer.maximum_iterations = 1000;
+//    optimizer.gradient_selection =
+//        DAQuiri::OptlibOptimizer::GradientSelection::DefaultToFinite;
 
     fb.background.x_offset = 0;
-//    fb.background.base.bound(0, 7792);
+
+    fb.background.base.slope_ = 1e-4;
+    fb.background.base.bound(0, 9000);
     fb.background.base.val(70);
-//    fb.background.slope.bound(0, 198);
+
+    fb.background.slope.slope_ = 1;
+    fb.background.slope.bound(-500, 500);
     fb.background.slope.val(3);
-//    fb.background.curve.bound(0, 15);
+
+    fb.background.curve.slope_ = 1;
+    fb.background.curve.bound(-15, 15);
     fb.background.curve.val(5);
 
     // \todo make these more permissive
@@ -339,7 +345,7 @@ TEST_F(PolyBackground, EvalGradAt)
   EXPECT_EQ(grad[2], grad_goal[2]);
 }
 
-TEST_F(PolyBackground, SruveyGradients)
+TEST_F(PolyBackground, SurveyGradients)
 {
   fb.data = generate_data(&fb, region_size);
   fb.update_indices();
@@ -371,15 +377,15 @@ TEST_F(PolyBackground, FitBaseOnly)
   fb.background.curve.to_fit = false;
   fb.update_indices();
 
-  auto_bound();
+  //auto_bound();
   test_fit_random(random_samples, &fb,
-                  {"base", &fb.background.base, 50, 7792, 1e-6});
+                  {"base", &fb.background.base, 50, 8000, 1e-6});
 
   EXPECT_EQ(unconverged, 0);
   EXPECT_EQ(not_sane, 0);
   EXPECT_EQ(converged_finite, 0);
   EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 15);
+  EXPECT_LE(max_iterations_to_converge, 8);
   EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
@@ -388,9 +394,9 @@ TEST_F(PolyBackground, FitBaseRelaxed)
   fb.data = generate_data(&fb, region_size);
   fb.update_indices();
 
-  auto_bound();
+  //auto_bound();
   test_fit_random(random_samples, &fb,
-                  {"base", &fb.background.base, 50, 7792, 1e-6});
+                  {"base", &fb.background.base, 50, 8000, 1e-6});
 
   EXPECT_EQ(unconverged, 0);
   EXPECT_EQ(not_sane, 0);
@@ -407,7 +413,7 @@ TEST_F(PolyBackground, FitSlopeOnly)
   fb.background.curve.to_fit = false;
   fb.update_indices();
 
-  auto_bound();
+//  auto_bound();
   test_fit_random(random_samples, &fb,
                   {"slope", &fb.background.slope, -460, 460, 1e-7});
 
@@ -415,7 +421,7 @@ TEST_F(PolyBackground, FitSlopeOnly)
   EXPECT_EQ(not_sane, 0);
   EXPECT_EQ(converged_finite, 0);
   EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 18);
+  EXPECT_LE(max_iterations_to_converge, 6);
   EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
@@ -443,7 +449,7 @@ TEST_F(PolyBackground, FitCurveOnly)
   fb.background.slope.to_fit = false;
   fb.update_indices();
 
-  auto_bound();
+//  auto_bound();
   test_fit_random(random_samples, &fb,
                   {"curve", &fb.background.curve, -10, 10, 1e-8});
 
@@ -451,7 +457,7 @@ TEST_F(PolyBackground, FitCurveOnly)
   EXPECT_EQ(not_sane, 0);
   EXPECT_EQ(converged_finite, 0);
   EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 8);
+  EXPECT_LE(max_iterations_to_converge, 10);
   EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
@@ -477,9 +483,9 @@ TEST_F(PolyBackground, FitAllThree)
   fb.data = generate_data(&fb, region_size);
   fb.update_indices();
 
-  auto_bound();
+  //auto_bound();
   std::vector<ValueToVary> vals;
-  vals.push_back({"base", &fb.background.base, 50, 7792, 1e-6});
+  vals.push_back({"base", &fb.background.base, 50, 8000, 1e-6});
   vals.push_back({"slope", &fb.background.slope, -460, 460, 1e-7});
   vals.push_back({"curve", &fb.background.curve, -10, 10, 1e-8});
   test_fit_random(random_samples, &fb, vals);
