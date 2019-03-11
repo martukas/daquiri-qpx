@@ -259,7 +259,7 @@ double Value2::val_at(double at_x) const
 
 double Value2::grad_at(double at_x) const
 {
-  return (1.0 / (1.0 + square(at_x))) * slope_ * (max() - min()) * M_1_PI;
+  return (1.0 / (1.0 + square(slope_ * at_x))) * slope_ * (max() - min()) * M_1_PI;
 }
 
 void Value2::val(double new_val)

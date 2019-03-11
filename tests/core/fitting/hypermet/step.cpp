@@ -11,7 +11,7 @@ class FittableStep : public DAQuiri::FittableRegion
 {
  public:
   DAQuiri::Value2 position;
-  DAQuiri::ValuePositive amplitude;
+  DAQuiri::Value2 amplitude;
   DAQuiri::Value2 width;
 
   DAQuiri::Step step;
@@ -151,11 +151,12 @@ class Step : public FunctionTest
     optimizer.gradient_selection =
         DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
 
-    //fs.amplitude.bound(0, 100000);
+    fs.amplitude.slope_ = 1e-5;
+    fs.amplitude.bound(15000, 50000);
     fs.amplitude.val(40000);
     fs.amplitude.update_index(fs.variable_count);
 
-    fs.width.slope_ = 1e-3;
+    fs.width.slope_ = 1e-4;
     fs.width.bound(0.8, 5.0);
     fs.width.val(3.2);
     fs.width.update_index(fs.variable_count);
@@ -386,9 +387,9 @@ TEST_F(Step, SurveyGradients)
   survey_grad(&fs, &fs.step.amplitude, 10, -1e5, 1e5);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 1e-7);
   EXPECT_NEAR(check_gradients(false), goal_val, 1e-7);
-//  survey_grad(&fs, &fs.step.amplitude, 1000, -1e5, 1e5);
-//  check_gradients(true);
-//  check_gradient_deltas(true);
+  survey_grad(&fs, &fs.step.amplitude, 1000, -1e5, 1e5);
+  check_gradients(true);
+  check_gradient_deltas(true);
 
   goal_val = fs.width.val();
   survey_grad(&fs, &fs.width, 0.1, -1e3, 1e3);
@@ -433,7 +434,7 @@ TEST_F(Step, FitAmplitude)
   EXPECT_EQ(not_sane, 0);
   EXPECT_EQ(converged_finite, 0);
   EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 9);
+  EXPECT_LE(max_iterations_to_converge, 10);
   EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
@@ -473,7 +474,7 @@ TEST_F(Step, FitParentAmplitude)
   EXPECT_EQ(not_sane, 0);
   EXPECT_EQ(converged_finite, 0);
   EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 5);
+  EXPECT_LE(max_iterations_to_converge, 9);
   EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
@@ -481,12 +482,15 @@ TEST_F(Step, FitParentAmplitude)
 
 // the 2 amplitudes are degenerate. can't deconvolute without peak
 // so we must test their fitting separately in these tests
-TEST_F(Step, FitAll1)
+TEST_F(Step, FitTwoA)
 {
   fs.data = generate_data(&fs, region_size);
   fs.position.to_fit = false;
   fs.amplitude.to_fit = false;
   fs.update_indices();
+
+//  optimizer.gradient_selection =
+//      DAQuiri::OptlibOptimizer::GradientSelection::FiniteAlways;
 
   std::vector<ValueToVary> vals;
   vals.push_back({"amplitude", &fs.step.amplitude,
@@ -500,11 +504,11 @@ TEST_F(Step, FitAll1)
   EXPECT_EQ(not_sane, 0);
   EXPECT_EQ(converged_finite, 0);
   EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 14);
+  EXPECT_LE(max_iterations_to_converge, 15);
   EXPECT_LE(max_perturbations_to_converge, 0);
 }
 
-TEST_F(Step, FitAll2)
+TEST_F(Step, FitTwoB)
 {
   fs.data = generate_data(&fs, region_size);
   fs.position.to_fit = false;

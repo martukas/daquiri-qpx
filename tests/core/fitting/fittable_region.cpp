@@ -418,8 +418,9 @@ TEST_F(FittableRegion, Bounded2Const)
   EXPECT_NEAR(check_chi_sq(false), 10.0, 1e-3);
   EXPECT_NEAR(check_gradients(false), 10.0, 1e-5);
   survey_grad(&fl, &fl.val, 1000, -50000, 50000);
-  check_gradients(true);
-  check_gradient_deltas(true);
+  //  check_gradients(true);
+  check_gradient_deltas(false);
+
 
 //  optimizer.gradient_selection =
 //      DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
@@ -433,11 +434,11 @@ TEST_F(FittableRegion, Bounded2Const)
     fl.val.val(10);
     test_fit(1, &fl, &fl.val, 30, 1e-9);
     deterministic_test(10, &fl, &fl.val, 30);
-    test_fit_random(random_samples, &fl, {"val", &fl.val, 1, 39, 1e-11});
+    test_fit_random(random_samples, &fl, {"val", &fl.val, 1, 39, 1e-14});
     EXPECT_EQ(unconverged, 0);
     EXPECT_EQ(not_sane, 0);
     EXPECT_EQ(converged_finite, 0);
-    EXPECT_LE(max_iterations_to_converge, 15);
+    EXPECT_LE(max_iterations_to_converge, 8);
     EXPECT_LE(max_perturbations_to_converge, 0);
   }
 }
@@ -458,8 +459,8 @@ TEST_F(FittableRegion, Bounded2Linear)
   EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
   EXPECT_NEAR(check_gradients(false), 5.0, 1e-3);
   survey_grad(&fl, &fl.val, 1000, -50000, 50000);
-  check_gradients(true);
-  check_gradient_deltas(true);
+  //  check_gradients(true);
+  check_gradient_deltas(false);
 
 //  optimizer.gradient_selection =
 //      DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
@@ -473,11 +474,11 @@ TEST_F(FittableRegion, Bounded2Linear)
     fl.val.val(5);
     test_fit(1, &fl, &fl.val, 30, 1e-11);
     deterministic_test(10, &fl, &fl.val, 35);
-    test_fit_random(random_samples, &fl, {"val", &fl.val, 1, 39, 1e-12});
+    test_fit_random(random_samples, &fl, {"val", &fl.val, 1, 39, 1e-17});
     EXPECT_EQ(unconverged, 0);
     EXPECT_EQ(not_sane, 0);
     EXPECT_EQ(converged_finite, 0);
-    EXPECT_LE(max_iterations_to_converge, 10);
+    EXPECT_LE(max_iterations_to_converge, 8);
     EXPECT_LE(max_perturbations_to_converge, 0);
   }
 }
@@ -499,8 +500,8 @@ TEST_F(FittableRegion, Bounded2Quadratic)
   EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
   EXPECT_NEAR(check_gradients(false), 5.0, 1e-3);
   survey_grad(&fl, &fl.val, 1000, -50000, 50000);
-  check_gradients(true);
-  check_gradient_deltas(true);
+  //  check_gradients(true);
+  check_gradient_deltas(false);
 
 //  optimizer.gradient_selection =
 //      DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
@@ -515,11 +516,11 @@ TEST_F(FittableRegion, Bounded2Quadratic)
     test_fit(1, &fl, &fl.val, 30, 1e-13);
     deterministic_test(10, &fl, &fl.val, 30);
     test_fit_random(random_samples, &fl, {"val", &fl.val, 1, 39, 1e-13});
-    EXPECT_LE(unconverged, 0.05 * random_samples);
+    EXPECT_EQ(unconverged, 0u);
     EXPECT_EQ(not_sane, 0);
     EXPECT_EQ(converged_finite, 0);
     EXPECT_EQ(converged_perturbed, 0);
-    EXPECT_LE(max_iterations_to_converge, 10);
+    EXPECT_LE(max_iterations_to_converge, 8);
     EXPECT_LE(max_perturbations_to_converge, 0);
   }
 }
