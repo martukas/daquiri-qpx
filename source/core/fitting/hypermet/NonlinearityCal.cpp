@@ -12,8 +12,8 @@ void NonlinearityCal::load(std::string flnm)
 {
   try
   {
-    double junk;
-    bool flag{true};
+//    double junk;
+//    bool flag{true};
 
     std::ifstream file(flnm, std::ios::binary);
 
@@ -95,6 +95,8 @@ double NonlinearityCal::n_ortpol(size_t n, double X) const
     ERR("Nonlinearity error: {exception}");
     return 0;
   }
+
+  return 0.0;
 }
 
 double NonlinearityCal::val(double position) const

@@ -12,8 +12,8 @@ void EfficiencyCal::load(std::string flnm)
 {
   try
   {
-    double junk;
-    bool flag{true};
+//    double junk;
+//    bool flag{true};
 
     std::ifstream file(flnm, std::ios::binary);
 

@@ -430,12 +430,12 @@ TEST_F(Step, FitAmplitude)
                   {"amplitude", &fs.step.amplitude,
                    fs.step.amplitude.min() + fs.step.amplitude.slope_,
                    fs.step.amplitude.max() - fs.step.amplitude.slope_, 1e-16});
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, 0);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 10);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 10u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(Step, FitParentWidth)
@@ -450,12 +450,12 @@ TEST_F(Step, FitParentWidth)
   test_fit_random(random_samples, &fs,
                   {"parent_width", &fs.width,
                    1.0, 4.0, 1e-10});
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, 0);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 87);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 87u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(Step, FitParentAmplitude)
@@ -470,12 +470,12 @@ TEST_F(Step, FitParentAmplitude)
   test_fit_random(random_samples, &fs,
                   {"parent_amplitude",
                    &fs.amplitude, 30000, 50000, 1e-10});
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, 0);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 9);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 9u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 // \todo parent position should play a role?
@@ -500,12 +500,12 @@ TEST_F(Step, FitTwoA)
                   1.0, 4.0, 1e-10});
   test_fit_random(random_samples, &fs, vals);
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, 0);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 15);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 15u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(Step, FitTwoB)
@@ -522,10 +522,10 @@ TEST_F(Step, FitTwoB)
                   30000, 50000, 0.01});
   test_fit_random(random_samples, &fs, vals);
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, 0);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 22);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 22u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }

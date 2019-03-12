@@ -33,7 +33,7 @@ void PeakRendering::clear()
   full_fit.clear();
 }
 
-void PeakRendering::render(const Peak& h)
+void PeakRendering::render(const Peak& /*h*/)
 {
 
 }
@@ -533,7 +533,7 @@ std::vector<FitDescription> RegionManager::history() const
 }
 
 
-bool RegionManager::rollback(const FitEvaluation &parent_finder, size_t i)
+bool RegionManager::rollback(const FitEvaluation &/*parent_finder*/, size_t i)
 {
   if (i >= fits_.size())
     return false;

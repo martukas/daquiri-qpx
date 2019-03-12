@@ -59,7 +59,7 @@ double FittableRegion::chi_sq_gradient(const Eigen::VectorXd& fit,
 //        p.count, fit_value, p.weight_phillips_marlow,
 //        p.channel, ss.str());
 
-    for (size_t var = 0; var < fit.size(); ++var)
+    for (size_t var = 0; var < (size_t)fit.size(); ++var)
       gradients[var] += channel_gradients[var] * grad_norm;
   }
   return chi_squared;

@@ -148,7 +148,7 @@ double BudapestOptimizer::BrentDeriv(FittableFunction* fittable,
     if (done)
       break;
   }
-  if (!done && verbose)
+  if (!done && verbosity)
     WARN("Warning: The maximum number of iterations ({}) reached in Brent line search", iteration);
 
   xmin = x;
@@ -291,7 +291,7 @@ double BudapestOptimizer::LinMin(FittableFunction* fittable, Eigen::VectorXd& va
   b = 2.0;
   Bracket(fittable, a, xk, b, fa, fxk, fb, variables, hessian);
   double fmin = BrentDeriv(fittable, a, xk, b, linmin_tol, lambdak, variables, hessian);
-  if (verbose)
+  if (verbosity)
     DBG("lambda={}", lambdak);
   for (size_t j = 0; j < n; ++j)
   {
@@ -330,7 +330,7 @@ FitResult BudapestOptimizer::minimize(FittableFunction* fittable)
       prev_val[i] = gradients[i];
 
     fmin = fittable->chi_sq_gradient(ret.variables, gradients);
-    if (verbose)
+    if (verbosity)
       INFO("Fitting... Iteration = {}, Chisq = {}", ret.iterations, fmin);
 
     for (size_t i = 0; i < var_count; ++i)

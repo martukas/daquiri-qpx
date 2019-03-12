@@ -14,7 +14,7 @@ class OptlibOptimizer : public TestBase
 
   virtual void SetUp()
   {
-    optimizer.verbosity = 5;
+    optimizer.verbosity = 4;
 //    optimizer.maximum_iterations = 200;
   }
 };
@@ -80,14 +80,14 @@ TEST_F(OptlibOptimizer, Fit10Random)
   std::mt19937 rng;
   rng.seed(std::random_device()());
   std::uniform_real_distribution<double> dist6 (-10.0, 10.0);
-  for (size_t i=0; i < rb.vals_.size(); ++i)
+  for (size_t i=0; i < (size_t)rb.vals_.size(); ++i)
     rb.vals_[i] = dist6(rng);
 
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
   auto result = optimizer.minimize(&rb);
   MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
-  EXPECT_LE(result.iterations, 300);
+  EXPECT_LE(result.iterations, 300u);
   EXPECT_FALSE(result.used_finite_grads);
 }
 

@@ -381,12 +381,12 @@ TEST_F(PolyBackground, FitBaseOnly)
   test_fit_random(random_samples, &fb,
                   {"base", &fb.background.base, 50, 8000, 1e-6});
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, 0);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 8);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 8u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(PolyBackground, FitBaseRelaxed)
@@ -398,12 +398,12 @@ TEST_F(PolyBackground, FitBaseRelaxed)
   test_fit_random(random_samples, &fb,
                   {"base", &fb.background.base, 50, 8000, 1e-6});
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, 0);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 15);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 15u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(PolyBackground, FitSlopeOnly)
@@ -417,12 +417,12 @@ TEST_F(PolyBackground, FitSlopeOnly)
   test_fit_random(random_samples, &fb,
                   {"slope", &fb.background.slope, -460, 460, 1e-7});
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, 0);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 6);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 6u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(PolyBackground, FitSlopeRelaxed)
@@ -434,12 +434,12 @@ TEST_F(PolyBackground, FitSlopeRelaxed)
   test_fit_random(random_samples, &fb,
                   {"slope", &fb.background.slope, -460, 460, 1e-7});
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, 0);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 19);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 19u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(PolyBackground, FitCurveOnly)
@@ -453,12 +453,12 @@ TEST_F(PolyBackground, FitCurveOnly)
   test_fit_random(random_samples, &fb,
                   {"curve", &fb.background.curve, -10, 10, 1e-8});
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, 0);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 10);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 10u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(PolyBackground, FitCurveRelaxed)
@@ -470,12 +470,12 @@ TEST_F(PolyBackground, FitCurveRelaxed)
   test_fit_random(random_samples, &fb,
                   {"curve", &fb.background.curve, -10, 10, 1e-8});
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, 0);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 8);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 8u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(PolyBackground, FitAllThree)
@@ -490,10 +490,10 @@ TEST_F(PolyBackground, FitAllThree)
   vals.push_back({"curve", &fb.background.curve, -10, 10, 1e-8});
   test_fit_random(random_samples, &fb, vals);
 
-  EXPECT_EQ(unconverged, 0);
-  EXPECT_EQ(not_sane, 0);
-  EXPECT_EQ(converged_finite, 0);
-  EXPECT_EQ(converged_perturbed, 0);
-  EXPECT_LE(max_iterations_to_converge, 19);
-  EXPECT_LE(max_perturbations_to_converge, 0);
+  EXPECT_EQ(unconverged, 0u);
+  EXPECT_EQ(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 19u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }

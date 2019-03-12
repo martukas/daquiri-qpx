@@ -26,7 +26,7 @@ PolyBackground::PolyBackground(const WeightedData& data,
   double run = rb.right() - lb.left();
 
   double ymax = std::max(lb.max(), rb.max());
-  double ymin = std::min(lb.min(), rb.min());
+//  double ymin = std::min(lb.min(), rb.min());
 
   double minslope{0.0}, maxslope{0.0};
   double mincurve{0.0}, maxcurve{0.0};

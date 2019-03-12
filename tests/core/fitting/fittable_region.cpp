@@ -16,7 +16,7 @@ class FittableRegion : public FunctionTest
     optimizer.maximum_iterations = 50;
     optimizer.gradient_selection =
         DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
-//    optimizer.verbose = true;
+//    optimizer.verbosity = 5;
 //    optimizer.tolerance = 1e-14;
   }
 };
@@ -47,11 +47,11 @@ TEST_F(FittableRegion, UnboundedConst)
     test_fit(1, &fl, &fl.val, 30, 1e-90);
     deterministic_test(10, &fl, &fl.val, 30);
     test_fit_random(random_samples, &fl, {"val", &fl.val, 980, 1020, 1e-90});
-    EXPECT_EQ(unconverged, 0);
-    EXPECT_EQ(not_sane, 0);
-    EXPECT_EQ(converged_finite, 0);
-    EXPECT_LE(max_iterations_to_converge, 3);
-    EXPECT_LE(max_perturbations_to_converge, 0);
+    EXPECT_EQ(unconverged, 0u);
+    EXPECT_EQ(not_sane, 0u);
+    EXPECT_EQ(converged_finite, 0u);
+    EXPECT_LE(max_iterations_to_converge, 3u);
+    EXPECT_LE(max_perturbations_to_converge, 0u);
   }
 }
 
@@ -78,11 +78,11 @@ TEST_F(FittableRegion, UnboundedLinear)
     test_fit(1, &fl, &fl.val, 30, 1e-14);
     deterministic_test(10, &fl, &fl.val, 30);
     test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-14});
-    EXPECT_EQ(unconverged, 0);
-    EXPECT_EQ(not_sane, 0);
-    EXPECT_EQ(converged_finite, 0);
-    EXPECT_LE(max_iterations_to_converge, 3);
-    EXPECT_LE(max_perturbations_to_converge, 0);
+    EXPECT_EQ(unconverged, 0u);
+    EXPECT_EQ(not_sane, 0u);
+    EXPECT_EQ(converged_finite, 0u);
+    EXPECT_LE(max_iterations_to_converge, 3u);
+    EXPECT_LE(max_perturbations_to_converge, 0u);
   }
 }
 
@@ -109,11 +109,11 @@ TEST_F(FittableRegion, UnboundedQuadratic)
     test_fit(1, &fl, &fl.val, 30, 1e-12);
     deterministic_test(10, &fl, &fl.val, 30);
     test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-11});
-    EXPECT_EQ(unconverged, 0);
-    EXPECT_EQ(not_sane, 0);
-    EXPECT_EQ(converged_finite, 0);
-    EXPECT_LE(max_iterations_to_converge, 3);
-    EXPECT_LE(max_perturbations_to_converge, 0);
+    EXPECT_EQ(unconverged, 0u);
+    EXPECT_EQ(not_sane, 0u);
+    EXPECT_EQ(converged_finite, 0u);
+    EXPECT_LE(max_iterations_to_converge, 3u);
+    EXPECT_LE(max_perturbations_to_converge, 0u);
   }
 }
 
@@ -144,11 +144,11 @@ TEST_F(FittableRegion, PositiveConst)
     test_fit(1, &fl, &fl.val, 30, 1e-14);
     deterministic_test(10, &fl, &fl.val, 30);
     test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-8});
-    EXPECT_EQ(unconverged, 0);
-    EXPECT_EQ(not_sane, 0);
-    EXPECT_EQ(converged_finite, 0);
-    EXPECT_LE(max_iterations_to_converge, 7);
-    EXPECT_LE(max_perturbations_to_converge, 0);
+    EXPECT_EQ(unconverged, 0u);
+    EXPECT_EQ(not_sane, 0u);
+    EXPECT_EQ(converged_finite, 0u);
+    EXPECT_LE(max_iterations_to_converge, 7u);
+    EXPECT_LE(max_perturbations_to_converge, 0u);
   }
 }
 
@@ -175,11 +175,11 @@ TEST_F(FittableRegion, PositiveLinear)
     test_fit(1, &fl, &fl.val, 30, 1e-14);
     deterministic_test(10, &fl, &fl.val, 30);
     test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-10});
-    EXPECT_EQ(unconverged, 0);
-    EXPECT_EQ(not_sane, 0);
-    EXPECT_EQ(converged_finite, 0);
-    EXPECT_LE(max_iterations_to_converge, 7);
-    EXPECT_LE(max_perturbations_to_converge, 0);
+    EXPECT_EQ(unconverged, 0u);
+    EXPECT_EQ(not_sane, 0u);
+    EXPECT_EQ(converged_finite, 0u);
+    EXPECT_LE(max_iterations_to_converge, 7u);
+    EXPECT_LE(max_perturbations_to_converge, 0u);
   }
 }
 
@@ -206,11 +206,11 @@ TEST_F(FittableRegion, PositiveQuadratic)
     test_fit(1, &fl, &fl.val, 30, 1e-90);
     deterministic_test(10, &fl, &fl.val, 30);
     test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-11});
-    EXPECT_EQ(unconverged, 0);
-    EXPECT_EQ(not_sane, 0);
-    EXPECT_EQ(converged_finite, 0);
-    EXPECT_LE(max_iterations_to_converge, 7);
-    EXPECT_LE(max_perturbations_to_converge, 0);
+    EXPECT_EQ(unconverged, 0u);
+    EXPECT_EQ(not_sane, 0u);
+    EXPECT_EQ(converged_finite, 0u);
+    EXPECT_LE(max_iterations_to_converge, 7u);
+    EXPECT_LE(max_perturbations_to_converge, 0u);
   }
 }
 
@@ -250,11 +250,11 @@ TEST_F(FittableRegion, BoundedConst)
     test_fit(1, &fl, &fl.val, 30, 1e-9);
     deterministic_test(10, &fl, &fl.val, 30);
     test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-10});
-    EXPECT_EQ(unconverged, 0);
-    EXPECT_EQ(not_sane, 0);
-    EXPECT_EQ(converged_finite, 0);
-    EXPECT_LE(max_iterations_to_converge, 6);
-    EXPECT_LE(max_perturbations_to_converge, 0);
+    EXPECT_EQ(unconverged, 0u);
+    EXPECT_EQ(not_sane, 0u);
+    EXPECT_EQ(converged_finite, 0u);
+    EXPECT_LE(max_iterations_to_converge, 6u);
+    EXPECT_LE(max_perturbations_to_converge, 0u);
   }
 }
 
@@ -295,11 +295,11 @@ TEST_F(FittableRegion, BoundedLinear)
     test_fit(1, &fl, &fl.val, 30, 1e-11);
     deterministic_test(10, &fl, &fl.val, 35);
     test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-9});
-    EXPECT_EQ(unconverged, 0);
-    EXPECT_EQ(not_sane, 0);
+    EXPECT_EQ(unconverged, 0u);
+    EXPECT_EQ(not_sane, 0u);
     EXPECT_LE(converged_finite, 0.03 * random_samples);
-    EXPECT_LE(max_iterations_to_converge, 6);
-    EXPECT_LE(max_perturbations_to_converge, 0);
+    EXPECT_LE(max_iterations_to_converge, 6u);
+    EXPECT_LE(max_perturbations_to_converge, 0u);
   }
 }
 
@@ -339,11 +339,11 @@ TEST_F(FittableRegion, BoundedQuadratic)
     deterministic_test(10, &fl, &fl.val, 30);
     test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-9});
     EXPECT_LE(unconverged, 0.05 * random_samples);
-    EXPECT_EQ(not_sane, 0);
+    EXPECT_EQ(not_sane, 0u);
     EXPECT_LE(converged_finite, 0.45 * random_samples);
-    EXPECT_EQ(converged_perturbed, 0);
-    EXPECT_LE(max_iterations_to_converge, 7);
-    EXPECT_LE(max_perturbations_to_converge, 0);
+    EXPECT_EQ(converged_perturbed, 0u);
+    EXPECT_LE(max_iterations_to_converge, 7u);
+    EXPECT_LE(max_perturbations_to_converge, 0u);
   }
 }
 
@@ -388,12 +388,12 @@ TEST_F(FittableRegion, BoundedQuadraticAutoperturb)
     test_fit(1, &fl, &fl.val, 30, 1e-13);
     deterministic_test(10, &fl, &fl.val, 30);
     test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-10});
-    EXPECT_EQ(unconverged, 0);
-    EXPECT_EQ(not_sane, 0);
+    EXPECT_EQ(unconverged, 0u);
+    EXPECT_EQ(not_sane, 0u);
     EXPECT_LE(converged_finite, 0.45 * random_samples);
     EXPECT_LE(converged_perturbed, 0.05 * random_samples);
-    EXPECT_LE(max_iterations_to_converge, 7);
-    EXPECT_LE(max_perturbations_to_converge, 2);
+    EXPECT_LE(max_iterations_to_converge, 7u);
+    EXPECT_LE(max_perturbations_to_converge, 2u);
   }
 }
 
@@ -435,11 +435,11 @@ TEST_F(FittableRegion, Bounded2Const)
     test_fit(1, &fl, &fl.val, 30, 1e-9);
     deterministic_test(10, &fl, &fl.val, 30);
     test_fit_random(random_samples, &fl, {"val", &fl.val, 1, 39, 1e-14});
-    EXPECT_EQ(unconverged, 0);
-    EXPECT_EQ(not_sane, 0);
-    EXPECT_EQ(converged_finite, 0);
-    EXPECT_LE(max_iterations_to_converge, 8);
-    EXPECT_LE(max_perturbations_to_converge, 0);
+    EXPECT_EQ(unconverged, 0u);
+    EXPECT_EQ(not_sane, 0u);
+    EXPECT_EQ(converged_finite, 0u);
+    EXPECT_LE(max_iterations_to_converge, 8u);
+    EXPECT_LE(max_perturbations_to_converge, 0u);
   }
 }
 
@@ -475,11 +475,11 @@ TEST_F(FittableRegion, Bounded2Linear)
     test_fit(1, &fl, &fl.val, 30, 1e-11);
     deterministic_test(10, &fl, &fl.val, 35);
     test_fit_random(random_samples, &fl, {"val", &fl.val, 1, 39, 1e-17});
-    EXPECT_EQ(unconverged, 0);
-    EXPECT_EQ(not_sane, 0);
-    EXPECT_EQ(converged_finite, 0);
-    EXPECT_LE(max_iterations_to_converge, 8);
-    EXPECT_LE(max_perturbations_to_converge, 0);
+    EXPECT_EQ(unconverged, 0u);
+    EXPECT_EQ(not_sane, 0u);
+    EXPECT_EQ(converged_finite, 0u);
+    EXPECT_LE(max_iterations_to_converge, 8u);
+    EXPECT_LE(max_perturbations_to_converge, 0u);
   }
 }
 
@@ -517,11 +517,11 @@ TEST_F(FittableRegion, Bounded2Quadratic)
     deterministic_test(10, &fl, &fl.val, 30);
     test_fit_random(random_samples, &fl, {"val", &fl.val, 1, 39, 1e-13});
     EXPECT_EQ(unconverged, 0u);
-    EXPECT_EQ(not_sane, 0);
-    EXPECT_EQ(converged_finite, 0);
-    EXPECT_EQ(converged_perturbed, 0);
-    EXPECT_LE(max_iterations_to_converge, 8);
-    EXPECT_LE(max_perturbations_to_converge, 0);
+    EXPECT_EQ(not_sane, 0u);
+    EXPECT_EQ(converged_finite, 0u);
+    EXPECT_EQ(converged_perturbed, 0u);
+    EXPECT_LE(max_iterations_to_converge, 8u);
+    EXPECT_LE(max_perturbations_to_converge, 0u);
   }
 }
 
