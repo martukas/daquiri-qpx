@@ -91,6 +91,9 @@ class BfgsSolver : public ISolver<ProblemType, 1>
 
       if (!objFunc.callback(this->m_current, x0))
         this->m_status = Status::UserDefined;
+
+      if (!std::isfinite(H.diagonal().maxCoeff() / H.diagonal().minCoeff()))
+        this->m_status = Status::Condition;
     }
     while (this->m_status == Status::Continue);
   }

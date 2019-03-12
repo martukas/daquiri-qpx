@@ -107,6 +107,7 @@ FitResult extract_status(const cppoptlib::Status& status, std::atomic<bool>* can
   ret.converged = (status == cppoptlib::Status::GradNormTolerance)
       || (status == cppoptlib::Status::FDeltaTolerance)
       || (status == cppoptlib::Status::XDeltaTolerance)
+      || (status == cppoptlib::Status::Condition)
       || ((status == cppoptlib::Status::UserDefined) && !interrupted);
 
   if (interrupted)

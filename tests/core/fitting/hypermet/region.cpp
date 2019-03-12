@@ -16,11 +16,14 @@ class Region : public FunctionTest
 
   void SetUp() override
   {
-    optimizer.tolerance = 1e-7;
-    optimizer.maximum_perturbations = 20;
-    optimizer.maximum_iterations = 200;
+//    optimizer.verbosity = 5;
+    optimizer.maximum_iterations = 1000;
     optimizer.gradient_selection =
-        DAQuiri::OptlibOptimizer::GradientSelection::DefaultToFinite;
+        DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
+    optimizer.use_epsilon_check = false;
+    optimizer.min_g_norm = 1e-7;
+    optimizer.perform_sanity_checks = false;
+    optimizer.maximum_perturbations = 0;
 
     region.background.x_offset = 0;
 //    fb.background.base.bound(0, 7792);
@@ -77,7 +80,7 @@ TEST_F(Region, FitBackgroundOnly)
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
-  //EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
   EXPECT_LE(max_iterations_to_converge, 20u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
@@ -124,7 +127,7 @@ TEST_F(Region, FitOnePeak)
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
-  //EXPECT_EQ(converged_finite, 0u);
+  EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
   EXPECT_LE(max_iterations_to_converge, 50u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
@@ -170,10 +173,10 @@ TEST_F(Region, FitTwoPeaks)
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
-  //EXPECT_EQ(converged_finite, 0u);
-  EXPECT_LE(converged_perturbed, 0.60 * random_samples);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_LE(converged_perturbed, 0u);
   EXPECT_LE(max_iterations_to_converge, 120u);
-  EXPECT_LE(max_perturbations_to_converge, 2u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(Region, FitTwoPeaksWithEverything)
@@ -218,8 +221,8 @@ TEST_F(Region, FitTwoPeaksWithEverything)
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
-  //EXPECT_EQ(converged_finite, 0u);
-  EXPECT_LE(converged_perturbed, 0.60 * random_samples);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_LE(converged_perturbed, 0u);
   EXPECT_LE(max_iterations_to_converge, 500u);
-  EXPECT_LE(max_perturbations_to_converge, 2u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }

@@ -162,11 +162,14 @@ class Tail : public FunctionTest
   void SetUp() override
   {
     //optimizer.verbosity = 5;
-    optimizer.maximum_iterations = 3000;
+    optimizer.maximum_iterations = 1000;
     optimizer.gradient_selection =
         DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
     optimizer.use_epsilon_check = false;
     optimizer.min_g_norm = 1e-7;
+    optimizer.perform_sanity_checks = false;
+    optimizer.maximum_perturbations = 0;
+    optimizer.max_condition = 1e14;
 
     ft.tail.amplitude.bound(0.0001, 1.5);
     ft.tail.amplitude.val(0.05);

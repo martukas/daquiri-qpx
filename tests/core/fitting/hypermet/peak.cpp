@@ -111,16 +111,18 @@ class Peak : public FunctionTest
  protected:
   FittablePeak fp;
   size_t region_size{100};
-  size_t random_samples{10};
+  size_t random_samples{500};
   
   void SetUp() override
   {
-    optimizer.verbosity = 5;
+//    optimizer.verbosity = 5;
     optimizer.maximum_iterations = 1000;
     optimizer.gradient_selection =
         DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
     optimizer.use_epsilon_check = false;
     optimizer.min_g_norm = 1e-7;
+    optimizer.perform_sanity_checks = false;
+    optimizer.maximum_perturbations = 0;
 
     fp.peak = fp.peak.gaussian_only();
     //fp.peak.amplitude.bound(0, 500);
@@ -386,18 +388,18 @@ TEST_F(Peak, FitPosition)
   SetUp();
   test_fit_random(random_samples, &fp,
                   {"position", &fp.peak.position,
-                   fp.peak.position.min(), fp.peak.position.max(), 1e-9});
+                   fp.peak.position.min(), fp.peak.position.max(), 1e-10});
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
-  EXPECT_LE(converged_finite, 0.90 * random_samples);
-  EXPECT_LE(converged_perturbed, 0.25 * random_samples);
-  EXPECT_LE(max_iterations_to_converge, 7u);
-  EXPECT_LE(max_perturbations_to_converge, 4u);
+  EXPECT_LE(converged_finite, 0u);
+  EXPECT_LE(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 15u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 
-TEST_F(Peak, FitWidthOnly)
+TEST_F(Peak, FitWidth)
 {
   fp.data = generate_data(&fp, region_size);
   fp.peak.position.to_fit = false;
@@ -408,13 +410,13 @@ TEST_F(Peak, FitWidthOnly)
   SetUp();
   test_fit_random(random_samples, &fp,
                   {"width", &fp.peak.width,
-                   fp.peak.width.min(), fp.peak.width.max(), 1e-10});
+                   fp.peak.width.min(), fp.peak.width.max(), 1e-12});
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
-  EXPECT_LE(converged_finite, 0.60 * random_samples);
+  EXPECT_LE(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 6u);
+  EXPECT_LE(max_iterations_to_converge, 12u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -428,13 +430,13 @@ TEST_F(Peak, FitAmplitude)
   SetUp();
   test_fit_random(random_samples, &fp,
                   {"amplitude", &fp.peak.amplitude,
-                   30000, 40000, 1e-3});
+                   30000, 40000, 1e-6});
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 4u);
+  EXPECT_LE(max_iterations_to_converge, 6u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -447,19 +449,19 @@ TEST_F(Peak, FitAllThree)
 
   std::vector<ValueToVary> vals;
   vals.push_back({"width", &fp.peak.width,
-                  fp.peak.width.min(), fp.peak.width.max(), 1e-8});
+                  fp.peak.width.min(), fp.peak.width.max(), 1e-11});
   vals.push_back({"position", &fp.peak.position,
-                  fp.peak.position.min(), fp.peak.position.max(), 1e-8});
+                  fp.peak.position.min(), fp.peak.position.max(), 1e-12});
   vals.push_back({"amplitude", &fp.peak.amplitude,
-                  30000, 50000, 2e-4});
+                  30000, 50000, 1e-7});
   test_fit_random(random_samples, &fp, vals);
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
-  //EXPECT_EQ(converged_finite, random_samples);
-  EXPECT_LE(converged_perturbed, 0.10 * random_samples);
-  EXPECT_LE(max_iterations_to_converge, 75u);
-  EXPECT_LE(max_perturbations_to_converge, 1u);
+  EXPECT_EQ(converged_finite, 0u);
+  EXPECT_LE(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 86u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(Peak, FitWithSkews)
@@ -500,10 +502,10 @@ TEST_F(Peak, FitWithSkews)
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
-//  EXPECT_LE(converged_finite, 0.97 * random_samples);
-  EXPECT_LE(converged_perturbed, 0.10 * random_samples);
+  EXPECT_LE(converged_finite, 0u);
+  EXPECT_LE(converged_perturbed, 0u);
   EXPECT_LE(max_iterations_to_converge, 100u);
-  EXPECT_LE(max_perturbations_to_converge, 2u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(Peak, FitWithEverything)
