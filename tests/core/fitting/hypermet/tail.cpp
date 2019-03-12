@@ -161,11 +161,12 @@ class Tail : public FunctionTest
 
   void SetUp() override
   {
-    optimizer.tolerance = 1e-7;
-    optimizer.maximum_perturbations = 10;
-    optimizer.maximum_iterations = 80;
+    //optimizer.verbosity = 5;
+    optimizer.maximum_iterations = 3000;
     optimizer.gradient_selection =
-        DAQuiri::OptlibOptimizer::GradientSelection::DefaultToFinite;
+        DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
+    optimizer.use_epsilon_check = false;
+    optimizer.min_g_norm = 1e-7;
 
     ft.tail.amplitude.bound(0.0001, 1.5);
     ft.tail.amplitude.val(0.05);
@@ -485,14 +486,14 @@ TEST_F(Tail, FitAmplitude)
 //  print_outside_tolerance = true;
   test_fit_random(random_samples, &ft,
                   {"amplitude", &ft.tail.amplitude,
-                   ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-10});
+                   ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-14});
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
-  EXPECT_LE(converged_finite, 0.70 * random_samples);
-  EXPECT_LE(converged_perturbed, 0.40 * random_samples);
-  EXPECT_LE(max_iterations_to_converge, 7u);
-  EXPECT_LE(max_perturbations_to_converge, 5u);
+  EXPECT_LE(converged_finite, 0u);
+  EXPECT_LE(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 13u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(Tail, FitSlope)
@@ -513,7 +514,7 @@ TEST_F(Tail, FitSlope)
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 6u);
+  EXPECT_LE(max_iterations_to_converge, 12u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -558,7 +559,7 @@ TEST_F(Tail, FitParentWidth)
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 5u);
+  EXPECT_LE(max_iterations_to_converge, 10u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -574,13 +575,13 @@ TEST_F(Tail, FitParentPosition)
   SetUp();
   test_fit_random(random_samples, &ft,
                   {"parent_position", &ft.position,
-                   ft.position.min(), ft.position.max(), 1e-9});
+                   ft.position.min(), ft.position.max(), 1e-11});
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
   EXPECT_LE(converged_finite, 0.65 * random_samples);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 7u);
+  EXPECT_LE(max_iterations_to_converge, 13u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -600,7 +601,7 @@ TEST_F(Tail, FitParentAmplitude)
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
-  EXPECT_EQ(converged_finite, random_samples);
+  EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
   EXPECT_LE(max_iterations_to_converge, 3u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
@@ -618,19 +619,19 @@ TEST_F(Tail, FitAll1)
 
   std::vector<ValueToVary> vals;
   vals.push_back({"amplitude", &ft.tail.amplitude,
-                  ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-10});
+                  ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-12});
   vals.push_back({"slope", &ft.tail.slope,
-                  ft.tail.slope.min(), ft.tail.slope.max(), 1e-6});
-  vals.push_back({"parent_width", &ft.width, ft.width.min(), ft.width.max(), 1e-8});
+                  ft.tail.slope.min(), ft.tail.slope.max(), 1e-9});
+  vals.push_back({"parent_width", &ft.width, ft.width.min(), ft.width.max(), 1e-10});
   vals.push_back({"parent_position", &ft.position,
-                  ft.position.min(), ft.position.max(), 1e-8});
+                  ft.position.min(), ft.position.max(), 1e-10});
   test_fit_random(random_samples, &ft, vals);
 
   EXPECT_EQ(unconverged, 0u);
-  EXPECT_LE(not_sane, 0.05 * random_samples);
-  EXPECT_LE(converged_finite, 0.97 * random_samples);
-  EXPECT_LE(converged_perturbed, 0.10 * random_samples);
-  EXPECT_LE(max_iterations_to_converge, 60u);
+  EXPECT_LE(not_sane, 0u);
+  EXPECT_LE(converged_finite, 0u);
+  EXPECT_LE(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 92u);
   EXPECT_LE(max_perturbations_to_converge, 2u);
 }
 

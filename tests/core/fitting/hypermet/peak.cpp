@@ -111,15 +111,16 @@ class Peak : public FunctionTest
  protected:
   FittablePeak fp;
   size_t region_size{100};
-  size_t random_samples{200};
+  size_t random_samples{10};
   
   void SetUp() override
   {
-    optimizer.tolerance = 1e-7;
-    optimizer.maximum_perturbations = 10;
-    optimizer.maximum_iterations = 200;
+    optimizer.verbosity = 5;
+    optimizer.maximum_iterations = 1000;
     optimizer.gradient_selection =
-        DAQuiri::OptlibOptimizer::GradientSelection::DefaultToFinite;
+        DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
+    optimizer.use_epsilon_check = false;
+    optimizer.min_g_norm = 1e-7;
 
     fp.peak = fp.peak.gaussian_only();
     //fp.peak.amplitude.bound(0, 500);
