@@ -6,7 +6,7 @@
 class SUM4Edge : public TestBase
 {
  protected:
-  virtual void SetUp()
+  void SetUp() override
   {
     std::vector<double> x;
     std::vector<double> y;

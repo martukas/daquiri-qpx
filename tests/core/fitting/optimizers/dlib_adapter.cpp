@@ -10,7 +10,7 @@ class DlibOptimizer : public TestBase
 {
  protected:
 
-  virtual void SetUp()
+  void SetUp() override
   {
   }
 };

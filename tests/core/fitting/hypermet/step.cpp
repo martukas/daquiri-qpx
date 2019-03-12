@@ -6,7 +6,6 @@
 
 #include <core/fitting/optimizers/optlib_adapter.h>
 
-
 class FittableStep : public DAQuiri::FittableRegion
 {
  public:
@@ -126,12 +125,16 @@ class FittableStep : public DAQuiri::FittableRegion
     chi_sq_gradient(x, grads);
     std::stringstream ss;
 
-    ss << "parent_pos = " << position.to_string() << "\n";
-    ss << prepend << "parent_amp = " << amplitude.to_string() << "\n";
-    ss << prepend << "parent_width = "  << width.to_string() << "\n";
-    ss << prepend << "step = " << step.to_string() << "\n";
-    ss << prepend << "  chi2=" + std::to_string(chi_sq());
-    ss << "  grads=" << grads.transpose() << "\n";
+    ss << "parent_pos   = " << position.to_string() << "\n";
+    ss << prepend
+       << "parent_amp   = " << amplitude.to_string() << "\n";
+    ss << prepend
+       << "parent_width = " << width.to_string() << "\n";
+    ss << prepend
+       << "step = " << step.to_string() << "\n";
+    ss << prepend
+       << "  chi2=" + std::to_string(chi_sq())
+       << "  grads=" << grads.transpose() << "\n";
     return ss.str();
   }
 };
@@ -140,18 +143,17 @@ class Step : public FunctionTest
 {
  protected:
   FittableStep fs;
-  DAQuiri::OptlibOptimizer optimizer;
   size_t region_size{100};
-  size_t random_samples{1000};
+  size_t random_samples{10000};
 
-  virtual void SetUp()
+  void SetUp() override
   {
-    //    optimizer.verbose = true;
+    //optimizer.verbosity = 5;
     optimizer.maximum_iterations = 3000;
     optimizer.gradient_selection =
         DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
     optimizer.use_epsilon_check = false;
-    optimizer.min_g_norm = 1e-10;
+    optimizer.min_g_norm = 1e-7;
 
 //    fs.amplitude.slope_ = 1e-5;
 //    fs.amplitude.bound(15000, 50000);
@@ -384,15 +386,15 @@ TEST_F(Step, SurveyGradients)
   fs.update_indices();
 
   double goal_val = fs.step.amplitude.val();
-  survey_grad(&fs, &fs.step.amplitude, 0.01);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
-  EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
+  survey_grad(&fs, &fs.step.amplitude, 0.001);
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 1e-6);
+  EXPECT_NEAR(check_gradients(false), goal_val, 1e-6);
 //  survey_grad(&fs, &fs.step.amplitude, 1000, -1e5, 1e5);
-  check_gradients(true);
-  check_gradient_deltas(true);
+//  check_gradients(true);
+//  check_gradient_deltas(true);
 
   goal_val = fs.width.val();
-  survey_grad(&fs, &fs.width, 0.01);
+  survey_grad(&fs, &fs.width, 0.001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 1e-2);
   EXPECT_NEAR(check_gradients(false), goal_val, 1e-2);
 //  survey_grad(&fs, &fs.width, 10, -1e5, 1e5);
@@ -429,12 +431,12 @@ TEST_F(Step, FitAmplitude)
   test_fit_random(random_samples, &fs,
                   {"amplitude", &fs.step.amplitude,
                    fs.step.amplitude.min(),
-                   fs.step.amplitude.max(), 1e-17});
+                   fs.step.amplitude.max(), 1e-14});
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 10u);
+  EXPECT_LE(max_iterations_to_converge, 13u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -449,12 +451,12 @@ TEST_F(Step, FitParentWidth)
   SetUp();
   test_fit_random(random_samples, &fs,
                   {"parent_width", &fs.width,
-                   fs.width.min(), fs.width.max(), 1e-15});
+                   fs.width.min(), fs.width.max(), 1e-8});
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 11u);
+  EXPECT_LE(max_iterations_to_converge, 8u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -469,12 +471,12 @@ TEST_F(Step, FitParentAmplitude)
   SetUp();
   test_fit_random(random_samples, &fs,
                   {"parent_amplitude",
-                   &fs.amplitude, 30000, 50000, 1e-10});
+                   &fs.amplitude, 30000, 50000, 1e-2});
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 9u);
+  EXPECT_LE(max_iterations_to_converge, 5u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -495,9 +497,9 @@ TEST_F(Step, FitTwoA)
   std::vector<ValueToVary> vals;
   vals.push_back({"amplitude", &fs.step.amplitude,
                   fs.step.amplitude.min(),
-                  fs.step.amplitude.max(), 1e-16});
+                  fs.step.amplitude.max(), 1e-14});
   vals.push_back({"parent_width", &fs.width,
-                  fs.width.min(), fs.width.max(), 1e-12});
+                  fs.width.min(), fs.width.max(), 1e-8});
   test_fit_random(random_samples, &fs, vals);
 
   EXPECT_EQ(unconverged, 0u);
@@ -516,12 +518,14 @@ TEST_F(Step, FitTwoB)
   fs.update_indices();
 
   print_outside_tolerance = true;
+  optimizer.use_epsilon_check = false;
+  optimizer.min_g_norm = 1e-10;
 
   std::vector<ValueToVary> vals;
   vals.push_back({"parent_width", &fs.width,
                   fs.width.min(), fs.width.max(), 1e-10});
   vals.push_back({"parent_amplitude", &fs.amplitude,
-                  30000, 50000, 0.01});
+                  30000, 50000, 1e-5});
   test_fit_random(random_samples, &fs, vals);
 
   EXPECT_EQ(unconverged, 0u);

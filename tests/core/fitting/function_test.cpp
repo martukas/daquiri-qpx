@@ -327,7 +327,7 @@ void FunctionTest::test_fit_random(size_t attempts,
         if (print_outside_tolerance && (v.get_delta() > v.epsilon))
           MESSAGE() << "        Outside tolerance " << result.to_string() << "\n"
                     << "                          F=" <<
-                    fittable->to_string("                         ") << "\n";
+                    fittable->to_string("                            ") << "\n";
       }
     }
     else

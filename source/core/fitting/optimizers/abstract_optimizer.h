@@ -11,6 +11,9 @@ namespace DAQuiri
 class AbstractOptimizer
 {
  public:
+  AbstractOptimizer() = default;
+  ~AbstractOptimizer() = default;
+
   enum class GradientSelection
   {
     AnalyticalAlways,

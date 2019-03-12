@@ -8,7 +8,7 @@ class FittableRegion : public FunctionTest
   size_t random_samples{100000};
   bool perform_fitting_tests {false};
 
-  virtual void SetUp()
+  void SetUp() override
   {
     perform_fitting_tests = true;
     //  mpfr::mpreal::set_default_prec(mpfr::digits2bits(100));

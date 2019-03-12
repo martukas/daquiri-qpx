@@ -10,7 +10,6 @@ class Region : public FunctionTest
 {
  protected:
   DAQuiri::Region region;
-  DAQuiri::OptlibOptimizer optimizer;
   size_t region_size{100};
   size_t random_samples{100};
 

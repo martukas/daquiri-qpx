@@ -10,7 +10,7 @@ class BudapestOptimizer : public TestBase
 {
  protected:
 
-  virtual void SetUp()
+  void SetUp() override
   {
   }
 };

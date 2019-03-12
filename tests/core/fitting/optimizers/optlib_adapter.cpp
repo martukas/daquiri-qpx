@@ -12,7 +12,7 @@ class OptlibOptimizer : public TestBase
   DAQuiri::OptlibOptimizer optimizer;
   Rosenbrock rb {10};
 
-  virtual void SetUp()
+  void SetUp() override
   {
     optimizer.verbosity = 4;
 //    optimizer.maximum_iterations = 200;

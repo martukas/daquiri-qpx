@@ -122,11 +122,11 @@ FitResult extract_status(const cppoptlib::Status& status, std::atomic<bool>* can
 }
 
 FitResult solve(cppoptlib::BfgsSolver<OptlibFittableWrapper> solver,
-                OptlibFittableWrapper f, bool verbose,
+                OptlibFittableWrapper& f, bool verbose,
                 OptlibOptimizer::GradientSelection grad_select);
 
 FitResult solve(cppoptlib::BfgsSolver<OptlibFittableWrapper> solver,
-                OptlibFittableWrapper f, bool verbose,
+                OptlibFittableWrapper& f, bool verbose,
                 OptlibOptimizer::GradientSelection grad_select)
 {
   f.use_finite_gradient_ =

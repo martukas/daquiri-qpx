@@ -110,7 +110,6 @@ class Peak : public FunctionTest
 {
  protected:
   FittablePeak fp;
-  DAQuiri::OptlibOptimizer optimizer;
   size_t region_size{100};
   size_t random_samples{200};
   

@@ -45,6 +45,10 @@ struct ValueToVary
 
 class FunctionTest : public TestBase
 {
+ public:
+  FunctionTest() = default;
+  ~FunctionTest() = default;
+
  protected:
   DAQuiri::OptlibOptimizer optimizer;
 

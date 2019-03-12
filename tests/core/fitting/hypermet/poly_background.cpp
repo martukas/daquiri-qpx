@@ -70,11 +70,10 @@ class PolyBackground : public FunctionTest
 {
  protected:
   FittableBackground fb;
-  DAQuiri::OptlibOptimizer optimizer;
   size_t region_size{40};
   size_t random_samples{10000};
 
-  virtual void SetUp()
+  void SetUp() override
   {
 //    optimizer.verbosity = 5;
     optimizer.maximum_iterations = 1000;
@@ -382,13 +381,13 @@ TEST_F(PolyBackground, FitBaseOnly)
 
   //auto_bound();
   test_fit_random(random_samples, &fb,
-                  {"base", &fb.background.base, 50, 8000, 1e-6});
+                  {"base", &fb.background.base, 50, 8000, 1e-7});
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 15u);
+  EXPECT_LE(max_iterations_to_converge, 12u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -405,7 +404,7 @@ TEST_F(PolyBackground, FitBaseRelaxed)
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 26u);
+  EXPECT_LE(max_iterations_to_converge, 20u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -418,13 +417,13 @@ TEST_F(PolyBackground, FitSlopeOnly)
 
 //  auto_bound();
   test_fit_random(random_samples, &fb,
-                  {"slope", &fb.background.slope, -460, 460, 1e-7});
+                  {"slope", &fb.background.slope, -460, 460, 1e-11});
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 6u);
+  EXPECT_LE(max_iterations_to_converge, 2u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -441,7 +440,7 @@ TEST_F(PolyBackground, FitSlopeRelaxed)
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 24u);
+  EXPECT_LE(max_iterations_to_converge, 18u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -454,13 +453,13 @@ TEST_F(PolyBackground, FitCurveOnly)
 
 //  auto_bound();
   test_fit_random(random_samples, &fb,
-                  {"curve", &fb.background.curve, -10, 10, 1e-8});
+                  {"curve", &fb.background.curve, -10, 10, 1e-10});
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 4u);
+  EXPECT_LE(max_iterations_to_converge, 3u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -477,7 +476,7 @@ TEST_F(PolyBackground, FitCurveRelaxed)
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 30u);
+  EXPECT_LE(max_iterations_to_converge, 27u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -499,6 +498,6 @@ TEST_F(PolyBackground, FitAllThree)
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 35u);
+  EXPECT_LE(max_iterations_to_converge, 31u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
