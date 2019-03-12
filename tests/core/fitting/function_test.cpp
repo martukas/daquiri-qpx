@@ -1,6 +1,7 @@
 #include "function_test.h"
 
 #include <core/util/visualize_vector.h>
+#include <core/util/UTF_extensions.h>
 
 ValueToVary::ValueToVary(std::string var_name, DAQuiri::AbstractValue* var,
                          double minimum, double maximum, double eps)
@@ -58,7 +59,14 @@ std::string ValueToVary::summary() const
 
 CleverHist ValueToVary::deltas_hist() const
 {
-  return CleverHist::make_linear(deltas, std::ceil(std::sqrt(deltas.size())));
+  auto ret = CleverHist::make_linear(deltas, std::ceil(std::sqrt(deltas.size())));
+  while (!ret.counts.empty() && (ret.counts.back() == 0.0))
+  {
+    ret.counts.pop_back();
+    ret.bins.pop_back();
+  }
+
+  return ret;
 //  return CleverHist::make_linear(deltas, 100);
 }
 
@@ -130,10 +138,11 @@ double FunctionTest::check_chi_sq(bool print) const
 
   if (print)
   {
-//      MESSAGE() << "chi_sq(proxy):\n" << visualize(val_proxy, chi_sq_norm, 100) << "\n";
-    MESSAGE() << "chi_sq(val):\n" << visualize_all(val_val, chi_sq_norm, 100) << "\n";
+//      MESSAGE() << "chi" << UTF_superscript(2) << "(proxy):\n" << visualize(val_proxy, chi_sq_norm, 100) << "\n";
+    MESSAGE() << "chi" << UTF_superscript(2) << "(val):\n" << visualize_all(val_val, chi_sq_norm, 100) << "\n";
   }
-  MESSAGE() << "min(chi_sq)=" << chi_sq_norm[min_chi_i] << " at val=" << val_val[min_chi_i]
+  MESSAGE() << "min(chi" << UTF_superscript(2) << ")=" << chi_sq_norm[min_chi_i]
+            << " at val=" << val_val[min_chi_i]
             << " x=" << val_proxy[min_chi_i] << "\n";
 
   return val_val[min_chi_i];
@@ -157,7 +166,9 @@ double FunctionTest::check_gradients(bool print) const
 //      MESSAGE() << "gradient(proxy):\n" << visualize(val_proxy, gradient, 100) << "\n";
     MESSAGE() << "grad(val):\n" << visualize_all(val_val, gradient, 100) << "\n";
   }
-  MESSAGE() << "min(|grad|)=" << gradient[grad_i] << " at val=" << val_val[grad_i] << "\n";
+  MESSAGE() << "min(|grad|)=" << gradient[grad_i]
+            << " at val=" << val_val[grad_i]
+            << " x=" << val_proxy[grad_i] << "\n";
 
   return val_val[grad_i];
 }
@@ -169,7 +180,7 @@ double FunctionTest::check_gradient_deltas(bool print) const
 
   if (print)
   {
-//      MESSAGE() << "chi_sq(proxy):\n" << visualize(val_proxy, chi_sq_norm, 100) << "\n";
+//      MESSAGE() << "chi" << UTF_superscript(2) << "(proxy):\n" << visualize(val_proxy, chi_sq_norm, 100) << "\n";
     MESSAGE() << "finite_grad(val):\n" << visualize_all(val_val, finite_gradient, 100) << "\n";
     MESSAGE() << "\u0394grad(val):\n" << visualize_all(val_val, gradient_delta, 100) << "\n";
   }
@@ -177,8 +188,9 @@ double FunctionTest::check_gradient_deltas(bool print) const
   for (size_t i = 0; i < gradient_ok.size(); ++i)
     EXPECT_TRUE(gradient_ok[i]) << "Bad grad at " << val_val[i] << "\n";
 
-  MESSAGE() << "max(\u0394grad)=" << gradient_delta[max_gd_i] <<
-            " at val=" << val_val[max_gd_i] << "\n";
+  MESSAGE() << "max(\u0394grad)=" << gradient_delta[max_gd_i]
+            << " at val=" << val_val[max_gd_i]
+            << " x=" << val_proxy[max_gd_i] << "\n";
 
   return gradient_delta[max_gd_i];
 }
@@ -258,10 +270,9 @@ void FunctionTest::deterministic_test(size_t attempts,
   variable->val(goal_val);
 }
 
-
 void FunctionTest::test_fit_random(size_t attempts,
-                     DAQuiri::FittableRegion* fittable,
-                     ValueToVary var)
+                                   DAQuiri::FittableRegion* fittable,
+                                   ValueToVary var)
 {
   test_fit_random(attempts, fittable, std::vector<ValueToVary>{var});
 }
@@ -314,8 +325,8 @@ void FunctionTest::test_fit_random(size_t attempts,
       {
         v.record_delta();
         if (print_outside_tolerance && (v.get_delta() > v.epsilon))
-          MESSAGE() << "        " << result.to_string() << "\n"
-                    << "                       F=" <<
+          MESSAGE() << "        Outside tolerance " << result.to_string() << "\n"
+                    << "                          F=" <<
                     fittable->to_string("                         ") << "\n";
       }
     }

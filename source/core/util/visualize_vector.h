@@ -176,9 +176,11 @@ std::string visualize_all(const T& x, const T& y, size_t nstars)
     return "all zeros";
 
   auto range = vmax - vmin;
-  double starsize = range / static_cast<double>(nstars);
-  auto posmin = ((signum(vmin) > 0) ? vmin : 0.0);
-  auto negmax = ((signum(vmax) < 0) ? vmax : 0.0);
+  auto posmin = (((range != 0.) && (signum(vmin) > 0)) ? vmin : 0.0);
+  auto negmax = (((range != 0.) && (signum(vmax) < 0)) ? vmax : 0.0);
+
+  if (range == 0.)
+    range = vmax;
 
   double pos_range = 0.0;
   if (signum(vmax) > 0)
@@ -187,6 +189,7 @@ std::string visualize_all(const T& x, const T& y, size_t nstars)
   if (signum(vmin) < 0)
     neg_range = std::abs(vmin - negmax);
 
+  double starsize = range / static_cast<double>(nstars);
   size_t pos_stars = pos_range / starsize;
   size_t neg_stars = neg_range / starsize;
 
