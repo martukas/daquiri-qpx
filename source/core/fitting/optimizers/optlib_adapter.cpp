@@ -18,7 +18,7 @@ class OptlibFittableWrapper : public cppoptlib::Problem<double>
   std::atomic<bool>* cancel_;
   bool use_finite_gradient_{false};
 
-  bool check_condition_;
+  bool check_condition_ {false};
   double condition_tolerance_;
   double condition_epsilon_;
 

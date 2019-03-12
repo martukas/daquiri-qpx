@@ -352,8 +352,6 @@ TEST_F(PolyBackground, SurveyGradients)
   fb.data = generate_data(&fb, region_size);
   fb.update_indices();
 
-  EXPECT_TRUE(optimizer.check_gradient(&fb));
-
   double goal_val = fb.background.base.val();
   survey_grad(&fb, &fb.background.base, 0.05, std::sqrt(50.0), std::sqrt(100.0));
 //  survey_grad(&fb, &fb.background.base, 0.001);

@@ -10,9 +10,9 @@
 class FittableStep : public DAQuiri::FittableRegion
 {
  public:
-  DAQuiri::Value2 position;
-  DAQuiri::Value2 amplitude;
-  DAQuiri::Value2 width;
+  DAQuiri::Value position;
+  DAQuiri::ValuePositive amplitude;
+  DAQuiri::Value width;
 
   DAQuiri::Step step;
 
@@ -150,23 +150,25 @@ class Step : public FunctionTest
     optimizer.maximum_iterations = 3000;
     optimizer.gradient_selection =
         DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
+    optimizer.use_epsilon_check = false;
+    optimizer.min_g_norm = 1e-10;
 
-    fs.amplitude.slope_ = 1e-5;
-    fs.amplitude.bound(15000, 50000);
+//    fs.amplitude.slope_ = 1e-5;
+//    fs.amplitude.bound(15000, 50000);
     fs.amplitude.val(40000);
     fs.amplitude.update_index(fs.variable_count);
 
-    fs.width.slope_ = 1e-4;
+//    fs.width.slope_ = 1e-4;
     fs.width.bound(0.8, 5.0);
     fs.width.val(3.2);
     fs.width.update_index(fs.variable_count);
 
-    fs.position.slope_ = 1e-3;
+//    fs.position.slope_ = 1e-3;
     fs.position.bound(44, 68);
     fs.position.val(51);
     fs.position.update_index(fs.variable_count);
 
-    fs.step.amplitude.slope_ = 1e-3;
+//    fs.step.amplitude.slope_ = 1e-3;
     fs.step.amplitude.bound(1e-6, 0.05);
     fs.step.amplitude.val(0.0005);
   }
@@ -381,20 +383,18 @@ TEST_F(Step, SurveyGradients)
   fs.data = generate_data(&fs, region_size);
   fs.update_indices();
 
-  EXPECT_TRUE(optimizer.check_gradient(&fs));
-
   double goal_val = fs.step.amplitude.val();
-  survey_grad(&fs, &fs.step.amplitude, 10, -1e5, 1e5);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 1e-7);
-  EXPECT_NEAR(check_gradients(false), goal_val, 1e-7);
-  survey_grad(&fs, &fs.step.amplitude, 1000, -1e5, 1e5);
+  survey_grad(&fs, &fs.step.amplitude, 0.01);
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 0.01);
+  EXPECT_NEAR(check_gradients(false), goal_val, 0.01);
+//  survey_grad(&fs, &fs.step.amplitude, 1000, -1e5, 1e5);
   check_gradients(true);
   check_gradient_deltas(true);
 
   goal_val = fs.width.val();
-  survey_grad(&fs, &fs.width, 0.1, -1e3, 1e3);
-  EXPECT_NEAR(check_chi_sq(false), goal_val, 1e-4);
-  EXPECT_NEAR(check_gradients(false), goal_val, 1e-4);
+  survey_grad(&fs, &fs.width, 0.01);
+  EXPECT_NEAR(check_chi_sq(false), goal_val, 1e-2);
+  EXPECT_NEAR(check_gradients(false), goal_val, 1e-2);
 //  survey_grad(&fs, &fs.width, 10, -1e5, 1e5);
 //  check_gradients(true);
 //  check_gradient_deltas(true);
@@ -428,8 +428,8 @@ TEST_F(Step, FitAmplitude)
   SetUp();
   test_fit_random(random_samples, &fs,
                   {"amplitude", &fs.step.amplitude,
-                   fs.step.amplitude.min() + fs.step.amplitude.slope_,
-                   fs.step.amplitude.max() - fs.step.amplitude.slope_, 1e-16});
+                   fs.step.amplitude.min(),
+                   fs.step.amplitude.max(), 1e-17});
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
@@ -449,12 +449,12 @@ TEST_F(Step, FitParentWidth)
   SetUp();
   test_fit_random(random_samples, &fs,
                   {"parent_width", &fs.width,
-                   1.0, 4.0, 1e-10});
+                   fs.width.min(), fs.width.max(), 1e-15});
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 87u);
+  EXPECT_LE(max_iterations_to_converge, 11u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -494,17 +494,17 @@ TEST_F(Step, FitTwoA)
 
   std::vector<ValueToVary> vals;
   vals.push_back({"amplitude", &fs.step.amplitude,
-                  fs.step.amplitude.min() + fs.step.amplitude.slope_,
-                  fs.step.amplitude.max() - fs.step.amplitude.slope_, 1e-16});
+                  fs.step.amplitude.min(),
+                  fs.step.amplitude.max(), 1e-16});
   vals.push_back({"parent_width", &fs.width,
-                  1.0, 4.0, 1e-10});
+                  fs.width.min(), fs.width.max(), 1e-12});
   test_fit_random(random_samples, &fs, vals);
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 15u);
+  EXPECT_LE(max_iterations_to_converge, 25u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -515,9 +515,11 @@ TEST_F(Step, FitTwoB)
   fs.step.amplitude.to_fit = false;
   fs.update_indices();
 
+  print_outside_tolerance = true;
+
   std::vector<ValueToVary> vals;
   vals.push_back({"parent_width", &fs.width,
-                  1.0, 4.0, 1e-10});
+                  fs.width.min(), fs.width.max(), 1e-10});
   vals.push_back({"parent_amplitude", &fs.amplitude,
                   30000, 50000, 0.01});
   test_fit_random(random_samples, &fs, vals);

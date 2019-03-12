@@ -15,7 +15,7 @@ class Step
   bool override{false};
   bool enabled{true};
   Side side{Side::left};
-  Value2 amplitude;
+  Value amplitude;
 
   void reset_indices();
 
