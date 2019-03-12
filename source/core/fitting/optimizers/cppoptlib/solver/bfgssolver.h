@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <Eigen/LU>
 #include "isolver.h"
-#include "../linesearch/morethuente.h"
+#include "../linesearch/armijo.h"
 
 namespace cppoptlib
 {
@@ -28,11 +28,20 @@ class BfgsSolver : public ISolver<ProblemType, 1>
     this->m_current.reset();
     this->m_current.fDelta = std::numeric_limits<Scalar>::infinity();
     objFunc.gradient(x0, grad);
+
+    if (Superclass::m_debug >= DebugLevel::High) {
+      std::cout << "init x=" << x0.transpose() << std::endl;
+      std::cout << "init g=" << grad.transpose() << std::endl;
+    }
+
     do
     {
       x_old = x0;
 
       TVector searchDir = -1 * H * grad;
+      if (Superclass::m_debug >= DebugLevel::High)
+        std::cout << "searchDir=" << searchDir.transpose() << std::endl;
+
       // check "positive definite"
       Scalar phi = grad.dot(searchDir);
 
@@ -41,13 +50,16 @@ class BfgsSolver : public ISolver<ProblemType, 1>
       {
         // no, we reset the hessian approximation
         if (Superclass::m_debug >= DebugLevel::High)
-          std::cout << "resetting Hessian approximation, phi=" << phi;
+          std::cout << "resetting Hessian approximation, phi=" << phi << std::endl;
         H = THessian::Identity(DIM, DIM);
         searchDir = -1 * grad;
       }
 
-      const Scalar rate = MoreThuente<ProblemType, 1>::linesearch(x0, searchDir, objFunc);
+      const Scalar rate = Armijo<ProblemType, 1>::linesearch(x0, searchDir, objFunc);
       x0 = x0 + rate * searchDir;
+
+      if (Superclass::m_debug >= DebugLevel::High)
+        std::cout << "rate=" << rate << std::endl;
 
       TVector grad_old = grad;
       objFunc.gradient(x0, grad);
