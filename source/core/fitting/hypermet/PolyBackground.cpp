@@ -55,13 +55,13 @@ PolyBackground::PolyBackground(const WeightedData& data,
 
   x_offset = lb.left();
 
-  base.bound(global_min, ymax + 1);
+//  base.bound(global_min, ymax + 1);
   base.val(yav);
 
-  slope.bound(minslope, maxslope);
+//  slope.bound(minslope, maxslope);
   slope.val((rb.average().value() - lb.average().value()) / run);
 
-  curve.bound(mincurve, maxcurve);
+//  curve.bound(mincurve, maxcurve);
 //  curve.val(0.5 * (mincurve + maxcurve));
 }
 

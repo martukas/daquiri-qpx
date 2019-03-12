@@ -13,11 +13,11 @@ struct PolyBackground
   PolyBackground(const WeightedData& data, const SUM4Edge& lb, const SUM4Edge& rb);
 
   double x_offset {0};
-  Value2 base;
+  ValuePositive base;
   bool slope_enabled{true};
-  Value2 slope;
+  ValueSimple slope;
   bool curve_enabled{true};
-  Value2 curve;
+  ValueSimple curve;
 
   void update_indices(int32_t& i);
   void put(Eigen::VectorXd& fit) const;

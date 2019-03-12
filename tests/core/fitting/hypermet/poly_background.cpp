@@ -72,27 +72,29 @@ class PolyBackground : public FunctionTest
   FittableBackground fb;
   DAQuiri::OptlibOptimizer optimizer;
   size_t region_size{40};
-  size_t random_samples{1000};
+  size_t random_samples{10000};
 
   virtual void SetUp()
   {
-//    optimizer.verbose = true;
+//    optimizer.verbosity = 5;
     optimizer.maximum_iterations = 1000;
-//    optimizer.gradient_selection =
-//        DAQuiri::OptlibOptimizer::GradientSelection::DefaultToFinite;
+    DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
+
+    optimizer.use_epsilon_check = false;
+    optimizer.min_g_norm = 1e-7;
 
     fb.background.x_offset = 0;
 
-    fb.background.base.slope_ = 1e-4;
-    fb.background.base.bound(0, 9000);
+//    fb.background.base.slope_ = 1e-4;
+//    fb.background.base.bound(0, 9000);
     fb.background.base.val(70);
 
-    fb.background.slope.slope_ = 1;
-    fb.background.slope.bound(-500, 500);
+//    fb.background.slope.slope_ = 1;
+//    fb.background.slope.bound(-500, 500);
     fb.background.slope.val(3);
 
-    fb.background.curve.slope_ = 1;
-    fb.background.curve.bound(-15, 15);
+//    fb.background.curve.slope_ = 1;
+//    fb.background.curve.bound(-15, 15);
     fb.background.curve.val(5);
 
     // \todo make these more permissive
@@ -357,16 +359,19 @@ TEST_F(PolyBackground, SurveyGradients)
 //  survey_grad(&fb, &fb.background.base, 0.001);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.5);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.1);
+  check_gradient_deltas(false);
 
   goal_val = fb.background.slope.val();
-  survey_grad(&fb, &fb.background.slope, 0.001, -460, 460);
+  survey_grad(&fb, &fb.background.slope, 0.001, -60, 60);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.001);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.001);
+  check_gradient_deltas(false);
 
   goal_val = fb.background.curve.val();
   survey_grad(&fb, &fb.background.curve, 0.0001, -10, 10);
   EXPECT_NEAR(check_chi_sq(false), goal_val, 0.002);
   EXPECT_NEAR(check_gradients(false), goal_val, 0.001);
+  check_gradient_deltas(false);
 }
 
 
@@ -385,7 +390,7 @@ TEST_F(PolyBackground, FitBaseOnly)
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 8u);
+  EXPECT_LE(max_iterations_to_converge, 15u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -402,7 +407,7 @@ TEST_F(PolyBackground, FitBaseRelaxed)
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 15u);
+  EXPECT_LE(max_iterations_to_converge, 26u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -438,7 +443,7 @@ TEST_F(PolyBackground, FitSlopeRelaxed)
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 19u);
+  EXPECT_LE(max_iterations_to_converge, 24u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -457,7 +462,7 @@ TEST_F(PolyBackground, FitCurveOnly)
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 10u);
+  EXPECT_LE(max_iterations_to_converge, 4u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -474,7 +479,7 @@ TEST_F(PolyBackground, FitCurveRelaxed)
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 8u);
+  EXPECT_LE(max_iterations_to_converge, 30u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -482,6 +487,8 @@ TEST_F(PolyBackground, FitAllThree)
 {
   fb.data = generate_data(&fb, region_size);
   fb.update_indices();
+
+  print_outside_tolerance = true;
 
   //auto_bound();
   std::vector<ValueToVary> vals;
@@ -494,6 +501,6 @@ TEST_F(PolyBackground, FitAllThree)
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 19u);
+  EXPECT_LE(max_iterations_to_converge, 35u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
