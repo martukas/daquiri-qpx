@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <limits>
+#include <cstddef>
 
 namespace DAQuiri
 {
