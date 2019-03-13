@@ -37,6 +37,8 @@ struct FitResult
   size_t total_insane{0};
   //double time_elapsed{0.0};
 
+  std::string log;
+
   std::string to_string(bool with_hessian = false) const;
 };
 

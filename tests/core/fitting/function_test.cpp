@@ -304,7 +304,7 @@ void FunctionTest::test_fit_random(size_t attempts,
     }
 
     auto result = optimizer.minimize(fittable);
-    if (optimizer.verbosity)
+    if (verbose)
       MESSAGE() << "        " << result.to_string(optimizer.verbosity) << "\n";
 
     fittable->save_fit(result);
@@ -321,14 +321,29 @@ void FunctionTest::test_fit_random(size_t attempts,
         converged_perturbed++;
       else if (result.used_finite_grads)
         converged_finite++;
+
+      bool outside_delta {false};
       for (auto& v : vals)
       {
         v.record_delta();
-        if (print_outside_tolerance && (v.get_delta() > v.epsilon))
-          MESSAGE() << "        Outside tolerance " << result.to_string() << "\n"
-                    << "                          F=" <<
-                    fittable->to_string("                            ") << "\n";
+        if (v.get_delta() > v.epsilon)
+          outside_delta = true;
       }
+
+      if (print_outside_tolerance && outside_delta)
+      {
+        MESSAGE() << "        Outside tolerance " << result.to_string() << "\n"
+                  << "                          F=" <<
+                  fittable->to_string("                            ") << "\n"
+                  << "Log:\n" << result.log << "\n";
+      }
+      else if (optimizer.verbosity >= 6)
+      {
+        MESSAGE() << "                          F="
+                  << fittable->to_string("                            ") << "\n"
+                  << "Log:\n" << result.log << "\n";
+      }
+
     }
     else
     {
@@ -336,7 +351,8 @@ void FunctionTest::test_fit_random(size_t attempts,
         MESSAGE() << "        attempt:" << i << "  "
                   << result.to_string() << "\n"
                   << "                       F=" <<
-                  fittable->to_string("                         ") << "\n";
+                  fittable->to_string("                         ") << "\n"
+                  << "Log:\n" << result.log << "\n";
       unconverged++;
     }
 

@@ -6,6 +6,7 @@
 #include <Eigen/LU>
 #include "isolver.h"
 #include "../linesearch/armijo.h"
+#include "../linesearch/morethuente.h"
 
 namespace cppoptlib
 {
@@ -19,7 +20,7 @@ class BfgsSolver : public ISolver<ProblemType, 1>
   using typename Superclass::TVector;
   using typename Superclass::THessian;
 
-  void minimize(ProblemType& objFunc, TVector& x0)
+  void minimize(ProblemType& objFunc, TVector& x0, std::ostream* os = &std::cout) override
   {
     const size_t DIM = x0.rows();
     THessian H = THessian::Identity(DIM, DIM);
@@ -29,9 +30,10 @@ class BfgsSolver : public ISolver<ProblemType, 1>
     this->m_current.fDelta = std::numeric_limits<Scalar>::infinity();
     objFunc.gradient(x0, grad);
 
-    if (Superclass::m_debug >= DebugLevel::High) {
-      std::cout << "init x=" << x0.transpose() << std::endl;
-      std::cout << "init g=" << grad.transpose() << std::endl;
+    if (Superclass::m_debug >= DebugLevel::High)
+    {
+      (*os) << "init x=" << x0.transpose() << std::endl;
+      (*os) << "init g=" << grad.transpose() << std::endl;
     }
 
     do
@@ -40,7 +42,7 @@ class BfgsSolver : public ISolver<ProblemType, 1>
 
       TVector searchDir = -1 * H * grad;
       if (Superclass::m_debug >= DebugLevel::High)
-        std::cout << "searchDir=" << searchDir.transpose() << std::endl;
+        (*os) << "   searchDir=" << searchDir.transpose() << std::endl;
 
       // check "positive definite"
       Scalar phi = grad.dot(searchDir);
@@ -49,17 +51,27 @@ class BfgsSolver : public ISolver<ProblemType, 1>
       if ((phi > 0) || (phi != phi))
       {
         // no, we reset the hessian approximation
-        if (Superclass::m_debug >= DebugLevel::High)
-          std::cout << "resetting Hessian approximation, phi=" << phi << std::endl;
         H = THessian::Identity(DIM, DIM);
         searchDir = -1 * grad;
+        if (Superclass::m_debug >= DebugLevel::High)
+          (*os) << "   resetting Hessian approximation after phi=" << phi
+                << "   New searchDir=" << searchDir << std::endl;
       }
 
-      const Scalar rate = Armijo<ProblemType, 1>::linesearch(x0, searchDir, objFunc);
-      x0 = x0 + rate * searchDir;
+      const Scalar rate =
+          Armijo<ProblemType, 1>::linesearch(
+              x0, searchDir, objFunc, 1.0,
+              ((Superclass::m_debug >= DebugLevel::High) ? os
+                                                         : nullptr));
 
       if (Superclass::m_debug >= DebugLevel::High)
-        std::cout << "rate=" << rate << std::endl;
+      {
+        (*os) << "   rate=" << rate << std::endl;
+        (*os) << "   rate*dir=" << (rate * searchDir) << std::endl;
+      }
+
+      x0 = x0 + rate * searchDir;
+
 
       TVector grad_old = grad;
       objFunc.gradient(x0, grad);
@@ -78,19 +90,22 @@ class BfgsSolver : public ISolver<ProblemType, 1>
 
       if (Superclass::m_debug >= DebugLevel::Low)
       {
-        std::cout << this->m_current;
-        std::cout << "     f=" << std::right << std::setw(12) << objFunc.value(x0);
+        (*os) << this->m_current;
+        (*os) << "     f=" << std::right << std::setw(12) << objFunc.value(x0);
         if (Superclass::m_debug >= DebugLevel::High)
         {
-          std::cout << "\n     x=" << x0.transpose();
-          std::cout << "\n     g=" << grad.transpose();
+          (*os) << "\n     x=" << x0.transpose();
+          (*os) << "\n     g=" << grad.transpose();
         }
-        std::cout << std::endl;
+        (*os) << std::endl;
       }
       ++this->m_current.iterations;
 
       if (!objFunc.callback(this->m_current, x0))
         this->m_status = Status::UserDefined;
+
+//      if (!std::isfinite(searchDir))
+//        this->m_status = Status::Condition;
 
       if (!std::isfinite(H.diagonal().maxCoeff() / H.diagonal().minCoeff()))
         this->m_status = Status::Condition;

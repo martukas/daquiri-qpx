@@ -12,7 +12,7 @@ class FittableTail : public DAQuiri::FittableRegion
  public:
 
   DAQuiri::Value position;
-  DAQuiri::ValuePositive amplitude;
+  DAQuiri::Value amplitude;
   DAQuiri::Value width;
 
   DAQuiri::Tail tail;
@@ -48,7 +48,7 @@ class FittableTail : public DAQuiri::FittableRegion
     if (position.valid_index())
       position.x(x_dist(rng));
     if (amplitude.valid_index())
-      amplitude.x(amplitude.x() + x_dist(rng));
+      amplitude.x( /*amplitude.x() +*/ x_dist(rng));
     return true;
   }
 
@@ -157,7 +157,7 @@ class Tail : public FunctionTest
  protected:
   FittableTail ft;
   size_t region_size{100};
-  size_t random_samples{1000};
+  size_t random_samples{100};
 
   void SetUp() override
   {
@@ -168,7 +168,7 @@ class Tail : public FunctionTest
     optimizer.use_epsilon_check = false;
     optimizer.min_g_norm = 1e-7;
     optimizer.perform_sanity_checks = false;
-    optimizer.maximum_perturbations = 0;
+    optimizer.maximum_perturbations = 20;
     optimizer.max_condition = 1e14;
 
     ft.tail.amplitude.bound(0.0001, 1.5);
@@ -176,7 +176,7 @@ class Tail : public FunctionTest
     ft.tail.slope.bound(0.2, 50);
     ft.tail.slope.val(30);
 
-    //ft.amplitude.bound(0, 10000);
+    ft.amplitude.bound(0, 50000);
     ft.amplitude.val(40000);
     ft.amplitude.update_index(ft.variable_count);
 
@@ -600,7 +600,8 @@ TEST_F(Tail, FitParentAmplitude)
   SetUp();
   test_fit_random(random_samples, &ft,
                   {"parent_amplitude", &ft.amplitude,
-                   30000, 50000, 1e-3});
+                   ft.amplitude.min(), ft.amplitude.max(), 1e-3});
+//                   30000, 50000, 1e-3});
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);

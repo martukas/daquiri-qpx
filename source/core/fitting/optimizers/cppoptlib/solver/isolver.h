@@ -48,7 +48,7 @@ public:
      * @param funGradient gradient function
      * @param funcHession hessian function
      */
-    virtual void minimize(ProblemType &objFunc, TVector &x0) = 0;
+    virtual void minimize(ProblemType &objFunc, TVector &x0, std::ostream* os = &std::cout) = 0;
 
 };
 

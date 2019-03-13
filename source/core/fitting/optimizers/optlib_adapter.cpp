@@ -107,7 +107,7 @@ FitResult extract_status(const cppoptlib::Status& status, std::atomic<bool>* can
   ret.converged = (status == cppoptlib::Status::GradNormTolerance)
       || (status == cppoptlib::Status::FDeltaTolerance)
       || (status == cppoptlib::Status::XDeltaTolerance)
-      || (status == cppoptlib::Status::Condition)
+//      || (status == cppoptlib::Status::Condition)
       || ((status == cppoptlib::Status::UserDefined) && !interrupted);
 
   if (interrupted)
@@ -134,9 +134,11 @@ FitResult solve(cppoptlib::BfgsSolver<OptlibFittableWrapper> solver,
       (grad_select == OptlibOptimizer::GradientSelection::FiniteAlways);
 
   Eigen::VectorXd x = f.function_->variables();
-  solver.minimize(f, x);
+  std::stringstream ss;
+  solver.minimize(f, x, &ss);
 
   FitResult ret = extract_status(solver.status(), f.cancel_);
+  ret.log = ss.str();
 
   ret.total_iterations = ret.iterations = solver.criteria().iterations;
   f.finiteHessian(x, ret.inv_hessian);
@@ -156,14 +158,16 @@ FitResult solve(cppoptlib::BfgsSolver<OptlibFittableWrapper> solver,
   {
     auto ret_old = ret;
     if (verbose)
-      std::cout << "Retry with finite grad after failure to converge: " << ret.to_string(false) << "\n";
+      ret_old.log +=
+          "Retry with finite grad after failure to converge: " + ret.to_string(false) + "\n";
     ret = solve(solver, f, verbose, OptlibOptimizer::GradientSelection::FiniteAlways);
     ret.error_message = "Retry with finite gradient: " + ret.error_message;
     ret.used_finite_grads = true;
-    ret.total_iterations = ret.iterations + ret_old.iterations;
+    ret.total_iterations += ret_old.total_iterations;
     ret.total_analytic_attempts += ret_old.total_analytic_attempts;
     ret.total_finite_attempts += ret_old.total_finite_attempts;
     ret.total_nonconvergences += ret_old.total_nonconvergences;
+    ret.log = ret_old.log + ret.log;
   }
 
   return ret;
@@ -171,9 +175,6 @@ FitResult solve(cppoptlib::BfgsSolver<OptlibFittableWrapper> solver,
 
 FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
 {
-  if (verbosity >= 1)
-    std::cout << print_config();
-
   std::mt19937 random_generator;
   random_generator.seed(std::random_device()());
 
@@ -212,13 +213,13 @@ FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
     {
       // \todo print function itself
       if (verbosity >= 2)
-        std::cout << "Failed to converge: " << ret.to_string(verbosity >= 6) << "\n";
+        old_ret.log += "Failed to converge: " + ret.to_string(verbosity >= 6) + "\n";
       failed = true;
     }
     else if (perform_sanity_checks && !fittable->sane())
     {
       if (verbosity >= 2)
-        std::cout << "Sanity check failed on: " << ret.to_string(verbosity >= 6) << "\n";
+        old_ret.log += "Sanity check failed on: " + ret.to_string(verbosity >= 6) + "\n";
       ret.total_insane++;
       failed = true;
     }
@@ -230,10 +231,16 @@ FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
       {
         // \todo print function itself
         if (!retry)
-          std::cout << "Perturbation failed\n";
+          old_ret.log += "Perturbation failed\n";
         else
-          std::cout << "Perturbed as:" << f.function_->variables().transpose() << "\n";
+        {
+          std::stringstream ss;
+          ss << f.function_->variables().transpose();
+          old_ret.log += "Perturbed as:" + ss.str() + "\n";
+        }
       }
+      if (retry)
+        perturbations++;
     }
 
     ret.total_iterations += old_ret.total_iterations;
@@ -241,10 +248,14 @@ FitResult OptlibOptimizer::minimize(FittableFunction* fittable)
     ret.total_finite_attempts += old_ret.total_finite_attempts;
     ret.total_nonconvergences += old_ret.total_nonconvergences;
     ret.total_insane += old_ret.total_insane;
+    ret.log = old_ret.log + ret.log;
   }
   while (retry);
 
   ret.total_perturbations = perturbations;
+  if (verbosity >= 1)
+    ret.log = print_config() + ret.log;
+
   return ret;
 }
 

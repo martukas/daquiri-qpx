@@ -93,7 +93,7 @@ double Tail::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
   if (pre.i_pos > AbstractValue::InvalidIndex)
     grads[pre.i_pos] += pre.pos_grad * (-ret / (slp * pre.width) + t2);
   if (pre.i_amp > AbstractValue::InvalidIndex)
-    grads[pre.i_amp] += pre.amp_grad * ret / ampl;
+    grads[pre.i_amp] += pre.amp_grad * ret / pre.ampl;
 
   if (amplitude.valid_index())
     grads[amplitude.index()] += amplitude.grad_from(fit) * ret / ampl;
