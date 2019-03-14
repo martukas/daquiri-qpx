@@ -30,40 +30,32 @@ class BudapestOptimizer : public AbstractOptimizer
  private:
   struct StepEval
   {
-    StepEval(FittableFunction* fittable, const Eigen::VectorXd& variables, const Eigen::VectorXd& search_direction);
-
+    StepEval(FittableFunction* fittable, const Eigen::VectorXd& variables, const Eigen::VectorXd& search_direction, double lambda = 1.0);
     StepEval(const StepEval& other) = default;
-
     StepEval& operator=(const StepEval& other);
 
     void recalc_f(double lambda);
-
     void recalc_df(double lambda);
+
+    void recalc_f();
+    void recalc_df();
 
     FittableFunction* fittable_;
     const Eigen::VectorXd* variables_;
     const Eigen::VectorXd* search_direction_;
 
-    double step;
+    double size;
     double f;
     double dot;
   };
 
   double Sign(double a, double b);
-  StepEval BrentDeriv(FittableFunction* fittable,
-                      double lambda1,
-                      double initial_lambda,
-                      double lambda2,
-                      const Eigen::VectorXd &variables,
-                      const Eigen::VectorXd &search_direction);
 
-  void Bracket(FittableFunction* fittable,
-               StepEval& a_step, StepEval& b_step, StepEval& c_step,
-               const Eigen::VectorXd& variables, const Eigen::VectorXd& search_direction);
+  void bracket(StepEval& a_step, StepEval& b_step, StepEval& c_step);
 
-  double LinMin(FittableFunction* fittable,
-                Eigen::VectorXd& variables,
-                const Eigen::VectorXd& search_direction);
+  StepEval brent_search(StepEval step_x, double lambda1, double lambda2);
+
+  double line_search(FittableFunction *fittable, const Eigen::VectorXd &variables, const Eigen::VectorXd &search_direction);
 };
 
 }
