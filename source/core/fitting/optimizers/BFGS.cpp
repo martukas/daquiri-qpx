@@ -1,7 +1,5 @@
 #include <core/fitting/optimizers/BFGS.h>
 #include <core/util/more_math.h>
-#include <boost/math/tools/toms748_solve.hpp>
-#include <boost/math/tools/minima.hpp>
 
 #include <core/util/custom_logger.h>
 
@@ -16,52 +14,86 @@ double BudapestOptimizer::Sign(double a, double b)
     return -std::abs(a);
 }
 
-double BudapestOptimizer::BrentDeriv(FittableFunction* fittable,
-                        double a,
-                        double b,
-                        double c,
-                        double tol,
-                        double& xmin,
-                        const Eigen::VectorXd& variables,
-                        const Eigen::VectorXd& search_direction)
+BudapestOptimizer::StepEval::StepEval(FittableFunction* fittable,
+    const Eigen::VectorXd& variables,
+    const Eigen::VectorXd& search_direction)
+    : fittable_(fittable)
+    , variables_(&variables)
+    , search_direction_(&search_direction)
+{}
+
+BudapestOptimizer::StepEval& BudapestOptimizer::StepEval::operator=(const StepEval& other)
 {
-  double d{0.0}; // \todo is this really the default value?
-  double d1, d2, du, dv, dw, dx;
-  double fu, fv, fw, fx;
-  size_t iteration;
-  bool ok1, ok2, done;
-  double olde, tol1, tol2, u, u1, u2, v, w, x, xm;
+  fittable_ = other.fittable_;
+  variables_ = other.variables_;
+  search_direction_ = other.search_direction_;
+  step = other.step;
+  f = other.f;
+  dot = other.dot;
+  return *this;
+}
 
-  double sa = (a < c) ? a : c;
-  double sb = (a > c) ? a : c;
+void BudapestOptimizer::StepEval::recalc_df(double lambda)
+{
+  step = lambda;
+  Eigen::VectorXd dflocal(variables_->size());
+  f = fittable_->chi_sq_gradient((*variables_) + lambda * (*search_direction_), dflocal);
+  dot = dflocal.dot(*search_direction_);
+}
 
-  w = x = v = b;
-  fw = fv = fx = fgv(fittable, x, variables, search_direction);
-  dw = dv = dx = dfgv(fittable, x, variables, search_direction);
+void BudapestOptimizer::StepEval::recalc_f(double lambda)
+{
+  step = lambda;
+  f = fittable_->chi_sq((*variables_) + lambda * (*search_direction_));
+}
 
+BudapestOptimizer::StepEval BudapestOptimizer::BrentDeriv(FittableFunction *fittable,
+                                                          double lambda1,
+                                                          double initial_lambda,
+                                                          double lambda2,
+                                                          const Eigen::VectorXd &variables,
+                                                          const Eigen::VectorXd &search_direction)
+{
+  StepEval step_x(fittable, variables, search_direction),
+           step_v(fittable, variables, search_direction),
+           step_w(fittable, variables, search_direction),
+           step_u(fittable, variables, search_direction);
+  step_x.recalc_df(initial_lambda);
+  step_w = step_v = step_x;
+
+  double lambda_min = std::min(lambda1, lambda2);
+  double lambda_max = std::max(lambda1, lambda2);
+
+  bool done {false};
   double e{0.0};
+  double d{0.0}; // \todo is this really the default value?
+
   // \todo check for cancel
-  for (iteration = 0; iteration < brent_maximum_iterations; ++iteration)
+  for (size_t iteration = 0; iteration < brent_maximum_iterations; ++iteration)
   {
-    xm = 0.5 * (sa + sb);
-    tol1 = tol * std::abs(x) + brent_zeps;
-    tol2 = 2 * tol1;
-    done = (std::abs(x - xm) <= (tol2 - 0.5 * (sb - sa)));
+    double lambda_mid = 0.5 * (lambda_min + lambda_max);
+    double tol1 = linmin_tolerance * std::abs(step_x.step) + brent_zeps;
+    double tol2 = 2. * tol1;
+
+    done = (std::abs(step_x.step - lambda_mid) <= (tol2 - 0.5 * (lambda_max - lambda_min)));
+
     if (!done)
     {
-      ok1 = false;
+      bool ok1 = false;
       if (std::abs(e) > tol1)
       {
-        d2 = d1 = 2 * (sb - sa);
-        if (dw != dx)
-          d1 = (w - x) * dx / (dx - dw);
-        if (dv != dx)
-          d2 = (v - x) * dx / (dx - dv);
-        u1 = x + d1;
-        u2 = x + d2;
-        ok1 = ((sa - u1) * (u1 - sb) > 0) && (dx * d1 <= 0);
-        ok2 = ((sa - u2) * (u2 - sb) > 0) && (dx * d2 <= 0);
-        olde = e;
+        double d1 = 2 * (lambda_max - lambda_min);
+        double d2 = d1;
+        if (step_w.dot != step_x.dot)
+          d1 = (step_w.step - step_x.step) * step_x.dot / (step_x.dot - step_w.dot);
+        if (step_v.dot != step_x.dot)
+          d2 = (step_v.step - step_x.step) * step_x.dot / (step_x.dot - step_v.dot);
+        double u1 = step_x.step + d1;
+        double u2 = step_x.step + d2;
+        ok1 = ((lambda_min - u1) * (u1 - lambda_max) > 0) && (step_x.dot * d1 <= 0);
+        bool ok2 = ((lambda_min - u2) * (u2 - lambda_max) > 0) && (step_x.dot * d2 <= 0);
+
+        double olde = e;
         e = d;
         if (ok1 && ok2)
           d = (std::abs(d1) < std::abs(d2)) ? d1 : d2;
@@ -78,70 +110,53 @@ double BudapestOptimizer::BrentDeriv(FittableFunction* fittable,
 
         if (ok1)
         {
-          u = x + d;
-          if (((u - sa) < tol2) || ((sb - u) < tol2))
-            d = Sign(tol1, xm - x);
+          step_u.step = step_x.step + d;
+          if (((step_u.step - lambda_min) < tol2) || ((lambda_max - step_u.step) < tol2))
+            d = Sign(tol1, lambda_mid - step_x.step);
         }
       }
 
       if (!ok1)
       {
-        e = (dx > 0) ? (sa - x) : (sb - x);
+        e = (step_x.dot > 0) ? (lambda_min - step_x.step) : (lambda_max - step_x.step);
         d = 0.5 * e;
       }
 
       if (std::abs(d) >= tol1)
-      {
-        u = x + d;
-        fu = fgv(fittable, u, variables, search_direction);
-      }
+        step_u.recalc_df(step_x.step + d);
       else
       {
-        u = x + Sign(tol1, d);
-        fu = fgv(fittable, u, variables, search_direction);
-        done = (fu > fx);
+        step_u.recalc_df(step_x.step + Sign(tol1, d));
+        done = (step_u.f > step_x.f);
       }
 
       if (!done)
       {
-        du = dfgv(fittable, u, variables, search_direction);
-        if (fu < fx)
+        if (step_u.f < step_x.f)
         {
-          if (u >= x)
-            sa = x;
+          if (step_u.step  >= step_x.step)
+            lambda_min = step_x.step;
           else
-            sb = x;
-          v = w;
-          fv = fw;
-          dv = dw;
-          w = x;
-          fw = fx;
-          dw = dx;
-          x = u;
-          fx = fu;
-          dx = du;
+            lambda_max = step_x.step;
+          step_v = step_w;
+          step_w = step_x;
+          step_x = step_u;
         }
         else
         {
-          if (u < x)
-            sa = u;
+          if (step_u.step < step_x.step)
+            lambda_min = step_u.step;
           else
-            sb = u;
+            lambda_max = step_u.step;
 
-          if ((fu <= fw) || (v == x))
+          if ((step_u.f <= step_w.f) || (step_v.step == step_x.step))
           {
-            v = w;
-            fv = fw;
-            dv = dw;
-            w = u;
-            fw = fu;
-            dw = du;
+            step_v = step_w;
+            step_w = step_u;
           }
-          else if ((fu < fv) || (v == x) || (v == w))
+          else if ((step_u.f < step_v.f) || (step_v.step == step_x.step) || (step_v.step == step_w.step))
           {
-            v = u;
-            fv = fu;
-            dv = du;
+            step_v = step_u;
           }
         }
       }
@@ -150,150 +165,112 @@ double BudapestOptimizer::BrentDeriv(FittableFunction* fittable,
     if (done)
       break;
   }
-  if (!done && verbosity)
-    WARN("Warning: The maximum number of iterations ({}) reached in Brent line search", iteration);
 
-  xmin = x;
-  return fx;
+  if (!done && verbosity)
+    WARN("Warning: The maximum number of iterations reached in Brent line search");
+
+  // \todo how to indicate failure?
+
+  return step_x;
 }
 
 void BudapestOptimizer::Bracket(FittableFunction* fittable,
-                   double& a, double& b, double& c,
-                   double& fa, double& fb, double& fc,
-                   const Eigen::VectorXd& variables, const Eigen::VectorXd& search_direction)
+                                StepEval& a_step, StepEval& b_step, StepEval& c_step,
+                                const Eigen::VectorXd& variables, const Eigen::VectorXd& search_direction)
 {
   double golden_ratio = (1.0 + std::sqrt(5.0)) / 2.0;
 
-  double ulim, u, r, q, fu, dum;
+  StepEval u_step(fittable, variables, search_direction);
+
+  double ulim, r, q;
   bool n;
 
-  fa = fgv(fittable, a, variables, search_direction);
-  fb = fgv(fittable, b, variables, search_direction);
+  a_step.recalc_f(a_step.step);
+  b_step.recalc_f(b_step.step);
 
-  if (fb > fa)
+  if (b_step.f > a_step.f)
+    std::swap(a_step, b_step);
+
+  c_step.recalc_f(b_step.step + golden_ratio * (b_step.step - a_step.step));
+
+  while (b_step.f > c_step.f)
   {
-    dum = a;
-    a = b;
-    b = dum;
-    dum = fb;
-    fb = fa;
-    fa = dum;
-  }
-
-  c = b + golden_ratio * (b - a);
-  fc = fgv(fittable, c, variables, search_direction);
-
-  while (fb > fc)
-  {
-    r = (b - a) * (fb - fc);
-    q = (b - c) * (fb - fa);
+    r = (b_step.step - a_step.step) * (b_step.f - c_step.f);
+    q = (b_step.step - c_step.step) * (b_step.f - a_step.f);
     n = true;
-    u = std::abs(q - r);
-    if (bracket_tiny > u)
-      u = bracket_tiny;
+    u_step.step = std::abs(q - r);
+    if (bracket_tiny > u_step.step)
+      u_step.step = bracket_tiny;
     if (r > q)
-      u = -1 * u;
-    u = b - ((b - c) * q - (b - a) * r) / (2 * u);
-    ulim = b + bracket_glimit * (c - b);
-    if ((b - u) * (u - c) > 0)
+      u_step.step = -u_step.step;
+    u_step.step = b_step.step - ((b_step.step - c_step.step) * q - (b_step.step - a_step.step) * r) / (2 * u_step.step);
+    ulim = b_step.step + bracket_glimit * (c_step.step - b_step.step);
+    if ((b_step.step - u_step.step) * (u_step.step - c_step.step) > 0)
     {
-      fu = fgv(fittable, u, variables, search_direction);
-      if (fu < fc)
+      u_step.recalc_f(u_step.step);
+
+      if (u_step.f < c_step.f)
       {
-        a = b;
-        fa = fb;
-        b = u;
-        fb = fu;
+        a_step = b_step;
+        b_step = u_step;
         n = false;
       }
-      else if (fu > fb)
+      else if (u_step.f > b_step.f)
       {
-        c = u;
-        fc = fu;
+        c_step = u_step;
         n = false;
       }
       else
       {
-        u = c + golden_ratio * (c - b);
-        fu = fgv(fittable, u, variables, search_direction);
+        u_step.recalc_f(c_step.step + golden_ratio * (c_step.step - b_step.step));
+
       }
     }
-    else if ((c - u) * (u - ulim) > 0)
+    else if ((c_step.step - u_step.step) * (u_step.step - ulim) > 0)
     {
-      fu = fgv(fittable, u, variables, search_direction);
-      if (fu < fc)
+      u_step.recalc_f(u_step.step);
+      if (u_step.f < c_step.f)
       {
-        b = c;
-        c = u;
-        u = c + golden_ratio * (c - b);
-        fb = fc;
-        fc = fu;
-        fu = fgv(fittable, u, variables, search_direction);
+        b_step = c_step;
+        c_step = u_step;
+        u_step.recalc_f(c_step.step + golden_ratio * (c_step.step - b_step.step));
       }
     }
-    else if ((u - ulim) * (ulim - c) >= 0)
+    else if ((u_step.step - ulim) * (ulim - c_step.step) >= 0)
     {
-      u = ulim;
-      fu = fgv(fittable, u, variables, search_direction);
+      u_step.recalc_f(ulim);
     }
     else
     {
-      u = c + golden_ratio * (c - b);
-      fu = fgv(fittable, u, variables, search_direction);
+      u_step.recalc_f(c_step.step + golden_ratio * (c_step.step - b_step.step));
     }
 
     if (n)
     {
-      a = b;
-      b = c;
-      c = u;
-      fa = fb;
-      fb = fc;
-      fc = fu;
+      a_step = b_step;
+      b_step = c_step;
+      c_step = u_step;
     }
   }
 
 }
 
-double BudapestOptimizer::fgv(FittableFunction* fittable,
-                 double lambda,
-                 Eigen::VectorXd variables,
-                 Eigen::VectorXd search_direction)
-{
-  return fittable->chi_sq(variables + lambda * search_direction);
-}
-
-double BudapestOptimizer::dfgv(FittableFunction* fittable,
-                  double lambda,
-                  Eigen::VectorXd variables,
-                  Eigen::VectorXd search_direction)
-{
-  Eigen::VectorXd dflocal(variables.size());
-  fittable->chi_sq_gradient(variables + lambda * search_direction, dflocal);
-  return dflocal.dot(search_direction);
-}
-
-struct BoostFuncWrapper
-{
-  FittableFunction* func;
-};
-
 double BudapestOptimizer::LinMin(FittableFunction* fittable, Eigen::VectorXd& variables,
-    Eigen::VectorXd search_direction)
+                                 const Eigen::VectorXd& search_direction)
 {
-  double lambdak, xk, fxk, fa, fb, a, b;
-  a = 0.0;
-  xk = 1.0;
-  b = 2.0;
-  Bracket(fittable, a, xk, b, fa, fxk, fb, variables, search_direction);
-  double fmin = BrentDeriv(fittable, a, xk, b, linmin_tol, lambdak, variables, search_direction);
-
-//  boost::math::tools::brent_find_minima<>()
+  StepEval lambda_min(fittable, variables, search_direction),
+           lambda_max(fittable, variables, search_direction),
+           lambda_init(fittable, variables, search_direction);
+  lambda_min.step = 0.0;
+  lambda_init.step = 1.0;
+  lambda_max.step = 2.0;
+  Bracket(fittable, lambda_min, lambda_init, lambda_max, variables, search_direction);
+  StepEval step = BrentDeriv(fittable, lambda_min.step, lambda_init.step, lambda_max.step, variables, search_direction);
 
   if (verbosity)
-    DBG("lambda={}", lambdak);
-  variables += lambdak * search_direction;
-  return fmin;
+    DBG("lambda={}", step.step);
+  variables += step.step * search_direction;
+  return step.f;
 }
 
 FitResult BudapestOptimizer::minimize(FittableFunction* fittable)
