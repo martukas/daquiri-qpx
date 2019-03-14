@@ -15,6 +15,10 @@ class OptlibOptimizer : public TestBase
   void SetUp() override
   {
     optimizer.verbosity = 4;
+    optimizer.gradient_selection =
+        DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
+    optimizer.use_epsilon_check = false;
+    optimizer.min_g_norm = 1e-7;
 //    optimizer.maximum_iterations = 200;
   }
 };
@@ -35,7 +39,7 @@ TEST_F(OptlibOptimizer, Fit10zerosEpsilon)
   auto result = optimizer.minimize(&rb);
   MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
-  EXPECT_LE(result.iterations, 28u);
+  EXPECT_LE(result.iterations, 23u) << result.log;
   EXPECT_FALSE(result.used_finite_grads);
 }
 
@@ -47,7 +51,7 @@ TEST_F(OptlibOptimizer, Fit10zerosMinDX)
   auto result = optimizer.minimize(&rb);
   MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
-  EXPECT_LE(result.iterations, 28u);
+  EXPECT_LE(result.iterations, 28u) << result.log;
   EXPECT_FALSE(result.used_finite_grads);
 }
 
@@ -59,7 +63,7 @@ TEST_F(OptlibOptimizer, Fit10zerosMinDF)
   auto result = optimizer.minimize(&rb);
   MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
-  EXPECT_LE(result.iterations, 28u);
+  EXPECT_LE(result.iterations, 28u) << result.log;
   EXPECT_FALSE(result.used_finite_grads);
 }
 
@@ -71,7 +75,7 @@ TEST_F(OptlibOptimizer, Fit10zerosMinGNorm)
   auto result = optimizer.minimize(&rb);
   MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
-  EXPECT_LE(result.iterations, 27u);
+  EXPECT_LE(result.iterations, 27u) << result.log;
   EXPECT_FALSE(result.used_finite_grads);
 }
 
@@ -87,7 +91,7 @@ TEST_F(OptlibOptimizer, Fit10Random)
   auto result = optimizer.minimize(&rb);
   MESSAGE() << "Result: " << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
-  EXPECT_LE(result.iterations, 300u);
+  EXPECT_LE(result.iterations, 300u) << result.log;
   EXPECT_FALSE(result.used_finite_grads);
 }
 

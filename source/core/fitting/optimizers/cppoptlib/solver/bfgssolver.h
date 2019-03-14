@@ -7,6 +7,7 @@
 #include "isolver.h"
 #include "../linesearch/armijo.h"
 #include "../linesearch/morethuente.h"
+#include "../linesearch/brent.h"
 
 namespace cppoptlib
 {
@@ -58,8 +59,14 @@ class BfgsSolver : public ISolver<ProblemType, 1>
                 << "   New searchDir=" << searchDir << std::endl;
       }
 
+//      const Scalar rate =
+//          Armijo<ProblemType, 1>::linesearch(
+//              x0, searchDir, objFunc, 1.0,
+//              ((Superclass::m_debug >= DebugLevel::High) ? os
+//                                                         : nullptr));
+
       const Scalar rate =
-          Armijo<ProblemType, 1>::linesearch(
+          Brent<ProblemType, 1>().linesearch(
               x0, searchDir, objFunc, 1.0,
               ((Superclass::m_debug >= DebugLevel::High) ? os
                                                          : nullptr));
