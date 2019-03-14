@@ -5,7 +5,7 @@ class FittableRegion : public FunctionTest
 {
  protected:
   size_t region_size{40};
-  size_t random_samples{100000};
+  size_t random_samples{1000};
   bool perform_fitting_tests {false};
 
   void SetUp() override
@@ -259,7 +259,7 @@ TEST_F(FittableRegion, BoundedConst)
     fl.val.val(10);
     test_fit(1, &fl, &fl.val, 30, 1e-9);
     deterministic_test(10, &fl, &fl.val, 30);
-    test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-10});
+    test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-9});
     EXPECT_EQ(unconverged, 0u);
     EXPECT_EQ(not_sane, 0u);
     EXPECT_EQ(converged_finite, 0u);
@@ -304,7 +304,7 @@ TEST_F(FittableRegion, BoundedLinear)
     fl.val.val(5);
     test_fit(1, &fl, &fl.val, 30, 1e-11);
     deterministic_test(10, &fl, &fl.val, 35);
-    test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-10});
+    test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-8});
     EXPECT_EQ(unconverged, 0u);
     EXPECT_EQ(not_sane, 0u);
     EXPECT_EQ(converged_finite, 0u);
@@ -347,7 +347,7 @@ TEST_F(FittableRegion, BoundedQuadratic)
     fl.val.val(5);
     test_fit(1, &fl, &fl.val, 30, 1e-12);
     deterministic_test(10, &fl, &fl.val, 30);
-    test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-9});
+    test_fit_random(random_samples, &fl, {"val", &fl.val, 0, 40, 1e-6});
     EXPECT_EQ(unconverged, 0u);
     EXPECT_EQ(not_sane, 0u);
     EXPECT_EQ(converged_finite, 0u);
@@ -444,7 +444,7 @@ TEST_F(FittableRegion, AtanBoundedConst)
     fl.val.val(10);
     test_fit(1, &fl, &fl.val, 30, 1e-9);
     deterministic_test(10, &fl, &fl.val, 30);
-    test_fit_random(random_samples, &fl, {"val", &fl.val, 1, 39, 1e-14});
+    test_fit_random(random_samples, &fl, {"val", &fl.val, 1, 39, 1e-5});
     EXPECT_EQ(unconverged, 0u);
     EXPECT_EQ(not_sane, 0u);
     EXPECT_EQ(converged_finite, 0u);
@@ -484,7 +484,7 @@ TEST_F(FittableRegion, AtanBoundedLinear)
     fl.val.val(5);
     test_fit(1, &fl, &fl.val, 30, 1e-11);
     deterministic_test(10, &fl, &fl.val, 35);
-    test_fit_random(random_samples, &fl, {"val", &fl.val, 1, 39, 1e-17});
+    test_fit_random(random_samples, &fl, {"val", &fl.val, 1, 39, 1e-5});
     EXPECT_EQ(unconverged, 0u);
     EXPECT_EQ(not_sane, 0u);
     EXPECT_EQ(converged_finite, 0u);
@@ -525,7 +525,7 @@ TEST_F(FittableRegion, AtanBoundedQuadratic)
     fl.val.val(5);
     test_fit(1, &fl, &fl.val, 30, 1e-13);
     deterministic_test(10, &fl, &fl.val, 30);
-    test_fit_random(random_samples, &fl, {"val", &fl.val, 1, 39, 1e-13});
+    test_fit_random(random_samples, &fl, {"val", &fl.val, 1, 39, 1e-5});
     EXPECT_EQ(unconverged, 0u);
     EXPECT_EQ(not_sane, 0u);
     EXPECT_EQ(converged_finite, 0u);

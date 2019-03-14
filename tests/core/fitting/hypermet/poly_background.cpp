@@ -3,8 +3,7 @@
 #include <core/util/visualize_vector.h>
 
 #include <core/fitting/hypermet/PolyBackground.h>
-
-#include <core/fitting/optimizers/optlib_adapter.h>
+#include <core/util/UTF_extensions.h>
 
 class FittableBackground : public DAQuiri::FittableRegion
 {
@@ -61,7 +60,7 @@ class FittableBackground : public DAQuiri::FittableRegion
     std::stringstream ss;
     ss << grads.transpose();
     return prepend + background.to_string(prepend)
-        + prepend + "  chi2=" + std::to_string(chi_sq())
+        + prepend + "  chi" + UTF_superscript(2) + "=" + std::to_string(chi_sq())
         + "  grads=" + ss.str();
   }
 };

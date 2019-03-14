@@ -1,6 +1,8 @@
 #include <core/fitting/fittable_region.h>
 #include <core/fitting/hypermet/Value.h>
 
+#include <core/util/UTF_extensions.h>
+
 template<typename T>
 class ConstFunction : public DAQuiri::FittableRegion
 {
@@ -62,7 +64,7 @@ class ConstFunction : public DAQuiri::FittableRegion
     std::stringstream ss;
     ss << grads.transpose();
     return prepend + val.to_string()
-        + "  chi2=" + std::to_string(chi_sq())
+        + "  chi" + UTF_superscript(2) + "=" + std::to_string(chi_sq())
         + "  grads=" + ss.str();
   }
 };
@@ -126,7 +128,7 @@ class LinearFunction : public DAQuiri::FittableRegion
     std::stringstream ss;
     ss << grads.transpose();
     return prepend + val.to_string()
-        + "  chi2=" + std::to_string(chi_sq())
+        + "  chi" + UTF_superscript(2) + "=" + std::to_string(chi_sq())
         + "  grads=" + ss.str();
   }
 };
@@ -190,7 +192,7 @@ class QuadraticFunction : public DAQuiri::FittableRegion
     std::stringstream ss;
     ss << grads.transpose();
     return prepend + val.to_string()
-        + "  chi2=" + std::to_string(chi_sq())
+        + "  chi" + UTF_superscript(2) + "=" + std::to_string(chi_sq())
         + "  grads=" + ss.str();
   }
 };

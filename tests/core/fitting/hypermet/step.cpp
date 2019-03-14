@@ -4,7 +4,7 @@
 
 #include <core/fitting/hypermet/Step.h>
 
-#include <core/fitting/optimizers/optlib_adapter.h>
+#include <core/util/UTF_extensions.h>
 
 class FittableStep : public DAQuiri::FittableRegion
 {
@@ -148,7 +148,7 @@ class FittableStep : public DAQuiri::FittableRegion
     ss << prepend
        << "step = " << step.to_string() << "\n";
     ss << prepend
-       << "  chi2=" + std::to_string(chi_sq())
+       << "  chi" + UTF_superscript(2) + "=" + std::to_string(chi_sq())
        << "  grads=" << grads.transpose() << "\n";
     return ss.str();
   }

@@ -3,8 +3,8 @@
 #include <core/util/visualize_vector.h>
 
 #include <core/fitting/hypermet/Tail.h>
+#include <core/util/UTF_extensions.h>
 
-#include <core/fitting/optimizers/optlib_adapter.h>
 
 class FittableTail : public DAQuiri::FittableRegion
 {
@@ -146,7 +146,7 @@ class FittableTail : public DAQuiri::FittableRegion
     ss << prepend << "parent_amp = " << amplitude.to_string() << "\n";
     ss << prepend << "parent_width = "  << width.to_string() << "\n";
     ss << prepend << "tail = " << tail.to_string() << "\n";
-    ss << prepend << "  chi2=" + std::to_string(chi_sq());
+    ss << prepend << "  chi" + UTF_superscript(2) + "=" + std::to_string(chi_sq());
     ss << "  grads=" << grads.transpose() << "\n";
     return ss.str();
   }

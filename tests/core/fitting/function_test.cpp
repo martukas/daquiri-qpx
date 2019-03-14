@@ -335,13 +335,13 @@ void FunctionTest::test_fit_random(size_t attempts,
         MESSAGE() << "        Outside tolerance " << result.to_string() << "\n"
                   << "                          F=" <<
                   fittable->to_string("                            ") << "\n"
-                  << "Log:\n" << result.log << "\n";
+                  << (!result.log.empty() ? ("Log:\n" + result.log + "\n") : "");
       }
       else if (optimizer.verbosity >= 6)
       {
         MESSAGE() << "                          F="
                   << fittable->to_string("                            ") << "\n"
-                  << "Log:\n" << result.log << "\n";
+                  << (!result.log.empty() ? ("Log:\n" + result.log + "\n") : "");
       }
 
     }
@@ -350,9 +350,8 @@ void FunctionTest::test_fit_random(size_t attempts,
       if (print_unconverged)
         MESSAGE() << "        attempt:" << i << "  "
                   << result.to_string() << "\n"
-                  << "                       F=" <<
-                  fittable->to_string("                         ") << "\n"
-                  << "Log:\n" << result.log << "\n";
+                  << "                       F=" << fittable->to_string("                         ") << "\n"
+                  << (!result.log.empty() ? ("Log:\n" + result.log + "\n") : "");
       unconverged++;
     }
 
