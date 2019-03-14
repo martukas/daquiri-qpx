@@ -70,7 +70,7 @@ class PolyBackground : public FunctionTest
  protected:
   FittableBackground fb;
   size_t region_size{40};
-  size_t random_samples{10000};
+  size_t random_samples{1000};
 
   void SetUp() override
   {

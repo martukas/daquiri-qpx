@@ -159,10 +159,12 @@ class Step : public FunctionTest
  protected:
   FittableStep fs;
   size_t region_size{100};
-  size_t random_samples{10000};
+  size_t random_samples{100};
 
   void SetUp() override
   {
+    print_outside_tolerance = true;
+
     //optimizer.verbosity = 5;
     optimizer.maximum_iterations = 150;
     optimizer.gradient_selection =
@@ -448,7 +450,7 @@ TEST_F(Step, FitAmplitude)
   test_fit_random(random_samples, &fs,
                   {"amplitude", &fs.step.amplitude,
                    fs.step.amplitude.min(),
-                   fs.step.amplitude.max(), 1e-14});
+                   fs.step.amplitude.max(), 1e-8});
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
@@ -522,9 +524,9 @@ TEST_F(Step, FitTwoA)
   std::vector<ValueToVary> vals;
   vals.push_back({"amplitude", &fs.step.amplitude,
                   fs.step.amplitude.min(),
-                  fs.step.amplitude.max(), 1e-14});
+                  fs.step.amplitude.max(), 1e-10});
   vals.push_back({"parent_width", &fs.width,
-                  fs.width.min(), fs.width.max(), 1e-8});
+                  fs.width.min(), fs.width.max(), 1e-7});
   test_fit_random(random_samples, &fs, vals);
 
   EXPECT_EQ(unconverged, 0u);
