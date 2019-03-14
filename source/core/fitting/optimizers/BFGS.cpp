@@ -1,5 +1,7 @@
 #include <core/fitting/optimizers/BFGS.h>
 #include <core/util/more_math.h>
+#include <boost/math/tools/toms748_solve.hpp>
+#include <boost/math/tools/minima.hpp>
 
 #include <core/util/custom_logger.h>
 
@@ -21,7 +23,7 @@ double BudapestOptimizer::BrentDeriv(FittableFunction* fittable,
                         double tol,
                         double& xmin,
                         const Eigen::VectorXd& variables,
-                        const Eigen::VectorXd& hessian)
+                        const Eigen::VectorXd& search_direction)
 {
   double d{0.0}; // \todo is this really the default value?
   double d1, d2, du, dv, dw, dx;
@@ -34,8 +36,8 @@ double BudapestOptimizer::BrentDeriv(FittableFunction* fittable,
   double sb = (a > c) ? a : c;
 
   w = x = v = b;
-  fw = fv = fx = fgv(fittable, x, variables, hessian);
-  dw = dv = dx = dfgv(fittable, x, variables, hessian);
+  fw = fv = fx = fgv(fittable, x, variables, search_direction);
+  dw = dv = dx = dfgv(fittable, x, variables, search_direction);
 
   double e{0.0};
   // \todo check for cancel
@@ -91,18 +93,18 @@ double BudapestOptimizer::BrentDeriv(FittableFunction* fittable,
       if (std::abs(d) >= tol1)
       {
         u = x + d;
-        fu = fgv(fittable, u, variables, hessian);
+        fu = fgv(fittable, u, variables, search_direction);
       }
       else
       {
         u = x + Sign(tol1, d);
-        fu = fgv(fittable, u, variables, hessian);
+        fu = fgv(fittable, u, variables, search_direction);
         done = (fu > fx);
       }
 
       if (!done)
       {
-        du = dfgv(fittable, u, variables, hessian);
+        du = dfgv(fittable, u, variables, search_direction);
         if (fu < fx)
         {
           if (u >= x)
@@ -156,16 +158,17 @@ double BudapestOptimizer::BrentDeriv(FittableFunction* fittable,
 }
 
 void BudapestOptimizer::Bracket(FittableFunction* fittable,
-                   double& a, double& b, double& c, double& fa, double& fb, double& fc,
-                   const Eigen::VectorXd& variables, const Eigen::VectorXd& hessian)
+                   double& a, double& b, double& c,
+                   double& fa, double& fb, double& fc,
+                   const Eigen::VectorXd& variables, const Eigen::VectorXd& search_direction)
 {
-  double gold = (1.0 + std::sqrt(5.0)) / 2.0;
+  double golden_ratio = (1.0 + std::sqrt(5.0)) / 2.0;
 
   double ulim, u, r, q, fu, dum;
   bool n;
 
-  fa = fgv(fittable, a, variables, hessian);
-  fb = fgv(fittable, b, variables, hessian);
+  fa = fgv(fittable, a, variables, search_direction);
+  fb = fgv(fittable, b, variables, search_direction);
 
   if (fb > fa)
   {
@@ -177,8 +180,8 @@ void BudapestOptimizer::Bracket(FittableFunction* fittable,
     fa = dum;
   }
 
-  c = b + gold * (b - a);
-  fc = fgv(fittable, c, variables, hessian);
+  c = b + golden_ratio * (b - a);
+  fc = fgv(fittable, c, variables, search_direction);
 
   while (fb > fc)
   {
@@ -194,7 +197,7 @@ void BudapestOptimizer::Bracket(FittableFunction* fittable,
     ulim = b + bracket_glimit * (c - b);
     if ((b - u) * (u - c) > 0)
     {
-      fu = fgv(fittable, u, variables, hessian);
+      fu = fgv(fittable, u, variables, search_direction);
       if (fu < fc)
       {
         a = b;
@@ -211,32 +214,32 @@ void BudapestOptimizer::Bracket(FittableFunction* fittable,
       }
       else
       {
-        u = c + gold * (c - b);
-        fu = fgv(fittable, u, variables, hessian);
+        u = c + golden_ratio * (c - b);
+        fu = fgv(fittable, u, variables, search_direction);
       }
     }
     else if ((c - u) * (u - ulim) > 0)
     {
-      fu = fgv(fittable, u, variables, hessian);
+      fu = fgv(fittable, u, variables, search_direction);
       if (fu < fc)
       {
         b = c;
         c = u;
-        u = c + gold * (c - b);
+        u = c + golden_ratio * (c - b);
         fb = fc;
         fc = fu;
-        fu = fgv(fittable, u, variables, hessian);
+        fu = fgv(fittable, u, variables, search_direction);
       }
     }
     else if ((u - ulim) * (ulim - c) >= 0)
     {
       u = ulim;
-      fu = fgv(fittable, u, variables, hessian);
+      fu = fgv(fittable, u, variables, search_direction);
     }
     else
     {
-      u = c + gold * (c - b);
-      fu = fgv(fittable, u, variables, hessian);
+      u = c + golden_ratio * (c - b);
+      fu = fgv(fittable, u, variables, search_direction);
     }
 
     if (n)
@@ -255,50 +258,41 @@ void BudapestOptimizer::Bracket(FittableFunction* fittable,
 double BudapestOptimizer::fgv(FittableFunction* fittable,
                  double lambda,
                  Eigen::VectorXd variables,
-                 Eigen::VectorXd hessian)
+                 Eigen::VectorXd search_direction)
 {
-  auto n = static_cast<size_t>(variables.size());
-  Eigen::VectorXd xlocal(n);
-  for (size_t i = 0; i < n; ++i)
-    xlocal[i] = variables[i] + lambda * hessian[i];
-  return fittable->chi_sq(xlocal);
+  return fittable->chi_sq(variables + lambda * search_direction);
 }
 
 double BudapestOptimizer::dfgv(FittableFunction* fittable,
                   double lambda,
                   Eigen::VectorXd variables,
-                  Eigen::VectorXd hessian)
+                  Eigen::VectorXd search_direction)
 {
-  auto n = static_cast<size_t>(variables.size());
-  Eigen::VectorXd xlocal(n);
-  Eigen::VectorXd dflocal(n);
-  for (size_t i = 0; i < n; ++i)
-    xlocal[i] = variables[i] + lambda * hessian[i];
-  fittable->chi_sq_gradient(xlocal, dflocal);
-  double s = 0;
-  for (size_t i = 0; i < n; ++i)
-    s += dflocal[i] * hessian[i];
-  return s;
+  Eigen::VectorXd dflocal(variables.size());
+  fittable->chi_sq_gradient(variables + lambda * search_direction, dflocal);
+  return dflocal.dot(search_direction);
 }
 
+struct BoostFuncWrapper
+{
+  FittableFunction* func;
+};
+
 double BudapestOptimizer::LinMin(FittableFunction* fittable, Eigen::VectorXd& variables,
-    Eigen::VectorXd hessian)
+    Eigen::VectorXd search_direction)
 {
   double lambdak, xk, fxk, fa, fb, a, b;
-  auto n = static_cast<size_t>(variables.size());
   a = 0.0;
   xk = 1.0;
   b = 2.0;
-  Bracket(fittable, a, xk, b, fa, fxk, fb, variables, hessian);
-  double fmin = BrentDeriv(fittable, a, xk, b, linmin_tol, lambdak, variables, hessian);
+  Bracket(fittable, a, xk, b, fa, fxk, fb, variables, search_direction);
+  double fmin = BrentDeriv(fittable, a, xk, b, linmin_tol, lambdak, variables, search_direction);
+
+//  boost::math::tools::brent_find_minima<>()
+
   if (verbosity)
     DBG("lambda={}", lambdak);
-  for (size_t j = 0; j < n; ++j)
-  {
-
-    hessian[j] *= lambdak;
-    variables[j] += hessian[j];
-  }
+  variables += lambdak * search_direction;
   return fmin;
 }
 
@@ -309,7 +303,7 @@ FitResult BudapestOptimizer::minimize(FittableFunction* fittable)
   ret.variables = fittable->variables();
   auto var_count = static_cast<size_t>(ret.variables.size());
   Eigen::VectorXd
-      hessian(var_count),
+      search_direction(var_count),
       gradients(var_count),
       prev_val(var_count),
       Adg(var_count);
@@ -321,7 +315,7 @@ FitResult BudapestOptimizer::minimize(FittableFunction* fittable)
 
   for (; ret.iterations < maximum_iterations; ++ret.iterations)
   {
-    double fmin = LinMin(fittable, ret.variables, hessian);
+    double fmin = LinMin(fittable, ret.variables, search_direction);
     //if (std::abs(f - fmin) < 0.000001) { done = true; }
     ret.converged = (2 * std::abs(fmin - f)) <= (tolerance * (std::abs(fmin) + std::abs(f) + eps));
     f = fmin;
@@ -348,7 +342,7 @@ FitResult BudapestOptimizer::minimize(FittableFunction* fittable)
     double s1{0.0};
     for (size_t i = 0; i < var_count; ++i)
     {
-      s1 += prev_val[i] * hessian[i];
+      s1 += prev_val[i] * search_direction[i];
       s += prev_val[i] * Adg[i];
     }
 
@@ -360,20 +354,20 @@ FitResult BudapestOptimizer::minimize(FittableFunction* fittable)
       s2 = 1.0 / s;
 
     for (size_t i = 0; i < var_count; ++i)
-      prev_val[i] = s1 * hessian[i] - s2 * Adg[i];
+      prev_val[i] = s1 * search_direction[i] - s2 * Adg[i];
 
     for (size_t i = 0; i < var_count; ++i)
       for (size_t j = 0; j < var_count; ++j)
         ret.inv_hessian.coeffRef(i, j) +=
-            s1 * square(hessian[i])
+            s1 * square(search_direction[i])
                 - s2 * square(Adg[i])
                 + s * square(prev_val[i]);
 
     for (size_t i = 0; i < var_count; ++i)
     {
-      hessian[i] = 0;
+      search_direction[i] = 0;
       for (size_t j = 0; j < var_count; ++j)
-        hessian[i] -= ret.inv_hessian.coeff(i, j) * gradients[j];
+        search_direction[i] -= ret.inv_hessian.coeff(i, j) * gradients[j];
     }
 
     if (ret.converged || cancel.load())

@@ -32,17 +32,17 @@ class BudapestOptimizer : public AbstractOptimizer
   double BrentDeriv(FittableFunction* fittable,
                     double a, double b, double c, double tol, double& xmin,
                     const Eigen::VectorXd& variables,
-                    const Eigen::VectorXd& hessian);
+                    const Eigen::VectorXd& search_direction);
   void Bracket(FittableFunction* fittable,
                double& a, double& b, double& c, double& fa, double& fb, double& fc,
-               const Eigen::VectorXd& variables, const Eigen::VectorXd& hessian);
+               const Eigen::VectorXd& variables, const Eigen::VectorXd& search_direction);
   double fgv(FittableFunction* fittable, double lambda,
-             Eigen::VectorXd variables, Eigen::VectorXd hessian);
+             Eigen::VectorXd variables, Eigen::VectorXd search_direction);
   double dfgv(FittableFunction* fittable, double lambda,
-              Eigen::VectorXd variables, Eigen::VectorXd hessian);
+              Eigen::VectorXd variables, Eigen::VectorXd search_direction);
   double LinMin(FittableFunction* fittable,
                 Eigen::VectorXd& variables,
-                Eigen::VectorXd hessian);
+                Eigen::VectorXd search_direction);
 };
 
 }
