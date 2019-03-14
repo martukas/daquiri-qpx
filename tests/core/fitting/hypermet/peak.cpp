@@ -111,7 +111,7 @@ class Peak : public FunctionTest
  protected:
   FittablePeak fp;
   size_t region_size{100};
-  size_t random_samples{500};
+  size_t random_samples{100};
   
   void SetUp() override
   {
@@ -386,6 +386,10 @@ TEST_F(Peak, FitPosition)
   fp.update_indices();
 
   SetUp();
+
+//  optimizer.gradient_selection =
+//      DAQuiri::OptlibOptimizer::GradientSelection::FiniteAlways;
+
   test_fit_random(random_samples, &fp,
                   {"position", &fp.peak.position,
                    fp.peak.position.min(), fp.peak.position.max(), 1e-10});

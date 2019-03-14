@@ -12,7 +12,7 @@ class FittableTail : public DAQuiri::FittableRegion
  public:
 
   DAQuiri::Value position;
-  DAQuiri::Value amplitude;
+  DAQuiri::ValuePositive amplitude;
   DAQuiri::Value width;
 
   DAQuiri::Tail tail;
@@ -48,7 +48,7 @@ class FittableTail : public DAQuiri::FittableRegion
     if (position.valid_index())
       position.x(x_dist(rng));
     if (amplitude.valid_index())
-      amplitude.x( /*amplitude.x() +*/ x_dist(rng));
+      amplitude.x(amplitude.x() + x_dist(rng));
     return true;
   }
 
@@ -157,7 +157,7 @@ class Tail : public FunctionTest
  protected:
   FittableTail ft;
   size_t region_size{100};
-  size_t random_samples{100};
+  size_t random_samples{1000};
 
   void SetUp() override
   {
@@ -168,15 +168,14 @@ class Tail : public FunctionTest
     optimizer.use_epsilon_check = false;
     optimizer.min_g_norm = 1e-7;
     optimizer.perform_sanity_checks = false;
-    optimizer.maximum_perturbations = 20;
-    optimizer.max_condition = 1e14;
+    optimizer.maximum_perturbations = 0;
 
     ft.tail.amplitude.bound(0.0001, 1.5);
     ft.tail.amplitude.val(0.05);
     ft.tail.slope.bound(0.2, 50);
     ft.tail.slope.val(30);
 
-    ft.amplitude.bound(0, 50000);
+//    ft.amplitude.bound(0, 50000);
     ft.amplitude.val(40000);
     ft.amplitude.update_index(ft.variable_count);
 
@@ -529,19 +528,22 @@ TEST_F(Tail, FitBoth)
   ft.amplitude.to_fit = false;
   ft.update_indices();
 
+  print_outside_tolerance = true;
+//  optimizer.verbosity=5;
+
   std::vector<ValueToVary> vals;
   vals.push_back({"amplitude", &ft.tail.amplitude,
-                  ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-10});
+                  ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-12});
   vals.push_back({"slope", &ft.tail.slope,
-                  ft.tail.slope.min(), ft.tail.slope.max(), 1e-7});
+                  ft.tail.slope.min(), ft.tail.slope.max(), 1e-9});
   test_fit_random(random_samples, &ft, vals);
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
-  EXPECT_LE(converged_finite, 0.95 * random_samples);
-  EXPECT_LE(converged_perturbed, 0.15 * random_samples);
-  EXPECT_LE(max_iterations_to_converge, 200u);
-  EXPECT_LE(max_perturbations_to_converge, 3u);
+  EXPECT_LE(converged_finite, 0u);
+  EXPECT_LE(converged_perturbed, 0u);
+  EXPECT_LE(max_iterations_to_converge, 48u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(Tail, FitParentWidth)
@@ -582,7 +584,7 @@ TEST_F(Tail, FitParentPosition)
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
-  EXPECT_LE(converged_finite, 0.65 * random_samples);
+  EXPECT_LE(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
   EXPECT_LE(max_iterations_to_converge, 13u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
@@ -600,14 +602,14 @@ TEST_F(Tail, FitParentAmplitude)
   SetUp();
   test_fit_random(random_samples, &ft,
                   {"parent_amplitude", &ft.amplitude,
-                   ft.amplitude.min(), ft.amplitude.max(), 1e-3});
-//                   30000, 50000, 1e-3});
+//                   ft.amplitude.min(), ft.amplitude.max(), 1e-3});
+                   30000, 50000, 1e-5});
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
   EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 3u);
+  EXPECT_LE(max_iterations_to_converge, 6u);
   EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
@@ -620,12 +622,13 @@ TEST_F(Tail, FitAll1)
   ft.update_indices();
 
   print_outside_tolerance = true;
+//  optimizer.verbosity=5;
 
   std::vector<ValueToVary> vals;
   vals.push_back({"amplitude", &ft.tail.amplitude,
                   ft.tail.amplitude.min(), ft.tail.amplitude.max(), 1e-12});
   vals.push_back({"slope", &ft.tail.slope,
-                  ft.tail.slope.min(), ft.tail.slope.max(), 1e-9});
+                  ft.tail.slope.min(), ft.tail.slope.max(), 1e-8});
   vals.push_back({"parent_width", &ft.width, ft.width.min(), ft.width.max(), 1e-10});
   vals.push_back({"parent_position", &ft.position,
                   ft.position.min(), ft.position.max(), 1e-10});
@@ -635,8 +638,8 @@ TEST_F(Tail, FitAll1)
   EXPECT_LE(not_sane, 0u);
   EXPECT_LE(converged_finite, 0u);
   EXPECT_LE(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 92u);
-  EXPECT_LE(max_perturbations_to_converge, 2u);
+  EXPECT_LE(max_iterations_to_converge, 87u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }
 
 TEST_F(Tail, FitAll2)
@@ -646,20 +649,21 @@ TEST_F(Tail, FitAll2)
   ft.update_indices();
 
   print_outside_tolerance = true;
+//  optimizer.verbosity=5;
 
   std::vector<ValueToVary> vals;
   vals.push_back({"slope", &ft.tail.slope,
-                  ft.tail.slope.min(), ft.tail.slope.max(), 1e-6});
-  vals.push_back({"parent_width", &ft.width, ft.width.min(), ft.width.max(), 1e-8});
+                  ft.tail.slope.min(), ft.tail.slope.max(), 1e-8});
+  vals.push_back({"parent_width", &ft.width, ft.width.min(), ft.width.max(), 1e-9});
   vals.push_back({"parent_position", &ft.position,
-                  ft.position.min(), ft.position.max(), 1e-8});
-  vals.push_back({"parent_amplitude", &ft.amplitude, 30000, 50000, 2e-4});
+                  ft.position.min(), ft.position.max(), 1e-9});
+  vals.push_back({"parent_amplitude", &ft.amplitude, 30000, 50000, 1e-5});
   test_fit_random(random_samples, &ft, vals);
 
   EXPECT_EQ(unconverged, 0u);
-  EXPECT_LE(not_sane, 0.01 * random_samples);
-  //EXPECT_EQ(converged_finite, random_samples);
+  EXPECT_LE(not_sane, 0u);
+  EXPECT_EQ(converged_finite, 0u);
   EXPECT_EQ(converged_perturbed, 0u);
-  EXPECT_LE(max_iterations_to_converge, 75u);
-  EXPECT_LE(max_perturbations_to_converge, 1u);
+  EXPECT_LE(max_iterations_to_converge, 69u);
+  EXPECT_LE(max_perturbations_to_converge, 0u);
 }

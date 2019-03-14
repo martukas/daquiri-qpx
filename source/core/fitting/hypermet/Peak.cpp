@@ -399,7 +399,8 @@ Peak::Components Peak::eval_grad(double chan, Eigen::VectorXd& grads) const
   if (width.to_fit)
     grads[width.index()] += pre.width_grad * ret.gaussian * 2.0 * square(pre.spread) / pre.width;
   if (position.to_fit)
-    grads[position.index()] += pre.pos_grad * (ret.gaussian * 2.0 * pre.spread / pre.width);
+    grads[position.index()] += pre.pos_grad *
+        (ret.gaussian * 2.0 * pre.spread / pre.width);
   if (amplitude.to_fit)
     grads[amplitude.index()] += pre.amp_grad * ret.gaussian / pre.ampl;
 
@@ -427,7 +428,8 @@ Peak::Components Peak::eval_grad_at(double chan, const Eigen::VectorXd& fit,
   if (width.to_fit)
     grads[width.index()] += pre.width_grad * ret.gaussian * 2.0 * square(pre.spread) / pre.width;
   if (position.to_fit)
-    grads[position.index()] += pre.pos_grad * (ret.gaussian * 2.0 * pre.spread / pre.width);
+    grads[position.index()] += pre.pos_grad *
+        (ret.gaussian * 2.0 * pre.spread / pre.width);
   if (amplitude.to_fit)
     grads[amplitude.index()] += pre.amp_grad * ret.gaussian / pre.ampl;
 
