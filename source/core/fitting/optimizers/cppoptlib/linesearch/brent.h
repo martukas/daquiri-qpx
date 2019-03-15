@@ -269,6 +269,8 @@ class Brent
 //    WARN("Warning: The maximum number of iterations reached in Brent line search");
 
     // \todo how to indicate failure?
+//    if (!done)
+//      step_x.recalc_df(0.);
 
     return step_x;
   }

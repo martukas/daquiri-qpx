@@ -20,8 +20,8 @@ class Region : public FunctionTest
     optimizer.maximum_iterations = 1000;
     optimizer.gradient_selection =
         DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
-    optimizer.use_epsilon_check = false;
-    optimizer.min_g_norm = 1e-7;
+    optimizer.epsilon = 1e-10;
+    optimizer.tolerance = 1e-4;
     optimizer.perform_sanity_checks = false;
     optimizer.maximum_perturbations = 0;
 

@@ -11,11 +11,16 @@ ThreadFitter::ThreadFitter(QObject *parent) :
 {
   auto opt = std::make_shared<DAQuiri::OptlibOptimizer>();
 //  opt->verbose = true;
+  opt->maximum_iterations = 1000;
   opt->gradient_selection =
-      DAQuiri::OptlibOptimizer::GradientSelection::DefaultToFinite;
-  opt->maximum_iterations = 200;
+      DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
+//  opt->epsilon = 1e-10;
+//  opt->tolerance = 1e-4;
+  opt->use_epsilon_check = false;
+  opt->min_g_norm = 1e-7;
+
+  opt->perform_sanity_checks = true;
   opt->maximum_perturbations = 10;
-//  opt->perform_sanity_checks = true;
 
   optimizer_ = opt;
 

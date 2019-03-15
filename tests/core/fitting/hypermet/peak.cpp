@@ -115,20 +115,28 @@ class Peak : public FunctionTest
   
   void SetUp() override
   {
+//    print_outside_tolerance = true;
+
 //    optimizer.verbosity = 5;
     optimizer.maximum_iterations = 1000;
     optimizer.gradient_selection =
         DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
-    optimizer.use_epsilon_check = false;
-    optimizer.min_g_norm = 1e-7;
+//    optimizer.use_epsilon_check = false;
+//    optimizer.min_g_norm = 1e-7;
+    optimizer.epsilon = 1e-10;
+    optimizer.tolerance = 1e-4;
     optimizer.perform_sanity_checks = false;
     optimizer.maximum_perturbations = 0;
 
     fp.peak = fp.peak.gaussian_only();
-    //fp.peak.amplitude.bound(0, 500);
+
+//    fp.peak.amplitude.slope_ = 1e-3;
+//    fp.peak.amplitude.bound(0, 50000);
     fp.peak.amplitude.val(40000);
+
     fp.peak.position.bound(44, 68);
     fp.peak.position.val(51);
+
     fp.peak.width_override = true;
     fp.peak.width.bound(0.8, 5.0);
     fp.peak.width.val(3.2);
@@ -392,7 +400,7 @@ TEST_F(Peak, FitPosition)
 
   test_fit_random(random_samples, &fp,
                   {"position", &fp.peak.position,
-                   fp.peak.position.min(), fp.peak.position.max(), 1e-10});
+                   fp.peak.position.min(), fp.peak.position.max(), 1e-4});
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
@@ -414,7 +422,7 @@ TEST_F(Peak, FitWidth)
   SetUp();
   test_fit_random(random_samples, &fp,
                   {"width", &fp.peak.width,
-                   fp.peak.width.min(), fp.peak.width.max(), 1e-12});
+                   fp.peak.width.min(), fp.peak.width.max(), 1e-8});
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
@@ -434,7 +442,8 @@ TEST_F(Peak, FitAmplitude)
   SetUp();
   test_fit_random(random_samples, &fp,
                   {"amplitude", &fp.peak.amplitude,
-                   30000, 40000, 1e-6});
+//                   fp.peak.amplitude.min(), fp.peak.amplitude.max(), 1e-6});
+                   30000, 40000, 1e-20});
 
   EXPECT_EQ(unconverged, 0u);
   EXPECT_EQ(not_sane, 0u);
@@ -449,14 +458,13 @@ TEST_F(Peak, FitAllThree)
   fp.data = generate_data(&fp, region_size);
   fp.update_indices();
 
-  print_outside_tolerance = true;
-
   std::vector<ValueToVary> vals;
   vals.push_back({"width", &fp.peak.width,
-                  fp.peak.width.min(), fp.peak.width.max(), 1e-11});
+                  fp.peak.width.min(), fp.peak.width.max(), 1e-5});
   vals.push_back({"position", &fp.peak.position,
-                  fp.peak.position.min(), fp.peak.position.max(), 1e-12});
+                  fp.peak.position.min(), fp.peak.position.max(), 1e-4});
   vals.push_back({"amplitude", &fp.peak.amplitude,
+//                  fp.peak.amplitude.min(), fp.peak.amplitude.max(), 1e-1});
                   30000, 50000, 1e-7});
   test_fit_random(random_samples, &fp, vals);
 
@@ -489,6 +497,7 @@ TEST_F(Peak, FitWithSkews)
   vals.push_back({"position", &fp.peak.position,
                   fp.peak.position.min(), fp.peak.position.max(), 1e-8});
   vals.push_back({"amplitude", &fp.peak.amplitude,
+//                  fp.peak.amplitude.min(), fp.peak.amplitude.max(), 1e-4});
                   30000, 50000, 2e-4});
   vals.push_back({"ls_amp", &fp.peak.short_tail.amplitude,
                   fp.peak.short_tail.amplitude.min(),
@@ -537,6 +546,7 @@ TEST_F(Peak, FitWithEverything)
   vals.push_back({"position", &fp.peak.position,
                   fp.peak.position.min(), fp.peak.position.max(), 1e-7});
   vals.push_back({"amplitude", &fp.peak.amplitude,
+//                  fp.peak.amplitude.min(), fp.peak.amplitude.max(), 1e-4});
                   30000, 50000, 1e-2});
   vals.push_back({"ls_amp", &fp.peak.short_tail.amplitude,
                   fp.peak.short_tail.amplitude.min(),
