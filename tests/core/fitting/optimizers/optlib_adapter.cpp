@@ -14,7 +14,6 @@ class OptlibOptimizer : public TestBase
 
   void SetUp() override
   {
-    optimizer.verbosity = 4;
     optimizer.gradient_selection =
         DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
     optimizer.use_epsilon_check = false;
@@ -35,11 +34,14 @@ TEST_F(OptlibOptimizer, CheckGradient)
 
 TEST_F(OptlibOptimizer, Fit10zerosEpsilon)
 {
+  optimizer.verbosity = 5;
+
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
   auto result = optimizer.minimize(&rb);
-  MESSAGE() << "Result: " << result.to_string(true) << "\n";
+  MESSAGE() << "Result: " << result.variables.transpose() << "\n"
+            << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
-  EXPECT_LE(result.iterations, 23u) << result.log;
+  EXPECT_LE(result.iterations, 20u) << result.log;
   EXPECT_FALSE(result.used_finite_grads);
 }
 
@@ -49,7 +51,8 @@ TEST_F(OptlibOptimizer, Fit10zerosMinDX)
   optimizer.min_x_delta = 100 * std::numeric_limits<double>::min();
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
   auto result = optimizer.minimize(&rb);
-  MESSAGE() << "Result: " << result.to_string(true) << "\n";
+  MESSAGE() << "Result: " << result.variables.transpose() << "\n"
+            << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
   EXPECT_LE(result.iterations, 28u) << result.log;
   EXPECT_FALSE(result.used_finite_grads);
@@ -61,7 +64,8 @@ TEST_F(OptlibOptimizer, Fit10zerosMinDF)
   optimizer.min_f_delta = 100 * std::numeric_limits<double>::min();
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
   auto result = optimizer.minimize(&rb);
-  MESSAGE() << "Result: " << result.to_string(true) << "\n";
+  MESSAGE() << "Result: " << result.variables.transpose() << "\n"
+            << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
   EXPECT_LE(result.iterations, 28u) << result.log;
   EXPECT_FALSE(result.used_finite_grads);
@@ -73,7 +77,8 @@ TEST_F(OptlibOptimizer, Fit10zerosMinGNorm)
   optimizer.min_g_norm = 100 * std::numeric_limits<double>::min();
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
   auto result = optimizer.minimize(&rb);
-  MESSAGE() << "Result: " << result.to_string(true) << "\n";
+  MESSAGE() << "Result: " << result.variables.transpose() << "\n"
+            << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
   EXPECT_LE(result.iterations, 27u) << result.log;
   EXPECT_FALSE(result.used_finite_grads);
@@ -89,7 +94,8 @@ TEST_F(OptlibOptimizer, Fit10Random)
 
   MESSAGE() << "Starting: " << rb.variables().transpose() << "\n";
   auto result = optimizer.minimize(&rb);
-  MESSAGE() << "Result: " << result.to_string(true) << "\n";
+  MESSAGE() << "Result: " << result.variables.transpose() << "\n"
+            << result.to_string(true) << "\n";
   EXPECT_TRUE(result.converged);
   EXPECT_LE(result.iterations, 300u) << result.log;
   EXPECT_FALSE(result.used_finite_grads);

@@ -20,9 +20,15 @@ class BfgsSolver : public ISolver<ProblemType, 1>
   using typename Superclass::Scalar;
   using typename Superclass::TVector;
   using typename Superclass::THessian;
+  using Superclass::verbosity;
+  using Superclass::os;
 
-  void minimize(ProblemType& objFunc, TVector& x0, std::ostream* os = &std::cout) override
+  void minimize(ProblemType& objFunc, TVector& x0) override
   {
+    Brent<ProblemType, 1> brent;
+    brent.verbosity = (verbosity > 1) ? (verbosity - 2) : 0;
+    brent.os = os;
+
     const size_t DIM = x0.rows();
     THessian H = THessian::Identity(DIM, DIM);
     TVector grad(DIM);
@@ -31,10 +37,10 @@ class BfgsSolver : public ISolver<ProblemType, 1>
     this->m_current.fDelta = std::numeric_limits<Scalar>::infinity();
     objFunc.gradient(x0, grad);
 
-    if (Superclass::m_debug >= DebugLevel::High)
+    if (verbosity >= 2)
     {
-      (*os) << "init x=" << x0.transpose() << std::endl;
-      (*os) << "init g=" << grad.transpose() << std::endl;
+      (*os) << "init x=" << x0.transpose() << "\n";
+      (*os) << "init g=" << grad.transpose() << "\n";
     }
 
     do
@@ -42,8 +48,8 @@ class BfgsSolver : public ISolver<ProblemType, 1>
       x_old = x0;
 
       TVector searchDir = -1 * H * grad;
-      if (Superclass::m_debug >= DebugLevel::High)
-        (*os) << "   searchDir=" << searchDir.transpose() << std::endl;
+      if (verbosity >= 2)
+        (*os) << " searchDir=" << searchDir.transpose() << "\n";
 
       // check "positive definite"
       Scalar phi = grad.dot(searchDir);
@@ -54,27 +60,23 @@ class BfgsSolver : public ISolver<ProblemType, 1>
         // no, we reset the hessian approximation
         H = THessian::Identity(DIM, DIM);
         searchDir = -1 * grad;
-        if (Superclass::m_debug >= DebugLevel::High)
-          (*os) << "   resetting Hessian approximation after phi=" << phi
-                << "   New searchDir=" << searchDir << std::endl;
+        if (verbosity >= 2)
+          (*os) << " resetting Hessian approximation after phi=" << phi
+                << "   New searchDir=" << searchDir << "\n";
       }
 
 //      const Scalar rate =
 //          Armijo<ProblemType, 1>::linesearch(
 //              x0, searchDir, objFunc, 1.0,
-//              ((Superclass::m_debug >= DebugLevel::High) ? os
+//              ((verbosity >= 2) ? os
 //                                                         : nullptr));
 
-      const Scalar rate =
-          Brent<ProblemType, 1>().linesearch(
-              x0, searchDir, objFunc, 1.0,
-              ((Superclass::m_debug >= DebugLevel::High) ? os
-                                                         : nullptr));
+      const Scalar rate = brent.linesearch(x0, searchDir, objFunc);
 
-      if (Superclass::m_debug >= DebugLevel::High)
+      if (verbosity >= 2)
       {
-        (*os) << "   rate=" << rate << std::endl;
-        (*os) << "   rate*dir=" << (rate * searchDir) << std::endl;
+        (*os) << " rate=" << rate << "\n";
+        (*os) << " rate*dir=" << (rate * searchDir).transpose() << "\n";
       }
 
       x0 = x0 + rate * searchDir;
@@ -95,16 +97,16 @@ class BfgsSolver : public ISolver<ProblemType, 1>
       this->m_current.gradNorm = grad.template lpNorm<Eigen::Infinity>();
       this->m_status = checkConvergence(this->m_stop, this->m_current);
 
-      if (Superclass::m_debug >= DebugLevel::Low)
+      if (verbosity >= 1)
       {
         (*os) << this->m_current;
         (*os) << "     f=" << std::right << std::setw(12) << objFunc.value(x0);
-        if (Superclass::m_debug >= DebugLevel::High)
+        if (verbosity >= 2)
         {
-          (*os) << "\n     x=" << x0.transpose();
-          (*os) << "\n     g=" << grad.transpose();
+          (*os) << "\n  x=" << x0.transpose();
+          (*os) << "\n  g=" << grad.transpose();
         }
-        (*os) << std::endl;
+        (*os) << "\n";
       }
       ++this->m_current.iterations;
 

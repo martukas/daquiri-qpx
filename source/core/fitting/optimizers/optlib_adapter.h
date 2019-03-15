@@ -38,6 +38,9 @@ class OptlibOptimizer : public AbstractOptimizer
                       const Eigen::VectorXd& x) const override;
 
   std::string print_config(std::string prepend = "") const;
+
+ private:
+  std::stringstream ss;
 };
 
 }

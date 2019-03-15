@@ -16,7 +16,6 @@ template <typename T>
 using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 */
 
-enum class DebugLevel { None = 0, Low, High };
 enum class Status
 {
   NotStarted = -1,
