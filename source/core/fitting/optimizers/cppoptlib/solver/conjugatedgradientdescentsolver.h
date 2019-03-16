@@ -1,8 +1,7 @@
 // CppNumericalSolver
-#ifndef CONJUGATEDGRADIENTDESCENTSOLVER_H_
-#define CONJUGATEDGRADIENTDESCENTSOLVER_H_
+#pragma once
 
-#include <Eigen/Core>
+#include <core/util/eigen_fix.h>
 #include "isolver.h"
 #include "../linesearch/armijo.h"
 
@@ -57,5 +56,3 @@ class ConjugatedGradientDescentSolver : public ISolver<ProblemType, 1> {
 };
 
 } /* namespace cppoptlib */
-
-#endif /* CONJUGATEDGRADIENTDESCENTSOLVER_H_ */

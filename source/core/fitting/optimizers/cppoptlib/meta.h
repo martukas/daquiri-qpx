@@ -4,7 +4,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
-#include <Eigen/Core>
+#include <core/util/eigen_fix.h>
 
 namespace cppoptlib
 {

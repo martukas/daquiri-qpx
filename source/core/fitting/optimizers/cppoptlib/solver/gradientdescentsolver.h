@@ -1,8 +1,7 @@
 // CppNumericalSolver
-#ifndef GRADIENTDESCENTSOLVER_H_
-#define GRADIENTDESCENTSOLVER_H_
+#pragma once
 
-#include <Eigen/Core>
+#include <core/util/eigen_fix.h>
 #include "isolver.h"
 #include "../linesearch/morethuente.h"
 
@@ -47,4 +46,3 @@ public:
 
 } /* namespace cppoptlib */
 
-#endif /* GRADIENTDESCENTSOLVER_H_ */

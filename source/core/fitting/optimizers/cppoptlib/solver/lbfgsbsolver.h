@@ -2,14 +2,15 @@
 // based on:
 // L-BFGS-B: A LIMITED MEMORY ALGORITHM FOR BOUND CONSTRAINED OPTIMIZATION
 // Richard H. Byrd, Peihuang Lu, Jorge Nocedal and Ciyou Zhu
+#pragma once
+
 #include <iostream>
 #include <list>
-#include <Eigen/LU>
+#include <core/util/eigen_fix.h>
 #include "isolver.h"
 #include "../boundedproblem.h"
 #include "../linesearch/morethuente.h"
-#ifndef LBFGSBSOLVER_H
-#define LBFGSBSOLVER_H
+
 namespace cppoptlib {
 template<typename TProblem>
 class LbfgsbSolver : public ISolver<TProblem, 1> {
@@ -290,4 +291,3 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
 };
 }
 /* namespace cppoptlib */
-#endif /* LBFGSBSOLVER_H_ */

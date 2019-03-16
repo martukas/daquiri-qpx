@@ -2,13 +2,13 @@
 // based on:
 // Numerical Optimization, 2nd ed. New York: Springer
 // J. Nocedal and S. J. Wright
+
+#pragma once
+
 #include <iostream>
-#include <Eigen/LU>
+#include <core/util/eigen_fix.h>
 #include "isolver.h"
 #include "../linesearch/morethuente.h"
-
-#ifndef LBFGSSOLVER_H_
-#define LBFGSSOLVER_H_
 
 namespace cppoptlib {
 
@@ -117,5 +117,3 @@ class LbfgsSolver : public ISolver<ProblemType, 1> {
 
 }
 /* namespace cppoptlib */
-
-#endif /* LBFGSSOLVER_H_ */

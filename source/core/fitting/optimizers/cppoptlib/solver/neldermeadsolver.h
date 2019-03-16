@@ -1,8 +1,8 @@
 // CppNumericalSolver
-#ifndef NELDERMEADSOLVER_H_
-#define NELDERMEADSOLVER_H_
+#pragma once
+
 #include <cmath>
-#include <Eigen/Core>
+#include <core/util/eigen_fix.h>
 #include "isolver.h"
 #include "../meta.h"
 
@@ -221,5 +221,3 @@ class NelderMeadSolver : public ISolver<ProblemType, 0> {
 }; /* class NelderMeadSolver */
 
 } /* namespace cppoptlib */
-
-#endif /* NELDERMEADSOLVER_H_ */

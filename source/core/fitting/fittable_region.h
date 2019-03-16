@@ -33,7 +33,13 @@ class FittableRegion : public FittableFunction
   /// \returns value of function at channel
   /// \param chan channel value
   /// \param fit vector of model function variables to be evaluated
-  virtual double eval_at(double chan, const Eigen::VectorXd& fit) const = 0;
+  virtual double eval_at(double chan, const Eigen::VectorXd& fit) const
+  {
+    // \todo add notes for implementers interested in performance
+    // \todo only resize if necessary
+    dummy_gradient.setConstant(fit.size(), 0.);
+    return this->eval_grad_at(chan, fit, dummy_gradient);
+  }
 
   /// \brief evaluates a particular fit of the model at a single channel and calculates
   ///        the function gradients at the same channel

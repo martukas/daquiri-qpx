@@ -1,6 +1,5 @@
 // CppNumericalSolver
-#ifndef WOLFERULE_H_
-#define WOLFERULE_H_
+#pragma once
 
 #include "../meta.h"
 
@@ -72,4 +71,3 @@ class WolfeHeuristic {
 };
 }
 
-#endif /* WOLFERULE_H_ */

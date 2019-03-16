@@ -8,12 +8,10 @@
  *
  */
 
-#ifndef BOUNDEDPROBLEM_H
-#define BOUNDEDPROBLEM_H
+#pragma once
 
+#include <core/util/eigen_fix.h>
 #include <vector>
-#include <Eigen/Core>
-
 #include "problem.h"
 
 namespace cppoptlib {
@@ -60,4 +58,3 @@ public:
 
 } // end namespace cppoptlib
 
-#endif // BOUNDEDPROBLEM_H

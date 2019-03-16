@@ -1,6 +1,5 @@
 // CppNumericalSolver
-#ifndef MORETHUENTE_H_
-#define MORETHUENTE_H_
+#pragma once
 
 #include "../meta.h"
 #include <cmath>
@@ -311,4 +310,3 @@ class MoreThuente {
 
 }
 
-#endif /* MORETHUENTE_H_ */

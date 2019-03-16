@@ -1,6 +1,5 @@
 // CppNumericalSolver
-#ifndef ARMIJO_H_
-#define ARMIJO_H_
+#pragma once
 
 #include "../meta.h"
 
@@ -96,4 +95,3 @@ class Armijo<ProblemType, 2>
 
 }
 
-#endif /* ARMIJO_H_ */

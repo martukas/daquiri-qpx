@@ -76,8 +76,7 @@ class PolyBackground : public FunctionTest
   {
 //    optimizer.verbosity = 5;
     optimizer.maximum_iterations = 1000;
-    DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
-
+    optimizer.gradient_selection = DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
     optimizer.use_epsilon_check = false;
     optimizer.min_g_norm = 1e-7;
 

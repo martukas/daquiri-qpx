@@ -1,9 +1,8 @@
 // CppNumericalSolver
-#ifndef CMAESB_H
-#define CMAESB_H
+#pragma once
 
 #include <random>
-#include <Eigen/Dense>
+#include <core/util/eigen_fix.h>
 #include "isolver.h"
 
 namespace cppoptlib {
@@ -227,5 +226,3 @@ public:
 };
 
 } /* namespace cppoptlib */
-
-#endif /* CMAES_H_ */

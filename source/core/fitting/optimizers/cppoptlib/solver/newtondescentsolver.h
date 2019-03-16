@@ -1,11 +1,10 @@
 // CppNumericalSolver
+#pragma once
+
 #include <iostream>
-#include <Eigen/LU>
+#include <core/util/eigen_fix.h>
 #include "isolver.h"
 #include "../linesearch/armijo.h"
-
-#ifndef NEWTONDESCENTSOLVER_H_
-#define NEWTONDESCENTSOLVER_H_
 
 namespace cppoptlib {
 
@@ -40,4 +39,3 @@ class NewtonDescentSolver : public ISolver<ProblemType, 2> {
 }
 /* namespace cppoptlib */
 
-#endif /* NEWTONDESCENTSOLVER_H_ */

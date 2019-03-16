@@ -1,9 +1,8 @@
-#ifndef PROBLEM_H
-#define PROBLEM_H
+#pragma once
 
 #include <array>
 #include <vector>
-#include <Eigen/Core>
+#include <core/util/eigen_fix.h>
 
 #include "meta.h"
 
@@ -214,4 +213,3 @@ class Problem {
 };
 }
 
-#endif /* PROBLEM_H */

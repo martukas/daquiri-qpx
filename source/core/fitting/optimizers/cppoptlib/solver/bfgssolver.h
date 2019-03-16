@@ -3,7 +3,7 @@
 // CppNumericalSolver
 #include <iostream>
 #include <iomanip>
-#include <Eigen/LU>
+#include <core/util/eigen_fix.h>
 #include "isolver.h"
 #include "../linesearch/armijo.h"
 #include "../linesearch/morethuente.h"
