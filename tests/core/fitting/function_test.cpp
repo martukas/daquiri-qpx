@@ -332,7 +332,8 @@ void FunctionTest::test_fit_random(size_t attempts,
 
       if (print_outside_tolerance && outside_delta)
       {
-        MESSAGE() << "        Outside tolerance " << result.to_string() << "\n"
+        MESSAGE() << "        Attempt[" << i << "] Outside tolerance "
+                  << result.to_string() << "\n"
                   << "                          F=" <<
                   fittable->to_string("                            ") << "\n"
                   << (!result.log.empty() ? ("Log:\n" + result.log + "\n") : "");

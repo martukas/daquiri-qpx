@@ -8,6 +8,7 @@
 #include "../linesearch/armijo.h"
 #include "../linesearch/morethuente.h"
 #include "../linesearch/brent.h"
+#include "../linesearch/toms748.h"
 
 namespace cppoptlib
 {
@@ -28,6 +29,10 @@ class BfgsSolver : public ISolver<ProblemType, 1>
     Brent<ProblemType, 1> brent;
     brent.verbosity = (verbosity > 1) ? (verbosity - 2) : 0;
     brent.os = os;
+
+    Toms748<ProblemType, 1> toms;
+    toms.verbosity = (verbosity > 1) ? (verbosity - 2) : 0;
+    toms.os = os;
 
     const size_t DIM = x0.rows();
     THessian H = THessian::Identity(DIM, DIM);
@@ -72,6 +77,7 @@ class BfgsSolver : public ISolver<ProblemType, 1>
 //                                                         : nullptr));
 
       const Scalar rate = brent.linesearch(x0, searchDir, objFunc);
+//      const Scalar rate = toms.linesearch(x0, searchDir, objFunc);
 
       if (verbosity >= 2)
       {

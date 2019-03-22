@@ -116,7 +116,7 @@ class Brent
     if (b.f > a.f)
       std::swap(a, b);
 
-    c.recalc_f(b.size + golden_ratio * (b.size - a.size));
+    c.recalc_f(b.size + 1.5 * (b.size - a.size));
 
     if (os && (verbosity > 1))
       (*os) << "     bracket starting a="
@@ -382,7 +382,7 @@ class Brent
           << "    init=" << step_init << "\n"
           << "    max =" << step_max << "\n";
 
-    bracket(step_min, step_init, step_max);
+    bracket(step_min, step_max, step_init);
 
     if (os && (verbosity > 0))
       (*os) << "   bracketed\n"
