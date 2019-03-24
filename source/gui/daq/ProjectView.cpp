@@ -120,7 +120,10 @@ void ProjectView::enforce_item(SelectorItem item)
     widget->setAttribute(Qt::WA_DeleteOnClose);
     connect(widget, SIGNAL(destroyed(QObject * )),
             this, SLOT(consumerWidgetDestroyed(QObject * )));
-    ui->area->addSubWindow(widget);
+
+    auto w = ui->area->addSubWindow(widget);
+    w->setContentsMargins(0, 0, 0, 0);
+
     consumers_[id] = widget;
     widget->show();
     widget->setConsumer(consumer);
