@@ -270,10 +270,8 @@ RegionManager* Fitter::parent_of(double peakID)
 void Fitter::render_all()
 {
   fit_eval_.reset();
-  // \todo merge region fits
-//  for (auto &r : regions_)
-//    fit_eval_.setFit(r.second.finder().y_fit_,
-//                   r.second.finder().y_background_);
+  for (auto &r : regions_)
+    fit_eval_.merge_fit(r.second.finder());
 }
 
 bool Fitter::find_and_fit(double regionID, AbstractOptimizer* optimizer)

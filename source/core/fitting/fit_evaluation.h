@@ -41,6 +41,8 @@ class FitEvaluation
   void update_fit(const std::vector<double>& y_fit,
                   const std::vector<double>& y_background);
 
+  void merge_fit(const FitEvaluation& other);
+
   std::vector<double> x_; /// < channel
   std::vector<double> y_; /// < counts
 
@@ -50,6 +52,8 @@ class FitEvaluation
   std::vector<double> y_background_;           /// < background portion of fit
   std::vector<double> y_resid_;                /// < y - fit
   std::vector<double> y_resid_on_background_;  /// < background + residual
+
+  std::vector<double> y_resid_weighted_;       /// < (y - fit) / weight
 
  private:
 
