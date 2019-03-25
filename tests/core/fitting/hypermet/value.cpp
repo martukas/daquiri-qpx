@@ -7,6 +7,19 @@ class Value : public TestBase
 {
 };
 
+TEST_F(Value, CheckErfc)
+{
+  std::vector<double> x;
+  std::vector<double> y;
+  for (double v = -10; v < 10; v+=0.1)
+  {
+    x.push_back(v);
+    y.push_back(std::erfc(v));
+  }
+
+  MESSAGE() << "Value::val_at(x):\n" << visualize(x, y, 100) << "\n";
+}
+
 TEST_F(Value, DefaultConstruct)
 {
   DAQuiri::Value v;

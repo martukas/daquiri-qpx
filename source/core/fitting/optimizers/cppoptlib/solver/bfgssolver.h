@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <core/util/eigen_fix.h>
 #include "isolver.h"
+
 #include "../linesearch/armijo.h"
 #include "../linesearch/morethuente.h"
 #include "../linesearch/brent.h"
@@ -33,6 +34,8 @@ class BfgsSolver : public ISolver<ProblemType, 1>
     Toms748<ProblemType, 1> toms;
     toms.verbosity = (verbosity > 1) ? (verbosity - 2) : 0;
     toms.os = os;
+
+    Armijo<ProblemType, 1> armijo;
 
     const size_t DIM = x0.rows();
     THessian H = THessian::Identity(DIM, DIM);
@@ -76,8 +79,10 @@ class BfgsSolver : public ISolver<ProblemType, 1>
 //              ((verbosity >= 2) ? os
 //                                                         : nullptr));
 
-      const Scalar rate = brent.linesearch(x0, searchDir, objFunc);
+//      const Scalar rate = brent.linesearch(x0, searchDir, objFunc);
 //      const Scalar rate = toms.linesearch(x0, searchDir, objFunc);
+
+      const Scalar rate = armijo.linesearch(x0, searchDir, objFunc);
 
       if (verbosity >= 2)
       {

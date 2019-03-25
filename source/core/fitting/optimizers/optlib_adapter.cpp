@@ -106,7 +106,7 @@ FitResult extract_status(const cppoptlib::Status& status, std::atomic<bool>* can
   ret.converged = (status == cppoptlib::Status::GradNormTolerance)
       || (status == cppoptlib::Status::FDeltaTolerance)
       || (status == cppoptlib::Status::XDeltaTolerance)
-      || (status == cppoptlib::Status::Condition)
+//      || (status == cppoptlib::Status::Condition)
       || ((status == cppoptlib::Status::UserDefined) && !interrupted);
 
   if (interrupted)
@@ -140,7 +140,7 @@ FitResult solve(cppoptlib::BfgsSolver<OptlibFittableWrapper> solver,
   ret.total_iterations = ret.iterations = solver.criteria().iterations;
   f.finiteHessian(x, ret.inv_hessian);
 // \todo do we need to invert? normalize?
-//  ret.inv_hessian = ret.inv_hessian.inverse();
+  ret.inv_hessian = ret.inv_hessian.inverse();
   ret.variables = x;
   ret.value = f.function_->chi_sq(x);
   if (grad_select == OptlibOptimizer::GradientSelection::FiniteAlways)

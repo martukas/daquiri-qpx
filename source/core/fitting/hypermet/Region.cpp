@@ -416,6 +416,8 @@ std::string Region::to_string(std::string prepend) const
     {
       ss << prepend << " Peak at " << p.first << "\n";
       ss << p.second.to_string(prepend + "  ");
+      ss << prepend << " Area = " << p.second.area().to_string(false) <<
+         " " << p.second.area().error_percent_fancy() << "\n";
     }
   }
   return ss.str();
