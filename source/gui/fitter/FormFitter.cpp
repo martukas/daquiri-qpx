@@ -465,7 +465,7 @@ void FormFitter::peak_info(double bin)
 
   DAQuiri::Peak hm = fit_data_->peaks().at(bin);
 
-  FormPeakInfo *peakInfo = new FormPeakInfo(hm, this);
+  FormPeakInfo *peakInfo = new FormPeakInfo(hm, fit_data_->settings().calib, this);
   auto nrg = fit_data_->peaks().at(bin).peak_energy(fit_data_->settings().calib.cali_nrg_);
   peakInfo->setWindowTitle("Parameters for peak at " + QString::number(nrg.value()));
   int ret = peakInfo->exec();

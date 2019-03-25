@@ -4,26 +4,50 @@
 
 #include <core/util/custom_logger.h>
 
-FormPeakInfo::FormPeakInfo(DAQuiri::Peak& hm, QWidget* parent)
+FormPeakInfo::FormPeakInfo(DAQuiri::Peak& hm,
+                           const DAQuiri::FCalibration& cal, QWidget* parent)
   : QDialog(parent)
   , ui(new Ui::FormPeakInfo)
+  , calib_(cal)
   , hm_(hm)
 {
   ui->setupUi(this);
   this->setFixedSize(this->size());
 
-//  ui->labelCaliEnergy->setText(QString::number(hm_.cali_nrg_)));
-//  ui->labelCaliFWHM->setText(QString::number(hm_.cali_fwhm_)));
+  ui->labelCaliEnergy->setText(QS(calib_.cali_nrg_.debug()));
+  ui->labelCaliFWHM->setText(QS(calib_.cali_fwhm_.debug()));
 
-  // \todo reenable uncertainties
+  auto position = hm_.peak_position();
+  ui->labelCenter->setText(QString::number(position.value()));
+  ui->labelCenterUncert->setText("+-" + QString::number(position.sigma()));
+  ui->labelCenterPercent->setText(QS(position.error_percent_fancy()));
 
-  ui->labelCenter->setText(QS(hm_.peak_position().to_string()));
-  ui->labelCenterPercent->setText(QS(hm_.peak_position().error_percent_fancy()));
+  auto energy = hm_.peak_energy(calib_.cali_nrg_);
+  ui->labelEnergy->setText(QString::number(energy.value()));
+  ui->labelEnergyUncert->setText("+-" + QString::number(energy.sigma()));
+  ui->labelEnergyPercent->setText(QS(energy.error_percent_fancy()));
+
   UncertainDouble amp {hm_.amplitude.val(), hm_.amplitude.uncert()};
-  ui->labelAmplitude->setText(QS(amp.to_string()));
+  ui->labelAmplitude->setText(QString::number(amp.value()));
+  ui->labelAmplitudeUncert->setText("+-" + QString::number(amp.sigma()));
   ui->labelAmplitudePercent->setText(QS(amp.error_percent_fancy()));
-  ui->labelWidth->setText(QS(hm_.fwhm().to_string()));
-  ui->labelWidthPercent->setText(QS(hm_.fwhm().error_percent_fancy()));
+
+  ui->checkWidthOverride->setChecked(hm_.width_override);
+  ui->checkWidthFit->setChecked(hm_.width.to_fit);
+  UncertainDouble width {hm_.width.val(), hm_.width.uncert()};
+  ui->labelWidth->setText(QString::number(width.value()));
+  ui->labelWidthUncert->setText("+-" + QString::number(width.sigma()));
+  ui->labelWidthPercent->setText(QS(width.error_percent_fancy()));
+
+  auto fwhm = hm_.fwhm();
+  ui->labelFWHM->setText(QString::number(fwhm.value()));
+  ui->labelFWHMUncert->setText("+-" + QString::number(fwhm.sigma()));
+  ui->labelFWHMPercent->setText(QS(fwhm.error_percent_fancy()));
+
+  auto fwhm_energy = hm_.fwhm_energy(calib_.cali_nrg_);
+  ui->labelFWEnergy->setText(QString::number(fwhm_energy.value()));
+  ui->labelFWEnergyUncert->setText("+-" + QString::number(fwhm_energy.sigma()));
+  ui->labelFWEnergyPercent->setText(QS(fwhm_energy.error_percent_fancy()));
 
   UncertainDouble step {hm_.step.amplitude.val(), hm_.step.amplitude.uncert()};
   ui->labelStep->setText(QS(step.to_string()));
@@ -52,11 +76,8 @@ FormPeakInfo::FormPeakInfo(DAQuiri::Peak& hm, QWidget* parent)
 
   // \todo min+max instead of epsilon for these
   ui->doubleCenter->setValue(hm_.position.val());
-  ui->doubleCenterEpsilon->setValue(hm_.position.uncert());
   ui->doubleAmplitude->setValue(hm_.amplitude.val());
-  ui->doubleAmplitudeEpsilon->setValue(hm_.amplitude.uncert());
   ui->doubleWidth->setValue(hm_.width.val());
-  ui->doubleWidthEpsilon->setValue(hm_.width.uncert());
 
   ui->checkStepEnable->setChecked(hm_.step.enabled);
   ui->checkStepFixed->setChecked(!hm_.step.amplitude.to_fit);

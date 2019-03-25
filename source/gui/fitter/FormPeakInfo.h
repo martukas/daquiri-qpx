@@ -4,6 +4,8 @@
 #include <QCloseEvent>
 #include <core/fitting/hypermet/Peak.h>
 
+#include <core/fitting/fit_settings.h>
+
 namespace Ui {
 class FormPeakInfo;
 }
@@ -13,7 +15,7 @@ class FormPeakInfo : public QDialog
   Q_OBJECT
 
 public:
-  explicit FormPeakInfo(DAQuiri::Peak &hm, QWidget *parent = 0);
+  explicit FormPeakInfo(DAQuiri::Peak &hm, const DAQuiri::FCalibration& cal, QWidget *parent = 0);
   ~FormPeakInfo();
 
 protected:
@@ -42,6 +44,8 @@ private slots:
 
 private:
   Ui::FormPeakInfo *ui;
+
+  DAQuiri::FCalibration calib_;
 
   DAQuiri::Peak &hm_;
 
