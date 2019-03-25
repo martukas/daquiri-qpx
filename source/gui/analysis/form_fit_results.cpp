@@ -12,9 +12,10 @@ FormFitResults::FormFitResults(DAQuiri::Fitter& fit, QWidget* parent) :
   loadSettings();
 
   ui->tablePeaks->verticalHeader()->hide();
-  ui->tablePeaks->setColumnCount(9);
-  ui->tablePeaks->setHorizontalHeaderLabels({"energy", "err", "fwhm", "err",
-                                             "cps(hyp)", "err", "cps(S4)", "err",
+  ui->tablePeaks->setColumnCount(10);
+  ui->tablePeaks->setHorizontalHeaderLabels({"energy", "\u03C3", "err",
+                                             "cps(hyp)", "\u03C3", "err",
+                                             "cps(S4)", "\u03C3", "err",
                                              "Quality"});
   ui->tablePeaks->setSelectionBehavior(QAbstractItemView::SelectRows);
   ui->tablePeaks->setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -145,14 +146,15 @@ void FormFitResults::add_peak_to_table(const DAQuiri::Peak& p, int row, bool gra
   auto area_s4 = p.sum4.peak_area();
 
   add_to_table(ui->tablePeaks, row, 0, QString::number(energy.value()), QVariant::fromValue(p.id()), eback);
-  add_to_table(ui->tablePeaks, row, 1, QS(energy.error_percent_fancy()), QVariant(), eback);
-  add_to_table(ui->tablePeaks, row, 2, QString::number(width.value()), QVariant(), wback);
-  add_to_table(ui->tablePeaks, row, 3, QS(width.error_percent_fancy()), QVariant(), wback);
-  add_to_table(ui->tablePeaks, row, 4, QString::number(area_hyp.value()), QVariant(), background);
+  add_to_table(ui->tablePeaks, row, 1, QString::number(energy.sigma()), QVariant(), eback);
+  add_to_table(ui->tablePeaks, row, 2, QS(energy.error_percent_fancy()), QVariant(), eback);
+  add_to_table(ui->tablePeaks, row, 3, QString::number(area_hyp.value()), QVariant(), background);
+  add_to_table(ui->tablePeaks, row, 4, QString::number(area_hyp.sigma()), QVariant(), background);
   add_to_table(ui->tablePeaks, row, 5, QS(area_hyp.error_percent_fancy()), QVariant(), background);
   add_to_table(ui->tablePeaks, row, 6, QString::number(area_s4.value()), QVariant(), s4back);
-  add_to_table(ui->tablePeaks, row, 7, QS(area_s4.error_percent_fancy()), QVariant(), s4back);
-  add_to_table(ui->tablePeaks, row, 8, QString::number(p.sum4.quality()), QVariant(), s4back);
+  add_to_table(ui->tablePeaks, row, 7, QString::number(area_s4.sigma()), QVariant(), s4back);
+  add_to_table(ui->tablePeaks, row, 8, QS(area_s4.error_percent_fancy()), QVariant(), s4back);
+  add_to_table(ui->tablePeaks, row, 9, QString::number(p.sum4.quality()), QVariant(), s4back);
 }
 
 void FormFitResults::selection_changed_in_table()

@@ -214,15 +214,14 @@ UncertainDouble Peak::peak_area_eff(const HCalibration& cal) const
 
 UncertainDouble Peak::fwhm() const
 {
-  // \todo multiply with sqrt(log(2.0)) ?
-  return {width.val(), width.uncert()};
+  return {width.val() * 2.0 * sqrt(log(2.0)), width.uncert() * 2.0 * sqrt(log(2.0))};
 }
 
 UncertainDouble Peak::fwhm_energy(const HCalibration& cal) const
 {
-  double bin_width = width.val() * sqrt(log(2.0));
-  double max_width = (width.val() + width.uncert()) * sqrt(log(2.0));
-  double min_width = (width.val() - width.uncert()) * sqrt(log(2.0));
+  double bin_width = width.val() * 2.0 * sqrt(log(2.0));
+  double max_width = (width.val() + width.uncert()) * 2.0 * sqrt(log(2.0));
+  double min_width = (width.val() - width.uncert()) * 2.0 * sqrt(log(2.0));
 
   double val = cal.channel_to_energy(position.val() + bin_width)
       - cal.channel_to_energy(position.val() - bin_width);
@@ -236,9 +235,9 @@ UncertainDouble Peak::fwhm_energy(const HCalibration& cal) const
 
 UncertainDouble Peak::fwhm_energy(const Calibration& cal) const
 {
-  double bin_width = width.val() * sqrt(log(2.0));
-  double max_width = (width.val() + width.uncert()) * sqrt(log(2.0));
-  double min_width = (width.val() - width.uncert()) * sqrt(log(2.0));
+  double bin_width = width.val() * 2.0 * sqrt(log(2.0));
+  double max_width = (width.val() + width.uncert()) * 2.0 * sqrt(log(2.0));
+  double min_width = (width.val() - width.uncert()) * 2.0 * sqrt(log(2.0));
 
   double val = cal.transform(position.val() + bin_width) - cal.transform(position.val() - bin_width);
   double max = cal.transform(position.val() + max_width) - cal.transform(position.val() - max_width);

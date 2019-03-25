@@ -64,7 +64,9 @@ protected:
   void executeButton(QPlot::Button *button) Q_DECL_OVERRIDE;
   void mouseClicked(double x, double y, QMouseEvent *event) Q_DECL_OVERRIDE;
 
-  DAQuiri::Fitter *fit_data_;
+  QCPAxisRect* residualsAxisRect {nullptr};
+
+  DAQuiri::Fitter *fit_data_ {nullptr};
   bool busy_ {false};
 
   QMenu menuROI;
@@ -73,7 +75,7 @@ protected:
   double selected_roi_ {-1};
   bool hold_selection_ {false};
 
-  RangeSelector* range_;
+  RangeSelector* range_ {nullptr};
 
   void trim_log_lower(std::vector<double> &array);
   void calc_visible();
@@ -120,4 +122,7 @@ protected:
   bool only_one_region_selected();
 
   void make_range(double energy);
+
+  void add_resids_rect();
+  void add_resids_plots(const std::vector<double>& xx);
 };

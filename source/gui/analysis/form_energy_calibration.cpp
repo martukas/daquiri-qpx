@@ -28,7 +28,7 @@ FormEnergyCalibration::FormEnergyCalibration(DAQuiri::Detector& dets, DAQuiri::F
 
   ui->tablePeaks->verticalHeader()->hide();
   ui->tablePeaks->setColumnCount(3);
-  ui->tablePeaks->setHorizontalHeaderLabels({"chan", "err(chan)", "energy"});
+  ui->tablePeaks->setHorizontalHeaderLabels({"position", "\u03C3", "energy"});
   ui->tablePeaks->setSelectionBehavior(QAbstractItemView::SelectRows);
   ui->tablePeaks->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
@@ -396,12 +396,13 @@ void FormEnergyCalibration::add_peak_to_table(const DAQuiri::Peak& p, int row, b
 {
   QBrush background(gray ? Qt::lightGray : Qt::white);
 
-  add_to_table(ui->tablePeaks, row, 0, QString::number(p.position.val()),
-               QVariant::fromValue(p.position.val()), background);
-  // \todo uncertainty
-  //add_to_table(ui->tablePeaks, row, 1, p.center().error_percent(), QVariant(), background);
+  auto c = p.peak_position();
+
+  add_to_table(ui->tablePeaks, row, 0, QString::number(c.value()),
+               QVariant::fromValue(c.value()), background);
+  add_to_table(ui->tablePeaks, row, 1, QString::number(c.sigma()), {}, background);
   auto nrg = p.peak_energy(fit_data_.settings().calib.cali_nrg_).value();
-  add_to_table(ui->tablePeaks, row, 2, QString::number(nrg), QVariant(), background);
+  add_to_table(ui->tablePeaks, row, 2, QString::number(nrg), {}, background);
 }
 
 void FormEnergyCalibration::select_in_plot()

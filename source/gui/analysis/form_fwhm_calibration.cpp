@@ -35,9 +35,10 @@ FormFwhmCalibration::FormFwhmCalibration(DAQuiri::Detector& dets,
   ui->PlotCalib->setAxisLabels("energy", "FWHM");
 
   ui->tablePeaks->verticalHeader()->hide();
-  ui->tablePeaks->setColumnCount(6);
-  ui->tablePeaks->setHorizontalHeaderLabels({"energy", "err(energy)", "fwhm", "err(fwhm)", "Quality",
-                                             "fit chi_sq_norm(hyp)"});
+  ui->tablePeaks->setColumnCount(7);
+  ui->tablePeaks->setHorizontalHeaderLabels({"energy", "\u03C3", "%err",
+                                             "fwhm", "\u03C3", "%err",
+                                             "chi_sq_norm"});
   ui->tablePeaks->setSelectionBehavior(QAbstractItemView::SelectRows);
   ui->tablePeaks->setSelectionMode(QAbstractItemView::ExtendedSelection);
   ui->tablePeaks->setEditTriggers(QTableView::NoEditTriggers);
@@ -199,11 +200,14 @@ void FormFwhmCalibration::add_peak_to_table(const DAQuiri::Peak& p, int row, boo
   auto width = p.fwhm_energy(calib.cali_nrg_);
 
   // \todo reintroduce uncertainties
-  add_to_table(ui->tablePeaks, row, 0, QString::number(energy.value()),
+  add_to_table(ui->tablePeaks, row, 0,
+               QString::number(energy.value()),
                QVariant::fromValue(p.id()), background);
-  add_to_table(ui->tablePeaks, row, 1, QS(energy.error_percent_fancy()), QVariant(), background);
-  add_to_table(ui->tablePeaks, row, 2, QString::number(width.value()), QVariant(), background);
-  add_to_table(ui->tablePeaks, row, 3, QS(width.error_percent_fancy()), QVariant(), background);
+  add_to_table(ui->tablePeaks, row, 1, QString::number(energy.sigma()), {}, background);
+  add_to_table(ui->tablePeaks, row, 2, QS(energy.error_percent_fancy()), {}, background);
+  add_to_table(ui->tablePeaks, row, 3, QString::number(width.value()), {}, background);
+  add_to_table(ui->tablePeaks, row, 4, QString::number(width.sigma()), {}, background);
+  add_to_table(ui->tablePeaks, row, 5, QS(width.error_percent_fancy()), {}, background);
   //add_to_table(ui->tablePeaks, row, 4, (p.good() ? "T" : "F"), QVariant(), background);
 //  UncertainDouble chi_sq_norm(1, (1 - p.hypermet().chi2()), 2);
 //  add_to_table(ui->tablePeaks, row, 5, chi_sq_norm.error_percent(), QVariant(), background);

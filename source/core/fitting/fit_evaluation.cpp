@@ -43,7 +43,7 @@ void FitEvaluation::reset()
   y_resid_on_background_ = y_resid_ = y_;
   y_fit_.assign(x_.size(), 0.0);
   y_background_.assign(x_.size(), 0.0);
-  y_resid_weighted_.assign(x_.size(), 0.0);
+  y_resid_weighted_.assign(x_.size(), std::numeric_limits<double>::quiet_NaN());
 }
 
 bool FitEvaluation::empty() const

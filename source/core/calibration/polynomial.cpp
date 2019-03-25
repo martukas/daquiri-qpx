@@ -2,6 +2,7 @@
 
 #include <core/util/UTF_extensions.h>
 #include <core/util/lexical_extensions.h>
+#include <core/util/custom_logger.h>
 
 namespace DAQuiri
 {
@@ -116,6 +117,9 @@ double Polynomial::derivative(double x) const
                           c.second.value() * c.first});
     }
   }
+
+//  INFO("Poly deriv {} -> {}", to_UTF8(6, false), new_poly.to_UTF8(6, false));
+
   return new_poly(x);
 }
 

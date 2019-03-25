@@ -3,9 +3,9 @@
 
 QpFitter::QpFitter(QWidget *parent)
   : QPlot::Multi1D(parent)
-  , range_(nullptr)
-  , fit_data_(nullptr)
 {
+  add_resids_rect();
+
   range_ = new RangeSelector(this);
   connect (range_, SIGNAL(stoppedMoving()), this, SLOT(update_range_selection()));
 
@@ -22,6 +22,35 @@ QpFitter::QpFitter(QWidget *parent)
   connect(&menuROI, SIGNAL(triggered(QAction*)), this, SLOT(changeROI(QAction*)));
 
   replotAll();
+}
+
+void QpFitter::add_resids_rect()
+{
+  // create bottom axis rect for residuals:
+  residualsAxisRect = new QCPAxisRect(this);
+  plotLayout()->addElement(1, 0, residualsAxisRect);
+  residualsAxisRect->setMaximumSize(QSize(QWIDGETSIZE_MAX, 100));
+  residualsAxisRect->axis(QCPAxis::atBottom)->setLayer("axes");
+  residualsAxisRect->axis(QCPAxis::atBottom)->grid()->setLayer("grid");
+  // bring bottom and main axis rect closer together:
+  plotLayout()->setRowSpacing(0);
+  residualsAxisRect->setAutoMargins(QCP::msLeft|QCP::msRight|QCP::msBottom);
+  residualsAxisRect->setMargins(QMargins(0, 0, 0, 0));
+
+// interconnect x axis ranges of main and bottom axis rects:
+  connect(xAxis, SIGNAL(rangeChanged(QCPRange)), residualsAxisRect->axis(QCPAxis::atBottom), SLOT(setRange(QCPRange)));
+  connect(residualsAxisRect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), xAxis, SLOT(setRange(QCPRange)));
+// configure axes of both main and bottom axis rect:
+//  QSharedPointer<QCPAxisTickerDateTime> dateTimeTicker(new QCPAxisTickerDateTime);
+//  dateTimeTicker->setDateTimeSpec(Qt::UTC);
+//  dateTimeTicker->setDateTimeFormat("dd. MMMM");
+//  residualsAxisRect->axis(QCPAxis::atBottom)->setTicker(dateTimeTicker);
+//  residualsAxisRect->axis(QCPAxis::atBottom)->setTickLabelRotation(15);
+
+// make axis rects' left side line up:
+  QCPMarginGroup *group = new QCPMarginGroup(this);
+  axisRect()->setMarginGroup(QCP::msLeft|QCP::msRight, group);
+  residualsAxisRect->setMarginGroup(QCP::msLeft|QCP::msRight, group);
 }
 
 void QpFitter::set_busy(bool b)
@@ -270,6 +299,30 @@ void QpFitter::adjustY()
 {
   calc_visible();
   QPlot::Multi1D::adjustY();
+
+  if (fit_data_ && residualsAxisRect)
+  {
+    double bin_min = fit_data_->settings().calib.nrg_to_bin(xAxis->range().lower);
+    double bin_max = fit_data_->settings().calib.nrg_to_bin(xAxis->range().upper);
+
+    double resid_min = 0.0;
+    double resid_max = 0.0;
+    const auto& eval = fit_data_->fit_eval();
+    for (size_t i = 0; i < eval.x_.size(); ++i)
+    {
+      if ((eval.x_[i] < bin_min) || (eval.x_[i] > bin_max))
+        continue;
+      if (std::isnan(eval.y_resid_weighted_[i]))
+        continue;
+      resid_min = std::min(eval.y_resid_weighted_[i], resid_min);
+      resid_max = std::max(eval.y_resid_weighted_[i], resid_max);
+    }
+
+    auto max_abs = std::max(std::abs(resid_min), std::abs(resid_max));
+    max_abs *= 1.1;
+
+    residualsAxisRect->axis(QCPAxis::atLeft)->setRange(-max_abs, max_abs);
+  }
 }
 
 void QpFitter::selection_changed()
@@ -451,6 +504,8 @@ void QpFitter::updateData()
 
   addGraph(xx, fit_data_->fit_eval().y_resid_on_background_, pen_resid, false, "Residuals");
 
+  add_resids_plots(xx);
+
   for (auto &r : fit_data_->regions())
     plotRegion(r.first, r.second, data_graph);
 
@@ -459,6 +514,48 @@ void QpFitter::updateData()
   range_->replot();
   adjustY();
 }
+
+void QpFitter::add_resids_plots(const std::vector<double>& xx)
+{
+  QCPScatterStyle myScatter;
+  myScatter.setShape(QCPScatterStyle::ssDiamond);
+  myScatter.setBrush(Qt::white);
+  myScatter.setSize(5);
+  
+  QCPGraph* resids_green = new QCPGraph(residualsAxisRect->axis(QCPAxis::atBottom),
+                                               residualsAxisRect->axis(QCPAxis::atLeft));
+  myScatter.setPen(QPen(Qt::darkGreen));
+  resids_green->setScatterStyle(myScatter);
+  resids_green->setLineStyle(QCPGraph::lsNone);
+
+  QCPGraph* resids_yellow = new QCPGraph(residualsAxisRect->axis(QCPAxis::atBottom),
+                                        residualsAxisRect->axis(QCPAxis::atLeft));
+  myScatter.setPen(QPen(Qt::darkYellow));
+  resids_yellow->setScatterStyle(myScatter);
+  resids_yellow->setLineStyle(QCPGraph::lsNone);
+
+  QCPGraph* resids_red = new QCPGraph(residualsAxisRect->axis(QCPAxis::atBottom),
+                                         residualsAxisRect->axis(QCPAxis::atLeft));
+  myScatter.setPen(QPen(Qt::darkRed));
+  resids_red->setScatterStyle(myScatter);
+  resids_red->setLineStyle(QCPGraph::lsNone);
+
+  auto wresids = fit_data_->fit_eval().y_resid_weighted_;
+  resids_green->data().clear();
+  for (size_t i = 0; i < xx.size(); ++i)
+  {
+    const auto& resid = wresids[i];
+    if (std::isnan(resid))
+      continue;
+    if (resid > 3.0)
+      resids_red->addData(xx[i], resid);
+    else if (resid > 1.0)
+      resids_yellow->addData(xx[i], resid);
+    else
+      resids_green->addData(xx[i], resid);
+  }
+}
+
 
 void QpFitter::plotRegion(double region_id, const DAQuiri::RegionManager &region, QCPGraph *data_graph)
 {
