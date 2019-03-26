@@ -7,6 +7,9 @@
 enum FitterAction {kFit, kStop, kIdle, kAddPeak, kRemovePeaks, kRefit,
                   kAdjustLB, kAdjustRB, kOverrideSettingsROI, kMergeRegions};
 
+
+enum class RefitPolicy { kAlways, kAsk, kNever };
+
 class ThreadFitter : public QThread
 {
   Q_OBJECT
@@ -29,6 +32,7 @@ public:
 
 signals:
   void fit_updated(DAQuiri::Fitter data);
+  void dirty(double region_id);
   void fitting_done();
 
 protected:
@@ -42,6 +46,8 @@ private:
   QMutex mutex_;
   FitterAction action_;
 
+  RefitPolicy refit_policy_{RefitPolicy::kAsk};
+
   double LL, RR;
   double target_;
   DAQuiri::Peak hypermet_;
@@ -50,4 +56,6 @@ private:
 
   std::atomic<bool> running_;
   std::atomic<bool> terminating_;
+
+  void conditional_refit(double region_id);
 };

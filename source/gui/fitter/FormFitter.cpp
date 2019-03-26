@@ -9,26 +9,24 @@
 #include <gui/fitter/FormPeakInfo.h>
 #include <gui/fitter/rollback_dialog.h>
 
-FormFitter::FormFitter(QWidget *parent) :
-  QWidget(parent),
-  fit_data_(nullptr),
-  ui(new Ui::FormFitter)
+FormFitter::FormFitter(QWidget* parent) :
+    QWidget(parent), fit_data_(nullptr), ui(new Ui::FormFitter)
 {
   ui->setupUi(this);
 //  player = new QMediaPlayer(this);
 
   connect(ui->plot, SIGNAL(selectionChangedByUser()), this, SLOT(selection_changed()));
-  connect(ui->plot, SIGNAL(range_selection_changed(double,double)),
-          this, SLOT(update_range_selection(double,double)));
+  connect(ui->plot, SIGNAL(range_selection_changed(double, double)),
+          this, SLOT(update_range_selection(double, double)));
 
   connect(ui->plot, SIGNAL(add_peak(double, double)), this, SLOT(add_peak(double, double)));
   connect(ui->plot, SIGNAL(delete_selected_peaks()), this, SLOT(delete_selected_peaks()));
   connect(ui->plot, SIGNAL(adjust_sum4(double, double, double)),
           this, SLOT(adjust_sum4(double, double, double)));
-  connect(ui->plot, SIGNAL(adjust_background_L(double,double,double)),
-          this, SLOT(adjust_background_L(double,double,double)));
-  connect(ui->plot, SIGNAL(adjust_background_R(double,double,double)),
-          this, SLOT(adjust_background_R(double,double,double)));
+  connect(ui->plot, SIGNAL(adjust_background_L(double, double, double)),
+          this, SLOT(adjust_background_L(double, double, double)));
+  connect(ui->plot, SIGNAL(adjust_background_R(double, double, double)),
+          this, SLOT(adjust_background_R(double, double, double)));
   connect(ui->plot, SIGNAL(peak_info(double)), this, SLOT(peak_info(double)));
 
   connect(ui->plot, SIGNAL(rollback_ROI(double)), this, SLOT(rollback_ROI(double)));
@@ -36,8 +34,7 @@ FormFitter::FormFitter(QWidget *parent) :
   connect(ui->plot, SIGNAL(refit_ROI(double)), this, SLOT(refit_ROI(double)));
   connect(ui->plot, SIGNAL(delete_ROI(double)), this, SLOT(delete_ROI(double)));
 
-
-  QShortcut *shortcut = new QShortcut(QKeySequence(Qt::Key_Backspace), ui->plot);
+  QShortcut* shortcut = new QShortcut(QKeySequence(Qt::Key_Backspace), ui->plot);
   connect(shortcut, SIGNAL(activated()), ui->plot, SLOT(zoomOut()));
 
 //  QShortcut *shortcut2 = new QShortcut(QKeySequence(Qt::Key_Insert), ui->plot);
@@ -51,8 +48,9 @@ FormFitter::FormFitter(QWidget *parent) :
 
   connect(&thread_fitter_, SIGNAL(fit_updated(DAQuiri::Fitter)), this, SLOT(fit_updated(DAQuiri::Fitter)));
   connect(&thread_fitter_, SIGNAL(fitting_done()), this, SLOT(fitting_complete()));
+  connect(&thread_fitter_, SIGNAL(dirty(double)), this, SLOT(dirty(double)));
 
-  QMovie *movie = new QMovie(":/loader.gif");
+  QMovie* movie = new QMovie(":/loader.gif");
   ui->labelMovie->setMovie(movie);
   ui->labelMovie->show();
   movie->start();
@@ -69,20 +67,23 @@ FormFitter::~FormFitter()
   delete ui;
 }
 
-void FormFitter::setFit(DAQuiri::Fitter* fit) {
+void FormFitter::setFit(DAQuiri::Fitter* fit)
+{
   fit_data_ = fit;
   ui->plot->setFit(fit);
   update_spectrum();
   updateData();
 }
 
-void FormFitter::loadSettings(QSettings &settings_) {
+void FormFitter::loadSettings(QSettings& settings_)
+{
   settings_.beginGroup("Peaks");
   //  scale_log_ = settings_.value("scale_log", true).toBool();
   settings_.endGroup();
 }
 
-void FormFitter::saveSettings(QSettings &settings_) {
+void FormFitter::saveSettings(QSettings& settings_)
+{
   settings_.beginGroup("Peaks");
   //  settings_.setValue("scale_log", scale_log_);
   settings_.endGroup();
@@ -126,9 +127,10 @@ void FormFitter::rollback_ROI(double ROI_bin)
 
   if (fit_data_->contains_region(ROI_bin))
   {
-    RollbackDialog *editor = new RollbackDialog(fit_data_->region(ROI_bin), qobject_cast<QWidget *> (parent()));
+    RollbackDialog* editor = new RollbackDialog(fit_data_->region(ROI_bin), qobject_cast<QWidget*>(parent()));
     int ret = editor->exec();
-    if (ret == QDialog::Accepted) {
+    if (ret == QDialog::Accepted)
+    {
       fit_data_->rollback_ROI(ROI_bin, editor->get_choice());
       toggle_push(false);
       updateData();
@@ -254,8 +256,8 @@ void FormFitter::adjust_background_L(double ROI_id, double l, double r)
   }
 
   std::set<double> rois = fit_data_->relevant_regions(
-        fit_data_->settings().calib.nrg_to_bin(l),
-        fit_data_->region(ROI_id).right_bin());
+      fit_data_->settings().calib.nrg_to_bin(l),
+      fit_data_->region(ROI_id).right_bin());
 
   if (!rois.count(ROI_id))
   {
@@ -264,7 +266,7 @@ void FormFitter::adjust_background_L(double ROI_id, double l, double r)
   }
 
   bool merge = ((rois.size() > 1) &&
-                (QMessageBox::question(this, "Merge?", "Regions overlap. Merge them?") == QMessageBox::Yes));
+      (QMessageBox::question(this, "Merge?", "Regions overlap. Merge them?") == QMessageBox::Yes));
 
   thread_fitter_.set_data(*fit_data_);
 
@@ -272,15 +274,14 @@ void FormFitter::adjust_background_L(double ROI_id, double l, double r)
 
   if (merge)
     thread_fitter_.merge_regions(
-          fit_data_->settings().calib.nrg_to_bin(l),
-          fit_data_->region(ROI_id).right_bin());
+        fit_data_->settings().calib.nrg_to_bin(l),
+        fit_data_->region(ROI_id).right_bin());
   else
     thread_fitter_.adjust_LB(ROI_id,
                              fit_data_->settings().calib.nrg_to_bin(l),
                              fit_data_->settings().calib.nrg_to_bin(r));
 
 }
-
 
 void FormFitter::adjust_background_R(double ROI_id, double l, double r)
 {
@@ -296,8 +297,8 @@ void FormFitter::adjust_background_R(double ROI_id, double l, double r)
   }
 
   std::set<double> rois = fit_data_->relevant_regions(
-        fit_data_->region(ROI_id).left_bin(),
-        fit_data_->settings().calib.nrg_to_bin(r));
+      fit_data_->region(ROI_id).left_bin(),
+      fit_data_->settings().calib.nrg_to_bin(r));
 
   if (!rois.count(ROI_id))
   {
@@ -306,7 +307,7 @@ void FormFitter::adjust_background_R(double ROI_id, double l, double r)
   }
 
   bool merge = ((rois.size() > 1) &&
-                (QMessageBox::question(this, "Merge?", "Regions overlap. Merge them?") == QMessageBox::Yes));
+      (QMessageBox::question(this, "Merge?", "Regions overlap. Merge them?") == QMessageBox::Yes));
 
   thread_fitter_.set_data(*fit_data_);
 
@@ -320,7 +321,6 @@ void FormFitter::adjust_background_R(double ROI_id, double l, double r)
                              fit_data_->settings().calib.nrg_to_bin(l),
                              fit_data_->settings().calib.nrg_to_bin(r));
 }
-
 
 void FormFitter::delete_selected_peaks()
 {
@@ -338,7 +338,6 @@ void FormFitter::delete_selected_peaks()
   thread_fitter_.set_data(*fit_data_);
   thread_fitter_.remove_peaks(chosen_peaks);
 }
-
 
 void FormFitter::fit_updated(DAQuiri::Fitter fitter)
 {
@@ -359,7 +358,8 @@ void FormFitter::fit_updated(DAQuiri::Fitter fitter)
   emit data_changed();
 }
 
-void FormFitter::fitting_complete() {
+void FormFitter::fitting_complete()
+{
   //  while (player->state() == QMediaPlayer::PlayingState)
   //    player->stop();
 
@@ -377,6 +377,23 @@ void FormFitter::fitting_complete() {
   toggle_push(false);
   emit data_changed();
   emit fitting_done();
+}
+
+void FormFitter::dirty(double region_id)
+{
+  fitting_complete();
+
+  bool refit = (QMessageBox::question(this, "Refit?",
+      "Regions at bin=" + QString::number(region_id) + " modified. Refit?") == QMessageBox::Yes);
+
+  thread_fitter_.set_data(*fit_data_);
+
+  if (refit)
+  {
+    toggle_push(true);
+    thread_fitter_.set_data(*fit_data_);
+    thread_fitter_.refit(region_id);
+  }
 }
 
 void FormFitter::toggle_push(bool busy)
@@ -405,7 +422,6 @@ void FormFitter::clearSelection()
   ui->plot->clearSelection();
 }
 
-
 void FormFitter::selection_changed()
 {
   toggle_push(busy_);
@@ -428,11 +444,12 @@ void FormFitter::on_pushSettings_clicked()
     return;
 
   DAQuiri::FitSettings fs = fit_data_->settings();
-  FormFitterSettings *FitterSettings = new FormFitterSettings(fs, this);
+  FormFitterSettings* FitterSettings = new FormFitterSettings(fs, this);
   FitterSettings->setWindowTitle("Fitter settings");
   int ret = FitterSettings->exec();
 
-  if (ret == QDialog::Accepted) {
+  if (ret == QDialog::Accepted)
+  {
     fit_data_->apply_settings(fs);
     updateData();
   }
@@ -445,7 +462,7 @@ void FormFitter::roi_settings(double roi)
 
   DAQuiri::FitSettings fs = fit_data_->region(roi).fit_settings();
 
-  FormFitterSettings *FitterSettings = new FormFitterSettings(fs, this);
+  FormFitterSettings* FitterSettings = new FormFitterSettings(fs, this);
   FitterSettings->setWindowTitle("Region settings");
   int ret = FitterSettings->exec();
 
@@ -471,7 +488,7 @@ void FormFitter::peak_info(double bin)
 
   DAQuiri::Peak hm = fit_data_->peaks().at(bin);
 
-  FormPeakInfo *peakInfo = new FormPeakInfo(hm, fit_data_->settings().calib, this);
+  FormPeakInfo* peakInfo = new FormPeakInfo(hm, fit_data_->settings().calib, this);
   auto nrg = fit_data_->peaks().at(bin).peak_energy(fit_data_->settings().calib.cali_nrg_);
   peakInfo->setWindowTitle("Parameters for peak at " + QString::number(nrg.value()));
   int ret = peakInfo->exec();

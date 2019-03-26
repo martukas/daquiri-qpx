@@ -66,6 +66,7 @@ class RegionManager {
   double left_bin() const;
   double right_bin() const;
   double width() const;
+  bool dirty() const;
 
   bool overlaps(double bin) const;
   bool overlaps(double Lbin, double Rbin) const;

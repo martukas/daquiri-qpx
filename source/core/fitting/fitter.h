@@ -42,8 +42,8 @@ class Fitter
 
   //manupulation, may invoke optimizer
   bool find_and_fit(double regionID, AbstractOptimizer* optimizer);
-  bool add_peak(double left, double right, AbstractOptimizer* optimizer);
-  bool adj_LB(double regionID, double left, double right, AbstractOptimizer* optimizer);
+  double add_peak(double left, double right, AbstractOptimizer* optimizer);
+  double adj_LB(double regionID, double left, double right, AbstractOptimizer* optimizer);
   bool adj_RB(double regionID, double left, double right, AbstractOptimizer* optimizer);
   bool merge_regions(double left, double right, AbstractOptimizer* optimizer);
   bool refit_region(double regionID, AbstractOptimizer* optimizer);

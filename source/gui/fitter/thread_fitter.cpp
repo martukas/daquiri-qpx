@@ -4,10 +4,8 @@
 
 #include <core/fitting/optimizers/optlib_adapter.h>
 
-ThreadFitter::ThreadFitter(QObject *parent) :
-  QThread(parent),
-  terminating_(false),
-  running_(false)
+ThreadFitter::ThreadFitter(QObject* parent) :
+    QThread(parent), terminating_(false), running_(false)
 {
   auto opt = std::make_shared<DAQuiri::OptlibOptimizer>();
 //  opt->verbose = true;
@@ -28,19 +26,22 @@ ThreadFitter::ThreadFitter(QObject *parent) :
   start(HighPriority);
 }
 
-void ThreadFitter::terminate() {
+void ThreadFitter::terminate()
+{
   terminating_.store(true);
   wait();
 }
 
-void ThreadFitter::begin() {
+void ThreadFitter::begin()
+{
   if (!isRunning())
     start(HighPriority);
 }
 
-void ThreadFitter::set_data(const DAQuiri::Fitter &data)
+void ThreadFitter::set_data(const DAQuiri::Fitter& data)
 {
-  if (running_.load()) {
+  if (running_.load())
+  {
     WARN("Fitter busy");
     return;
   }
@@ -52,8 +53,10 @@ void ThreadFitter::set_data(const DAQuiri::Fitter &data)
     start(HighPriority);
 }
 
-void ThreadFitter::fit_peaks() {
-  if (running_.load()) {
+void ThreadFitter::fit_peaks()
+{
+  if (running_.load())
+  {
     WARN("Fitter busy");
     return;
   }
@@ -64,8 +67,10 @@ void ThreadFitter::fit_peaks() {
     start(HighPriority);
 }
 
-void ThreadFitter::add_peak(double L, double R) {
-  if (running_.load()) {
+void ThreadFitter::add_peak(double L, double R)
+{
+  if (running_.load())
+  {
     WARN("Fitter busy");
     return;
   }
@@ -78,8 +83,10 @@ void ThreadFitter::add_peak(double L, double R) {
     start(HighPriority);
 }
 
-void ThreadFitter::refit(double target_ROI) {
-  if (running_.load()) {
+void ThreadFitter::refit(double target_ROI)
+{
+  if (running_.load())
+  {
     WARN("Fitter busy");
     return;
   }
@@ -92,8 +99,9 @@ void ThreadFitter::refit(double target_ROI) {
 }
 
 void ThreadFitter::override_ROI_settings(double regionID, DAQuiri::FitSettings fs)
- {
-  if (running_.load()) {
+{
+  if (running_.load())
+  {
     WARN("Fitter busy");
     return;
   }
@@ -106,8 +114,10 @@ void ThreadFitter::override_ROI_settings(double regionID, DAQuiri::FitSettings f
     start(HighPriority);
 }
 
-void ThreadFitter::adjust_LB(double target_ROI, double L, double R) {
-  if (running_.load()) {
+void ThreadFitter::adjust_LB(double target_ROI, double L, double R)
+{
+  if (running_.load())
+  {
     WARN("Fitter busy");
     return;
   }
@@ -121,8 +131,10 @@ void ThreadFitter::adjust_LB(double target_ROI, double L, double R) {
     start(HighPriority);
 }
 
-void ThreadFitter::adjust_RB(double target_ROI, double L, double R) {
-  if (running_.load()) {
+void ThreadFitter::adjust_RB(double target_ROI, double L, double R)
+{
+  if (running_.load())
+  {
     WARN("Fitter busy");
     return;
   }
@@ -136,8 +148,10 @@ void ThreadFitter::adjust_RB(double target_ROI, double L, double R) {
     start(HighPriority);
 }
 
-void ThreadFitter::merge_regions(double L, double R) {
-  if (running_.load()) {
+void ThreadFitter::merge_regions(double L, double R)
+{
+  if (running_.load())
+  {
     WARN("Fitter busy");
     return;
   }
@@ -150,9 +164,10 @@ void ThreadFitter::merge_regions(double L, double R) {
     start(HighPriority);
 }
 
-
-void ThreadFitter::remove_peaks(std::set<double> chosen_peaks) {
-  if (running_.load()) {
+void ThreadFitter::remove_peaks(std::set<double> chosen_peaks)
+{
+  if (running_.load())
+  {
     WARN("Fitter busy");
     return;
   }
@@ -164,29 +179,62 @@ void ThreadFitter::remove_peaks(std::set<double> chosen_peaks) {
     start(HighPriority);
 }
 
-void ThreadFitter::stop_work() {
+void ThreadFitter::stop_work()
+{
   QMutexLocker locker(&mutex_);
   action_ = kStop; //not thread safe
   optimizer_->cancel.store(true);
 }
 
-void ThreadFitter::run() {
+void ThreadFitter::conditional_refit(double region_id)
+{
+  if (fitter_.region(region_id).dirty())
+  {
+    if (refit_policy_ == RefitPolicy::kAsk)
+    {
+      emit dirty(region_id);
+      action_ = kIdle;
+    }
+    else if (refit_policy_ == RefitPolicy::kAlways)
+    {
+      target_ = region_id;
+      action_ = kRefit;
+    }
+    else
+    {
+      emit fitting_done();
+      action_ = kIdle;
+    }
+  }
+  else
+  {
+    emit fitting_done();
+    action_ = kIdle;
+  }
+}
 
-  while (!terminating_.load()) {
-    if (action_ != kIdle) {
+void ThreadFitter::run()
+{
+
+  while (!terminating_.load())
+  {
+    if (action_ != kIdle)
+    {
       running_.store(true);
       optimizer_->cancel.store(false);
     }
 
-    if (action_ == kFit) {
+    if (action_ == kFit)
+    {
       int current = 1;
       Timer total_timer(true);
       std::shared_ptr<Timer> timer(new Timer(true));
-      for (auto &q : fitter_.regions())
+      for (auto& q : fitter_.regions())
       {
         fitter_.find_and_fit(q.first, optimizer_.get());
         current++;
-        if (timer->s() > 2) {
+        if (timer->s() > 2)
+        {
           emit fit_updated(fitter_);
           timer = std::shared_ptr<Timer>(new Timer(true));
           DBG("<Fitter> {} of {} regions completed",
@@ -200,42 +248,78 @@ void ThreadFitter::run() {
       emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
-    } else if (action_ == kRefit) {
+    }
+    else if (action_ == kRefit)
+    {
       if (fitter_.refit_region(target_, optimizer_.get()))
+          emit fit_updated(fitter_);
+      emit fitting_done();
+      action_ = kIdle;
+    }
+    else if (action_ == kAddPeak)
+    {
+      auto new_id = fitter_.add_peak(LL, RR, optimizer_.get());
+      if (new_id != -1)
+      {
         emit fit_updated(fitter_);
-      emit fitting_done();
-      action_ = kIdle;
-    } else if (action_ == kAddPeak) {
-      fitter_.add_peak(LL, RR, optimizer_.get());
-      emit fit_updated(fitter_);
-      emit fitting_done();
-      action_ = kIdle;
-    } else if (action_ == kAdjustLB) {
-      if (fitter_.adj_LB(target_, LL, RR, optimizer_.get()))
+        conditional_refit(new_id);
+      }
+      else
+      {
+        emit fitting_done();
+        action_ = kIdle;
+      }
+    }
+    else if (action_ == kAdjustLB)
+    {
+      auto new_id = fitter_.adj_LB(target_, LL, RR, optimizer_.get());
+      if (new_id != -1)
+      {
         emit fit_updated(fitter_);
-      emit fitting_done();
-      action_ = kIdle;
-    } else if (action_ == kAdjustRB) {
+        conditional_refit(new_id);
+      }
+      else
+      {
+        emit fitting_done();
+        action_ = kIdle;
+      }
+    }
+    else if (action_ == kAdjustRB)
+    {
       if (fitter_.adj_RB(target_, LL, RR, optimizer_.get()))
+      {
         emit fit_updated(fitter_);
-      emit fitting_done();
-      action_ = kIdle;
-    } else if (action_ == kOverrideSettingsROI) {
+        conditional_refit(target_);
+      }
+      else
+      {
+        emit fitting_done();
+        action_ = kIdle;
+      }
+    }
+    else if (action_ == kOverrideSettingsROI)
+    {
       if (fitter_.override_ROI_settings(target_, settings_))
-        emit fit_updated(fitter_);
+          emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
-    } else if (action_ == kMergeRegions) {
+    }
+    else if (action_ == kMergeRegions)
+    {
       if (fitter_.merge_regions(LL, RR, optimizer_.get()))
-        emit fit_updated(fitter_);
+          emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
-    } else if (action_ == kRemovePeaks) {
+    }
+    else if (action_ == kRemovePeaks)
+    {
       if (fitter_.remove_peaks(chosen_peaks_, optimizer_.get()))
-        emit fit_updated(fitter_);
+          emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;
-    } else {
+    }
+    else
+    {
       QThread::sleep(2);
     }
     running_.store(false);

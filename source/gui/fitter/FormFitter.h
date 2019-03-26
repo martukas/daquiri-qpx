@@ -58,6 +58,7 @@ private slots:
 
   void fit_updated(DAQuiri::Fitter);
   void fitting_complete();
+  void dirty(double region_id);
 
   void add_peak(double l, double r);
   void delete_selected_peaks();

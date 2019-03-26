@@ -120,6 +120,11 @@ double RegionManager::id() const
   return left_bin();
 }
 
+bool RegionManager::dirty() const
+{
+  return region_.dirty();
+}
+
 double RegionManager::left_bin() const
 {
   if (fit_eval_.x_.empty())
@@ -344,8 +349,9 @@ bool RegionManager::add_peak(const FitEvaluation &parentfinder,
     if (region_.add_peak(left, right, kon.highest_residual(left, right)))
     {
       save_current_fit("Manually added peak");
-      if (region_.dirty())
-        rebuild(optimizer);
+      render();
+//      if (region_.dirty())
+//        rebuild(optimizer);
       return true;
     }
   }
@@ -378,8 +384,9 @@ bool RegionManager::add_peak(const FitEvaluation &parentfinder,
                          kon.highest_residual(left, right)))
     {
       save_current_fit("Manually added peak");
-      if (region_.dirty())
-        rebuild(optimizer);
+      render();
+//      if (region_.dirty())
+//        rebuild(optimizer);
       return true;
     }
   }
@@ -505,8 +512,8 @@ bool RegionManager::adjust_LB(const FitEvaluation &parentfinder, double left, do
 
   save_current_fit("Left baseline adjusted");
 
-  if (region_.dirty())
-    rebuild(optimizer);
+//  if (region_.dirty())
+//    rebuild(optimizer);
 
   render();
   return true;
@@ -529,8 +536,8 @@ bool RegionManager::adjust_RB(const FitEvaluation &parentfinder, double left, do
 
   save_current_fit("Right baseline adjusted");
 
-  if (region_.dirty())
-    rebuild(optimizer);
+//  if (region_.dirty())
+//    rebuild(optimizer);
 
   render();
   return true;
