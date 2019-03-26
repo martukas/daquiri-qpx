@@ -15,6 +15,8 @@ void Step::update_indices(int32_t& i)
 {
   if (enabled)
     amplitude.update_index(i);
+  else
+    reset_indices();
 }
 
 void Step::put(Eigen::VectorXd& fit) const

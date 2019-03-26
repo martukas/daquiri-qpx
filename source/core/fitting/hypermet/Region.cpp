@@ -312,7 +312,9 @@ void Region::save_fit(const FitResult& result)
   for (size_t i = 0; i < static_cast<size_t>(result.variables.size()); ++i)
     diagonals[i] = result.inv_hessian.coeff(i, i) * df;
 
-  double chisq_norm = std::max(this->chi_sq(result.variables), 1.0) * 0.5;
+  // \todo should this be done here?
+  // \todo why 0.5?
+  double chisq_norm = std::max(this->chi_sq(result.variables) / df, 1.0) * 0.5;
 
   background.get_uncerts(diagonals, chisq_norm);
   if (!peaks_.empty())

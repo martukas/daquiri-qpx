@@ -155,11 +155,17 @@ UncertainDouble Peak::peak_energy(const Calibration& cal) const
 
 UncertainDouble Peak::area() const
 {
-  auto a = amplitude.val() * width.val() * (std::sqrt(M_PI) +
-      short_tail.amplitude.val() * short_tail.slope.val() *
-          std::exp(-0.25 / square(short_tail.slope.val())) +
-      right_tail.amplitude.val() * right_tail.slope.val() *
-          std::exp(-0.25 / square(right_tail.slope.val())));
+  auto a = std::sqrt(M_PI);
+
+  if (short_tail.enabled)
+    a += short_tail.amplitude.val() * short_tail.slope.val() *
+        std::exp(-0.25 / square(short_tail.slope.val()));
+
+  if (right_tail.enabled)
+    a += right_tail.amplitude.val() * right_tail.slope.val() *
+        std::exp(-0.25 / square(right_tail.slope.val()));
+
+  a *= amplitude.val() * width.val();
 
   // \todo make this more rigorous
 //  double cs = chi_sq_norm * 0.5;
@@ -191,7 +197,9 @@ UncertainDouble Peak::area() const
 //            * std::exp(-0.25 / square(short_tail.slope.val()))) * cs;
 //    // * Hessinv.coeff(Peak(PeakIndex).GAM.index(), AST.index())
 //  }
-  return {a, std::sqrt(a) * std::max(1.0, chi_sq_norm)};
+
+// \todo compensating for the 0.5 fatcor in Region
+  return {a, std::sqrt(a) * chi_sq_norm * 2.0};
 }
 
 UncertainDouble Peak::peak_area_eff(const HCalibration& cal) const

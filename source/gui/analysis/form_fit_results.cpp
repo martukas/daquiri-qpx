@@ -12,11 +12,12 @@ FormFitResults::FormFitResults(DAQuiri::Fitter& fit, QWidget* parent) :
   loadSettings();
 
   ui->tablePeaks->verticalHeader()->hide();
-  ui->tablePeaks->setColumnCount(10);
+  ui->tablePeaks->setColumnCount(11);
   ui->tablePeaks->setHorizontalHeaderLabels({"energy", "\u03C3", "err",
-                                             "cps(hyp)", "\u03C3", "err",
-                                             "cps(S4)", "\u03C3", "err",
-                                             "Quality"});
+                                             "area(hyp)", "\u03C3", "err",
+                                             "\u03C7\u00B2-norm",
+                                             "area(S4)", "\u03C3", "err",
+                                             "Quality(S4)"});
   ui->tablePeaks->setSelectionBehavior(QAbstractItemView::SelectRows);
   ui->tablePeaks->setSelectionMode(QAbstractItemView::ExtendedSelection);
   ui->tablePeaks->setEditTriggers(QTableView::NoEditTriggers);
@@ -91,6 +92,9 @@ void FormFitResults::update_data()
 
 void FormFitResults::add_peak_to_table(const DAQuiri::Peak& p, int row, bool gray)
 {
+  double max_param_err = 10.0;
+  double max_chi2 = 10.0;
+
   QBrush background(gray ? Qt::lightGray : Qt::white);
 
   QColor yellow;
@@ -106,18 +110,25 @@ void FormFitResults::add_peak_to_table(const DAQuiri::Peak& p, int row, bool gra
   auto width = p.fwhm_energy(calib.cali_nrg_);
 
   int qual_energy = 1;
-  if (energy.error_percent() > 50)
+  if (energy.error_percent() > max_param_err)
     qual_energy = 3;
   else if (!std::isfinite(energy.sigma()) || !energy.sigma())
     qual_energy = 2;
 
   int qual_width = 1;
-  if (width.error_percent() > 50)
+  if (width.error_percent() > max_param_err)
     qual_width = 3;
   else if (!std::isfinite(width.sigma()) || !width.sigma())
     qual_width = 2;
 
+  int qual_chi = 1;
+  if (p.chi_sq_norm > max_chi2)
+    qual_chi = 3;
+  else if (!std::isfinite(p.chi_sq_norm) || !p.chi_sq_norm)
+    qual_chi = 2;
+
   bool good = ((p.sum4.quality() == 1)
+      && (qual_chi == 1)
       && (qual_energy == 1)
       && (qual_width == 1));
 
@@ -129,6 +140,12 @@ void FormFitResults::add_peak_to_table(const DAQuiri::Peak& p, int row, bool gra
     s4back = red;
   else if (p.sum4.quality() > 1)
     s4back = orange;
+
+  QBrush hyback = background;
+  if (qual_chi > 2)
+    hyback = red;
+  else if (qual_chi > 1)
+    hyback = orange;
 
   QBrush eback = background;
   if (qual_energy > 2)
@@ -146,15 +163,16 @@ void FormFitResults::add_peak_to_table(const DAQuiri::Peak& p, int row, bool gra
   auto area_s4 = p.sum4.peak_area();
 
   add_to_table(ui->tablePeaks, row, 0, QString::number(energy.value()), QVariant::fromValue(p.id()), eback);
-  add_to_table(ui->tablePeaks, row, 1, QString::number(energy.sigma()), QVariant(), eback);
-  add_to_table(ui->tablePeaks, row, 2, QS(energy.error_percent_fancy()), QVariant(), eback);
-  add_to_table(ui->tablePeaks, row, 3, QString::number(area_hyp.value()), QVariant(), background);
-  add_to_table(ui->tablePeaks, row, 4, QString::number(area_hyp.sigma()), QVariant(), background);
-  add_to_table(ui->tablePeaks, row, 5, QS(area_hyp.error_percent_fancy()), QVariant(), background);
-  add_to_table(ui->tablePeaks, row, 6, QString::number(area_s4.value()), QVariant(), s4back);
-  add_to_table(ui->tablePeaks, row, 7, QString::number(area_s4.sigma()), QVariant(), s4back);
-  add_to_table(ui->tablePeaks, row, 8, QS(area_s4.error_percent_fancy()), QVariant(), s4back);
-  add_to_table(ui->tablePeaks, row, 9, QString::number(p.sum4.quality()), QVariant(), s4back);
+  add_to_table(ui->tablePeaks, row, 1, QString::number(energy.sigma()), {}, eback);
+  add_to_table(ui->tablePeaks, row, 2, QString::number(energy.error_percent()), {}, eback);
+  add_to_table(ui->tablePeaks, row, 3, QString::number(area_hyp.value()), {}, hyback);
+  add_to_table(ui->tablePeaks, row, 4, QString::number(area_hyp.sigma()), {}, hyback);
+  add_to_table(ui->tablePeaks, row, 5, QString::number(area_hyp.error_percent()), {}, hyback);
+  add_to_table(ui->tablePeaks, row, 6, QString::number(p.chi_sq_norm), {}, background);
+  add_to_table(ui->tablePeaks, row, 7, QString::number(area_s4.value()), {}, s4back);
+  add_to_table(ui->tablePeaks, row, 8, QString::number(area_s4.sigma()), {}, s4back);
+  add_to_table(ui->tablePeaks, row, 9, QString::number(area_s4.error_percent()), {}, s4back);
+  add_to_table(ui->tablePeaks, row, 10, QString::number(p.sum4.quality()), {}, s4back);
 }
 
 void FormFitResults::selection_changed_in_table()

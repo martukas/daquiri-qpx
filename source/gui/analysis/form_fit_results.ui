@@ -65,7 +65,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../resources/qpxres.qrc">
+              <iconset resource="../resources/daquiri.qrc">
                <normaloff>:/icons/oxy/16/document_save.png</normaloff>:/icons/oxy/16/document_save.png</iconset>
              </property>
              <property name="iconSize">
@@ -121,7 +121,7 @@
              </property>
              <property name="minimumSize">
               <size>
-               <width>420</width>
+               <width>500</width>
                <height>200</height>
               </size>
              </property>
@@ -138,7 +138,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../resources/qpxres.qrc"/>
+  <include location="../resources/daquiri.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -27,8 +27,8 @@ FormEnergyCalibration::FormEnergyCalibration(DAQuiri::Detector& dets, DAQuiri::F
   ui->PlotCalib->setAxisLabels("channel", "energy");
 
   ui->tablePeaks->verticalHeader()->hide();
-  ui->tablePeaks->setColumnCount(3);
-  ui->tablePeaks->setHorizontalHeaderLabels({"position", "\u03C3", "energy"});
+  ui->tablePeaks->setColumnCount(4);
+  ui->tablePeaks->setHorizontalHeaderLabels({"position", "\u03C3", "%err", "energy"});
   ui->tablePeaks->setSelectionBehavior(QAbstractItemView::SelectRows);
   ui->tablePeaks->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
@@ -401,8 +401,11 @@ void FormEnergyCalibration::add_peak_to_table(const DAQuiri::Peak& p, int row, b
   add_to_table(ui->tablePeaks, row, 0, QString::number(c.value()),
                QVariant::fromValue(c.value()), background);
   add_to_table(ui->tablePeaks, row, 1, QString::number(c.sigma()), {}, background);
+  add_to_table(ui->tablePeaks, row, 2, QString::number(c.error_percent()), {}, background);
+
+  // \todo how to use assigned value?
   auto nrg = p.peak_energy(fit_data_.settings().calib.cali_nrg_).value();
-  add_to_table(ui->tablePeaks, row, 2, QString::number(nrg), {}, background);
+  add_to_table(ui->tablePeaks, row, 3, QString::number(nrg), {}, background);
 }
 
 void FormEnergyCalibration::select_in_plot()

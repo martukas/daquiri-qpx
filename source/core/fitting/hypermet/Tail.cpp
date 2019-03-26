@@ -19,6 +19,8 @@ void Tail::update_indices(int32_t& i)
     amplitude.update_index(i);
     slope.update_index(i);
   }
+  else
+    reset_indices();
 }
 
 void Tail::put(Eigen::VectorXd& fit) const
