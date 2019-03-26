@@ -199,8 +199,7 @@ UncertainDouble Peak::area() const
 //    // * Hessinv.coeff(Peak(PeakIndex).GAM.index(), AST.index())
 //  }
 
-// \todo compensating for the 0.5 fatcor in Region
-  return {a, std::sqrt(a) * chi_sq_norm * 2.0};
+  return {a, std::sqrt(a * std::max(chi_sq_norm, 1.0))};
 }
 
 UncertainDouble Peak::peak_area_eff(const HCalibration& cal) const
@@ -313,13 +312,15 @@ void Peak::get(const Eigen::VectorXd& fit)
 void Peak::get_uncerts(const Eigen::VectorXd& diagonals, double chisq_norm)
 {
   chi_sq_norm = chisq_norm;
-  position.get_uncert(diagonals, chisq_norm);
-  amplitude.get_uncert(diagonals, chisq_norm);
-  width.get_uncert(diagonals, chisq_norm);
-  short_tail.get_uncerts(diagonals, chisq_norm);
-  right_tail.get_uncerts(diagonals, chisq_norm);
-  long_tail.get_uncerts(diagonals, chisq_norm);
-  step.get_uncerts(diagonals, chisq_norm);
+  const double chisq_norm_physical = std::max(chi_sq_norm, 1.0);
+
+  position.get_uncert(diagonals, chisq_norm_physical);
+  amplitude.get_uncert(diagonals, chisq_norm_physical);
+  width.get_uncert(diagonals, chisq_norm_physical);
+  short_tail.get_uncerts(diagonals, chisq_norm_physical);
+  right_tail.get_uncerts(diagonals, chisq_norm_physical);
+  long_tail.get_uncerts(diagonals, chisq_norm_physical);
+  step.get_uncerts(diagonals, chisq_norm_physical);
 }
 
 PrecalcVals Peak::precalc_vals(double chan) const

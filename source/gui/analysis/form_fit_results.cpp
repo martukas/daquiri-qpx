@@ -13,10 +13,10 @@ FormFitResults::FormFitResults(DAQuiri::Fitter& fit, QWidget* parent) :
 
   ui->tablePeaks->verticalHeader()->hide();
   ui->tablePeaks->setColumnCount(10);
-  ui->tablePeaks->setHorizontalHeaderLabels({"energy", "\u03C3", "err",
-                                             "area(hyp)", "\u03C3", "err",
+  ui->tablePeaks->setHorizontalHeaderLabels({"energy", "\u03C3", "%err",
+                                             "area(hyp)", "\u03C3", "%err",
                                              "\u03C7\u00B2-norm",
-                                             "area(S4)", "\u03C3", "err"});
+                                             "area(S4)", "\u03C3", "%err"});
   ui->tablePeaks->setSelectionBehavior(QAbstractItemView::SelectRows);
   ui->tablePeaks->setSelectionMode(QAbstractItemView::ExtendedSelection);
   ui->tablePeaks->setEditTriggers(QTableView::NoEditTriggers);

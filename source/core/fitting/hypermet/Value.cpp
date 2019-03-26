@@ -95,7 +95,7 @@ void AbstractValue::get(const Eigen::VectorXd& fit)
 void AbstractValue::get_uncert(const Eigen::VectorXd& diagonals, double chisq_norm)
 {
   if (valid_index())
-    uncert(std::sqrt(std::abs(diagonals[index_] * this->grad() * chisq_norm)));
+    uncert(std::sqrt(std::abs(diagonals[index_] * square(this->grad()) * chisq_norm)));
 }
 
 std::string AbstractValue::to_string() const

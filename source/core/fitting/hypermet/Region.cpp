@@ -305,16 +305,15 @@ void Region::save_fit(const FitResult& result)
   if (!result.inv_hessian.innerSize() || !result.inv_hessian.outerSize())
     return;
 
+  double dof = degrees_of_freedom();
+
   Eigen::VectorXd diagonals;
-  diagonals.resize(result.variables.size());
-
-  double df = degrees_of_freedom();
+  diagonals.setConstant(result.variables.size(), 0.0);
   for (size_t i = 0; i < static_cast<size_t>(result.variables.size()); ++i)
-    diagonals[i] = result.inv_hessian.coeff(i, i) * df;
+    diagonals[i] = result.inv_hessian.coeff(i, i);
+  diagonals *= dof * 0.5;
 
-  // \todo should this be done here?
-  // \todo check if optimizer does this 0.5 already?
-  double chisq_norm = std::max(this->chi_sq(result.variables) / df, 1.0) * 0.5;
+  double chisq_norm = this->chi_sq(result.variables) / dof;
 
   background.get_uncerts(diagonals, chisq_norm);
   if (!peaks_.empty())
