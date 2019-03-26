@@ -252,7 +252,7 @@ bool RegionManager::overlaps(double bin) const
 {
   if (!width())
     return false;
-  return ((bin >= left_bin()) && (bin <= right_bin()));
+  return ((left_bin() <= bin) && (bin <= right_bin()));
 }
 
 bool RegionManager::overlaps(double Lbin, double Rbin) const
@@ -261,14 +261,12 @@ bool RegionManager::overlaps(double Lbin, double Rbin) const
     return false;
   if (overlaps(Lbin) || overlaps(Rbin))
     return true;
-  if ((Lbin <= left_bin()) && (Rbin >= right_bin()))
-    return true;
-  return false;
+  return ((Lbin <= left_bin()) && (right_bin() <= Rbin));
 }
 
 bool RegionManager::overlaps(const RegionManager& other) const
 {
-  if (!other.width())
+  if (other.width() <= 0)
     return false;
   return overlaps(other.left_bin(), other.right_bin());
 }
@@ -336,23 +334,26 @@ bool RegionManager::add_peak(const FitEvaluation &parentfinder,
                    double left, double right,
                    AbstractOptimizer* optimizer)
 {
-  NaiveKON kon(fit_eval_.x_, fit_eval_.y_resid_,
-               settings_.kon_settings.width,
-               settings_.kon_settings.sigma_resid);
-
+  bool added = false;
   if (overlaps(left) && overlaps(right))
   {
+    NaiveKON kon(fit_eval_.x_, fit_eval_.y_resid_,
+                 settings_.kon_settings.width,
+                 settings_.kon_settings.sigma_resid);
+
     if (region_.add_peak(left, right, kon.highest_residual(left, right)))
     {
       save_current_fit("Manually added peak");
+      if (region_.dirty())
+        rebuild(optimizer);
       return true;
     }
   }
   else if (width()) //changing region bounds
   {
-    left  = std::min(left, left_bin());
-    right = std::max(right, right_bin());
-    fit_eval_.cloneRange(parentfinder, left, right);
+    double L  = std::min(left, left_bin());
+    double R = std::max(right, right_bin());
+    fit_eval_.cloneRange(parentfinder, L, R);
     render();
     save_current_fit("Implicitly expanded region");
 
@@ -360,19 +361,30 @@ bool RegionManager::add_peak(const FitEvaluation &parentfinder,
                  settings_.kon_settings.width,
                  settings_.kon_settings.sigma_resid);
 
-    region_.replace_data(fit_eval_.weighted_data);
+    if (L < region_.left())
+    {
+      SUM4Edge edge(fit_eval_.weighted_data.left(settings_.background_edge_samples));
+      region_.replace_data(fit_eval_.weighted_data.subset(L, region_.right()), edge, RB());
+    }
 
-    if (region_.add_peak(left, right, kon.highest_residual(left, right)))
+    if (R > region_.right())
+    {
+      SUM4Edge edge(fit_eval_.weighted_data.right(settings_.background_edge_samples));
+      region_.replace_data(fit_eval_.weighted_data.subset(region_.left(), R), LB(), edge);
+    }
+
+    if (region_.add_peak(std::max(left, region_.left()),
+                         std::min(right, region_.right()),
+                         kon.highest_residual(left, right)))
     {
       save_current_fit("Manually added peak");
+      if (region_.dirty())
+        rebuild(optimizer);
       return true;
     }
-    else
-      return find_and_fit(optimizer); // \todo maybe not?
   }
 
-  DBG("<ROI> could not add peak");
-  return false;
+  return find_and_fit(optimizer);
 }
 
 bool RegionManager::remove_peaks(const std::set<double> &pks, AbstractOptimizer* optimizer)
@@ -482,12 +494,15 @@ bool RegionManager::adjust_LB(const FitEvaluation &parentfinder, double left, do
   if (!edge.width() || (edge.right() >= region_.RB_.left()))
     return false;
 
-  if (edge.left() != left_bin())
-    return false;
+  if (edge.left() == left_bin())
+    region_.adjust_LB(edge);
+  else
+  {
+    fit_eval_.cloneRange(parentfinder, left, right_bin());
+    region_.replace_data(parentfinder.weighted_data.subset(left, right_bin()),
+                         edge, RB());
+  }
 
-  fit_eval_.cloneRange(parentfinder, left, right_bin());
-  region_.replace_data(parentfinder.weighted_data.subset(left, right_bin()),
-      edge, RB());
   save_current_fit("Left baseline adjusted");
 
   if (region_.dirty())
@@ -503,12 +518,14 @@ bool RegionManager::adjust_RB(const FitEvaluation &parentfinder, double left, do
   if (!edge.width() || (edge.left() <= region_.LB_.right()))
     return false;
 
-  if (edge.right() != right_bin())
-    return false;
-
-  fit_eval_.cloneRange(parentfinder, left_bin(), right);
-  region_.replace_data(parentfinder.weighted_data.subset(left_bin(), right),
-                       LB(), edge);
+  if (edge.right() == right_bin())
+    region_.adjust_RB(edge);
+  else
+  {
+    fit_eval_.cloneRange(parentfinder, left_bin(), right);
+    region_.replace_data(parentfinder.weighted_data.subset(left_bin(), right),
+                         LB(), edge);
+  }
 
   save_current_fit("Right baseline adjusted");
 

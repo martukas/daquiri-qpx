@@ -248,7 +248,10 @@ void FormFitter::adjust_background_L(double ROI_id, double l, double r)
   ui->plot->clear_range_selection();
 
   if (!fit_data_->contains_region(ROI_id))
+  {
+    WARN("No such region: id={}", ROI_id);
     return;
+  }
 
   std::set<double> rois = fit_data_->relevant_regions(
         fit_data_->settings().calib.nrg_to_bin(l),
@@ -287,7 +290,10 @@ void FormFitter::adjust_background_R(double ROI_id, double l, double r)
   ui->plot->clear_range_selection();
 
   if (!fit_data_->contains_region(ROI_id))
+  {
+    WARN("No such region: id={}", ROI_id);
     return;
+  }
 
   std::set<double> rois = fit_data_->relevant_regions(
         fit_data_->region(ROI_id).left_bin(),

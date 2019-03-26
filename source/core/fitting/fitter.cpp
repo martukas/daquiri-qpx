@@ -213,20 +213,12 @@ std::map<double, Peak> Fitter::peaks() const
 
 std::set<double> Fitter::relevant_regions(double left, double right)
 {
+  auto L = std::min(left, right);
+  auto R = std::max(left, right);
   std::set<double> ret;
   for (auto& r : regions_)
-  {
-    if (
-        ((left <= r.second.left_bin()) && (r.second.left_bin() <= right))
-            ||
-                ((left <= r.second.right_bin()) && (r.second.right_bin() <= right))
-            ||
-                r.second.overlaps(left)
-            ||
-                r.second.overlaps(right)
-        )
+    if (r.second.overlaps (L, R))
       ret.insert(r.second.id());
-  }
   return ret;
 }
 
@@ -405,11 +397,12 @@ bool Fitter::add_peak(double left, double right,
   if (fit_eval_.x_.empty())
     return false;
 
+  bool added {false};
   for (auto& q : regions_)
   {
-    if (q.second.overlaps(left, right))
+    if (q.second.overlaps(left, right) &&
+        q.second.add_peak(fit_eval_, left, right, optimizer))
     {
-      q.second.add_peak(fit_eval_, left, right, optimizer);
       render_all();
       return true;
     }
