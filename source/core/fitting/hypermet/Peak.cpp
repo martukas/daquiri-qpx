@@ -168,7 +168,8 @@ UncertainDouble Peak::area() const
   a *= amplitude.val() * width.val();
 
   // \todo make this more rigorous
-//  double cs = chi_sq_norm * 0.5;
+  // using only lower half because of symmetry
+  //  double cs = chi_sq_norm * 0.5;
 //  int i, j;
 //  for( i = 0 To FitVars - 1)
 //  for( j = 0 To i - 1)
