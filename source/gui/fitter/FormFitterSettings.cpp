@@ -1,5 +1,9 @@
 #include <gui/fitter/FormFitterSettings.h>
 #include "ui_FormFitterSettings.h"
+#include <gui/fitter/uncertain_double_widget.h>
+#include <gui/fitter/fit_parameter_widget.h>
+#include <gui/fitter/peak_skew_widget.h>
+#include <QCloseEvent>
 
 #include <gui/widgets/qt_util.h>
 

@@ -1,10 +1,13 @@
 #pragma once
 
 #include <QDialog>
-#include <QCloseEvent>
+#include <core/fitting/hypermet/Peak.h>
 #include <core/fitting/fit_settings.h>
 
-#include <gui/fitter/FormPeakInfo.h>
+class QCloseEvent;
+class FitParameterWidget;
+class TailWidget;
+class UncertainDoubleWidget;
 
 namespace Ui {
 class FormFitterSettings;
