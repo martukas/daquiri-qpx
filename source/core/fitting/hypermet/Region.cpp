@@ -403,11 +403,13 @@ std::string Region::to_string(std::string prepend) const
      << fmt::format("data_points={} on channels [{},{}] vars={} {}\n",
                                data.data.size(), left(), right(),
                                variable_count, (dirty_ ? " DIRTY" : ""));
-  ss << prepend << "SUM4/LB: " << LB_.to_string() << "\n";
-  ss << prepend << "SUM4/RB: " << RB_.to_string() << "\n";
+  ss << prepend << "chi2: " << chi_sq() << "\n";
+  ss << prepend << "chi2/dof: " << chi_sq() / degrees_of_freedom() << "\n";
+  ss << prepend << "SUM4.LB: " << LB_.to_string() << "\n";
+  ss << prepend << "SUM4.RB: " << RB_.to_string() << "\n";
   ss << prepend << "Background:\n";
   ss << background.to_string(prepend + " ");
-  ss << prepend << "Default peak:\n";
+  ss << prepend << "Common:\n";
   ss << default_peak_.to_string(prepend + " ");
   if (!peaks_.empty())
   {
@@ -416,8 +418,6 @@ std::string Region::to_string(std::string prepend) const
     {
       ss << prepend << " Peak at " << p.first << "\n";
       ss << p.second.to_string(prepend + "  ");
-      ss << prepend << " Area = " << p.second.area().to_string(false) <<
-         " " << p.second.area().error_percent_fancy() << "\n";
     }
   }
   return ss.str();

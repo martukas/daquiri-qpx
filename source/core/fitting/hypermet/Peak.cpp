@@ -447,8 +447,14 @@ Peak::Components Peak::eval_grad_at(double chan, const Eigen::VectorXd& fit,
 std::string Peak::to_string(std::string prepend) const
 {
   std::stringstream ss;
-  ss << prepend << "pos              = " << position.to_string() << "\n";
-  ss << prepend << "amp              = " << amplitude.to_string() << "\n";
+  auto a = area();
+  // \todo better way to differentiate default params
+  if (position.valid_index() && amplitude.valid_index())
+  {
+    ss << prepend << "area = " << a.to_string(false) << " (" << a.error_percent() << "%)\n";
+    ss << prepend << "pos              = " << position.to_string() << "\n";
+    ss << prepend << "amp              = " << amplitude.to_string() << "\n";
+  }
   ss << prepend << "width"
      << (width_override ? "(OVERRIDEN) = "
                         : "            = ")
