@@ -1,13 +1,20 @@
 #include <gui/fitter/FormFitterSettings.h>
 #include "ui_FormFitterSettings.h"
 
+#include <gui/widgets/qt_util.h>
+
 #include <core/util/custom_logger.h>
 
-FormFitterSettings::FormFitterSettings(DAQuiri::FitSettings &fs, QWidget *parent)
-  : QDialog(parent)
-  , ui(new Ui::FormFitterSettings)
-  , fit_settings_(fs)
+FormFitterSettings::FormFitterSettings(DAQuiri::FitSettings& fs, QWidget* parent)
+    : QDialog(parent)
+      , ui(new Ui::FormFitterSettings)
+      , fit_settings_(fs)
 {
+  backup_settings_ = fit_settings_;
+
+  double spin_width = 120;
+  double unc_width = 90;
+
   ui->setupUi(this);
   this->setFixedSize(this->size());
 
@@ -43,7 +50,36 @@ FormFitterSettings::FormFitterSettings(DAQuiri::FitSettings &fs, QWidget *parent
 
   ui->spinFitterMaxIterations->setValue(fit_settings_.fitter_max_iter);
 
-  on_checkGaussOnly_clicked();
+//  on_checkGaussOnly_clicked();
+
+  ui->FWEnergyLabel->setText("FWHM (" + QS(fit_settings_.calib.cali_nrg_.to().units) + ") ");
+
+  width_ = new FitParameterWidget(fit_settings_.default_peak.width, spin_width, unc_width);
+  ui->horizontalWidth->addWidget(width_);
+  connect(width_, SIGNAL(updated()), this, SLOT(update()));
+  fwhm_ = new UncertainDoubleWidget(unc_width);
+  ui->horizontalFWHM->addWidget(fwhm_);
+  fwhm_energy_ = new UncertainDoubleWidget(unc_width);
+  ui->horizontalFWEnergy->addWidget(fwhm_energy_);
+
+  ui->checkStepEnable->setChecked(fit_settings_.default_peak.step.enabled);
+  step_amp_ = new FitParameterWidget(fit_settings_.default_peak.step.amplitude, spin_width, unc_width);
+  ui->horizontalStepAmp->addWidget(step_amp_);
+  connect(step_amp_, SIGNAL(updated()), this, SLOT(update()));
+
+  left_skew_ = new TailWidget("Left skew", fit_settings_.default_peak.short_tail, spin_width, unc_width);
+  ui->horizontalLeftSkew->addWidget(left_skew_);
+  connect(left_skew_, SIGNAL(updated()), this, SLOT(update()));
+
+  right_skew_ = new TailWidget("Right skew", fit_settings_.default_peak.right_tail, spin_width, unc_width);
+  ui->horizontalRightSkew->addWidget(right_skew_);
+  connect(right_skew_, SIGNAL(updated()), this, SLOT(update()));
+
+  tail_ = new TailWidget("Long tail", fit_settings_.default_peak.long_tail, spin_width, unc_width);
+  ui->horizontalTail->addWidget(tail_);
+  connect(tail_, SIGNAL(updated()), this, SLOT(update()));
+
+  update();
 }
 
 void FormFitterSettings::on_buttonBox_accepted()
@@ -70,7 +106,7 @@ void FormFitterSettings::on_buttonBox_accepted()
 
   fit_settings_.width_common = ui->checkWidthCommon->isChecked();
   fit_settings_.width_common_bounds.constrain(ui->doubleMinWidthCommon->value(),
-                                                  ui->doubleMaxWidthCommon->value());
+                                              ui->doubleMaxWidthCommon->value());
 
   fit_settings_.width_at_511_variable = ui->checkWidthAt511->isChecked();
   fit_settings_.width_at_511_tolerance = ui->spinWidthAt511Tolerance->value();
@@ -80,162 +116,37 @@ void FormFitterSettings::on_buttonBox_accepted()
   accept();
 }
 
-void FormFitterSettings::enforce_bounds()
-{
-
-  ui->doubleInitStep->setMinimum(ui->doubleMinStep->value());
-  ui->doubleMaxStep->setMinimum(ui->doubleMinStep->value());
-  ui->doubleInitStep->setMaximum(ui->doubleMaxStep->value());
-  ui->doubleMinStep->setMaximum(ui->doubleMaxStep->value());
-
-  ui->doubleInitTailAmp->setMinimum(ui->doubleMinTailAmp->value());
-  ui->doubleMaxTailAmp->setMinimum(ui->doubleMinTailAmp->value());
-  ui->doubleInitTailAmp->setMaximum(ui->doubleMaxTailAmp->value());
-  ui->doubleMinTailAmp->setMaximum(ui->doubleMaxTailAmp->value());
-
-  ui->doubleInitTailSlope->setMinimum(ui->doubleMinTailSlope->value());
-  ui->doubleMaxTailSlope->setMinimum(ui->doubleMinTailSlope->value());
-  ui->doubleInitTailSlope->setMaximum(ui->doubleMaxTailSlope->value());
-  ui->doubleMinTailSlope->setMaximum(ui->doubleMaxTailSlope->value());
-
-  ui->doubleInitLskewAmp->setMinimum(ui->doubleMinLskewAmp->value());
-  ui->doubleMaxLskewAmp->setMinimum(ui->doubleMinLskewAmp->value());
-  ui->doubleInitLskewAmp->setMaximum(ui->doubleMaxLskewAmp->value());
-  ui->doubleMinLskewAmp->setMaximum(ui->doubleMaxLskewAmp->value());
-
-  ui->doubleInitLskewSlope->setMinimum(ui->doubleMinLskewSlope->value());
-  ui->doubleMaxLskewSlope->setMinimum(ui->doubleMinLskewSlope->value());
-  ui->doubleInitLskewSlope->setMaximum(ui->doubleMaxLskewSlope->value());
-  ui->doubleMinLskewSlope->setMaximum(ui->doubleMaxLskewSlope->value());
-
-  ui->doubleInitRskewAmp->setMinimum(ui->doubleMinRskewAmp->value());
-  ui->doubleMaxRskewAmp->setMinimum(ui->doubleMinRskewAmp->value());
-  ui->doubleInitRskewAmp->setMaximum(ui->doubleMaxRskewAmp->value());
-  ui->doubleMinRskewAmp->setMaximum(ui->doubleMaxRskewAmp->value());
-
-  ui->doubleInitRskewSlope->setMinimum(ui->doubleMinRskewSlope->value());
-  ui->doubleMaxRskewSlope->setMinimum(ui->doubleMinRskewSlope->value());
-  ui->doubleInitRskewSlope->setMaximum(ui->doubleMaxRskewSlope->value());
-  ui->doubleMinRskewSlope->setMaximum(ui->doubleMaxRskewSlope->value());
-
-
-}
-
 FormFitterSettings::~FormFitterSettings()
 {
   delete ui;
 }
 
-void FormFitterSettings::closeEvent(QCloseEvent *event) {
+void FormFitterSettings::update()
+{
+  fit_settings_.default_peak.width = width_->parameter();
+  fwhm_->update(fit_settings_.default_peak.fwhm());
+  fwhm_energy_->update(fit_settings_.default_peak.fwhm_energy(fit_settings_.calib.cali_nrg_));
+
+  fit_settings_.default_peak.step.enabled = ui->checkStepEnable->isChecked();
+  fit_settings_.default_peak.step.amplitude = step_amp_->parameter();
+
+  fit_settings_.default_peak.short_tail = left_skew_->tail();
+  fit_settings_.default_peak.right_tail = right_skew_->tail();
+  fit_settings_.default_peak.long_tail = tail_->tail();
+}
+
+void FormFitterSettings::closeEvent(QCloseEvent* event)
+{
   event->accept();
 }
 
-
 void FormFitterSettings::on_buttonBox_rejected()
 {
+  fit_settings_ = backup_settings_;
   reject();
 }
 
-void FormFitterSettings::on_doubleMinRskewSlope_valueChanged(double)
-{
-  enforce_bounds();
-}
-
-void FormFitterSettings::on_doubleMaxRskewSlope_valueChanged(double)
-{
-  enforce_bounds();
-}
-
-void FormFitterSettings::on_doubleMinRskewAmp_valueChanged(double)
-{
-  enforce_bounds();
-}
-
-void FormFitterSettings::on_doubleMaxRskewAmp_valueChanged(double)
-{
-  enforce_bounds();
-}
-
-void FormFitterSettings::on_doubleMinLskewSlope_valueChanged(double)
-{
-  enforce_bounds();
-}
-
-void FormFitterSettings::on_doubleMaxLskewSlope_valueChanged(double)
-{
-  enforce_bounds();
-}
-
-void FormFitterSettings::on_doubleMinLskewAmp_valueChanged(double)
-{
-  enforce_bounds();
-}
-
-void FormFitterSettings::on_doubleMaxLskewAmp_valueChanged(double)
-{
-  enforce_bounds();
-}
-
-void FormFitterSettings::on_doubleMinTailSlope_valueChanged(double)
-{
-  enforce_bounds();
-}
-
-void FormFitterSettings::on_doubleMaxTailSlope_valueChanged(double)
-{
-  enforce_bounds();
-}
-
-void FormFitterSettings::on_doubleMinTailAmp_valueChanged(double)
-{
-  enforce_bounds();
-}
-
-void FormFitterSettings::on_doubleMaxTailAmp_valueChanged(double)
-{
-  enforce_bounds();
-}
-
-void FormFitterSettings::on_doubleMinStep_valueChanged(double)
-{
-  enforce_bounds();
-}
-
-void FormFitterSettings::on_doubleMaxStep_valueChanged(double)
-{
-  enforce_bounds();
-}
-
-void FormFitterSettings::on_checkGaussOnly_clicked()
-{
-  bool enabled = !ui->checkGaussOnly->isChecked();
-
-  ui->checkStepEnable->setEnabled(enabled);
-  ui->doubleMinStep->setEnabled(enabled);
-  ui->doubleMaxStep->setEnabled(enabled);
-  ui->doubleInitStep->setEnabled(enabled);
-
-  ui->checkTailEnable->setEnabled(enabled);
-  ui->doubleMinTailAmp->setEnabled(enabled);
-  ui->doubleMaxTailAmp->setEnabled(enabled);
-  ui->doubleInitTailAmp->setEnabled(enabled);
-  ui->doubleMinTailSlope->setEnabled(enabled);
-  ui->doubleMaxTailSlope->setEnabled(enabled);
-  ui->doubleInitTailSlope->setEnabled(enabled);
-
-  ui->checkEnableLskew->setEnabled(enabled);
-  ui->doubleMinLskewAmp->setEnabled(enabled);
-  ui->doubleMaxLskewAmp->setEnabled(enabled);
-  ui->doubleInitLskewAmp->setEnabled(enabled);
-  ui->doubleMinLskewSlope->setEnabled(enabled);
-  ui->doubleMaxLskewSlope->setEnabled(enabled);
-  ui->doubleInitLskewSlope->setEnabled(enabled);
-
-  ui->checkEnableRskew->setEnabled(enabled);
-  ui->doubleMinRskewAmp->setEnabled(enabled);
-  ui->doubleMaxRskewAmp->setEnabled(enabled);
-  ui->doubleInitRskewAmp->setEnabled(enabled);
-  ui->doubleMinRskewSlope->setEnabled(enabled);
-  ui->doubleMaxRskewSlope->setEnabled(enabled);
-  ui->doubleInitRskewSlope->setEnabled(enabled);
-}
+//void FormFitterSettings::on_checkGaussOnly_clicked()
+//{
+//  bool enabled = !ui->checkGaussOnly->isChecked();
+//}

@@ -12,12 +12,11 @@ FormFitResults::FormFitResults(DAQuiri::Fitter& fit, QWidget* parent) :
   loadSettings();
 
   ui->tablePeaks->verticalHeader()->hide();
-  ui->tablePeaks->setColumnCount(11);
+  ui->tablePeaks->setColumnCount(10);
   ui->tablePeaks->setHorizontalHeaderLabels({"energy", "\u03C3", "err",
                                              "area(hyp)", "\u03C3", "err",
                                              "\u03C7\u00B2-norm",
-                                             "area(S4)", "\u03C3", "err",
-                                             "Quality(S4)"});
+                                             "area(S4)", "\u03C3", "err"});
   ui->tablePeaks->setSelectionBehavior(QAbstractItemView::SelectRows);
   ui->tablePeaks->setSelectionMode(QAbstractItemView::ExtendedSelection);
   ui->tablePeaks->setEditTriggers(QTableView::NoEditTriggers);
@@ -93,7 +92,7 @@ void FormFitResults::update_data()
 void FormFitResults::add_peak_to_table(const DAQuiri::Peak& p, int row, bool gray)
 {
   double max_param_err = 10.0;
-  double max_chi2 = 10.0;
+  double max_chi2 = 5.0;
 
   QBrush background(gray ? Qt::lightGray : Qt::white);
 
@@ -172,7 +171,6 @@ void FormFitResults::add_peak_to_table(const DAQuiri::Peak& p, int row, bool gra
   add_to_table(ui->tablePeaks, row, 7, QString::number(area_s4.value()), {}, s4back);
   add_to_table(ui->tablePeaks, row, 8, QString::number(area_s4.sigma()), {}, s4back);
   add_to_table(ui->tablePeaks, row, 9, QString::number(area_s4.error_percent()), {}, s4back);
-  add_to_table(ui->tablePeaks, row, 10, QString::number(p.sum4.quality()), {}, s4back);
 }
 
 void FormFitResults::selection_changed_in_table()
