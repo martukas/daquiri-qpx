@@ -29,6 +29,8 @@ ProjectForm::ProjectForm(ThreadRunner& thread,
 {
   ui->setupUi(this);
 
+  setAcceptDrops(true);
+
   std::vector<std::string> spectypes = ImporterFactory::singleton().descriptions();
   QStringList filetypes;
   for (auto s : spectypes)
@@ -108,6 +110,7 @@ void ProjectForm::closeEvent(QCloseEvent* event)
 
   plot_thread_.terminate_wait();
   saveSettings();
+  ui->projectView->saveSettings();
   event->accept();
 }
 
@@ -312,10 +315,13 @@ void ProjectForm::import()
   QStringList fileNames = QFileDialog::getOpenFileNames(this, "Load spectra", data_directory_, importstr,
                                                         nullptr, QFileDialog::DontUseNativeDialog);
 
+  import(fileNames);
+}
+
+void ProjectForm::import(QStringList fileNames)
+{
   if (fileNames.empty())
     return;
-
-  data_directory_ = path_of_file(fileNames.front());
 
   if ((!project_->empty()) && (QMessageBox::warning(this, "Append?", "Spectra already open. Append to existing?",
                                                     QMessageBox::Yes | QMessageBox::Cancel) != QMessageBox::Yes))
@@ -330,6 +336,7 @@ void ProjectForm::import()
     auto pp = ImporterFactory::singleton().attempt_import(fileNames[i].toStdString());
     if (pp.size() == 1)
       pp[0]->import(fileNames[i].toStdString(), project_);
+    data_directory_ = path_of_file(fileNames[i]);
   }
 
   newProject();
@@ -337,6 +344,26 @@ void ProjectForm::import()
   project_->activate();
 
   emit toggleIO(true);
+}
+
+void ProjectForm::dropEvent(QDropEvent *event)
+{
+  auto urls = event->mimeData()->urls();
+  qDebug() << "Dropped urls: " << urls;
+
+  QStringList list;
+  for (auto u : urls)
+    list.push_back(u.toLocalFile());
+
+  import(list);
+
+  event->acceptProposedAction();
+}
+
+void ProjectForm::dragEnterEvent(QDragEnterEvent *event)
+{
+  if (event->mimeData()->hasFormat("text/uri-list"))
+    event->acceptProposedAction();
 }
 
 void ProjectForm::projectSave()

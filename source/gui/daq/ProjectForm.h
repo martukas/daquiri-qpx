@@ -37,7 +37,9 @@ class ProjectForm : public QWidget
   void openAnalysis(FormAnalysis1D*);
 
  protected:
-  void closeEvent(QCloseEvent*);
+  void closeEvent(QCloseEvent*) Q_DECL_OVERRIDE;
+  void dropEvent(QDropEvent *event) Q_DECL_OVERRIDE;
+  void dragEnterEvent(QDragEnterEvent *event) Q_DECL_OVERRIDE;
 
  public slots:
   void toggle_push(bool, DAQuiri::ProducerStatus,
@@ -95,6 +97,8 @@ class ProjectForm : public QWidget
   void saveSettings();
 
   QString get_label() const;
+
+  void import(QStringList files);
 
   QString importstr;
 };

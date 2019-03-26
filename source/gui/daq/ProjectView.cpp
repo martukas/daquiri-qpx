@@ -60,7 +60,6 @@ ProjectView::ProjectView(QWidget* parent) :
 
 ProjectView::~ProjectView()
 {
-  saveSettings();
   delete ui;
 }
 

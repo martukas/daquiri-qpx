@@ -30,6 +30,8 @@ class ProjectView : public QWidget
 
   void update_plots();
 
+  void saveSettings();
+
 //  protected:
 //    void closeEvent(QCloseEvent*);
 
@@ -89,5 +91,4 @@ class ProjectView : public QWidget
   static void tile_vertical(QMdiArea*);
 
   void loadSettings();
-  void saveSettings();
 };
