@@ -15,13 +15,6 @@ double dead_time(double real_time, double live_time)
   return 0.0;
 }
 
-double rate(double live_time, double sum_counts)
-{
-  if (live_time > 0.0)
-    return sum_counts / live_time;
-  return 0.0;
-}
-
 int value_quality(UncertainDouble ud, double error_threshold)
 {
   if (ud.error() > error_threshold)

@@ -154,8 +154,9 @@ WidgetIsotopes::WidgetIsotopes(QWidget* parent)
   connect(ui->listIsotopes, SIGNAL(currentTextChanged(QString)), this, SLOT(isotopeChosen(QString)));
   connect(&table_gammas_, SIGNAL(energiesChanged()), this, SLOT(energies_changed()));
 
-  auto filename = Profiles::profiles_dir().toStdString() + "/isotopes.json";
+  auto filename = Profiles::settings_dir().toStdString() + "/gamma/isotopes.json";
   nlohmann::json isotopes_json = from_json_file(filename);
+//  WARN("Got isotopes from {}:\n {}", filename, isotopes_json.dump(0));
   isotopes_ = isotopes_json["isotopes"];
 
   ui->listIsotopes->clear();

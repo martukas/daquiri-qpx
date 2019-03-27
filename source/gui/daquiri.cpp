@@ -18,6 +18,10 @@
 #include <QApplication>
 #include <date/date.h>
 
+// \todo make optional
+#include <gui/analysis/form_analysis_1d.h>
+#include <gui/analysis/form_efficiency_calibration.h>
+
 using namespace DAQuiri;
 
 daquiri::daquiri(QWidget *parent,
@@ -321,7 +325,10 @@ void daquiri::open_project(ProjectPtr proj, bool start, QString name)
   connect(newSpectraForm, SIGNAL(toggleIO(bool)), this, SLOT(toggleIO(bool)));
   connect(this, SIGNAL(toggle_push(bool, DAQuiri::ProducerStatus, DAQuiri::StreamManifest)),
           newSpectraForm, SLOT(toggle_push(bool, DAQuiri::ProducerStatus, DAQuiri::StreamManifest)));
-  connect(newSpectraForm, SIGNAL(openAnalysis(FormAnalysis1D*)), this, SLOT(analyze_1d(FormAnalysis1D*)));
+  connect(newSpectraForm, SIGNAL(openAnalysis(FormAnalysis1D*)),
+      this, SLOT(analyze_1d(FormAnalysis1D*)));
+  connect(newSpectraForm, SIGNAL(openEfficiencyCal(FormEfficiencyCalibration*)),
+      this, SLOT(efficiency_calibration(FormEfficiencyCalibration*)));
 
   add_closable_tab(newSpectraForm);
   ui->tabs->setCurrentWidget(newSpectraForm);
@@ -337,6 +344,16 @@ void daquiri::analyze_1d(FormAnalysis1D* formAnalysis) {
   //connect(formAnalysis, SIGNAL(detectorsChanged()), this, SLOT(detectors_updated()));
   ui->tabs->setCurrentWidget(formAnalysis);
   formAnalysis->update_spectrum();
+  //formAnalysis->toggle_push(true, engine_status_, stream_manifest_);
+  reorder_tabs();
+}
+
+void daquiri::efficiency_calibration(FormEfficiencyCalibration* formEffcal)
+{
+  add_closable_tab(formEffcal);
+  //connect(formAnalysis, SIGNAL(detectorsChanged()), this, SLOT(detectors_updated()));
+  ui->tabs->setCurrentWidget(formEffcal);
+  //formEffcal->update_spectrum();
   //formAnalysis->toggle_push(true, engine_status_, stream_manifest_);
   reorder_tabs();
 }

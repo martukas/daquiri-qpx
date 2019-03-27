@@ -463,6 +463,11 @@ void ProjectView::on_pushAnalyse_clicked()
   emit requestAnalysis(sel.toLongLong());
 }
 
+void ProjectView::on_pushEffCal_clicked()
+{
+  emit requestEffCal("noname");
+}
+
 void ProjectView::loadSettings()
 {
   QSettings settings_;

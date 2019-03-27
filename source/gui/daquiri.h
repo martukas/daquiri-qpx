@@ -10,6 +10,7 @@
 #include <core/util/custom_logger.h>
 
 class FormAnalysis1D;
+class FormEfficiencyCalibration;
 
 namespace Ui {
 class daquiri;
@@ -89,6 +90,7 @@ class daquiri : public QMainWindow
     void close_older(uint32_t mins);
 
     void analyze_1d(FormAnalysis1D*);
+    void efficiency_calibration(FormEfficiencyCalibration*);
 
  private:
     //helper functions

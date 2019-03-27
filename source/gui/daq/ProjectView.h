@@ -37,6 +37,7 @@ class ProjectView : public QWidget
 
  signals:
   void requestAnalysis(int64_t);
+  void requestEffCal(QString);
 
  private slots:
   void selectorItemToggled(SelectorItem);
@@ -62,6 +63,7 @@ class ProjectView : public QWidget
 
   void on_pushHideControls_clicked();
   void on_pushAnalyse_clicked();
+  void on_pushEffCal_clicked();
 
   void enforce_tile_policy();
 

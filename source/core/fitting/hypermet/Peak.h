@@ -47,14 +47,20 @@ class Peak
   void get_uncerts(const Eigen::VectorXd& diagonals, double chisq_norm);
 
   double id() const;
+
   UncertainDouble peak_position() const;
   UncertainDouble peak_energy(const HCalibration& cal) const;
   UncertainDouble peak_energy(const Calibration& cal) const;
-  UncertainDouble area() const;
-  UncertainDouble peak_area_eff(const HCalibration& cal) const;
+
   UncertainDouble fwhm() const;
   UncertainDouble fwhm_energy(const HCalibration& cal) const;
   UncertainDouble fwhm_energy(const Calibration& cal) const;
+
+  UncertainDouble area() const;
+  // \todo use duration type with uncertainty
+  UncertainDouble rate(double live_time) const;
+  // \todo get rate rather than area
+  UncertainDouble peak_area_eff(const HCalibration& cal) const;
 
   PrecalcVals precalc_vals(double chan) const;
   PrecalcVals precalc_vals_at(double chan, const Eigen::VectorXd& fit) const;
@@ -86,6 +92,11 @@ class Peak
   double chi_sq_norm {0.0};
 
   SUM4 sum4;
+
+  // \todo these might have to be somewhere else
+  UncertainDouble true_energy;
+  double theoretical_intensity {1.0};
+  double relative_efficiency {1.0};
 };
 
 void to_json(nlohmann::json& j, const Peak& s);

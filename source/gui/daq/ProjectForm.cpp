@@ -12,6 +12,10 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 
+// \todo make optional
+#include <gui/analysis/form_analysis_1d.h>
+#include <gui/analysis/form_efficiency_calibration.h>
+
 #include <core/util/custom_logger.h>
 
 using namespace DAQuiri;
@@ -61,6 +65,8 @@ ProjectForm::ProjectForm(ThreadRunner& thread,
   connect(&plot_thread_, SIGNAL(plot_ready()), this, SLOT(update_plots()));
   connect(ui->projectView, SIGNAL(requestAnalysis(int64_t)),
       this, SLOT(requestAnalysis(int64_t)));
+  connect(ui->projectView, SIGNAL(requestEffCal(QString)),
+      this, SLOT(requestEffCal(QString)));
 
   loadSettings();
 
@@ -617,4 +623,17 @@ void ProjectForm::requestAnalysis(int64_t idx)
   my_analysis_->setWindowTitle("1D: " + QString::fromStdString(selected->metadata().get_attribute("name").get_text()));
   my_analysis_->setSpectrum(project_, idx);
   emit openAnalysis(my_analysis_);
+}
+
+void ProjectForm::requestEffCal(QString name)
+{
+  this->setCursor(Qt::WaitCursor);
+
+  auto my_eff_cal_ = new FormEfficiencyCalibration(this);
+  connect(&plot_thread_, SIGNAL(plot_ready()), my_eff_cal_, SLOT(update_spectrum()));
+  my_eff_cal_->setWindowTitle("EffCal: " + name);
+  my_eff_cal_->setDetector(project_, name);
+  emit openEfficiencyCal(my_eff_cal_);
+
+  this->setCursor(Qt::ArrowCursor);
 }

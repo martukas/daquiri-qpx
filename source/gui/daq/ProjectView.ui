@@ -191,12 +191,35 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="toolTip">
+           <string>Peak fitting</string>
+          </property>
           <property name="text">
            <string/>
           </property>
           <property name="icon">
            <iconset resource="../resources/daquiri.qrc">
             <normaloff>:/icons/twopeaks2.ico</normaloff>:/icons/twopeaks2.ico</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushEffCal">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Efficiency calibration</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset resource="../resources/daquiri.qrc">
+            <normaloff>:/icons/oxy/16/bookmark.png</normaloff>:/icons/oxy/16/bookmark.png</iconset>
           </property>
          </widget>
         </item>

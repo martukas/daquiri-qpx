@@ -9,8 +9,11 @@
 #include <core/calibration/coef_function_factory.h>
 #include <gui/widgets/qt_util.h>
 
-FormEnergyCalibration::FormEnergyCalibration(DAQuiri::Detector& dets, DAQuiri::Fitter& fit, QWidget* parent) :
-    QWidget(parent), ui(new Ui::FormEnergyCalibration), detector_(dets), fit_data_(fit)
+FormEnergyCalibration::FormEnergyCalibration(DAQuiri::Detector& dets, DAQuiri::Fitter& fit, QWidget* parent)
+    : QWidget(parent)
+      , ui(new Ui::FormEnergyCalibration)
+      , detector_(dets)
+      , fit_data_(fit)
 {
   ui->setupUi(this);
 

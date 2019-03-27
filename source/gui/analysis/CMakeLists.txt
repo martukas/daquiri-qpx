@@ -6,6 +6,7 @@ set(SOURCES
   ${dir}/widget_plot_calib.cpp
   ${dir}/form_energy_calibration.cpp
   ${dir}/form_fwhm_calibration.cpp
+  ${dir}/form_efficiency_calibration.cpp
   ${dir}/form_fit_results.cpp
   ${dir}/form_analysis_1d.cpp
   )
@@ -14,6 +15,7 @@ set(UI
   ${dir}/widget_isotopes.ui
   ${dir}/form_energy_calibration.ui
   ${dir}/form_fwhm_calibration.ui
+  ${dir}/form_efficiency_calibration.ui
   ${dir}/form_fit_results.ui
   ${dir}/form_analysis_1d.ui
   )
@@ -24,6 +26,7 @@ set(HEADERS
   ${dir}/widget_plot_calib.h
   ${dir}/form_energy_calibration.h
   ${dir}/form_fwhm_calibration.h
+  ${dir}/form_efficiency_calibration.h
   ${dir}/form_fit_results.h
   ${dir}/form_analysis_1d.h
   )

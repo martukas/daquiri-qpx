@@ -7,8 +7,8 @@
 #include <gui/daq/ThreadPlotSignal.h>
 
 // \todo make optional
-#include <gui/analysis/form_analysis_1d.h>
-
+class FormAnalysis1D;
+class FormEfficiencyCalibration;
 
 namespace Ui
 {
@@ -35,6 +35,7 @@ class ProjectForm : public QWidget
   void toggleIO(bool);
   void requestClose(QWidget*);
   void openAnalysis(FormAnalysis1D*);
+  void openEfficiencyCal(FormEfficiencyCalibration*);
 
  protected:
   void closeEvent(QCloseEvent*) Q_DECL_OVERRIDE;
@@ -70,6 +71,7 @@ class ProjectForm : public QWidget
   void on_doubleSpinMinPause_editingFinished();
 
   void requestAnalysis(int64_t);
+  void requestEffCal(QString);
 
  private:
   Ui::ProjectForm* ui;

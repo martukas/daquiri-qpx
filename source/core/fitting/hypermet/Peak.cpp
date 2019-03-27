@@ -202,6 +202,13 @@ UncertainDouble Peak::area() const
   return {a, std::sqrt(a * std::max(chi_sq_norm, 1.0))};
 }
 
+UncertainDouble Peak::rate(double live_time) const
+{
+  if (live_time > 0.0)
+    return area() / live_time;
+  return {0.0, std::numeric_limits<double>::infinity()};
+}
+
 UncertainDouble Peak::peak_area_eff(const HCalibration& cal) const
 {
   // \todo should this also be more rigorous, like area() ?
