@@ -94,6 +94,7 @@
         <file>blank.png</file>
         <file>blank16.png</file>
         <file>loader.gif</file>
+        <file>twopeaks2.ico</file>
         <file>fonts/Ruben.ttf</file>
         <file>fonts/SF_Fedora_Titles.ttf</file>
     </qresource>

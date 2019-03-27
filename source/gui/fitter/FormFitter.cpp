@@ -50,7 +50,7 @@ FormFitter::FormFitter(QWidget* parent) :
   connect(&thread_fitter_, SIGNAL(fitting_done()), this, SLOT(fitting_complete()));
   connect(&thread_fitter_, SIGNAL(dirty(double)), this, SLOT(dirty(double)));
 
-  QMovie* movie = new QMovie(":/loader.gif");
+  QMovie* movie = new QMovie(":/icons/loader.gif");
   ui->labelMovie->setMovie(movie);
   ui->labelMovie->show();
   movie->start();

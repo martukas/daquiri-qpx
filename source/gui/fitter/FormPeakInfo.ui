@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1120</width>
-    <height>793</height>
+    <width>1128</width>
+    <height>846</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -32,7 +32,14 @@
         <string>Peak</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="2" column="0">
+        <item row="5" column="0">
+         <widget class="Line" name="line_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_33">
           <item>
            <widget class="QLabel" name="label_50">
@@ -191,7 +198,7 @@
           </item>
          </layout>
         </item>
-        <item row="4" column="0">
+        <item row="6" column="0">
          <layout class="QHBoxLayout" name="horizontalWidth">
           <item>
            <widget class="QLabel" name="label_8">
@@ -302,7 +309,7 @@
           </item>
          </layout>
         </item>
-        <item row="6" column="0">
+        <item row="8" column="0">
          <layout class="QHBoxLayout" name="horizontalFWEnergy">
           <item>
            <spacer name="horizontalSpacer_3">
@@ -350,7 +357,7 @@
           </item>
          </layout>
         </item>
-        <item row="5" column="0">
+        <item row="7" column="0">
          <layout class="QHBoxLayout" name="horizontalFWHM">
           <item>
            <spacer name="horizontalSpacer_2">
@@ -433,13 +440,10 @@
           </item>
          </layout>
         </item>
-        <item row="7" column="0">
+        <item row="10" column="0">
          <layout class="QHBoxLayout" name="horizontalLeftSkew"/>
         </item>
-        <item row="8" column="0">
-         <layout class="QHBoxLayout" name="horizontalRightSkew"/>
-        </item>
-        <item row="3" column="0">
+        <item row="4" column="0">
          <layout class="QHBoxLayout" name="horizontalArea">
           <item>
            <spacer name="horizontalSpacer_5">
@@ -486,6 +490,30 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item row="9" column="0">
+         <widget class="Line" name="line_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="Line" name="line">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="12" column="0">
+         <widget class="Line" name="line_4">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="0">
+         <layout class="QHBoxLayout" name="horizontalRightSkew"/>
         </item>
        </layout>
       </widget>
@@ -626,7 +654,14 @@
           </item>
          </layout>
         </item>
-        <item row="2" column="0">
+        <item row="3" column="0">
+         <widget class="Line" name="line_5">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
          <layout class="QHBoxLayout" name="horizontalTail"/>
         </item>
        </layout>

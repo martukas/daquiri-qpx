@@ -517,6 +517,9 @@ void QpFitter::updateData()
 
 void QpFitter::add_resids_plots(const std::vector<double>& xx)
 {
+  double confidence_band_1 = 1.0;
+  double confidence_band_2 = 3.0;
+
   QCPScatterStyle myScatter;
   myScatter.setShape(QCPScatterStyle::ssDiamond);
   myScatter.setBrush(Qt::white);
@@ -547,9 +550,9 @@ void QpFitter::add_resids_plots(const std::vector<double>& xx)
     const auto& resid = wresids[i];
     if (std::isnan(resid))
       continue;
-    if (resid > 3.0)
+    if (std::abs(resid) > confidence_band_2)
       resids_red->addData(xx[i], resid);
-    else if (resid > 1.0)
+    else if (std::abs(resid) > confidence_band_1)
       resids_yellow->addData(xx[i], resid);
     else
       resids_green->addData(xx[i], resid);
