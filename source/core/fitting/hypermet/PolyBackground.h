@@ -19,6 +19,8 @@ struct PolyBackground
   bool curve_enabled{true};
   ValueSimple curve;
 
+  bool sane() const;
+
   void update_indices(int32_t& i);
   void put(Eigen::VectorXd& fit) const;
   void get(const Eigen::VectorXd& fit);

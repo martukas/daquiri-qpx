@@ -81,7 +81,6 @@ class BfgsSolver : public ISolver<ProblemType, 1>
 
 //      const Scalar rate = brent.linesearch(x0, searchDir, objFunc);
 //      const Scalar rate = toms.linesearch(x0, searchDir, objFunc);
-
       const Scalar rate = armijo.linesearch(x0, searchDir, objFunc);
 
       if (verbosity >= 2)

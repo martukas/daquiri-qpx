@@ -18,7 +18,7 @@ ThreadFitter::ThreadFitter(QObject* parent) :
   opt->min_g_norm = 1e-7;
 
   opt->perform_sanity_checks = true;
-  opt->maximum_perturbations = 10;
+  opt->maximum_perturbations = 25;
 
   optimizer_ = opt;
 

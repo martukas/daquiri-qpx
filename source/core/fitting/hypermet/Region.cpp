@@ -391,6 +391,8 @@ bool Region::perturb(std::mt19937& rng)
 
 bool Region::sane() const
 {
+  if (background.sane())
+    return false;
   for (const auto& p : peaks_)
     if (!p.second.sane())
       return false;

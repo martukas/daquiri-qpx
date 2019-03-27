@@ -65,6 +65,13 @@ PolyBackground::PolyBackground(const WeightedData& data,
 //  curve.val(0.5 * (mincurve + maxcurve));
 }
 
+bool PolyBackground::sane() const
+{
+  return (std::isfinite(base.val()) &&
+      (!slope_enabled || std::isfinite(slope.val())) &&
+      (!curve_enabled || std::isfinite(curve.val())));
+}
+
 void PolyBackground::update_indices(int32_t& i)
 {
   base.update_index(i);
