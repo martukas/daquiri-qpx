@@ -14,23 +14,26 @@ TailWidget::TailWidget(QString name, const DAQuiri::Tail& t,
   QVBoxLayout *vl = new QVBoxLayout();
 
   QHBoxLayout *hl1 = new QHBoxLayout();
+  hl1->setSpacing(0);
+  modified_ = new QLabel();
+  modified_ ->setMinimumWidth(0);
+  modified_ ->setMaximumWidth(8);
+  modified_->sizePolicy().setHorizontalPolicy(QSizePolicy::Maximum);
+  hl1->addWidget(modified_);
   auto name_label = new QLabel();
   name_label->setStyleSheet("font-weight: bold");
   name_label->setText(name);
-  name_label->setMinimumWidth(100);
-  name_label->sizePolicy().setHorizontalPolicy(QSizePolicy::Preferred);
+  name_label->setFixedWidth(100);
+  name_label->sizePolicy().setHorizontalPolicy(QSizePolicy::Fixed);
   hl1->addWidget(name_label);
-  modified_ = new QLabel();
-  modified_->sizePolicy().setHorizontalPolicy(QSizePolicy::Preferred);
-  hl1->addWidget(modified_);
   override_ = new QCheckBox();
   override_->setText("Override");
-  override_->setMinimumWidth(90);
-  override_->sizePolicy().setHorizontalPolicy(QSizePolicy::Minimum);
+  override_->setFixedWidth(90);
+  override_->sizePolicy().setHorizontalPolicy(QSizePolicy::Fixed);
   hl1->addWidget(override_);
   enabled_ = new QCheckBox();
   enabled_->setText("Enabled");
-  enabled_->sizePolicy().setHorizontalPolicy(QSizePolicy::Expanding);
+  enabled_->sizePolicy().setHorizontalPolicy(QSizePolicy::MinimumExpanding);
   hl1->addWidget(enabled_);
   vl->addLayout(hl1);
 

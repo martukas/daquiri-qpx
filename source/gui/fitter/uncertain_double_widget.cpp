@@ -34,6 +34,6 @@ QLabel* UncertainDoubleWidget::make_framed_label(double width)
 void UncertainDoubleWidget::update(const UncertainDouble& val)
 {
   val_->setText(QString::number(val.value()));
-  sigma_->setText("+-" + QString::number(val.sigma()));
+  sigma_->setText("\u00B1" + QString::number(val.sigma()));
   percent_->setText(QString::number(val.error_percent())+ "%");
 }
