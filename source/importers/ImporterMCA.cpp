@@ -83,16 +83,6 @@ void ImporterMCA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   INFO("elapsed.sweeps: {}", header.elapsed.sweeps);
   INFO("elapsed.comp: {}", header.elapsed.comp);
 
-  std::string cal_units(header.calibration.unit_name, header.calibration.unit_name + 4);
-  std::string cal_unit_type(&header.calibration.unit_type, 1);
-  std::string cal_cformat(&header.calibration.cformat, 1);
-  std::string cal_corder(&header.calibration.corder, 1);
-  trim(cal_corder);
-  cal_units.erase(cal_units.find('\0'));
-  trim(cal_units);
-  INFO("XCal.unit_type: {}", cal_unit_type);
-  INFO("XCal.cformat: {}", cal_cformat);
-
   auto hist = DAQuiri::ConsumerFactory::singleton().create_type("Histogram 1D");
   if (!hist)
     throw std::runtime_error("<ImporterMCA> could not get a valid Histogram 1D from factory");
@@ -112,19 +102,35 @@ void ImporterMCA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
     entry_list.push_back(new_entry);
   }
 
-  std::vector<double> calibration{header.calibration.ecal0,
-                                  header.calibration.ecal1,
-                                  header.calibration.ecal2};
-  calibration.resize(std::stoul(cal_corder) + 1);
-  DAQuiri::CalibID from("energy","unknown","");
-  DAQuiri::CalibID to("energy","unknown","keV");
-  if (!cal_units.empty())
-    to.units = cal_units;
-  DAQuiri::Calibration new_calib(from, to);
-  new_calib.function("Polynomial", calibration);
-  DAQuiri::Detector det;
-  det.set_calibration(new_calib);
 
+  DAQuiri::Detector det;
+
+  std::string cal_units(header.calibration.unit_name, header.calibration.unit_name + 4);
+  std::string cal_unit_type(&header.calibration.unit_type, 1);
+  std::string cal_cformat(&header.calibration.cformat, 1);
+  std::string cal_corder(&header.calibration.corder, 1);
+  trim(cal_corder);
+  if (!cal_corder.empty())
+  {
+    auto caluzeros = cal_units.find('\0');
+    if (caluzeros != std::string::npos)
+      cal_units.erase(caluzeros);
+    trim(cal_units);
+    INFO("XCal.unit_type: {}", cal_unit_type);
+    INFO("XCal.cformat: {}", cal_cformat);
+
+    std::vector<double> calibration{header.calibration.ecal0,
+                                    header.calibration.ecal1,
+                                    header.calibration.ecal2};
+    calibration.resize(std::stoul(cal_corder) + 1);
+    DAQuiri::CalibID from("energy", "unknown", "");
+    DAQuiri::CalibID to("energy", "unknown", "keV");
+    if (!cal_units.empty())
+      to.units = cal_units;
+    DAQuiri::Calibration new_calib(from, to);
+    new_calib.function("Polynomial", calibration);
+    det.set_calibration(new_calib);
+  }
 //  DBG("det = {}", det.debug(""));
 
   hist->set_detectors({det});

@@ -15,19 +15,19 @@ RollbackDialog::RollbackDialog(DAQuiri::RegionManager roi, QWidget *parent) :
   QVBoxLayout *vl_descr    = new QVBoxLayout();
   label = new QLabel();
   label->setFixedHeight(25);
-  label->setText("Fit description");
+  label->setText("Reason");
   vl_descr->addWidget(label);
 
   QVBoxLayout *vl_fit    = new QVBoxLayout();
   label = new QLabel();
   label->setFixedHeight(25);
-  label->setText("# of peaks");
+  label->setText("# peaks");
   vl_fit->addWidget(label);
 
   QVBoxLayout *vl_rsq = new QVBoxLayout();
   label = new QLabel();
   label->setFixedHeight(25);
-  label->setText("chi^2");
+  label->setText("\u03C7\u00B2-norm");
   vl_rsq->addWidget(label);
 
   QVBoxLayout *vl_s4a = new QVBoxLayout();

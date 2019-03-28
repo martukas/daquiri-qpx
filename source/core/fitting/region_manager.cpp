@@ -13,7 +13,7 @@ Fit::Fit(const Region& r, std::string descr)
   description.peaknum = region.peaks_.size();
   if (!region.peaks_.empty())
   {
-    description.chi_sq_norm = region.chi_sq();
+    description.chi_sq_norm = region.chi_sq() / region.degrees_of_freedom();
     UncertainDouble tot_gross {0.0, 0.0};
     UncertainDouble tot_back {0.0, 0.0};
     for (const auto &p : region.peaks_)
@@ -458,7 +458,7 @@ bool RegionManager::rebuild(AbstractOptimizer* optimizer)
     INFO("!!!!! RESULT NOT SANE !!!!!");
 
   region_.auto_sum4();
-  save_current_fit("Rebuild");
+  save_current_fit("Refit");
   INFO("Rebuilt as\n{}", region_.to_string(" "));
 
   render();
