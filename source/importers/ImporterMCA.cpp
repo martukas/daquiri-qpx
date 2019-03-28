@@ -56,7 +56,7 @@ bool ImporterMCA::validate(const boost::filesystem::path& path) const
 
 void ImporterMCA::import(const boost::filesystem::path& path, DAQuiri::ProjectPtr project)
 {
-  std::ifstream file (path.string(), std::ios::binary);
+  std::ifstream file(path.string(), std::ios::binary);
 
   Header header;
   file.read(reinterpret_cast<char*>(&header), sizeof(Header));
@@ -93,7 +93,7 @@ void ImporterMCA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   hist->set_attribute(DAQuiri::Setting("live_time", std::chrono::milliseconds(lt_ms)));
   hist->set_attribute(DAQuiri::Setting("real_time", std::chrono::milliseconds(rt_ms)));
 
-  for (size_t i=0; i < spectrum.size(); ++i)
+  for (size_t i = 0; i < spectrum.size(); ++i)
   {
     DAQuiri::Entry new_entry;
     new_entry.first.resize(1);
@@ -102,35 +102,44 @@ void ImporterMCA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
     entry_list.push_back(new_entry);
   }
 
-
   DAQuiri::Detector det;
 
-  std::string cal_units(header.calibration.unit_name, header.calibration.unit_name + 4);
   std::string cal_unit_type(&header.calibration.unit_type, 1);
+  INFO("XCal.unit_type: {}", cal_unit_type);
+
   std::string cal_cformat(&header.calibration.cformat, 1);
+  INFO("XCal.cformat: {}", cal_cformat);
+
+  std::vector<double> calibration{header.calibration.ecal0,
+                                  header.calibration.ecal1,
+                                  header.calibration.ecal2};
+
   std::string cal_corder(&header.calibration.corder, 1);
   trim(cal_corder);
   if (!cal_corder.empty())
-  {
-    auto caluzeros = cal_units.find('\0');
-    if (caluzeros != std::string::npos)
-      cal_units.erase(caluzeros);
-    trim(cal_units);
-    INFO("XCal.unit_type: {}", cal_unit_type);
-    INFO("XCal.cformat: {}", cal_cformat);
-
-    std::vector<double> calibration{header.calibration.ecal0,
-                                    header.calibration.ecal1,
-                                    header.calibration.ecal2};
     calibration.resize(std::stoul(cal_corder) + 1);
-    DAQuiri::CalibID from("energy", "unknown", "");
-    DAQuiri::CalibID to("energy", "unknown", "keV");
-    if (!cal_units.empty())
-      to.units = cal_units;
-    DAQuiri::Calibration new_calib(from, to);
-    new_calib.function("Polynomial", calibration);
-    det.set_calibration(new_calib);
+  else
+  {
+    if (calibration.back() == 0.0)
+      calibration.pop_back();
+    if (calibration.back() == 0.0)
+      calibration.pop_back();
   }
+
+  DAQuiri::CalibID from("energy", "unknown", "");
+  DAQuiri::CalibID to("energy", "unknown", "keV");
+
+  std::string cal_units(header.calibration.unit_name, header.calibration.unit_name + 4);
+  auto caluzeros = cal_units.find('\0');
+  if (caluzeros != std::string::npos)
+    cal_units.erase(caluzeros);
+  trim(cal_units);
+  if (!cal_units.empty())
+    to.units = cal_units;
+
+  DAQuiri::Calibration new_calib(from, to);
+  new_calib.function("Polynomial", calibration);
+  det.set_calibration(new_calib);
 //  DBG("det = {}", det.debug(""));
 
   hist->set_detectors({det});
