@@ -5,6 +5,8 @@
 #include <gui/analysis/widget_isotopes.h>
 #include "ui_widget_isotopes.h"
 
+#include <core/fitting/nuclides/std_importer.h>
+
 #include <core/util/custom_logger.h>
 #include <gui/widgets/QFileExtensions.h>
 
@@ -30,7 +32,19 @@ QVariant TableGammas::data(const QModelIndex& index, int role) const
 {
   int col = index.column();
   int row = index.row();
-  if ((role == Qt::DisplayRole) || (role == Qt::EditRole))
+  if (role == Qt::DisplayRole)
+  {
+    switch (col)
+    {
+      case 0:
+        return QString::number(gammas_[row].energy.value())
+            + "\u00B1" + QString::number(gammas_[row].energy.sigma());
+      case 1:
+        return QString::number(gammas_[row].abundance.value())
+            + "\u00B1" + QString::number(gammas_[row].abundance.sigma());
+    }
+  }
+  else if (role == Qt::EditRole)
   {
     switch (col)
     {
@@ -126,11 +140,11 @@ bool TableGammas::setData(const QModelIndex& index, const QVariant& value, int r
 }
 
 WidgetIsotopes::WidgetIsotopes(QWidget* parent)
-  : QWidget(parent)
-  , ui(new Ui::WidgetIsotopes)
-  , table_gammas_(this)
-  , special_delegate_(this)
-  , sort_model_(this)
+    : QWidget(parent)
+      , ui(new Ui::WidgetIsotopes)
+      , table_gammas_(this)
+      , special_delegate_(this)
+      , sort_model_(this)
 {
   ui->setupUi(this);
 
@@ -154,13 +168,14 @@ WidgetIsotopes::WidgetIsotopes(QWidget* parent)
   connect(ui->listIsotopes, SIGNAL(currentTextChanged(QString)), this, SLOT(isotopeChosen(QString)));
   connect(&table_gammas_, SIGNAL(energiesChanged()), this, SLOT(energies_changed()));
 
-  auto filename = Profiles::settings_dir().toStdString() + "/gamma/isotopes.json";
-  nlohmann::json isotopes_json = from_json_file(filename);
-//  WARN("Got isotopes from {}:\n {}", filename, isotopes_json.dump(0));
-  isotopes_ = isotopes_json["isotopes"];
+//  auto filename = Profiles::settings_dir().toStdString() + "/gamma/isotopes.json";
+//  nlohmann::json isotopes_json = from_json_file(filename);
+////  WARN("Got isotopes from {}:\n {}", filename, isotopes_json.dump(0));
+//  isotopes_ = isotopes_json["isotopes"];
+  on_pushImport_clicked();
 
   ui->listIsotopes->clear();
-  for(const auto& i : isotopes_)
+  for (const auto& i : isotopes_)
     ui->listIsotopes->addItem(QString::fromStdString(i.name));
 }
 
@@ -243,8 +258,8 @@ std::vector<UncertainDouble> WidgetIsotopes::current_gammas() const
 
 void WidgetIsotopes::on_pushSum_clicked()
 {
-  UncertainDouble sum_energy {0.0, 0.0};
-  for(const auto& q : current_gammas_)
+  UncertainDouble sum_energy{0.0, 0.0};
+  for (const auto& q : current_gammas_)
     sum_energy += q;
   INFO("sum={}", sum_energy.to_string(false));
 
@@ -263,8 +278,8 @@ void WidgetIsotopes::on_pushSum_clicked()
 void WidgetIsotopes::on_pushRemove_clicked()
 {
   DAQuiri::Isotope modified = isotopes_.get(DAQuiri::Isotope(ui->listIsotopes->currentItem()->text().toStdString()));
-  for(const auto& g : current_gammas_)
-    modified.gammas.remove_a({g, {0.0,0.0}});
+  for (const auto& g : current_gammas_)
+    modified.gammas.remove_a({g, {0.0, 0.0}});
   isotopes_.replace(modified);
   isotopeChosen(QString::fromStdString(modified.name));
 
@@ -281,7 +296,7 @@ QString WidgetIsotopes::current_isotope() const
 
 void WidgetIsotopes::set_current_isotope(QString choice)
 {
-  for(int i = 0; i < ui->listIsotopes->count(); ++i)
+  for (int i = 0; i < ui->listIsotopes->count(); ++i)
     if (ui->listIsotopes->item(i)->text() == choice)
       ui->listIsotopes->setCurrentRow(i);
 }
@@ -289,7 +304,7 @@ void WidgetIsotopes::set_current_isotope(QString choice)
 bool WidgetIsotopes::save_close()
 {
 
-  auto filename = Profiles::profiles_dir().toStdString() + "/isotopes.json";
+  auto filename = Profiles::settings_dir().toStdString() + "/gamma/isotopes.json";
 
   nlohmann::json isotopes_json;
   isotopes_json["daquiri_git_version"] = std::string(BI_GIT_HASH);
@@ -316,7 +331,7 @@ bool WidgetIsotopes::save_close()
 void WidgetIsotopes::on_pushAddGamma_clicked()
 {
   DAQuiri::Isotope modified = isotopes_.get(DAQuiri::Isotope(current_isotope().toStdString()));
-  modified.gammas.add_a(DAQuiri::Radiation({1.0,0.0}, {0.0, 0.0}));
+  modified.gammas.add_a(DAQuiri::Radiation({1.0, 0.0}, {0.0, 0.0}));
   isotopes_.replace(modified);
   isotopeChosen(QString::fromStdString(modified.name));
   modified_ = true;
@@ -327,7 +342,7 @@ void WidgetIsotopes::on_pushRemoveIsotope_clicked()
   table_gammas_.clear();
   isotopes_.remove_a(DAQuiri::Isotope(current_isotope().toStdString()));
   ui->listIsotopes->clear();
-  for(const auto& i : isotopes_)
+  for (const auto& i : isotopes_)
     ui->listIsotopes->addItem(QString::fromStdString(i.name));
   modified_ = true;
   isotopeChosen("");
@@ -347,7 +362,7 @@ void WidgetIsotopes::on_pushAddIsotope_clicked()
     {
       isotopes_.add(DAQuiri::Isotope(text.toStdString()));
       ui->listIsotopes->clear();
-      for(const auto& i : isotopes_)
+      for (const auto& i : isotopes_)
         ui->listIsotopes->addItem(QString::fromStdString(i.name));
       modified_ = true;
       ui->listIsotopes->setCurrentRow(ui->listIsotopes->count() - 1);
@@ -357,7 +372,13 @@ void WidgetIsotopes::on_pushAddIsotope_clicked()
 
 void WidgetIsotopes::on_pushImport_clicked()
 {
+  auto filename = Profiles::settings_dir().toStdString() + "/gamma/nuclides/Nuclid.std";
+  DAQuiri::NuclideStdImporter importer;
+  importer.open(filename);
+  importer.parse_nuclides();
 
+  for (const auto& n : importer.nuclides)
+    isotopes_.add(n);
 }
 
 void WidgetIsotopes::energies_changed()
@@ -371,7 +392,7 @@ void WidgetIsotopes::energies_changed()
 void WidgetIsotopes::push_energies(std::vector<UncertainDouble> new_energies)
 {
   DAQuiri::Isotope modified = isotopes_.get(DAQuiri::Isotope(current_isotope().toStdString()));
-  for(const auto& q : new_energies)
+  for (const auto& q : new_energies)
     modified.gammas.add(DAQuiri::Radiation(q, {}));
   isotopes_.replace(modified);
   modified_ = true;
@@ -381,7 +402,7 @@ void WidgetIsotopes::push_energies(std::vector<UncertainDouble> new_energies)
 void WidgetIsotopes::select_energies(std::set<UncertainDouble> sel_energies)
 {
   Container<DAQuiri::Radiation> gammas = table_gammas_.get_gammas();
-  for(auto& q : gammas)
+  for (auto& q : gammas)
     q.marked = (sel_energies.count(q.energy) > 0);
   table_gammas_.set_gammas(gammas);
 }
@@ -391,11 +412,11 @@ void WidgetIsotopes::select_next_energy()
   current_gammas_.clear();
 
   int top_row = -1;
-  foreach (QModelIndex idx, ui->tableGammas->selectionModel()->selectedRows())
-  {
-    if (idx.row() > top_row)
-      top_row = idx.row();
-  }
+      foreach (QModelIndex idx, ui->tableGammas->selectionModel()->selectedRows())
+    {
+      if (idx.row() > top_row)
+        top_row = idx.row();
+    }
 
   top_row++;
   if (top_row < table_gammas_.rowCount())
