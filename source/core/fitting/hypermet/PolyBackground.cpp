@@ -32,11 +32,13 @@ PolyBackground::PolyBackground(const WeightedData& data,
   double mincurve{0.0}, maxcurve{0.0};
 
   double yav;
-
+  double min_base, max_base;
   if (lb.average() < rb.average())
   {
     // apparently ascending slope
     yav = lb.average().value();
+    min_base = lb.min();
+    max_base = lb.max();
     maxslope = (rb.max() - global_min) / run;
     minslope = (rb.min() - lb.max()) / run;
     maxcurve = (rb.max() - global_min) / square(run);
@@ -46,23 +48,30 @@ PolyBackground::PolyBackground(const WeightedData& data,
   {
     // apparently descending slope
     yav = rb.average().value();
-    minslope = (global_min - lb.max()) / run;
-    maxslope = (rb.max() - lb.min()) / run;
-    mincurve = (global_min - lb.max()) / square(run);
-    maxcurve = (rb.max() - lb.min()) / square(run);
+    min_base = rb.min();
+    max_base = rb.max();
+    minslope = (rb.min() - std::min(lb.max(), 2*rb.min())) / run;
+    maxslope = (rb.max() - rb.min()) / run;
+    mincurve = (rb.max() - std::min(lb.max(), 2*rb.min())) / square(run);
+    maxcurve = (rb.max() - rb.min()) / square(run);
   }
 
 
   x_offset = lb.left();
 
+//  slope_enabled = false;
 //  base.bound(global_min, ymax + 1);
+  base.bound(min_base, max_base);
   base.val(yav);
 
-//  slope.bound(minslope, maxslope);
-  slope.val((rb.average().value() - lb.average().value()) / run);
+  slope.bound(minslope, maxslope);
+//  slope.val((rb.average().value() - lb.average().value()) / run);
+  slope.val(0.0);
 
-//  curve.bound(mincurve, maxcurve);
+//  curve_enabled = false;
+  curve.bound(mincurve, maxcurve);
 //  curve.val(0.5 * (mincurve + maxcurve));
+  curve.val(0.0);
 }
 
 bool PolyBackground::sane() const

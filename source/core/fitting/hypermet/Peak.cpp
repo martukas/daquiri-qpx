@@ -31,7 +31,7 @@ Peak::Peak()
   short_tail.slope.bound(0.2, 0.5);
 
   right_tail.amplitude.bound(0.01, 0.9);
-  right_tail.slope.bound(0.3, 1.5);
+  right_tail.slope.bound(0.1, 0.5);
 
   long_tail.amplitude.bound(0.0001, 0.15);
   long_tail.slope.bound(2.5, 50);
