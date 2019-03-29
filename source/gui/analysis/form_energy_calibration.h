@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QWidget>
-#include <gui/analysis/isotope.h>
+#include <core/fitting/nuclides/nuclide.h>
 #include <gui/analysis/widget_plot_calib.h>
 #include <QItemSelection>
 #include <core/fitting/fitter.h>

@@ -4,9 +4,11 @@
 #include <QAbstractTableModel>
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
-#include <gui/analysis/isotope.h>
+#include <core/fitting/nuclides/nuclide.h>
 
 #include <gui/widgets/SettingDelegate.h>
+
+Q_DECLARE_METATYPE(UncertainDouble)
 
 namespace Ui {
 class WidgetIsotopes;
@@ -17,11 +19,11 @@ class TableGammas : public QAbstractTableModel
   Q_OBJECT
 
 private:
-  std::vector<RadTypes::Radiation> gammas_;
+  std::vector<DAQuiri::Radiation> gammas_;
 
 public:
-  void set_gammas(const Container<RadTypes::Radiation> &);
-  Container<RadTypes::Radiation> get_gammas();
+  void set_gammas(const Container<DAQuiri::Radiation> &);
+  Container<DAQuiri::Radiation> get_gammas();
   void clear();
 
   explicit TableGammas(QObject *parent = 0);
@@ -49,13 +51,13 @@ class WidgetIsotopes : public QWidget
 public:
   explicit WidgetIsotopes(QWidget *parent = 0);
   ~WidgetIsotopes();
-  std::vector<double> current_gammas() const;
-  std::list<RadTypes::Radiation> current_isotope_gammas() const;
+  std::vector<UncertainDouble> current_gammas() const;
+  std::list<DAQuiri::Radiation> current_isotope_gammas() const;
   QString current_isotope() const;
   void set_current_isotope(QString);
 
-  void push_energies(std::vector<double>);
-  void select_energies(std::set<double>);
+  void push_energies(std::vector<UncertainDouble>);
+  void select_energies(std::set<UncertainDouble>);
 
   bool save_close();
   void select_next_energy();
@@ -77,6 +79,8 @@ private slots:
 
   void on_pushAddIsotope_clicked();
 
+  void on_pushImport_clicked();
+
   void selection_changed(QItemSelection, QItemSelection);
   void energies_changed();
 
@@ -87,9 +91,9 @@ private:
   SettingDelegate special_delegate_;
   QSortFilterProxyModel sort_model_;
 
-  Container<RadTypes::Isotope> isotopes_;
+  Container<DAQuiri::Isotope> isotopes_;
 
-  std::vector<double> current_gammas_;
+  std::vector<UncertainDouble> current_gammas_;
 
   bool modified_ {false};
 };

@@ -218,9 +218,9 @@ void FormEnergyCalibration::rebuild_table()
   {
     bool close = false;
     for (auto& e : ui->isotopes->current_isotope_gammas())
-      if (std::abs(p.second.peak_energy(fit_data_.settings().calib.cali_nrg_).value() - e.energy) < 2.0)
+      if (std::abs(p.second.peak_energy(fit_data_.settings().calib.cali_nrg_).value() - e.energy.value()) < 2.0)
       {//hardcoded
-        flagged.insert(e.energy);
+        flagged.insert(e.energy.value());
         close = true;
       }
     add_peak_to_table(p.second, i, close);
@@ -245,9 +245,8 @@ void FormEnergyCalibration::selection_changed_in_plot()
 void FormEnergyCalibration::selection_changed_in_table()
 {
   selected_peaks_.clear();
-      foreach (QModelIndex i,
-               ui->tablePeaks->selectionModel()->selectedRows())selected_peaks_.insert(ui->tablePeaks->item(i.row(),
-                                                                                                            0)->data(Qt::UserRole).toDouble());
+  foreach (QModelIndex i, ui->tablePeaks->selectionModel()->selectedRows())
+    selected_peaks_.insert(ui->tablePeaks->item(i.row(),0)->data(Qt::UserRole).toDouble());
 
   select_in_plot();
   if (isVisible())
@@ -352,16 +351,16 @@ void FormEnergyCalibration::on_pushDetDB_clicked()
 
 void FormEnergyCalibration::on_pushPeaksToNuclide_clicked()
 {
-  std::vector<double> gammas;
+  std::vector<UncertainDouble> gammas;
   for (auto& q : fit_data_.peaks())
     if (selected_peaks_.count(q.first))
-      gammas.push_back(q.second.peak_energy(fit_data_.settings().calib.cali_nrg_).value());
+      gammas.push_back(q.second.peak_energy(fit_data_.settings().calib.cali_nrg_));
   ui->isotopes->push_energies(gammas);
 }
 
 void FormEnergyCalibration::on_pushEnergiesToPeaks_clicked()
 {
-  std::vector<double> gammas = ui->isotopes->current_gammas();
+  std::vector<UncertainDouble> gammas = ui->isotopes->current_gammas();
   std::sort(gammas.begin(), gammas.end());
 
   std::vector<double> peakIDs;

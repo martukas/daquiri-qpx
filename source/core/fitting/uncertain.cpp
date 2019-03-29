@@ -263,6 +263,11 @@ bool UncertainDouble::operator==(const UncertainDouble& other) const
   return (value() == other.value()) && (sigma() == other.sigma());
 }
 
+bool UncertainDouble::operator!=(const UncertainDouble& other) const
+{
+  return (value() != other.value()) || (sigma() != other.sigma());
+}
+
 bool UncertainDouble::operator<(const UncertainDouble& other) const
 {
   return (value() < other.value()) || (sigma() < other.sigma());

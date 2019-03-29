@@ -1,7 +1,6 @@
 set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(SOURCES
-  ${dir}/isotope.cpp
   ${dir}/widget_isotopes.cpp
   ${dir}/widget_plot_calib.cpp
   ${dir}/form_energy_calibration.cpp
@@ -21,7 +20,6 @@ set(UI
   )
 
 set(HEADERS
-  ${dir}/isotope.h
   ${dir}/widget_isotopes.h
   ${dir}/widget_plot_calib.h
   ${dir}/form_energy_calibration.h

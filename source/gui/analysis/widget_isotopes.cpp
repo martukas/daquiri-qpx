@@ -72,7 +72,7 @@ QVariant TableGammas::headerData(int section, Qt::Orientation orientation, int r
   return QVariant();
 }
 
-void TableGammas::set_gammas(const Container<RadTypes::Radiation>& newgammas)
+void TableGammas::set_gammas(const Container<DAQuiri::Radiation>& newgammas)
 {
   gammas_ = newgammas.to_vector();
 
@@ -82,9 +82,9 @@ void TableGammas::set_gammas(const Container<RadTypes::Radiation>& newgammas)
   emit layoutChanged();
 }
 
-Container<RadTypes::Radiation> TableGammas::get_gammas()
+Container<DAQuiri::Radiation> TableGammas::get_gammas()
 {
-  Container<RadTypes::Radiation> gammas;
+  Container<DAQuiri::Radiation> gammas;
   gammas.from_vector(gammas_);
   return gammas;
 }
@@ -112,9 +112,9 @@ bool TableGammas::setData(const QModelIndex& index, const QVariant& value, int r
   if (role == Qt::EditRole)
   {
     if (col == 0)
-      gammas_[row].energy = value.toDouble();
+      gammas_[row].energy.set_value(value.toDouble());
     else if (col == 1)
-      gammas_[row].abundance = value.toDouble();
+      gammas_[row].abundance.set_value(value.toDouble());
   }
 
   QModelIndex start_ix = createIndex(row, col);
@@ -185,12 +185,12 @@ void WidgetIsotopes::set_editable(bool enable)
   }
 }
 
-std::list<RadTypes::Radiation> WidgetIsotopes::current_isotope_gammas() const
+std::list<DAQuiri::Radiation> WidgetIsotopes::current_isotope_gammas() const
 {
   if (ui->listIsotopes->currentItem() != nullptr)
-    return isotopes_.get(RadTypes::Isotope(ui->listIsotopes->currentItem()->text().toStdString())).gammas.data();
+    return isotopes_.get(DAQuiri::Isotope(ui->listIsotopes->currentItem()->text().toStdString())).gammas.data();
   else
-    return std::list<RadTypes::Radiation>();
+    return std::list<DAQuiri::Radiation>();
 }
 
 void WidgetIsotopes::isotopeChosen(QString choice)
@@ -201,7 +201,7 @@ void WidgetIsotopes::isotopeChosen(QString choice)
   ui->pushAddGamma->setEnabled(false);
   table_gammas_.clear();
 
-  RadTypes::Isotope iso(choice.toStdString());
+  DAQuiri::Isotope iso(choice.toStdString());
   if (isotopes_.has_a(iso))
   {
     ui->labelPeaks->setText(choice);
@@ -222,7 +222,7 @@ void WidgetIsotopes::selection_changed(QItemSelection, QItemSelection)
       foreach (QModelIndex idx, ui->tableGammas->selectionModel()->selectedRows())
     {
       QModelIndex nrg_ix = table_gammas_.index(idx.row(), 0);
-      current_gammas_.push_back(table_gammas_.data(nrg_ix, Qt::DisplayRole).toDouble());
+      current_gammas_.push_back(qvariant_cast<UncertainDouble>(table_gammas_.data(nrg_ix, Qt::UserRole)));
     }
 
   ui->pushSum->setEnabled(false);
@@ -236,22 +236,22 @@ void WidgetIsotopes::selection_changed(QItemSelection, QItemSelection)
 
 }
 
-std::vector<double> WidgetIsotopes::current_gammas() const
+std::vector<UncertainDouble> WidgetIsotopes::current_gammas() const
 {
   return current_gammas_;
 }
 
 void WidgetIsotopes::on_pushSum_clicked()
 {
-  double sum_energy = 0.0;
+  UncertainDouble sum_energy {0.0, 0.0};
   for(const auto& q : current_gammas_)
     sum_energy += q;
-  INFO("sum={}", sum_energy);
+  INFO("sum={}", sum_energy.to_string(false));
 
-  RadTypes::Radiation newgamma;
+  DAQuiri::Radiation newgamma;
   newgamma.energy = sum_energy;
-  newgamma.abundance = 0.0;
-  RadTypes::Isotope modified = isotopes_.get(RadTypes::Isotope(ui->listIsotopes->currentItem()->text().toStdString()));
+  newgamma.abundance = {0.0, 0.0};
+  DAQuiri::Isotope modified = isotopes_.get(DAQuiri::Isotope(ui->listIsotopes->currentItem()->text().toStdString()));
   modified.gammas.add(newgamma);
   INFO("modifying {} to have {} gammas", modified.name, modified.gammas.size());
   isotopes_.replace(modified);
@@ -262,9 +262,9 @@ void WidgetIsotopes::on_pushSum_clicked()
 
 void WidgetIsotopes::on_pushRemove_clicked()
 {
-  RadTypes::Isotope modified = isotopes_.get(RadTypes::Isotope(ui->listIsotopes->currentItem()->text().toStdString()));
+  DAQuiri::Isotope modified = isotopes_.get(DAQuiri::Isotope(ui->listIsotopes->currentItem()->text().toStdString()));
   for(const auto& g : current_gammas_)
-    modified.gammas.remove_a(RadTypes::Radiation(g, 0.0));
+    modified.gammas.remove_a({g, {0.0,0.0}});
   isotopes_.replace(modified);
   isotopeChosen(QString::fromStdString(modified.name));
 
@@ -315,8 +315,8 @@ bool WidgetIsotopes::save_close()
 
 void WidgetIsotopes::on_pushAddGamma_clicked()
 {
-  RadTypes::Isotope modified = isotopes_.get(RadTypes::Isotope(current_isotope().toStdString()));
-  modified.gammas.add_a(RadTypes::Radiation(1, 0.0));
+  DAQuiri::Isotope modified = isotopes_.get(DAQuiri::Isotope(current_isotope().toStdString()));
+  modified.gammas.add_a(DAQuiri::Radiation({1.0,0.0}, {0.0, 0.0}));
   isotopes_.replace(modified);
   isotopeChosen(QString::fromStdString(modified.name));
   modified_ = true;
@@ -325,7 +325,7 @@ void WidgetIsotopes::on_pushAddGamma_clicked()
 void WidgetIsotopes::on_pushRemoveIsotope_clicked()
 {
   table_gammas_.clear();
-  isotopes_.remove_a(RadTypes::Isotope(current_isotope().toStdString()));
+  isotopes_.remove_a(DAQuiri::Isotope(current_isotope().toStdString()));
   ui->listIsotopes->clear();
   for(const auto& i : isotopes_)
     ui->listIsotopes->addItem(QString::fromStdString(i.name));
@@ -341,11 +341,11 @@ void WidgetIsotopes::on_pushAddIsotope_clicked()
                                        "", &ok);
   if (ok && !text.isEmpty())
   {
-    if (isotopes_.has_a(RadTypes::Isotope(text.toStdString())))
+    if (isotopes_.has_a(DAQuiri::Isotope(text.toStdString())))
       QMessageBox::warning(this, "Already exists", "Isotope " + text + " already exists", QMessageBox::Ok);
     else
     {
-      isotopes_.add(RadTypes::Isotope(text.toStdString()));
+      isotopes_.add(DAQuiri::Isotope(text.toStdString()));
       ui->listIsotopes->clear();
       for(const auto& i : isotopes_)
         ui->listIsotopes->addItem(QString::fromStdString(i.name));
@@ -355,27 +355,32 @@ void WidgetIsotopes::on_pushAddIsotope_clicked()
   }
 }
 
+void WidgetIsotopes::on_pushImport_clicked()
+{
+
+}
+
 void WidgetIsotopes::energies_changed()
 {
-  RadTypes::Isotope modified = isotopes_.get(RadTypes::Isotope(current_isotope().toStdString()));
+  DAQuiri::Isotope modified = isotopes_.get(DAQuiri::Isotope(current_isotope().toStdString()));
   modified.gammas = table_gammas_.get_gammas();
   isotopes_.replace(modified);
   modified_ = true;
 }
 
-void WidgetIsotopes::push_energies(std::vector<double> new_energies)
+void WidgetIsotopes::push_energies(std::vector<UncertainDouble> new_energies)
 {
-  RadTypes::Isotope modified = isotopes_.get(RadTypes::Isotope(current_isotope().toStdString()));
+  DAQuiri::Isotope modified = isotopes_.get(DAQuiri::Isotope(current_isotope().toStdString()));
   for(const auto& q : new_energies)
-    modified.gammas.add(RadTypes::Radiation(q, 0));
+    modified.gammas.add(DAQuiri::Radiation(q, {}));
   isotopes_.replace(modified);
   modified_ = true;
   isotopeChosen(current_isotope());
 }
 
-void WidgetIsotopes::select_energies(std::set<double> sel_energies)
+void WidgetIsotopes::select_energies(std::set<UncertainDouble> sel_energies)
 {
-  Container<RadTypes::Radiation> gammas = table_gammas_.get_gammas();
+  Container<DAQuiri::Radiation> gammas = table_gammas_.get_gammas();
   for(auto& q : gammas)
     q.marked = (sel_energies.count(q.energy) > 0);
   table_gammas_.set_gammas(gammas);

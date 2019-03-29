@@ -192,24 +192,24 @@ void FormEfficiencyCalibration::update_data()
   auto calib = fit_data_.settings().calib;
   auto live_time = fit_data_.metadata_.get_attribute("live_time").duration().count() * 0.001;
 
-  double max = 0;
-  std::set<double> flagged;
+  UncertainDouble max {0.0, 0.0};
+  std::set<UncertainDouble> flagged;
   fit_data_.sample_name_ = ui->isotopes->current_isotope().toStdString();
   for (auto& q : fit_data_.peaks())
   {
 //    q.second.flagged = false;
     for (auto& p : ui->isotopes->current_isotope_gammas())
     {
-      double diff = std::abs(q.second.peak_energy(calib.cali_nrg_).value() - p.energy);
+      double diff = std::abs(q.second.peak_energy(calib.cali_nrg_).value() - p.energy.value());
       if (diff < ui->doubleEpsilonE->value())
       {
         Peak pk = q.second; //BROKEN
 //        pk.flagged = true;
         pk.theoretical_intensity = p.abundance;
-        pk.relative_efficiency = (pk.rate(live_time).value() / pk.theoretical_intensity);
+        pk.relative_efficiency = (pk.rate(live_time) / pk.theoretical_intensity);
         if (pk.relative_efficiency > max)
           max = pk.relative_efficiency;
-        flagged.insert(pk.peak_energy(calib.cali_nrg_).value());
+        flagged.insert(pk.peak_energy(calib.cali_nrg_));
       }
     }
   }
@@ -217,7 +217,7 @@ void FormEfficiencyCalibration::update_data()
   ui->isotopes->select_energies(flagged);
 
   //BROKEN
-  if (max > 0)
+  if (max.value() > 0)
   {
     for (auto& q : fit_data_.peaks())
     {
@@ -339,7 +339,7 @@ void FormEfficiencyCalibration::add_peak_to_table(const Peak& p, int row, QColor
       QS(p.peak_energy(calib.cali_nrg_).to_string()),
       QVariant::fromValue(p.id()), background);
   add_to_table(ui->tablePeaks, row, 1, QS(p.rate(live_time).to_string()), {}, background);
-  add_to_table(ui->tablePeaks, row, 2, QString::number(p.relative_efficiency), {}, background);
+  add_to_table(ui->tablePeaks, row, 2, QS(p.relative_efficiency.to_string(false)), {}, background);
 }
 
 void FormEfficiencyCalibration::replot_calib()
@@ -380,11 +380,11 @@ void FormEfficiencyCalibration::replot_calib()
 
       for (auto& q : fit.second.peaks())
       {
-        if (q.second.theoretical_intensity == 0)
+        if (q.second.theoretical_intensity.value() == 0)
           continue;
 
         double x = q.second.peak_energy(calib.cali_nrg_).value();
-        double y = q.second.relative_efficiency * fit.second.activity_scale_factor_;
+        double y = q.second.relative_efficiency.value() * fit.second.activity_scale_factor_;
 
         xx.push_back(x);
         yy.push_back(y);

@@ -7,9 +7,6 @@
 #include <gui/widgets/SettingDelegate.h>
 #include <gui/analysis/widget_plot_calib.h>
 
-// \todo remove this, only for xmlable
-#include <gui/analysis/isotope.h>
-
 namespace Ui
 {
 class FormFwhmCalibration;

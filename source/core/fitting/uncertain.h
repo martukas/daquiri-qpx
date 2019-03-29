@@ -47,6 +47,7 @@ class UncertainDouble
 
   bool almost(const UncertainDouble& other) const;
   bool operator==(const UncertainDouble& other) const;
+  bool operator!=(const UncertainDouble& other) const;
   bool operator<(const UncertainDouble& other) const;
   bool operator>(const UncertainDouble& other) const;
 

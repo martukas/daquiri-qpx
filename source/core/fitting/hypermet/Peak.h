@@ -95,8 +95,8 @@ class Peak
 
   // \todo these might have to be somewhere else
   UncertainDouble true_energy;
-  double theoretical_intensity {1.0};
-  double relative_efficiency {1.0};
+  UncertainDouble theoretical_intensity {0.0, 0.0};
+  UncertainDouble relative_efficiency {0.0, 0.0};
 };
 
 void to_json(nlohmann::json& j, const Peak& s);
