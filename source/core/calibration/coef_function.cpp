@@ -3,33 +3,22 @@
 namespace DAQuiri
 {
 
-CoefFunction::CoefFunction(const std::vector<double>& coeffs, double uncert, double chisq)
-    : chi2_(chisq)
-{
-  size_t i{0};
-  for (const auto& c : coeffs)
-    coeffs_[i++] = Parameter(c - uncert, c, c + uncert);
-}
+//CoefFunction::CoefFunction(const std::vector<double>& coeffs, double uncert)
+//{
+//  size_t i{0};
+//  for (const auto& c : coeffs)
+//    coeffs_[i++] = Parameter(c - uncert, c, c + uncert);
+//}
 
-void CoefFunction::chi2(double c2)
-{
-  chi2_ = c2;
-}
-
-double CoefFunction::chi2() const
-{
-  return chi2_;
-}
-
-std::map<int, Parameter> CoefFunction::coeffs() const
-{
-  return coeffs_;
-}
-
-void CoefFunction::set_coeff(int degree, const Parameter& p)
-{
-  coeffs_[degree] = p;
-}
+//std::map<int, Parameter> CoefFunction::coeffs() const
+//{
+//  return coeffs_;
+//}
+//
+//void CoefFunction::set_coeff(int degree, const Parameter& p)
+//{
+//  coeffs_[degree] = p;
+//}
 
 std::vector<double> CoefFunction::eval(const std::vector<double>& x) const
 {
@@ -66,29 +55,29 @@ double CoefFunction::inverse(double y, double e) const
 void to_json(nlohmann::json& j, const CoefFunction& s)
 {
   j["type"] = s.type();
-  for (auto c : s.coeffs())
-  {
-    nlohmann::json cc;
-    cc["degree"] = c.first;
-    cc["coefficient"] = c.second;
-    j["coefficients"].push_back(cc);
-  }
-  j["chi2"] = s.chi2();
+//  for (auto c : s.coeffs())
+//  {
+//    nlohmann::json cc;
+//    cc["degree"] = c.first;
+//    cc["coefficient"] = c.second;
+//    j["coefficients"].push_back(cc);
+//  }
+//  j["chi2"] = s.chi2();
 }
 
 void from_json(const nlohmann::json& j, CoefFunction& s)
 {
-  if (j.count("coefficients"))
-  {
-    auto o = j["coefficients"];
-    for (nlohmann::json::iterator it = o.begin(); it != o.end(); ++it)
-    {
-      int d = it.value()["degree"];
-      Parameter p = it.value()["coefficient"];
-      s.set_coeff(d, p);
-    }
-  }
-  s.chi2(j["chi2"]);
+//  if (j.count("coefficients"))
+//  {
+//    auto o = j["coefficients"];
+//    for (nlohmann::json::iterator it = o.begin(); it != o.end(); ++it)
+//    {
+//      int d = it.value()["degree"];
+//      Parameter p = it.value()["coefficient"];
+//      s.set_coeff(d, p);
+//    }
+//  }
+//  s.chi2(j["chi2"]);
 }
 
 }

@@ -2,6 +2,7 @@
 #include <core/consumer_factory.h>
 #include <date/date.h>
 #include <iostream>
+#include <core/calibration/polynomial.h>
 
 #include <core/util/custom_logger.h>
 
@@ -227,7 +228,9 @@ void ImporterSPC::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   DAQuiri::CalibID from("energy","unknown","");
   DAQuiri::CalibID to("energy","unknown","keV");
   DAQuiri::Calibration new_calib(from, to);
-  new_calib.function("Polynomial", {calheader.EC_1, calheader.EC_2, calheader.EC_3});
+  std::vector<double> coefs {calheader.EC_1, calheader.EC_2, calheader.EC_3};
+  new_calib.function(std::make_shared<DAQuiri::Polynomial>(coefs));
+
   DAQuiri::Detector det;
   det.set_calibration(new_calib);
 //  INFO("det = {}", det.debug(""));

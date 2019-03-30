@@ -4,6 +4,7 @@
 #include <pugixml.hpp>
 #include <date/date.h>
 #include <core/util/string_extensions.h>
+#include <core/calibration/polynomial.h>
 
 #include <core/util/custom_logger.h>
 
@@ -79,16 +80,15 @@ void ImporterAVA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
     DAQuiri::CalibID to("energy","unknown","keV");
     DAQuiri::Calibration newcalib(from, to);
 
-    std::string ctype;
-    if (std::string(q.child("model").attribute("type").value()) == "polynomial")
-      ctype = "Polynomial";
     std::vector<double> encalib;
     for (auto &p : q.child("model").children("coefficient"))
     {
       std::string coefvalstr = trim_copy(std::string(p.attribute("value").value()));
       encalib.push_back(std::stod(coefvalstr));
     }
-    newcalib.function(ctype, encalib);
+    std::string ctype;
+    if (std::string(q.child("model").attribute("type").value()) == "polynomial")
+      newcalib.function(std::make_shared<DAQuiri::Polynomial>(encalib));
     //DBG("newcalib = {}", newcalib.debug());
     newdet.set_calibration(newcalib);
   }

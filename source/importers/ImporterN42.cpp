@@ -3,6 +3,7 @@
 #include <importers/string_to_chans.h>
 #include <pugixml.hpp>
 #include <core/util/string_extensions.h>
+#include <core/calibration/polynomial.h>
 
 #include <core/util/custom_logger.h>
 
@@ -103,7 +104,8 @@ void ImporterN42::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
     }
 
     DAQuiri::Calibration new_calib(from, to);
-    new_calib.function(model_str, calibration);
+    if (model_str == "Polynomial")
+      new_calib.function(std::make_shared<DAQuiri::Polynomial>(calibration));
 
     newdet.set_calibration(new_calib);
   }

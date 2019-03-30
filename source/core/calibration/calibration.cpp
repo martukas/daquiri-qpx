@@ -85,7 +85,7 @@ Calibration::Calibration(CalibID from, CalibID to)
 bool Calibration::valid() const
 {
   // \todo should require to & from
-  return (function_ && !function_->coeffs().empty());
+  return (function_ && function_->valid());
 }
 
 CalibID Calibration::from() const
@@ -103,16 +103,16 @@ hr_time_t Calibration::created() const
   return created_;
 }
 
-void Calibration::function(const std::string& type,
-                           const std::vector<double>& coefs)
-{
-  function_ = CoefFunctionFactory::singleton().create_type(type);
-  if (function_)
-  {
-    for (size_t i = 0; i < coefs.size(); ++i)
-      function_->set_coeff(i, coefs.at(i));
-  }
-}
+//void Calibration::function(const std::string& type,
+//                           const std::vector<double>& coefs)
+//{
+//  function_ = CoefFunctionFactory::singleton().create_type(type);
+//  if (function_)
+//  {
+//    for (size_t i = 0; i < coefs.size(); ++i)
+//      function_->set_coeff(i, coefs.at(i));
+//  }
+//}
 
 void Calibration::function(CoefFunctionPtr f)
 {
@@ -137,8 +137,7 @@ bool Calibration::operator==(const Calibration& other) const
     return true;
   if (!function_ || !other.function_)
     return false;
-  return (function_->type() == other.function_->type())
-      && (function_->coeffs() == other.function_->coeffs());
+  return (function_->is_equal(other.function_.get()));
 }
 
 bool Calibration::operator!=(const Calibration& other) const

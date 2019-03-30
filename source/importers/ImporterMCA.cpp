@@ -3,6 +3,7 @@
 #include <date/date.h>
 #include <iostream>
 #include <core/util/string_extensions.h>
+#include <core/calibration/polynomial.h>
 
 #include <core/util/custom_logger.h>
 
@@ -138,7 +139,7 @@ void ImporterMCA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
     to.units = cal_units;
 
   DAQuiri::Calibration new_calib(from, to);
-  new_calib.function("Polynomial", calibration);
+  new_calib.function(std::make_shared<DAQuiri::Polynomial>(calibration));
   det.set_calibration(new_calib);
 //  DBG("det = {}", det.debug(""));
 

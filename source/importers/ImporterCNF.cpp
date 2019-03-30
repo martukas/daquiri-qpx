@@ -3,6 +3,7 @@
 #include "xylib/xylib.h"
 #include <date/date.h>
 #include <core/util/string_extensions.h>
+#include <core/calibration/polynomial.h>
 
 #include <core/util/custom_logger.h>
 
@@ -94,7 +95,7 @@ void ImporterCNF::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   DAQuiri::CalibID from("energy","unknown","");
   DAQuiri::CalibID to("energy","unknown","keV");
   DAQuiri::Calibration new_calib(from, to);
-  new_calib.function("Polynomial", calibration);
+  new_calib.function(std::make_shared<DAQuiri::Polynomial>(calibration));
 //  DBG("calib = {}", new_calib.debug());
   DAQuiri::Detector det;
   det.set_calibration(new_calib);

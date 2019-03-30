@@ -3,6 +3,7 @@
 #include "ui_form_fwhm_calibration.h"
 #include <core/calibration/coef_function_factory.h>
 #include <gui/widgets/qt_util.h>
+#include <core/calibration/polynomial.h>
 
 #include <core/fitting/optimizers/optlib_adapter.h>
 
@@ -374,14 +375,16 @@ void FormFwhmCalibration::fit_calibration()
     }
   }
 
-//  SqrtPoly p;
-  auto p = DAQuiri::CoefFunctionFactory::singleton().create_type("Polynomial");
+  std::vector<double> coefs;
   for (int i = 0; i <= ui->spinTerms->value(); ++i)
-    p->set_coeff(i, {0, 50, 0});
+    coefs.push_back(0);
+
+//  SqrtPoly p;
+  auto p = std::make_shared<DAQuiri::Polynomial>(coefs);
 
   //optimizer->fit(p, xx, yy, xx_sigma, yy_sigma);
 
-  if (p->coeffs().size())
+  if (p->valid())
   {
     new_calibration_ = DAQuiri::Calibration({"energy", fit_data_.detector_.id(), "keV"},
                                             {"fwhm", fit_data_.detector_.id(), "keV"});

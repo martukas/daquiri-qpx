@@ -49,7 +49,7 @@ class Calibration
 
   CoefFunctionPtr function() const;
   void function(CoefFunctionPtr f);
-  void function(const std::string& type, const std::vector<double>& coefs);
+//  void function(const std::string& type, const std::vector<double>& coefs);
 
   bool shallow_equals(const Calibration& other) const;
   bool operator==(const Calibration& other) const;

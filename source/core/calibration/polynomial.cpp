@@ -7,6 +7,25 @@
 namespace DAQuiri
 {
 
+Polynomial::Polynomial(const std::vector<double>& coeffs, double uncert)
+{
+  size_t i{0};
+  for (const auto& c : coeffs)
+    coeffs_[i++] = Parameter(c - uncert, c, c + uncert);
+}
+
+bool Polynomial::valid() const
+{
+  return !coeffs_.empty();
+}
+
+bool Polynomial::is_equal(CoefFunction* other) const
+{
+  if (this->type() != other->type())
+    return false;
+  return (coeffs_ == dynamic_cast<Polynomial*>(other)->coeffs_);
+}
+
 std::string Polynomial::debug() const
 {
   std::string ret = type() + " = ";
@@ -24,7 +43,6 @@ std::string Polynomial::debug() const
     i++;
     vars += "     p" + std::to_string(c.first) + "=" + c.second.to_string() + "\n";
   }
-  ret += "   chi_sq_norm=" + std::to_string(chi2_) + "    where:\n" + vars;
 
   return ret;
 }
@@ -32,7 +50,6 @@ std::string Polynomial::debug() const
 std::string Polynomial::to_UTF8(int precision, bool with_rsq) const
 {
   std::string x_str = "x";
-
 
   std::string calib_eqn;
   int i = 0;
@@ -48,11 +65,11 @@ std::string Polynomial::to_UTF8(int precision, bool with_rsq) const
     i++;
   }
 
-  if (with_rsq)
-    calib_eqn += std::string("   r")
-        + UTF_superscript(2)
-        + std::string("=")
-        + to_str_precision(chi2_, precision);
+//  if (with_rsq)
+//    calib_eqn += std::string("   r")
+//        + UTF_superscript(2)
+//        + std::string("=")
+//        + to_str_precision(chi2_, precision);
 
   return calib_eqn;
 }
@@ -75,10 +92,10 @@ std::string Polynomial::to_markup(int precision, bool with_rsq) const
     i++;
   }
 
-  if (with_rsq)
-    calib_eqn += "   r<sup>2</sup>"
-        + std::string("=")
-        + to_str_precision(chi2_, precision);
+//  if (with_rsq)
+//    calib_eqn += "   r<sup>2</sup>"
+//        + std::string("=")
+//        + to_str_precision(chi2_, precision);
 
   return calib_eqn;
 }
@@ -100,10 +117,10 @@ double Polynomial::derivative(double x) const
   {
     if (c.first != 0)
     {
-      new_poly.set_coeff(c.first - 1,
-                         {c.second.lower() * c.first,
-                          c.second.upper() * c.first,
-                          c.second.value() * c.first});
+      new_poly.coeffs_[c.first - 1]
+          = {c.second.lower() * c.first,
+             c.second.upper() * c.first,
+             c.second.value() * c.first};
     }
   }
 

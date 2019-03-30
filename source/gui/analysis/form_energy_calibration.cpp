@@ -3,6 +3,9 @@
 
 #include <core/fitting/optimizers/optlib_adapter.h>
 
+#include <core/calibration/polynomial.h>
+
+
 #include <QSettings>
 //#include "widget_detectors.h"
 
@@ -297,16 +300,17 @@ void FormEnergyCalibration::on_pushFit_clicked()
 
 //  std::vector<double> sigmas(y.size(), 1);
 
-  auto p = DAQuiri::CoefFunctionFactory::singleton().create_type("Polynomial");
-  p->set_coeff(0, {-50, 50, 0});
-  p->set_coeff(1, {0, 50, 0.5});
+  std::vector<double> coefs {0, 0.5};
+
   for (int i = 2; i <= ui->spinTerms->value(); ++i)
-    p->set_coeff(i, {-5, 5, 0.5});
+    coefs.push_back(0.0);
+
+  auto p = std::make_shared<DAQuiri::Polynomial>(coefs);
 
   // \todo reenable
   //optimizer->fit(p, x, y, std::vector<double>(), std::vector<double>());
 
-  if (p->coeffs().size())
+  if (p->valid())
   {
     new_calibration_ =
         DAQuiri::Calibration({"energy", fit_data_.detector_.id()}, {"energy", fit_data_.detector_.id(), "keV"});
