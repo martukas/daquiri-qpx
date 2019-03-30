@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/calibration/parameter.h>
+#include <core/fitting/hypermet/Value.h>
 #include <map>
 
 namespace DAQuiri
@@ -12,9 +13,6 @@ class CoefFunction
   CoefFunction() = default;
   virtual ~CoefFunction() = default;
   CoefFunction(const std::vector<double>& coeffs, double uncert, double chisq);
-
-  void x_offset(const Parameter& o);
-  Parameter x_offset() const;
 
   void chi2(double);
   double chi2() const;
@@ -39,7 +37,6 @@ class CoefFunction
 
  protected:
   std::map<int, Parameter> coeffs_;
-  Parameter xoffset_{0, 0};
   double chi2_{0};
 };
 

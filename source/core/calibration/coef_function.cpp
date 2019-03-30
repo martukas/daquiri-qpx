@@ -11,16 +11,6 @@ CoefFunction::CoefFunction(const std::vector<double>& coeffs, double uncert, dou
     coeffs_[i++] = Parameter(c - uncert, c, c + uncert);
 }
 
-void CoefFunction::x_offset(const Parameter& o)
-{
-  xoffset_ = o;
-}
-
-Parameter CoefFunction::x_offset() const
-{
-  return xoffset_;
-}
-
 void CoefFunction::chi2(double c2)
 {
   chi2_ = c2;
@@ -52,7 +42,7 @@ std::vector<double> CoefFunction::eval(const std::vector<double>& x) const
 double CoefFunction::inverse(double y, double e) const
 {
   int i = 0;
-  double x0 = xoffset_.value();
+  double x0 = 0;
   double x1 = x0 + (y - (*this)(x0)) / (this->derivative(x0));
   while (i <= 100 && std::abs(x1 - x0) > e)
   {
@@ -61,7 +51,7 @@ double CoefFunction::inverse(double y, double e) const
     i++;
   }
 
-  double x_adjusted = x1 - xoffset_.value();
+  double x_adjusted = x1;
 
   if (std::abs(x1 - x0) <= e)
     return x_adjusted;
@@ -83,7 +73,6 @@ void to_json(nlohmann::json& j, const CoefFunction& s)
     cc["coefficient"] = c.second;
     j["coefficients"].push_back(cc);
   }
-  j["xoffset"] = s.x_offset();
   j["chi2"] = s.chi2();
 }
 
@@ -99,7 +88,6 @@ void from_json(const nlohmann::json& j, CoefFunction& s)
       s.set_coeff(d, p);
     }
   }
-  s.x_offset(j["xoffset"]);
   s.chi2(j["chi2"]);
 }
 

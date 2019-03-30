@@ -129,6 +129,9 @@ class BoundedValue : public AbstractValue
   /// \param v2 second value, either minimum or maximum
   void bound(double v1, double v2);
 
+  // \brief set bounds and value; makes comparisons and orders as needed
+  void set(double v1, double v2, double v3);
+
   /// \returns if current value is at extermum
   /// \param min_epsilon maximum different between value and min to yield true
   /// \param max_epsilon maximum different between value and max to yield true
@@ -143,10 +146,10 @@ class BoundedValue : public AbstractValue
   double min_{0.0};
 };
 
-class ValueSimple : public AbstractValue
+class UnboundedValue : public AbstractValue
 {
  public:
-  ValueSimple() = default;
+  UnboundedValue() = default;
 
   using AbstractValue::x;
   using AbstractValue::val;
@@ -165,10 +168,10 @@ class ValueSimple : public AbstractValue
   double grad_at(double at_x) const override;
 };
 
-class ValuePositive : public AbstractValue
+class PositiveValue : public AbstractValue
 {
  public:
-  ValuePositive() = default;
+  PositiveValue() = default;
 
   using AbstractValue::x;
   using AbstractValue::val;
@@ -187,10 +190,10 @@ class ValuePositive : public AbstractValue
   double grad_at(double at_x) const override;
 };
 
-class Value : public BoundedValue
+class SineBoundedValue : public BoundedValue
 {
  public:
-  Value() = default;
+  SineBoundedValue() = default;
 
   using AbstractValue::x;
   using AbstractValue::val;

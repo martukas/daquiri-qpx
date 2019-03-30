@@ -14,10 +14,10 @@ class FitParameterWidget : public QWidget
  Q_OBJECT
 
  public:
-  explicit FitParameterWidget(const DAQuiri::Value& val,
+  explicit FitParameterWidget(const DAQuiri::SineBoundedValue& val,
       double spin_width, double label_width, QWidget* parent = 0);
   bool changed() const;
-  DAQuiri::Value parameter() const { return parameter_; }
+  DAQuiri::SineBoundedValue parameter() const { return parameter_; }
 
  signals:
   void updated();
@@ -29,8 +29,8 @@ class FitParameterWidget : public QWidget
   void maxChanged(double);
 
  private:
-  DAQuiri::Value original_;
-  DAQuiri::Value parameter_;
+  DAQuiri::SineBoundedValue original_;
+  DAQuiri::SineBoundedValue parameter_;
 
   QLabel* modified_ {nullptr};
   QCheckBox* to_fit_{nullptr};

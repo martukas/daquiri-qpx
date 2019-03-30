@@ -7,7 +7,7 @@
 #include <QDoubleSpinBox>
 #include <QCheckBox>
 
-FitParameterWidget::FitParameterWidget(const DAQuiri::Value& val,
+FitParameterWidget::FitParameterWidget(const DAQuiri::SineBoundedValue& val,
                                        double spin_width, double label_width, QWidget* parent)
     : QWidget(parent)
       , original_(val)

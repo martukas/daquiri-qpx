@@ -11,9 +11,9 @@ class FittableTail : public DAQuiri::FittableRegion
   std::uniform_real_distribution<double> x_dist {-M_PI_2, M_PI_2};
  public:
 
-  DAQuiri::Value position;
-  DAQuiri::ValuePositive amplitude;
-  DAQuiri::Value width;
+  DAQuiri::SineBoundedValue position;
+  DAQuiri::PositiveValue amplitude;
+  DAQuiri::SineBoundedValue width;
 
   DAQuiri::Tail tail;
 

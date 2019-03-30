@@ -31,7 +31,7 @@ class FittableRegion : public FunctionTest
 
 TEST_F(FittableRegion, UnboundedConst)
 {
-  ConstFunction<DAQuiri::ValueSimple> fl;
+  ConstFunction<DAQuiri::UnboundedValue> fl;
   fl.val.val(1000);
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
@@ -61,7 +61,7 @@ TEST_F(FittableRegion, UnboundedConst)
 
 TEST_F(FittableRegion, UnboundedLinear)
 {
-  LinearFunction<DAQuiri::ValueSimple> fl;
+  LinearFunction<DAQuiri::UnboundedValue> fl;
   fl.val.val(5);
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
@@ -92,7 +92,7 @@ TEST_F(FittableRegion, UnboundedLinear)
 
 TEST_F(FittableRegion, UnboundedQuadratic)
 {
-  QuadraticFunction<DAQuiri::ValueSimple> fl;
+  QuadraticFunction<DAQuiri::UnboundedValue> fl;
   fl.val.val(5);
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
@@ -127,7 +127,7 @@ TEST_F(FittableRegion, UnboundedQuadratic)
 
 TEST_F(FittableRegion, PositiveConst)
 {
-  ConstFunction<DAQuiri::ValuePositive> fl;
+  ConstFunction<DAQuiri::PositiveValue> fl;
   fl.val.val(10);
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
@@ -160,7 +160,7 @@ TEST_F(FittableRegion, PositiveConst)
 
 TEST_F(FittableRegion, PositiveLinear)
 {
-  LinearFunction<DAQuiri::ValuePositive> fl;
+  LinearFunction<DAQuiri::PositiveValue> fl;
   fl.val.val(5);
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
@@ -193,7 +193,7 @@ TEST_F(FittableRegion, PositiveLinear)
 
 TEST_F(FittableRegion, PositiveQuadratic)
 {
-  QuadraticFunction<DAQuiri::ValuePositive> fl;
+  QuadraticFunction<DAQuiri::PositiveValue> fl;
   fl.val.val(5);
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
@@ -231,7 +231,7 @@ TEST_F(FittableRegion, PositiveQuadratic)
 
 TEST_F(FittableRegion, BoundedConst)
 {
-  ConstFunction<DAQuiri::Value> fl;
+  ConstFunction<DAQuiri::SineBoundedValue> fl;
   fl.val.bound(0, region_size);
   fl.val.val(10);
   fl.data = generate_data(&fl, region_size);
@@ -270,7 +270,7 @@ TEST_F(FittableRegion, BoundedConst)
 
 TEST_F(FittableRegion, BoundedLinear)
 {
-  LinearFunction<DAQuiri::Value> fl;
+  LinearFunction<DAQuiri::SineBoundedValue> fl;
   fl.val.bound(0, region_size);
   fl.val.val(5);
   fl.data = generate_data(&fl, region_size);
@@ -315,7 +315,7 @@ TEST_F(FittableRegion, BoundedLinear)
 
 TEST_F(FittableRegion, BoundedQuadratic)
 {
-  QuadraticFunction<DAQuiri::Value> fl;
+  QuadraticFunction<DAQuiri::SineBoundedValue> fl;
   fl.val.bound(0, region_size);
   fl.val.val(5);
   fl.data = generate_data(&fl, region_size);

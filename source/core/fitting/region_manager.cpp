@@ -62,7 +62,7 @@ void RegionRendering::clear()
 void RegionRendering::render(const Region& r,
                              const Calibration& energy_calib)
 {
-  Polynomial sum4back = SUM4Edge::sum4_background(r.LB_, r.RB_);
+  auto sum4back = SUM4Edge::sum4_background(r.LB_, r.RB_);
 
   clear();
 

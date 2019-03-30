@@ -64,10 +64,9 @@ TEST_F(SUM4Edge, GeneratePolynomial)
   DAQuiri::SUM4Edge e2(wd);
 
   auto poly = DAQuiri::SUM4Edge::sum4_background(e1, e2);
-  auto coeffs = poly.coeffs();
-  EXPECT_EQ(coeffs.size(), 2u);
-  EXPECT_DOUBLE_EQ(coeffs[0].value(), 2.5);
-  EXPECT_DOUBLE_EQ(coeffs[1].value(), 1.0);
+  EXPECT_DOUBLE_EQ(poly.x_offset, 10);
+  EXPECT_DOUBLE_EQ(poly.base, 2.5);
+  EXPECT_DOUBLE_EQ(poly.slope, 1.0);
 }
 
 TEST_F(SUM4Edge, JsonEmpty)

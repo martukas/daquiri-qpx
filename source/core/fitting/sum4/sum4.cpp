@@ -24,7 +24,7 @@ SUM4::SUM4(const WeightedData& spectrum_data,
   if (spectrum_data.data.empty())
     throw std::runtime_error("Cannot create SUM4 with empty data");
 
-  Polynomial background = SUM4Edge::sum4_background(LB, RB);
+  SUM4Background background = SUM4Edge::sum4_background(LB, RB);
   double background_variance = square(0.5 * peak_width()) * (LB.variance() + RB.variance());
 
   Lchan_ = spectrum_data.data.front().channel;

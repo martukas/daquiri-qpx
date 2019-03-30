@@ -22,7 +22,7 @@ TEST_F(Value, CheckErfc)
 
 TEST_F(Value, DefaultConstruct)
 {
-  DAQuiri::Value v;
+  DAQuiri::SineBoundedValue v;
   EXPECT_EQ(v.index(), -1);
   EXPECT_EQ(v.uncert(), 0.0);
   EXPECT_EQ(v.x(), 0.0);
@@ -31,7 +31,7 @@ TEST_F(Value, DefaultConstruct)
 
 TEST_F(Value, UpdateIndexInvalidThrows)
 {
-  DAQuiri::Value v;
+  DAQuiri::SineBoundedValue v;
   EXPECT_EQ(v.index(), -1);
 
   int32_t i;
@@ -45,7 +45,7 @@ TEST_F(Value, UpdateIndexInvalidThrows)
 
 TEST_F(Value, UpdateIndex)
 {
-  DAQuiri::Value v;
+  DAQuiri::SineBoundedValue v;
   EXPECT_EQ(v.index(), -1);
 
   int32_t i;
@@ -67,7 +67,7 @@ TEST_F(Value, UpdateIndex)
 
 TEST_F(Value, UpdateIndexInvalidates)
 {
-  DAQuiri::Value v;
+  DAQuiri::SineBoundedValue v;
   EXPECT_EQ(v.index(), -1);
 
   int32_t i;
@@ -89,7 +89,7 @@ TEST_F(Value, UpdateIndexInvalidates)
 
 TEST_F(Value, AcceptAllX)
 {
-  DAQuiri::Value val;
+  DAQuiri::SineBoundedValue val;
 
   double max = 4242;
   for (double x = -max; x < max; x += 0.01)
@@ -101,7 +101,7 @@ TEST_F(Value, AcceptAllX)
 
 TEST_F(Value, ValAtWithinBoundsForAllX)
 {
-  DAQuiri::Value val;
+  DAQuiri::SineBoundedValue val;
 
   double max = 4242;
   for (double x = -max; x < max; x += 0.01)
@@ -114,7 +114,7 @@ TEST_F(Value, ValAtWithinBoundsForAllX)
 
 TEST_F(Value, ValWithinBoundsForAllX)
 {
-  DAQuiri::Value val;
+  DAQuiri::SineBoundedValue val;
 
   double max = 4242;
   for (double x = -max; x < max; x += 0.01)
@@ -128,7 +128,7 @@ TEST_F(Value, ValWithinBoundsForAllX)
 
 TEST_F(Value, GradAtWithinBoundsForAllX)
 {
-  DAQuiri::Value val;
+  DAQuiri::SineBoundedValue val;
 
   double max = 4242;
   for (double x = -max; x < max; x += 0.01)
@@ -141,7 +141,7 @@ TEST_F(Value, GradAtWithinBoundsForAllX)
 
 TEST_F(Value, GradWithinBoundsForAllX)
 {
-  DAQuiri::Value val;
+  DAQuiri::SineBoundedValue val;
 
   double max = 4242;
   for (double x = -max; x < max; x += 0.01)
@@ -155,7 +155,7 @@ TEST_F(Value, GradWithinBoundsForAllX)
 
 TEST_F(Value, ValMapsOneToOne)
 {
-  DAQuiri::Value val;
+  DAQuiri::SineBoundedValue val;
 
   for (double v = val.min(); v < val.max(); v += 0.0001)
   {
@@ -166,7 +166,7 @@ TEST_F(Value, ValMapsOneToOne)
 
 TEST_F(Value, BoundsEnforcedOnAssignment)
 {
-  DAQuiri::Value v;
+  DAQuiri::SineBoundedValue v;
   v.bound(10, 20);
 
   v.val(10);
@@ -181,7 +181,7 @@ TEST_F(Value, BoundsEnforcedOnAssignment)
 
 TEST_F(Value, MinEnforced)
 {
-  DAQuiri::Value v;
+  DAQuiri::SineBoundedValue v;
   v.bound(10, 20);
   v.val(10);
   EXPECT_EQ(v.val(), 10);
@@ -196,7 +196,7 @@ TEST_F(Value, MinEnforced)
 
 TEST_F(Value, MaxEnforced)
 {
-  DAQuiri::Value v;
+  DAQuiri::SineBoundedValue v;
   v.bound(10, 20);
   v.val(20);
   EXPECT_EQ(v.val(), 20);
@@ -211,7 +211,7 @@ TEST_F(Value, MaxEnforced)
 
 TEST_F(Value, MinMaxEnforced)
 {
-  DAQuiri::Value v;
+  DAQuiri::SineBoundedValue v;
 
   v.bound(10, 20);
   EXPECT_EQ(v.min(), 10);
@@ -224,7 +224,7 @@ TEST_F(Value, MinMaxEnforced)
 
 TEST_F(Value, Put)
 {
-  DAQuiri::Value v;
+  DAQuiri::SineBoundedValue v;
   v.val(0.4);
 
   Eigen::VectorXd fit;
@@ -245,7 +245,7 @@ TEST_F(Value, Put)
 
 TEST_F(Value, Get)
 {
-  DAQuiri::Value v;
+  DAQuiri::SineBoundedValue v;
   v.val(0.4);
 
   Eigen::VectorXd fit;
@@ -265,7 +265,7 @@ TEST_F(Value, Get)
 
 TEST_F(Value, ValFrom)
 {
-  DAQuiri::Value v;
+  DAQuiri::SineBoundedValue v;
   v.val(0.4);
 
   Eigen::VectorXd fit;
@@ -283,7 +283,7 @@ TEST_F(Value, ValFrom)
 
 TEST_F(Value, GradFrom)
 {
-  DAQuiri::Value v;
+  DAQuiri::SineBoundedValue v;
   v.val(0.4);
 
   Eigen::VectorXd fit;
@@ -303,7 +303,7 @@ TEST_F(Value, GradFrom)
 
 TEST_F(Value, Visualize)
 {
-  DAQuiri::Value val;
+  DAQuiri::SineBoundedValue val;
   val.bound(10, 20);
 
   std::vector<double> x;
@@ -322,11 +322,11 @@ TEST_F(Value, Visualize)
 
 TEST_F(Value, Print)
 {
-  DAQuiri::ValueSimple sval;
+  DAQuiri::UnboundedValue sval;
   sval.val(1235678e99);
   MESSAGE() << "|" << sval.to_string() << "|\n";
 
-  DAQuiri::Value val;
+  DAQuiri::SineBoundedValue val;
   val.bound(-87654321e19, 87654321e19);
   val.val(1235678e5);
   MESSAGE() << "|" << val.to_string() << "|\n";

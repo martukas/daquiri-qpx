@@ -16,7 +16,7 @@ class Tail
   bool override{false};
   bool enabled{true};
   Side side {Side::left};
-  Value amplitude, slope;
+  SineBoundedValue amplitude, slope;
 
   void reset_indices();
 

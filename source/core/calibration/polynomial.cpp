@@ -24,8 +24,6 @@ std::string Polynomial::debug() const
     i++;
     vars += "     p" + std::to_string(c.first) + "=" + c.second.to_string() + "\n";
   }
-  vars += "     x_offset=" + xoffset_.to_string();
-
   ret += "   chi_sq_norm=" + std::to_string(chi2_) + "    where:\n" + vars;
 
   return ret;
@@ -33,11 +31,7 @@ std::string Polynomial::debug() const
 
 std::string Polynomial::to_UTF8(int precision, bool with_rsq) const
 {
-  std::string x_str;
-  if (xoffset_.value() != 0.0)
-    x_str = "(x-" + to_str_precision(xoffset_.value(), precision) + ")";
-  else
-    x_str += "x";
+  std::string x_str = "x";
 
 
   std::string calib_eqn;
@@ -65,11 +59,7 @@ std::string Polynomial::to_UTF8(int precision, bool with_rsq) const
 
 std::string Polynomial::to_markup(int precision, bool with_rsq) const
 {
-  std::string x_str;
-  if (xoffset_.value())
-    x_str += "(x-" + to_str_precision(xoffset_.value(), precision) + ")";
-  else
-    x_str += "x";
+  std::string x_str = "x";
 
   std::string calib_eqn;
   int i = 0;
@@ -95,7 +85,7 @@ std::string Polynomial::to_markup(int precision, bool with_rsq) const
 
 double Polynomial::operator()(double x) const
 {
-  double x_adjusted = x - xoffset_.value();
+  double x_adjusted = x;
   double result = 0.0;
   for (auto& c : coeffs_)
     result += c.second.value() * pow(x_adjusted, c.first);
@@ -105,7 +95,6 @@ double Polynomial::operator()(double x) const
 double Polynomial::derivative(double x) const
 {
   Polynomial new_poly;  // derivative not true if offset != 0
-  new_poly.xoffset_ = xoffset_;
 
   for (auto& c : coeffs_)
   {

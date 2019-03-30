@@ -1,5 +1,6 @@
 #include <core/fitting/hypermet/Value.h>
 #include <core/util/more_math.h>
+#include <core/util/compare.h>
 
 //#include <mpreal.h>
 
@@ -154,6 +155,14 @@ void BoundedValue::bound(double v1, double v2)
   max(std::max(v1, v2));
 }
 
+void BoundedValue::set(double v1, double v2, double v3)
+{
+  min_ = ::min(v1, v2, v3);
+  max_ = ::max(v1, v2, v3);
+  val(mid(v1, v2, v3));
+}
+
+
 bool BoundedValue::at_extremum(double min_epsilon, double max_epsilon) const
 {
   return ((val() - min()) < min_epsilon) || ((max() - val()) < max_epsilon);
@@ -184,40 +193,40 @@ void from_json(const nlohmann::json& j, BoundedValue& s)
 }
 
 
-void ValueSimple::val(double new_val)
+void UnboundedValue::val(double new_val)
 {
   x(new_val);
 }
 
-double ValueSimple::val_at(double at_x) const
+double UnboundedValue::val_at(double at_x) const
 {
   return at_x;
 }
 
-double ValueSimple::grad_at(double at_x) const
+double UnboundedValue::grad_at(double at_x) const
 {
   (void) at_x;
   return 1.0;
 }
 
 
-void ValuePositive::val(double new_val)
+void PositiveValue::val(double new_val)
 {
   x(std::sqrt(new_val));
 }
 
-double ValuePositive::val_at(double at_x) const
+double PositiveValue::val_at(double at_x) const
 {
   return square(at_x);
 }
 
-double ValuePositive::grad_at(double at_x) const
+double PositiveValue::grad_at(double at_x) const
 {
   return 2.0 * at_x;
 }
 
 
-void Value::val(double new_val)
+void SineBoundedValue::val(double new_val)
 {
   double t = (min() + max() - 2.0 * new_val) / (min() - max());
   if (std::abs(t) <= 1)
@@ -228,7 +237,7 @@ void Value::val(double new_val)
     x(std::asin(1));
 }
 
-double Value::val_at(double at_x) const
+double SineBoundedValue::val_at(double at_x) const
 {
 //  mpfr::mpreal mx = at_x;
 //  mpfr::mpreal one = 1.0;
@@ -240,7 +249,7 @@ double Value::val_at(double at_x) const
   return (1.0 + std::sin(at_x)) * (max() - min()) / 2.0 + min();
 }
 
-double Value::grad_at(double at_x) const
+double SineBoundedValue::grad_at(double at_x) const
 {
 //  mpfr::mpreal mx = at_x;
 //  mpfr::mpreal two = 2.0;

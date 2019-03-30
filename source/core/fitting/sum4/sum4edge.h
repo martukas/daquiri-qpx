@@ -23,6 +23,15 @@
 namespace DAQuiri
 {
 
+struct SUM4Background
+{
+  double x_offset {0};
+  double base {0};
+  double slope {0};
+
+  double operator()(double x) const;
+};
+
 class SUM4Edge
 {
  public:
@@ -56,8 +65,8 @@ class SUM4Edge
   double max() const { return max_; }
 
   /// \brief generates a linear function estimating a background spanning two samples
-  static Polynomial sum4_background(const SUM4Edge& LB,
-                                    const SUM4Edge& RB);
+  static SUM4Background sum4_background(const SUM4Edge& LB,
+                                        const SUM4Edge& RB);
 
   std::string to_string() const;
 

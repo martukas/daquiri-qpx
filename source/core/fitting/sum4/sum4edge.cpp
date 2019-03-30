@@ -17,9 +17,15 @@
 #include <core/fitting/sum4/sum4edge.h>
 #include <core/util/more_math.h>
 #include <fmt/format.h>
+#include <core/fitting/hypermet/PolyBackground.h>
 
 namespace DAQuiri
 {
+
+double SUM4Background::operator()(double x) const
+{
+  return slope * (x - x_offset) + base;
+}
 
 SUM4Edge::SUM4Edge(const WeightedData& spectrum_data)
 {
@@ -79,7 +85,7 @@ void from_json(const nlohmann::json& j, SUM4Edge& s)
   s.Rchan_ = j["right"];
 }
 
-Polynomial SUM4Edge::sum4_background(const SUM4Edge& LB, const SUM4Edge& RB)
+SUM4Background SUM4Edge::sum4_background(const SUM4Edge& LB, const SUM4Edge& RB)
 {
   if (!LB.width())
     throw std::runtime_error("Cannot generate background: empty LB");
@@ -88,15 +94,11 @@ Polynomial SUM4Edge::sum4_background(const SUM4Edge& LB, const SUM4Edge& RB)
   if (LB.right() >= RB.left())
     throw std::runtime_error("Cannot generate background: RB must be to the right of LB");
 
-  Polynomial sum4back;
-  double run = RB.left() - LB.right();
-  auto x_offset = sum4back.x_offset();
-  x_offset.constrain(LB.right(), LB.right());
-  double s4base = LB.average().value();
-  double s4slope = (RB.average().value() - LB.average().value()) / run;
-  sum4back.x_offset(x_offset);
-  sum4back.set_coeff(0, {s4base, s4base, s4base});
-  sum4back.set_coeff(1, {s4slope, s4slope, s4slope});
+  SUM4Background sum4back;
+  sum4back.x_offset = LB.right();
+  sum4back.base = LB.average().value();
+  sum4back.slope = (RB.average().value() - LB.average().value()) /
+      (RB.left() - LB.right());
   return sum4back;
 }
 
