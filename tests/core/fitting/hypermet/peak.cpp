@@ -157,8 +157,8 @@ TEST_F(Peak, Visualize)
 TEST_F(Peak, WithinBounds)
 {
   auto data = generate_data(&fp, region_size);
-  EXPECT_NEAR(data.count_min, 0.0, 1e-14);
-  EXPECT_NEAR(data.count_max, 40000.0, 1e-7);
+  EXPECT_NEAR(data.count_min(), 0.0, 1e-14);
+  EXPECT_NEAR(data.count_max(), 40000.0, 1e-7);
 }
 
 TEST_F(Peak, UpdateIndexInvalidThrows)

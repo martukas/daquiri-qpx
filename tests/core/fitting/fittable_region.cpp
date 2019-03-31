@@ -36,8 +36,8 @@ TEST_F(FittableRegion, UnboundedConst)
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
 
-  EXPECT_NEAR(fl.data.count_min, 1000, 1e-10);
-  EXPECT_NEAR(fl.data.count_max, 1000, 1e-10);
+  EXPECT_NEAR(fl.data.count_min(), 1000, 1e-10);
+  EXPECT_NEAR(fl.data.count_max(), 1000, 1e-10);
 
   survey_grad(&fl, &fl.val, 1, 980, 1020);
   EXPECT_NEAR(check_chi_sq(false), 1000, 1e-20);
@@ -66,8 +66,8 @@ TEST_F(FittableRegion, UnboundedLinear)
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
 
-  EXPECT_NEAR(fl.data.count_min, 0, 1e-20);
-  EXPECT_NEAR(fl.data.count_max, 39 * 5, 1e-20);
+  EXPECT_NEAR(fl.data.count_min(), 0, 1e-20);
+  EXPECT_NEAR(fl.data.count_max(), 39 * 5, 1e-20);
 
   survey_grad(&fl, &fl.val, 0.001, 0, 20);
   EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
@@ -97,8 +97,8 @@ TEST_F(FittableRegion, UnboundedQuadratic)
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
 
-  EXPECT_NEAR(fl.data.count_min, 0, 1e-10);
-  EXPECT_NEAR(fl.data.count_max, 39 * 39 * 5, 1e-10);
+  EXPECT_NEAR(fl.data.count_min(), 0, 1e-10);
+  EXPECT_NEAR(fl.data.count_max(), 39 * 39 * 5, 1e-10);
 
   survey_grad(&fl, &fl.val, 0.001, 0, 20);
   EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
@@ -132,8 +132,8 @@ TEST_F(FittableRegion, PositiveConst)
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
 
-  EXPECT_NEAR(fl.data.count_min, 10, 1e-10);
-  EXPECT_NEAR(fl.data.count_max, 10, 1e-10);
+  EXPECT_NEAR(fl.data.count_min(), 10, 1e-10);
+  EXPECT_NEAR(fl.data.count_max(), 10, 1e-10);
 
   survey_grad(&fl, &fl.val, 0.001, 0.001, 20);
   EXPECT_NEAR(check_chi_sq(false), 10.0, 2e-3);
@@ -165,8 +165,8 @@ TEST_F(FittableRegion, PositiveLinear)
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
 
-  EXPECT_NEAR(fl.data.count_min, 0, 1e-20);
-  EXPECT_NEAR(fl.data.count_max, 39 * 5, 1e-13);
+  EXPECT_NEAR(fl.data.count_min(), 0, 1e-20);
+  EXPECT_NEAR(fl.data.count_max(), 39 * 5, 1e-13);
 
   survey_grad(&fl, &fl.val, 0.001, 0.001, 20);
   EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
@@ -198,8 +198,8 @@ TEST_F(FittableRegion, PositiveQuadratic)
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
 
-  EXPECT_NEAR(fl.data.count_min, 0, 1e-10);
-  EXPECT_NEAR(fl.data.count_max, 39 * 39 * 5, 1e-10);
+  EXPECT_NEAR(fl.data.count_min(), 0, 1e-10);
+  EXPECT_NEAR(fl.data.count_max(), 39 * 39 * 5, 1e-10);
 
   survey_grad(&fl, &fl.val, 0.001, 0.001, 20);
   EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
@@ -237,8 +237,8 @@ TEST_F(FittableRegion, BoundedConst)
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
 
-  EXPECT_NEAR(fl.data.count_min, 10, 1e-10);
-  EXPECT_NEAR(fl.data.count_max, 10, 1e-10);
+  EXPECT_NEAR(fl.data.count_min(), 10, 1e-10);
+  EXPECT_NEAR(fl.data.count_max(), 10, 1e-10);
 
   survey_grad(&fl, &fl.val, 0.001, -M_PI, M_PI);
   EXPECT_NEAR(check_chi_sq(false), 10.0, 1e-3);
@@ -276,8 +276,8 @@ TEST_F(FittableRegion, BoundedLinear)
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
 
-  EXPECT_NEAR(fl.data.count_min, 0, 1e-10);
-  EXPECT_NEAR(fl.data.count_max, 39 * 5, 1e-10);
+  EXPECT_NEAR(fl.data.count_min(), 0, 1e-10);
+  EXPECT_NEAR(fl.data.count_max(), 39 * 5, 1e-10);
 
   survey_grad(&fl, &fl.val, 0.001, -M_PI, M_PI);
   EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
@@ -321,8 +321,8 @@ TEST_F(FittableRegion, BoundedQuadratic)
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
 
-  EXPECT_NEAR(fl.data.count_min, 0, 1e-10);
-  EXPECT_NEAR(fl.data.count_max, 39 * 39 * 5, 1e-10);
+  EXPECT_NEAR(fl.data.count_min(), 0, 1e-10);
+  EXPECT_NEAR(fl.data.count_max(), 39 * 39 * 5, 1e-10);
 
   survey_grad(&fl, &fl.val, 0.001, -M_PI, M_PI);
   EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
@@ -375,8 +375,8 @@ TEST_F(FittableRegion, BoundedQuadratic)
 //  fl.data = generate_data(&fl, region_size);
 //  fl.update_indices();
 //
-//  EXPECT_NEAR(fl.data.count_min, 0, 1e-10);
-//  EXPECT_NEAR(fl.data.count_max, 39 * 39 * 5, 1e-10);
+//  EXPECT_NEAR(fl.data.count_min(), 0, 1e-10);
+//  EXPECT_NEAR(fl.data.count_max(), 39 * 39 * 5, 1e-10);
 //
 //  survey_grad(&fl, &fl.val, 0.001, -M_PI, M_PI);
 //  EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
@@ -421,8 +421,8 @@ TEST_F(FittableRegion, AtanBoundedConst)
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
 
-  EXPECT_NEAR(fl.data.count_min, 10, 1e-10);
-  EXPECT_NEAR(fl.data.count_max, 10, 1e-10);
+  EXPECT_NEAR(fl.data.count_min(), 10, 1e-10);
+  EXPECT_NEAR(fl.data.count_max(), 10, 1e-10);
 
   survey_grad(&fl, &fl.val, 1, -50000, 50000);
   EXPECT_NEAR(check_chi_sq(false), 10.0, 1e-3);
@@ -462,8 +462,8 @@ TEST_F(FittableRegion, AtanBoundedLinear)
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
 
-  EXPECT_NEAR(fl.data.count_min, 0, 1e-10);
-  EXPECT_NEAR(fl.data.count_max, 39 * 5, 1e-10);
+  EXPECT_NEAR(fl.data.count_min(), 0, 1e-10);
+  EXPECT_NEAR(fl.data.count_max(), 39 * 5, 1e-10);
 
   survey_grad(&fl, &fl.val, 1, -50000, 50000);
   EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);
@@ -503,8 +503,8 @@ TEST_F(FittableRegion, AtanBoundedQuadratic)
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
 
-  EXPECT_NEAR(fl.data.count_min, 0, 1e-10);
-  EXPECT_NEAR(fl.data.count_max, 39 * 39 * 5, 1e-10);
+  EXPECT_NEAR(fl.data.count_min(), 0, 1e-10);
+  EXPECT_NEAR(fl.data.count_max(), 39 * 39 * 5, 1e-10);
 
   survey_grad(&fl, &fl.val, 1, -50000, 50000);
   EXPECT_NEAR(check_chi_sq(false), 5.0, 1e-3);

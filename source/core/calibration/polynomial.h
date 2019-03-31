@@ -1,6 +1,8 @@
 #pragma once
 
 #include <core/calibration/coef_function.h>
+#include <vector>
+#include <core/fitting/hypermet/Value.h>
 
 namespace DAQuiri
 {
@@ -22,6 +24,9 @@ class Polynomial : public CoefFunction
   std::string debug() const override;
   std::string to_UTF8(int precision, bool with_rsq) const override;
   std::string to_markup(int precision, bool with_rsq) const override;
+
+ protected:
+  std::vector<UnboundedValue> coeffs_;
 };
 
 }

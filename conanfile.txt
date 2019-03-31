@@ -14,6 +14,7 @@ Qt-Color-Widgets/a95f72e@ess-dmsc/stable
 streaming-data-types/6cd05e4@ess-dmsc/stable
 cmake_installer/3.10.0@conan/stable
 pugixml/1.9@bincrafters/stable
+range-v3/0.4.0@ericniebler/stable
 
 [generators]
 cmake

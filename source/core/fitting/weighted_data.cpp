@@ -47,8 +47,11 @@ WeightedData::WeightedData(const std::vector<double>& channels,
     throw std::runtime_error("WeightedData::constructor x & y sizes don't match");
   if (channels.empty())
     throw std::runtime_error("WeightedData::constructor data empty");
+
+  using namespace ranges;
+  weights = counts | ranges::view::transform([](double i) { return weight_revay_student(i); });
+
   data.resize(channels.size());
-  count_min = count_max = counts[0];
   for (size_t i = 0; i < channels.size(); ++i)
   {
     auto& p = data[i];
@@ -57,8 +60,6 @@ WeightedData::WeightedData(const std::vector<double>& channels,
     p.weight_true = weight_true(p.count);
     p.weight_phillips_marlow = weight_phillips_marlow(counts, i);
     p.weight_revay = weight_revay_student(p.count);
-    count_min = std::min(count_min, p.count);
-    count_max = std::max(count_max, p.count);
   }
 }
 
@@ -67,20 +68,38 @@ bool WeightedData::empty() const
   return data.empty();
 }
 
+double WeightedData::count_min() const
+{
+  double min = std::numeric_limits<double>::quiet_NaN();
+  for (const auto& p : data)
+  {
+    if (std::isnan(min))
+      min = p.count;
+    min = std::min(min, p.count);
+  }
+  return min;
+}
+
+double WeightedData::count_max() const
+{
+  double max = std::numeric_limits<double>::quiet_NaN();
+  for (const auto& p : data)
+  {
+    if (std::isnan(max))
+      max = p.count;
+    max = std::max(max, p.count);
+  }
+  return max;
+}
+
 WeightedData WeightedData::subset(double bound1, double bound2) const
 {
   auto from = std::min(bound1, bound2);
   auto to = std::max(bound1, bound2);
+  auto is_in_range = [from, to](WeightedDataPoint p)
+      { return ((p.channel >= from) && (p.channel <= to)); };
   WeightedData ret;
-  for (const auto& p : data)
-    if ((p.channel >= from) && (p.channel <= to))
-    {
-      if (std::isnan(ret.count_min))
-        ret.count_min = ret.count_max = p.count;
-      ret.count_min = std::min(ret.count_min, p.count);
-      ret.count_max = std::max(ret.count_max, p.count);
-      ret.data.push_back(p);
-    }
+  ret.data = ranges::view::filter(data, is_in_range);
   return ret;
 }
 
@@ -88,14 +107,7 @@ WeightedData WeightedData::left(size_t size) const
 {
   size = std::min(size, data.size());
   WeightedData ret;
-  ret.data = std::vector<WeightedDataPoint>(data.begin(), data.begin() + size);
-  for (const auto& p : ret.data)
-  {
-    if (std::isnan(ret.count_min))
-      ret.count_min = ret.count_max = p.count;
-    ret.count_min = std::min(ret.count_min, p.count);
-    ret.count_max = std::max(ret.count_max, p.count);
-  }
+  ret.data = ranges::view::take(data, size);
   return ret;
 }
 
@@ -103,14 +115,7 @@ WeightedData WeightedData::right(size_t size) const
 {
   size = std::min(size, data.size());
   WeightedData ret;
-  ret.data = std::vector<WeightedDataPoint>(data.begin() + (data.size() - size), data.end());
-  for (const auto& p : ret.data)
-  {
-    if (std::isnan(ret.count_min))
-      ret.count_min = ret.count_max = p.count;
-    ret.count_min = std::min(ret.count_min, p.count);
-    ret.count_max = std::max(ret.count_max, p.count);
-  }
+  ret.data = ranges::view::drop(data, data.size() - size);
   return ret;
 }
 

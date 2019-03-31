@@ -12,6 +12,7 @@
 #include <vector>
 #include <limits>
 #include <cstddef>
+#include <range/v3/all.hpp>
 
 namespace DAQuiri
 {
@@ -78,8 +79,9 @@ struct WeightedData
   bool empty() const;
 
   std::vector<WeightedDataPoint> data;
-  double count_min {std::numeric_limits<double>::quiet_NaN()};
-  double count_max {std::numeric_limits<double>::quiet_NaN()};
+  std::vector<double> weights;
+  double count_min() const;
+  double count_max() const;
 };
 
 }

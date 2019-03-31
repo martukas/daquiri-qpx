@@ -212,8 +212,8 @@ TEST_F(Step, Visualize)
 TEST_F(Step, WithinBounds)
 {
   auto data = generate_data(&fs, region_size);
-  EXPECT_NEAR(data.count_min, 0.0, 1e-13);
-  EXPECT_NEAR(data.count_max, 20.0, 1e-13);
+  EXPECT_NEAR(data.count_min(), 0.0, 1e-13);
+  EXPECT_NEAR(data.count_max(), 20.0, 1e-13);
 }
 
 TEST_F(Step, LeftOriented)

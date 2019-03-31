@@ -9,9 +9,13 @@ namespace DAQuiri
 
 Polynomial::Polynomial(const std::vector<double>& coeffs, double uncert)
 {
-  size_t i{0};
-  for (const auto& c : coeffs)
-    coeffs_[i++] = Parameter(c - uncert, c, c + uncert);
+//  size_t i{0};
+  coeffs_.resize(coeffs.size());
+  for (size_t i=0; i < coeffs.size(); ++i)
+    coeffs_[i].val(coeffs[i]);
+//  for (const auto& c : coeffs)
+//    coeffs_[i++].val(c);
+  // = Parameter(c - uncert, c, c + uncert);
 }
 
 bool Polynomial::valid() const
@@ -23,7 +27,14 @@ bool Polynomial::is_equal(CoefFunction* other) const
 {
   if (this->type() != other->type())
     return false;
-  return (coeffs_ == dynamic_cast<Polynomial*>(other)->coeffs_);
+  auto* pother = dynamic_cast<Polynomial*>(other);
+  if (coeffs_.size() != pother->coeffs_.size())
+    return false;
+  for (size_t i=0; i < coeffs_.size(); ++i)
+    if (coeffs_[i].x() != pother->coeffs_[i].x())
+      return false;
+  return  true;
+//  return (coeffs_ == dynamic_cast<Polynomial*>(other)->coeffs_);
 }
 
 std::string Polynomial::debug() const
@@ -35,13 +46,13 @@ std::string Polynomial::debug() const
   {
     if (i > 0)
       ret += " + ";
-    ret += "p" + std::to_string(c.first);
-    if (c.first > 0)
+    ret += "p" + std::to_string(i);
+    if (i > 0)
       ret += "*(x - x_offset)";
-    if (c.first > 1)
-      ret += "^" + std::to_string(c.first);
+    if (i > 1)
+      ret += "^" + std::to_string(i);
     i++;
-    vars += "     p" + std::to_string(c.first) + "=" + c.second.to_string() + "\n";
+    vars += "     p" + std::to_string(i) + "=" + c.to_string() + "\n";
   }
 
   return ret;
@@ -57,11 +68,11 @@ std::string Polynomial::to_UTF8(int precision, bool with_rsq) const
   {
     if (i > 0)
       calib_eqn += " + ";
-    calib_eqn += to_str_precision(c.second.value(), precision);
-    if (c.first > 0)
+    calib_eqn += to_str_precision(c.val(), precision);
+    if (i > 0)
       calib_eqn += x_str;
-    if (c.first > 1)
-      calib_eqn += UTF_superscript(c.first);
+    if (i > 1)
+      calib_eqn += UTF_superscript(i);
     i++;
   }
 
@@ -84,11 +95,11 @@ std::string Polynomial::to_markup(int precision, bool with_rsq) const
   {
     if (i > 0)
       calib_eqn += " + ";
-    calib_eqn += to_str_precision(c.second.value(), precision);
-    if (c.first > 0)
+    calib_eqn += to_str_precision(c.val(), precision);
+    if (i > 0)
       calib_eqn += x_str;
-    if (c.first > 1)
-      calib_eqn += "<sup>" + std::to_string(c.first) + "</sup>";
+    if (i > 1)
+      calib_eqn += "<sup>" + std::to_string(i) + "</sup>";
     i++;
   }
 
@@ -104,25 +115,31 @@ double Polynomial::operator()(double x) const
 {
   double x_adjusted = x;
   double result = 0.0;
+  int i = 0;
   for (auto& c : coeffs_)
-    result += c.second.value() * pow(x_adjusted, c.first);
+  {
+    result += c.val() * pow(x_adjusted, i);
+    i++;
+  }
   return result;
 }
 
 double Polynomial::derivative(double x) const
 {
   Polynomial new_poly;  // derivative not true if offset != 0
-
-  for (auto& c : coeffs_)
+  if (coeffs_.size() > 1)
   {
-    if (c.first != 0)
+    new_poly.coeffs_.resize(coeffs_.size() - 1);
+    for (size_t i=1; i < coeffs_.size(); ++i)
     {
-      new_poly.coeffs_[c.first - 1]
-          = {c.second.lower() * c.first,
-             c.second.upper() * c.first,
-             c.second.value() * c.first};
+        new_poly.coeffs_[i - 1].val(coeffs_[i].val() * i);
+//          = {c.second.lower() * c.first,
+//             c.second.upper() * c.first,
+//             c.second.value() * c.first};
     }
+
   }
+
 
 //  INFO("Poly deriv {} -> {}", to_UTF8(6, false), new_poly.to_UTF8(6, false));
 

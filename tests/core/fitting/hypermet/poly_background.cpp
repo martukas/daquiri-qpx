@@ -124,8 +124,8 @@ TEST_F(PolyBackground, Visualize)
 TEST_F(PolyBackground, WithinBounds)
 {
   auto data = generate_data(&fb, region_size);
-  EXPECT_NEAR(data.count_min, 70, 1e-10);
-  EXPECT_NEAR(data.count_max, 70 + 3 * 39 + 5 * square(39), 1e-10);
+  EXPECT_NEAR(data.count_min(), 70, 1e-10);
+  EXPECT_NEAR(data.count_max(), 70 + 3 * 39 + 5 * square(39), 1e-10);
 }
 
 TEST_F(PolyBackground, UpdateIndexInvalidThrows)

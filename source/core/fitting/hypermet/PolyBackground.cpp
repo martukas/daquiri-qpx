@@ -19,7 +19,7 @@ PolyBackground::PolyBackground()
 PolyBackground::PolyBackground(const WeightedData& data,
                                const SUM4Edge& lb, const SUM4Edge& rb)
 {
-  double global_min = data.count_min;
+  double global_min = data.count_min();
   if (global_min > 0)
     global_min--;
 

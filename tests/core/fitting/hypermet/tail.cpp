@@ -209,8 +209,8 @@ TEST_F(Tail, Visualize)
 TEST_F(Tail, WithinBounds)
 {
   auto data = generate_data(&ft, region_size);
-  EXPECT_NEAR(data.count_min, 0.0, 1.0);
-  EXPECT_NEAR(data.count_max, 1871, 1.0);
+  EXPECT_NEAR(data.count_min(), 0.0, 1.0);
+  EXPECT_NEAR(data.count_max(), 1871, 1.0);
 }
 
 TEST_F(Tail, LeftOriented)

@@ -1,8 +1,6 @@
 #pragma once
 
 #include <core/calibration/parameter.h>
-#include <core/fitting/hypermet/Value.h>
-#include <map>
 
 namespace DAQuiri
 {
@@ -31,9 +29,6 @@ class CoefFunction
   virtual std::string debug() const = 0;
   virtual std::string to_UTF8(int precision, bool with_rsq) const = 0;
   virtual std::string to_markup(int precision, bool with_rsq) const = 0;
-
- protected:
-  std::map<int, Parameter> coeffs_;
 };
 
 void to_json(nlohmann::json& j, const CoefFunction& s);
