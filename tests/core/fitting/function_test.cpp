@@ -2,6 +2,7 @@
 
 #include <core/util/visualize_vector.h>
 #include <core/util/UTF_extensions.h>
+#include <range/v3/all.hpp>
 
 ValueToVary::ValueToVary(std::string var_name, DAQuiri::AbstractValue* var,
                          double minimum, double maximum, double eps)
@@ -80,17 +81,19 @@ DAQuiri::WeightedData FunctionTest::generate_data(
     channels.push_back(i);
     y.push_back(fittable->eval(i));
   }
-  return DAQuiri::WeightedData(channels, y);
+  auto ret = DAQuiri::WeightedData(channels, y);
+  ret.count_weight = DAQuiri::weight_phillips_marlow(ret.count);
+  return ret;
 }
 
 void FunctionTest::visualize_data(const DAQuiri::WeightedData& data) const
 {
   std::vector<double> channels;
   std::vector<double> counts;
-  for (const auto& p : data.data)
+  for (const auto& p : ranges::view::zip(data.chan, data.count))
   {
-    channels.push_back(p.channel);
-    counts.push_back(p.count);
+    channels.push_back(p.first);
+    counts.push_back(p.second);
   }
   MESSAGE() << "counts(channel):\n" << visualize(channels, counts, 100) << "\n";
 }

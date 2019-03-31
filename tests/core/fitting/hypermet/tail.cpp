@@ -217,16 +217,16 @@ TEST_F(Tail, LeftOriented)
 {
   ft.tail.side = DAQuiri::Side::left;
   auto data = generate_data(&ft, region_size);
-  EXPECT_NEAR(data.data.front().count, 1175, 1.0);
-  EXPECT_NEAR(data.data.back().count, 0.0, 1.0);
+  EXPECT_NEAR(data.count.front(), 1175, 1.0);
+  EXPECT_NEAR(data.count.back(), 0.0, 1.0);
 }
 
 TEST_F(Tail, RightOriented)
 {
   ft.tail.side = DAQuiri::Side::right;
   auto data = generate_data(&ft, region_size);
-  EXPECT_NEAR(data.data.front().count, 0.0, 1.0);
-  EXPECT_NEAR(data.data.back().count, 1213, 1.0);
+  EXPECT_NEAR(data.count.front(), 0.0, 1.0);
+  EXPECT_NEAR(data.count.back(), 1213, 1.0);
 }
 
 TEST_F(Tail, UpdateIndexInvalidThrows)

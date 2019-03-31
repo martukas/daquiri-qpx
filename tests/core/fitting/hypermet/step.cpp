@@ -220,16 +220,16 @@ TEST_F(Step, LeftOriented)
 {
   fs.step.side = DAQuiri::Side::left;
   auto data = generate_data(&fs, region_size);
-  EXPECT_NEAR(data.data.front().count, 20.0, 1e-13);
-  EXPECT_NEAR(data.data.back().count, 0.0, 1e-13);
+  EXPECT_NEAR(data.count.front(), 20.0, 1e-13);
+  EXPECT_NEAR(data.count.back(), 0.0, 1e-13);
 }
 
 TEST_F(Step, RightOriented)
 {
   fs.step.side = DAQuiri::Side::right;
   auto data = generate_data(&fs, region_size);
-  EXPECT_NEAR(data.data.front().count, 0.0, 1e-13);
-  EXPECT_NEAR(data.data.back().count, 20.0, 1e-13);
+  EXPECT_NEAR(data.count.front(), 0.0, 1e-13);
+  EXPECT_NEAR(data.count.back(), 20.0, 1e-13);
 }
 
 TEST_F(Step, UpdateIndexInvalidThrows)

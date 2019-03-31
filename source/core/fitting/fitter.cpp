@@ -58,7 +58,11 @@ void Fitter::setData(ConsumerPtr spectrum)
     x.resize(x_bound);
     y.resize(x_bound);
 
-    fit_eval_ = FitEvaluation(WeightedData(x, y));
+    WeightedData wd(x, y);
+    // \todo allow variations
+    wd.count_weight = weight_true(wd.count);
+
+    fit_eval_ = FitEvaluation(wd);
     apply_settings(settings_);
   }
 }

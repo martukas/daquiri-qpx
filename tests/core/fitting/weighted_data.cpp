@@ -11,7 +11,7 @@ class WeightedData : public TestBase
 TEST_F(WeightedData, DefaultConstructed)
 {
   DAQuiri::WeightedData wd;
-  EXPECT_TRUE(wd.empty());
+  EXPECT_FALSE(wd.valid());
 }
 
 TEST_F(WeightedData, ConstructionFailsIfEmpty)
@@ -34,8 +34,8 @@ TEST_F(WeightedData, ConstructionSucceeds)
   std::vector<double> y(4);
   DAQuiri::WeightedData wd;
   EXPECT_NO_THROW(wd = DAQuiri::WeightedData(x,y));
-  EXPECT_EQ(wd.data.size(), 4u);
-  EXPECT_FALSE(wd.empty());
+  EXPECT_EQ(wd.chan.size(), 4u);
+  EXPECT_FALSE(wd.valid());
   EXPECT_DOUBLE_EQ(wd.count_min(), 0.0);
   EXPECT_DOUBLE_EQ(wd.count_max(), 0.0);
 }
@@ -47,15 +47,15 @@ TEST_F(WeightedData, SubsetEmptyOutOfRange)
     x.push_back(i+10);
   auto y = x;
   DAQuiri::WeightedData wd(x,y);
-  EXPECT_EQ(wd.data.size(), 10u);
+  EXPECT_EQ(wd.chan.size(), 10u);
   EXPECT_DOUBLE_EQ(wd.count_min(), 10.0);
   EXPECT_DOUBLE_EQ(wd.count_max(), 19.0);
 
   auto indices_too_low = wd.subset(4,9);
-  EXPECT_TRUE(indices_too_low.empty());
+  EXPECT_EQ(indices_too_low.chan.size(), 0u);
 
   auto indices_too_high = wd.subset(20,25);
-  EXPECT_TRUE(indices_too_high.empty());
+  EXPECT_EQ(indices_too_high.chan.size(), 0u);
 }
 
 TEST_F(WeightedData, SubsetValidRange)
@@ -65,19 +65,23 @@ TEST_F(WeightedData, SubsetValidRange)
     x.push_back(i+10);
   auto y = x;
   DAQuiri::WeightedData wd(x,y);
-  EXPECT_EQ(wd.data.size(), 10u);
+  EXPECT_EQ(wd.chan.size(), 10u);
 
   auto indices_ordered = wd.subset(11,15);
-  EXPECT_FALSE(indices_ordered.empty());
-  EXPECT_EQ(indices_ordered.data.front().channel, 11u);
-  EXPECT_EQ(indices_ordered.data.back().channel, 15u);
+  EXPECT_FALSE(indices_ordered.chan.empty());
+  EXPECT_EQ(indices_ordered.chan.front(), 11u);
+  EXPECT_EQ(indices_ordered.chan.back(), 15u);
+  EXPECT_EQ(indices_ordered.count.front(), 11u);
+  EXPECT_EQ(indices_ordered.count.back(), 15u);
   EXPECT_DOUBLE_EQ(indices_ordered.count_min(), 11.0);
   EXPECT_DOUBLE_EQ(indices_ordered.count_max(), 15.0);
 
   auto indices_reversed = wd.subset(15,11);
-  EXPECT_FALSE(indices_reversed.empty());
-  EXPECT_EQ(indices_reversed.data.front().channel, 11u);
-  EXPECT_EQ(indices_reversed.data.back().channel, 15u);
+  EXPECT_FALSE(indices_reversed.chan.empty());
+  EXPECT_EQ(indices_reversed.chan.front(), 11u);
+  EXPECT_EQ(indices_reversed.chan.back(), 15u);
+  EXPECT_EQ(indices_reversed.count.front(), 11u);
+  EXPECT_EQ(indices_reversed.count.back(), 15u);
   EXPECT_DOUBLE_EQ(indices_reversed.count_min(), 11.0);
   EXPECT_DOUBLE_EQ(indices_reversed.count_max(), 15.0);
 }
@@ -89,19 +93,19 @@ TEST_F(WeightedData, SubsetPartial)
     x.push_back(i+10);
   auto y = x;
   DAQuiri::WeightedData wd(x,y);
-  EXPECT_EQ(wd.data.size(), 10u);
+  EXPECT_EQ(wd.chan.size(), 10u);
 
   auto front_overlap = wd.subset(4,10);
-  EXPECT_FALSE(front_overlap.empty());
-  EXPECT_EQ(front_overlap.data.front().channel, 10u);
-  EXPECT_EQ(front_overlap.data.back().channel, 10u);
+  EXPECT_FALSE(front_overlap.chan.empty());
+  EXPECT_EQ(front_overlap.chan.front(), 10u);
+  EXPECT_EQ(front_overlap.chan.back(), 10u);
   EXPECT_DOUBLE_EQ(front_overlap.count_min(), 10.0);
   EXPECT_DOUBLE_EQ(front_overlap.count_max(), 10.0);
 
   auto back_overlap = wd.subset(19,25);
-  EXPECT_FALSE(back_overlap.empty());
-  EXPECT_EQ(back_overlap.data.front().channel, 19u);
-  EXPECT_EQ(back_overlap.data.back().channel, 19u);
+  EXPECT_FALSE(back_overlap.chan.empty());
+  EXPECT_EQ(back_overlap.chan.front(), 19u);
+  EXPECT_EQ(back_overlap.chan.back(), 19u);
   EXPECT_DOUBLE_EQ(back_overlap.count_min(), 19.0);
   EXPECT_DOUBLE_EQ(back_overlap.count_max(), 19.0);
 }
@@ -113,13 +117,15 @@ TEST_F(WeightedData, LeftSubset)
     x.push_back(i+10);
   auto y = x;
   DAQuiri::WeightedData wd(x,y);
-  EXPECT_EQ(wd.data.size(), 10u);
+  EXPECT_EQ(wd.chan.size(), 10u);
 
   auto left_subset = wd.left(3);
-  EXPECT_FALSE(left_subset.empty());
-  EXPECT_EQ(left_subset.data.size(), 3u);
-  EXPECT_EQ(left_subset.data.front().channel, 10u);
-  EXPECT_EQ(left_subset.data.back().channel, 12u);
+  EXPECT_FALSE(left_subset.chan.empty());
+  EXPECT_EQ(left_subset.chan.size(), 3u);
+  EXPECT_EQ(left_subset.chan.front(), 10u);
+  EXPECT_EQ(left_subset.chan.back(), 12u);
+  EXPECT_EQ(left_subset.count.front(), 10u);
+  EXPECT_EQ(left_subset.count.back(), 12u);
   EXPECT_DOUBLE_EQ(left_subset.count_min(), 10.0);
   EXPECT_DOUBLE_EQ(left_subset.count_max(), 12.0);
 }
@@ -131,13 +137,15 @@ TEST_F(WeightedData, RightSubset)
     x.push_back(i+10);
   auto y = x;
   DAQuiri::WeightedData wd(x,y);
-  EXPECT_EQ(wd.data.size(), 10u);
+  EXPECT_EQ(wd.chan.size(), 10u);
 
   auto right_subset = wd.right(3);
-  EXPECT_FALSE(right_subset.empty());
-  EXPECT_EQ(right_subset.data.size(), 3u);
-  EXPECT_EQ(right_subset.data.front().channel, 17u);
-  EXPECT_EQ(right_subset.data.back().channel, 19u);
+  EXPECT_FALSE(right_subset.chan.empty());
+  EXPECT_EQ(right_subset.chan.size(), 3u);
+  EXPECT_EQ(right_subset.chan.front(), 17u);
+  EXPECT_EQ(right_subset.chan.back(), 19u);
+  EXPECT_EQ(right_subset.count.front(), 17u);
+  EXPECT_EQ(right_subset.count.back(), 19u);
   EXPECT_DOUBLE_EQ(right_subset.count_min(), 17.0);
   EXPECT_DOUBLE_EQ(right_subset.count_max(), 19.0);
 }

@@ -12,13 +12,13 @@
 #include <vector>
 #include <limits>
 #include <cstddef>
-#include <range/v3/all.hpp>
 
 namespace DAQuiri
 {
 
 /// \returns true statistical weight for histogram channel, i.e. sqrt(count)
 double weight_true(double count);
+std::vector<double> weight_true(const std::vector<double>& counts);
 
 /// \returns low-count compensated weight for histogram channel using:
 ///          G. W. Phillips and K. W. Marlow,
@@ -28,10 +28,12 @@ double weight_true(double count);
 /// \param counts vector of channel counts
 /// \param index channel index
 double weight_phillips_marlow(const std::vector<double>& counts, size_t index);
+std::vector<double> weight_phillips_marlow(const std::vector<double>& counts);
 
 /// \returns low-count compensated weight for histogram channel using: NEED CITATION!!!
 // \todo NEED CITATION!!!
 double weight_revay_student(double count);
+std::vector<double> weight_revay_student(const std::vector<double>& counts);
 
 /// \struct WeightedDataPoint weighted_data.h <core/fitting/weighted_data.h>
 /// \brief provides all relevant information from the results of an optimization attempt.
@@ -39,9 +41,6 @@ struct WeightedDataPoint
 {
   double channel {0};
   double count {0};
-  double weight_true {0};            /// < true statistical weight
-  double weight_phillips_marlow {0}; /// < low-count compensated weight (need ref)
-  double weight_revay {0};           /// < low-count compensated weight (need ref)
 };
 
 // \todo uncertainty treatment for ZDT spectra
@@ -75,11 +74,18 @@ struct WeightedData
   /// \brief clears data
   void clear();
 
-  /// \returns if data is empty
-  bool empty() const;
+//  /// \returns if data is empty
+//  bool empty() const;
 
-  std::vector<WeightedDataPoint> data;
-  std::vector<double> weights;
+  /// \returns if data is nonempty and array sizes match
+  bool valid() const;
+
+//  std::vector<WeightedDataPoint> data;
+
+  std::vector<double> chan;
+  std::vector<double> count;
+  std::vector<double> count_weight;
+
   double count_min() const;
   double count_max() const;
 };

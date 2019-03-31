@@ -1,5 +1,6 @@
 #include <core/fitting/fittable_region.h>
 #include <core/util/more_math.h>
+#include <range/v3/all.hpp>
 
 #include <core/util/custom_logger.h>
 
@@ -8,7 +9,7 @@ namespace DAQuiri
 
 double FittableRegion::degrees_of_freedom() const
 {
-  double dof = static_cast<double>(data.data.size()) - static_cast<double>(variable_count);
+  double dof = static_cast<double>(data.chan.size()) - static_cast<double>(variable_count);
   if (dof < 0.)
     return 0.;
   return dof;
@@ -17,19 +18,23 @@ double FittableRegion::degrees_of_freedom() const
 double FittableRegion::chi_sq() const
 {
   double chi_squared {0.};
-  for (const auto& p : data.data)
-    chi_squared += square((p.count - this->eval(p.channel)) / p.weight_phillips_marlow);
+  for (const auto& p : ranges::view::zip(data.chan, data.count, data.count_weight))
+    chi_squared += square((std::get<1>(p) - this->eval(std::get<0>(p))) / std::get<2>(p));
+//  ranges::v3::common_tuple;
+//  for (const auto& p : data.data)
+//    chi_squared += square((p.count - this->eval(p.channel)) / p.weight_phillips_marlow);
   return chi_squared;
-  // / degrees_of_freedom();
 }
 
 double FittableRegion::chi_sq(const Eigen::VectorXd& fit) const
 {
   double chi_squared {0.};
-  for (const auto& p : data.data)
-    chi_squared += square((p.count - this->eval_at(p.channel, fit)) / p.weight_phillips_marlow);
+  for (const auto& p : ranges::view::zip(data.chan, data.count, data.count_weight))
+    chi_squared += square((std::get<1>(p) - this->eval_at(std::get<0>(p), fit))
+        / std::get<2>(p));
+//  for (const auto& p : data.data)
+//    chi_squared += square((p.count - this->eval_at(p.channel, fit)) / p.weight_phillips_marlow);
   return chi_squared;
-  // / degrees_of_freedom();
 }
 
 double FittableRegion::chi_sq_gradient(const Eigen::VectorXd& fit,
@@ -39,19 +44,20 @@ double FittableRegion::chi_sq_gradient(const Eigen::VectorXd& fit,
 
   double chi_squared{0.};
   Eigen::VectorXd channel_gradients;
-  for (const auto& p : data.data)
+  for (const auto& p : ranges::view::zip(data.chan, data.count, data.count_weight))
+//  for (const auto& p : data.data)
   {
     channel_gradients.setConstant(fit.size(), 0.);
 
-    double fit_value = this->eval_grad_at(p.channel, fit, channel_gradients);
+    double fit_value = this->eval_grad_at(std::get<0>(p), fit, channel_gradients);
 
-    chi_squared += square((p.count - fit_value) / p.weight_phillips_marlow);
+    chi_squared += square((std::get<1>(p) - fit_value) / std::get<2>(p));
 
 
-    double grad_norm = -2. * (p.count - fit_value) / square(p.weight_phillips_marlow);
+    double grad_norm = -2. * (std::get<1>(p) - fit_value) / square(std::get<2>(p));
 
-    std::stringstream ss;
-    ss << fit.transpose();
+//    std::stringstream ss;
+//    ss << fit.transpose();
 //    DBG("grad_norm = {} = -2 * {} = -2 * {} / {} = -2 * ({} - {}) / square({}) at chan={} for x={}",
 //        grad_norm,
 //        (p.count - fit_value) / square(p.weight_phillips_marlow),
@@ -63,7 +69,6 @@ double FittableRegion::chi_sq_gradient(const Eigen::VectorXd& fit,
       gradients[var] += channel_gradients[var] * grad_norm;
   }
   return chi_squared;
-  // / degrees_of_freedom();
 }
 
 }

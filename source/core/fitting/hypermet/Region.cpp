@@ -1,5 +1,6 @@
 #include <core/fitting/hypermet/Region.h>
 #include <core/util/more_math.h>
+#include <range/v3/all.hpp>
 
 #include <core/util/custom_logger.h>
 
@@ -14,8 +15,8 @@ Region::Region()
 Region::Region(const WeightedData& new_data, uint16_t background_samples)
     : Region()
 {
-  if (new_data.data.empty())
-    throw std::runtime_error("Attempting to construct Region from empty sample");
+  if (!new_data.valid())
+    throw std::runtime_error("Attempting to construct Region from invalid sample");
 
   data = new_data;
   LB_ = SUM4Edge(data.left(background_samples));
@@ -37,10 +38,10 @@ void Region::replace_data(const WeightedData& new_data, uint16_t left_samples, u
 
 void Region::replace_data(const WeightedData& new_data, const SUM4Edge& lb, const SUM4Edge& rb)
 {
-  if (new_data.empty())
-    throw std::runtime_error("Attempting to construct Region from empty sample");
+  if (!new_data.valid())
+    throw std::runtime_error("Attempting to construct Region from invalid sample");
 
-  if ((lb.left() < new_data.data.front().channel) || (new_data.data.back().channel < rb.right()))
+  if ((lb.left() < new_data.chan.front()) || (new_data.chan.back() < rb.right()))
     throw std::runtime_error("Sum4 edges outside of region");
 
   // \todo only if edge values changed
@@ -74,15 +75,15 @@ void Region::adjust_RB(const SUM4Edge& rb)
 
 double Region::left() const
 {
-  if (!data.empty())
-    return data.data.front().channel;
+  if (data.valid())
+    return data.chan.front();
   return std::numeric_limits<double>::quiet_NaN();
 }
 
 double Region::right() const
 {
-  if (!data.empty())
-    return data.data.back().channel;
+  if (data.valid())
+    return data.chan.back();
   return std::numeric_limits<double>::quiet_NaN();
 }
 
@@ -109,10 +110,10 @@ bool Region::add_peak(double l, double r, double amp_hint)
   data.subset(l, r);
   double max_val{0.0};
   double min_bkg{std::numeric_limits<double>::max()};
-  for (const auto& v : data.data)
+  for (const auto& v : ranges::view::zip(data.chan, data.count))
   {
-    max_val = std::max(max_val, v.count);
-    min_bkg = std::min(min_bkg, background.eval(v.channel));
+    max_val = std::max(max_val, v.second);
+    min_bkg = std::min(min_bkg, background.eval(v.first));
   }
   double amp_max = max_val - min_bkg;
 
@@ -131,7 +132,7 @@ bool Region::adjust_sum4(double peakID, double left, double right)
   if (!peaks_.count(peakID))
     return false;
   auto subregion = data.subset(left, right);
-  if (subregion.data.empty())
+  if (!subregion.valid())
     return false;
 
   peaks_[peakID].sum4 = SUM4(subregion, LB_, RB_);
@@ -404,7 +405,7 @@ std::string Region::to_string(std::string prepend) const
   std::stringstream ss;
   ss << prepend
      << fmt::format("data_points={} on channels [{},{}] vars={} {}\n",
-                               data.data.size(), left(), right(),
+                               data.chan.size(), left(), right(),
                                variable_count, (dirty_ ? " DIRTY" : ""));
   ss << prepend << "chi2: " << chi_sq() << "\n";
   ss << prepend << "chi2/dof: " << chi_sq() / degrees_of_freedom() << "\n";

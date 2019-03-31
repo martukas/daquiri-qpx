@@ -1,5 +1,6 @@
 #include <core/fitting/fit_evaluation.h>
 #include <cmath>
+#include <range/v3/all.hpp>
 
 namespace DAQuiri
 {
@@ -18,11 +19,8 @@ void FitEvaluation::setNewData(const WeightedData& d)
 {
   clear();
   weighted_data = d;
-  for (const auto& p : d.data)
-  {
-    x_.push_back(p.channel);
-    y_.push_back(p.count);
-  }
+  x_ = d.chan;
+  y_ = d.count;
   reset();
 }
 

@@ -14,6 +14,7 @@
 #include <core/fitting/sum4/sum4.h>
 #include <core/util/more_math.h>
 #include <fmt/format.h>
+#include <range/v3/all.hpp>
 
 namespace DAQuiri
 {
@@ -21,17 +22,17 @@ namespace DAQuiri
 SUM4::SUM4(const WeightedData& spectrum_data,
            const SUM4Edge& LB, const SUM4Edge& RB)
 {
-  if (spectrum_data.data.empty())
-    throw std::runtime_error("Cannot create SUM4 with empty data");
+  if (!spectrum_data.valid())
+    throw std::runtime_error("Cannot create SUM4 with invalid data");
 
   SUM4Background background = SUM4Edge::sum4_background(LB, RB);
   double background_variance = square(0.5 * peak_width()) * (LB.variance() + RB.variance());
 
-  Lchan_ = spectrum_data.data.front().channel;
-  Rchan_ = spectrum_data.data.back().channel;
+  Lchan_ = spectrum_data.chan.front();
+  Rchan_ = spectrum_data.chan.back();
 
-  for (const auto& p : spectrum_data.data)
-    gross_area_ += {p.count, p.weight_true};
+  for (const auto& p : ranges::view::zip(spectrum_data.count, spectrum_data.count_weight))
+    gross_area_ += {p.first, p.second};
 
   background_area_ = {
       0.5 * peak_width() * (background(Rchan_) + background(Lchan_)),
@@ -40,12 +41,13 @@ SUM4::SUM4(const WeightedData& spectrum_data,
   peak_area_ = gross_area_ - background_area_;
 
   double sumYnet{0.0}, CsumYnet{0.0}, C2sumYnet{0.0};
-  for (const auto& p : spectrum_data.data)
+
+  for (const auto& p : ranges::view::zip(spectrum_data.chan, spectrum_data.count))
   {
-    double yn = p.count - background(p.channel);
+    double yn = p.second - background(p.first);
     sumYnet += yn;
-    CsumYnet += p.channel * yn;
-    C2sumYnet += square(p.channel) * yn;
+    CsumYnet += p.first * yn;
+    C2sumYnet += square(p.first) * yn;
   }
 
   double centroidval = CsumYnet / sumYnet;

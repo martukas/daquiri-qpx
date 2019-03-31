@@ -16,6 +16,7 @@ class SUM4Edge : public TestBase
       y.push_back(2.5);
     }
     wd = DAQuiri::WeightedData(x,y);
+    wd.count_weight = DAQuiri::weight_true(wd.count);
   }
 
   DAQuiri::WeightedData wd;
@@ -60,6 +61,7 @@ TEST_F(SUM4Edge, GeneratePolynomial)
     y.push_back(12.5);
   }
   wd = DAQuiri::WeightedData(x,y);
+  wd.count_weight = DAQuiri::weight_true(wd.count);
 
   DAQuiri::SUM4Edge e2(wd);
 

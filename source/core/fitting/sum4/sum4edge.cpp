@@ -17,7 +17,7 @@
 #include <core/fitting/sum4/sum4edge.h>
 #include <core/util/more_math.h>
 #include <fmt/format.h>
-#include <core/fitting/hypermet/PolyBackground.h>
+#include <range/v3/all.hpp>
 
 namespace DAQuiri
 {
@@ -29,26 +29,19 @@ double SUM4Background::operator()(double x) const
 
 SUM4Edge::SUM4Edge(const WeightedData& spectrum_data)
 {
-  if (spectrum_data.empty())
-    throw std::runtime_error("Cannot create SUM4Edge with empty data");
+  if (!spectrum_data.valid())
+    throw std::runtime_error("Cannot create SUM4Edge with invalid data");
 
   dsum_ = {0.0, 0.0};
 
-  if (spectrum_data.data.empty())
-    return;
+  Lchan_ = spectrum_data.chan.front();
+  Rchan_ = spectrum_data.chan.back();
 
-  Lchan_ = spectrum_data.data.front().channel;
-  Rchan_ = spectrum_data.data.back().channel;
+  min_ = spectrum_data.count_min();
+  max_ = spectrum_data.count_max();
 
-  min_ = std::numeric_limits<double>::max();
-  max_ = std::numeric_limits<double>::min();
-
-  for (const auto& p : spectrum_data.data)
-  {
-    min_ = std::min(min_, p.count);
-    max_ = std::max(max_, p.count);
-    dsum_ += {p.count, p.weight_true};
-  }
+  for (const auto& p : ranges::view::zip(spectrum_data.count, spectrum_data.count_weight))
+    dsum_ += {p.first, p.second};
 
   davg_ = dsum_ / width();
 }
