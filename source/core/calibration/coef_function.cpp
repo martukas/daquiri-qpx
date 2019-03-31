@@ -3,28 +3,11 @@
 namespace DAQuiri
 {
 
-//CoefFunction::CoefFunction(const std::vector<double>& coeffs, double uncert)
-//{
-//  size_t i{0};
-//  for (const auto& c : coeffs)
-//    coeffs_[i++] = Parameter(c - uncert, c, c + uncert);
-//}
-
-//std::map<int, Parameter> CoefFunction::coeffs() const
-//{
-//  return coeffs_;
-//}
-//
-//void CoefFunction::set_coeff(int degree, const Parameter& p)
-//{
-//  coeffs_[degree] = p;
-//}
-
-std::vector<double> CoefFunction::eval(const std::vector<double>& x) const
+std::vector<double> CoefFunction::eval_vector(const std::vector<double>& x) const
 {
   std::vector<double> y;
   for (auto& q : x)
-    y.push_back((*this)(q));
+    y.push_back(this->eval(q));
   return y;
 }
 
@@ -32,11 +15,11 @@ double CoefFunction::inverse(double y, double e) const
 {
   int i = 0;
   double x0 = 0;
-  double x1 = x0 + (y - (*this)(x0)) / (this->derivative(x0));
+  double x1 = x0 + (y - this->eval(x0)) / (this->d_dx(x0));
   while (i <= 100 && std::abs(x1 - x0) > e)
   {
     x0 = x1;
-    x1 = x0 + (y - (*this)(x0)) / (this->derivative(x0));
+    x1 = x0 + (y - this->eval(x0)) / (this->d_dx(x0));
     i++;
   }
 

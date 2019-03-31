@@ -287,15 +287,25 @@ void FormEnergyCalibration::on_pushFit_clicked()
 {
   DAQuiri::OptlibOptimizer optimizer;
 
-  std::vector<double> x, y;
-  x.resize(fit_data_.peaks().size());
-  y.resize(fit_data_.peaks().size());
-  int i = 0;
+  optimizer.maximum_iterations = 1000;
+  optimizer.gradient_selection =
+      DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
+//  optimizer.epsilon = 1e-10;
+//  optimizer.tolerance = 1e-4;
+  optimizer.use_epsilon_check = false;
+  optimizer.min_g_norm = 1e-7;
+
+  optimizer.perform_sanity_checks = false;
+  optimizer.maximum_perturbations = 0;
+
+
+  DAQuiri::WeightedData data;
   for (auto& q : fit_data_.peaks())
   {
-    x[i] = q.first;
-    y[i] = q.second.peak_energy(fit_data_.settings().calib.cali_nrg_).value();
-    i++;
+    auto energy = q.second.peak_energy(fit_data_.settings().calib.cali_nrg_);
+    data.chan.push_back(q.first);
+    data.count.push_back(energy.value());
+    data.count_weight.push_back(1.0 / energy.sigma());
   }
 
 //  std::vector<double> sigmas(y.size(), 1);
@@ -306,9 +316,14 @@ void FormEnergyCalibration::on_pushFit_clicked()
     coefs.push_back(0.0);
 
   auto p = std::make_shared<DAQuiri::Polynomial>(coefs);
+  p->data = data;
+  p->update_indices();
 
-  // \todo reenable
-  //optimizer->fit(p, x, y, std::vector<double>(), std::vector<double>());
+  INFO("Calib before: {}", p->to_string());
+
+  optimizer.minimize(p.get());
+
+  INFO("Calib after: {}", p->to_string());
 
   if (p->valid())
   {

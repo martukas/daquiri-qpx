@@ -35,14 +35,6 @@ std::vector<double> weight_phillips_marlow(const std::vector<double>& counts);
 double weight_revay_student(double count);
 std::vector<double> weight_revay_student(const std::vector<double>& counts);
 
-/// \struct WeightedDataPoint weighted_data.h <core/fitting/weighted_data.h>
-/// \brief provides all relevant information from the results of an optimization attempt.
-struct WeightedDataPoint
-{
-  double channel {0};
-  double count {0};
-};
-
 // \todo uncertainty treatment for ZDT spectra
 
 /// \struct WeightedData weighted_data.h <core/fitting/weighted_data.h>
@@ -74,13 +66,8 @@ struct WeightedData
   /// \brief clears data
   void clear();
 
-//  /// \returns if data is empty
-//  bool empty() const;
-
   /// \returns if data is nonempty and array sizes match
   bool valid() const;
-
-//  std::vector<WeightedDataPoint> data;
 
   std::vector<double> chan;
   std::vector<double> count;

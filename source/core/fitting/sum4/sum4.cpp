@@ -63,8 +63,11 @@ SUM4::SUM4(const WeightedData& spectrum_data,
 
 UncertainDouble SUM4::peak_energy(const Calibration& cal) const
 {
-  return {cal.transform(centroid_.value()),
-          cal.function()->derivative(centroid_.value()) * centroid_.sigma()};
+  if (cal.valid())
+    return {cal.transform(centroid_.value()),
+            cal.function()->d_dx(centroid_.value()) * centroid_.sigma()};
+  else
+    return centroid_;
 }
 
 UncertainDouble SUM4::fwhm_energy(const Calibration& cal) const

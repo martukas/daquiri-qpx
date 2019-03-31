@@ -18,10 +18,16 @@ class Polynomial : public CoefFunction
   std::string type() const override { return "Polynomial"; }
   Polynomial* clone() const override { return new Polynomial(*this); }
   bool is_equal(CoefFunction* other) const override;
-  double operator() (double x) const override;
-  double derivative(double) const override;
+  double eval(double x) const override;
+  double d_dx(double x) const override;
 
-  std::string debug() const override;
+  void update_indices() override;
+  Eigen::VectorXd variables() const override;
+  double eval_grad_at(double chan, const Eigen::VectorXd& fit,
+                      Eigen::VectorXd& grads) const override;
+  void save_fit(const DAQuiri::FitResult& result) override;
+
+  std::string to_string(std::string prepend = "") const override;
   std::string to_UTF8(int precision, bool with_rsq) const override;
   std::string to_markup(int precision, bool with_rsq) const override;
 

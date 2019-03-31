@@ -20,9 +20,6 @@ double FittableRegion::chi_sq() const
   double chi_squared {0.};
   for (const auto& p : ranges::view::zip(data.chan, data.count, data.count_weight))
     chi_squared += square((std::get<1>(p) - this->eval(std::get<0>(p))) / std::get<2>(p));
-//  ranges::v3::common_tuple;
-//  for (const auto& p : data.data)
-//    chi_squared += square((p.count - this->eval(p.channel)) / p.weight_phillips_marlow);
   return chi_squared;
 }
 
@@ -32,8 +29,6 @@ double FittableRegion::chi_sq(const Eigen::VectorXd& fit) const
   for (const auto& p : ranges::view::zip(data.chan, data.count, data.count_weight))
     chi_squared += square((std::get<1>(p) - this->eval_at(std::get<0>(p), fit))
         / std::get<2>(p));
-//  for (const auto& p : data.data)
-//    chi_squared += square((p.count - this->eval_at(p.channel, fit)) / p.weight_phillips_marlow);
   return chi_squared;
 }
 
@@ -45,7 +40,6 @@ double FittableRegion::chi_sq_gradient(const Eigen::VectorXd& fit,
   double chi_squared{0.};
   Eigen::VectorXd channel_gradients;
   for (const auto& p : ranges::view::zip(data.chan, data.count, data.count_weight))
-//  for (const auto& p : data.data)
   {
     channel_gradients.setConstant(fit.size(), 0.);
 
@@ -53,17 +47,7 @@ double FittableRegion::chi_sq_gradient(const Eigen::VectorXd& fit,
 
     chi_squared += square((std::get<1>(p) - fit_value) / std::get<2>(p));
 
-
     double grad_norm = -2. * (std::get<1>(p) - fit_value) / square(std::get<2>(p));
-
-//    std::stringstream ss;
-//    ss << fit.transpose();
-//    DBG("grad_norm = {} = -2 * {} = -2 * {} / {} = -2 * ({} - {}) / square({}) at chan={} for x={}",
-//        grad_norm,
-//        (p.count - fit_value) / square(p.weight_phillips_marlow),
-//        (p.count - fit_value), square(p.weight_phillips_marlow),
-//        p.count, fit_value, p.weight_phillips_marlow,
-//        p.channel, ss.str());
 
     for (size_t var = 0; var < (size_t)fit.size(); ++var)
       gradients[var] += channel_gradients[var] * grad_norm;

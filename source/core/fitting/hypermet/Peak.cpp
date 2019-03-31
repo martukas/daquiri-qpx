@@ -150,9 +150,9 @@ UncertainDouble Peak::peak_energy(const HCalibration& cal) const
 UncertainDouble Peak::peak_energy(const Calibration& cal) const
 {
   // \todo maybe do this in calibration class?
-  if (cal.function())
+  if (cal.valid())
     return {cal.transform(position.val()),
-            cal.function()->derivative(position.val()) * position.uncert()};
+            cal.function()->d_dx(position.val()) * position.uncert()};
   else
     return peak_position();
 }

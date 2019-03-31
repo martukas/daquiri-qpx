@@ -148,7 +148,7 @@ bool Calibration::operator!=(const Calibration& other) const
 double Calibration::transform(double chan) const
 {
   if (valid())
-    return (*function_)(chan);
+    return function_->eval(chan);
   return chan;
 }
 
@@ -163,7 +163,7 @@ void Calibration::transform_by_ref(std::vector<double>& data) const
 {
   if (valid())
     for (auto& d : data)
-      d = (*function_)(d);
+      d = function_->eval(d);
 }
 
 std::vector<double> Calibration::transform(const std::vector<double>& data) const
@@ -183,7 +183,7 @@ std::string Calibration::debug() const
   if (valid())
   {
     result += " created=" + to_simple(created_);
-    result += "\n    model=" + function_->debug();
+    result += "\n   model=" + function_->to_string("   ");
   }
   return result;
 }

@@ -46,8 +46,8 @@ FormFitterSettings::FormFitterSettings(DAQuiri::FitSettings& fs, QWidget* parent
   ui->spinSmallMaxAmplitude->setValue(fit_settings_.small_max_amplitude);
 
   ui->checkWidthCommon->setChecked(fit_settings_.width_common);
-  ui->doubleMinWidthCommon->setValue(fit_settings_.width_common_bounds.lower());
-  ui->doubleMaxWidthCommon->setValue(fit_settings_.width_common_bounds.upper());
+//  ui->doubleMinWidthCommon->setValue(fit_settings_.width_common_bounds.lower());
+//  ui->doubleMaxWidthCommon->setValue(fit_settings_.width_common_bounds.upper());
 
   ui->checkWidthAt511->setChecked(fit_settings_.width_at_511_variable);
   ui->spinWidthAt511Tolerance->setValue(fit_settings_.width_at_511_tolerance);
@@ -109,8 +109,8 @@ void FormFitterSettings::on_buttonBox_accepted()
   fit_settings_.small_max_amplitude = ui->spinSmallMaxAmplitude->value();
 
   fit_settings_.width_common = ui->checkWidthCommon->isChecked();
-  fit_settings_.width_common_bounds.constrain(ui->doubleMinWidthCommon->value(),
-                                              ui->doubleMaxWidthCommon->value());
+//  fit_settings_.width_common_bounds.constrain(ui->doubleMinWidthCommon->value(),
+//                                              ui->doubleMaxWidthCommon->value());
 
   fit_settings_.width_at_511_variable = ui->checkWidthAt511->isChecked();
   fit_settings_.width_at_511_tolerance = ui->spinWidthAt511Tolerance->value();
