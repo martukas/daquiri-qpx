@@ -1,10 +1,10 @@
 #pragma once
 
 #include <QWidget>
-#include <core/fitting/nuclides/nuclide.h>
+#include <core/gamma/nuclides/nuclide.h>
 #include <gui/analysis/widget_plot_calib.h>
 #include <QItemSelection>
-#include <core/fitting/fitter.h>
+#include <core/gamma/fitter.h>
 
 #include <gui/widgets/SettingDelegate.h>
 

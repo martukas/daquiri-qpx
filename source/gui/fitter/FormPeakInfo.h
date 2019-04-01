@@ -1,8 +1,8 @@
 #pragma once
 
 #include <QDialog>
-#include <core/fitting/hypermet/Peak.h>
-#include <core/fitting/fit_settings.h>
+#include <core/gamma/hypermet/peak.h>
+#include <core/gamma/fit_settings.h>
 
 class QCloseEvent;
 class FitParameterWidget;

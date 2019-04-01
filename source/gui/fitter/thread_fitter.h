@@ -2,7 +2,7 @@
 
 #include <QThread>
 #include <QMutex>
-#include <core/fitting/fitter.h>
+#include <core/gamma/fitter.h>
 
 enum FitterAction {kFit, kStop, kIdle, kAddPeak, kRemovePeaks, kRefit,
                   kAdjustLB, kAdjustRB, kOverrideSettingsROI, kMergeRegions};

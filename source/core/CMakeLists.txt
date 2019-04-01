@@ -46,6 +46,8 @@ add_subdirectory(calibration)
 add_subdirectory(plugin)
 add_subdirectory(fitting)
 
+add_subdirectory(gamma)
+
 add_library(
   ${this_target} STATIC
   ${${this_target}_headers}

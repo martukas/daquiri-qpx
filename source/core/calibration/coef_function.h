@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/fitting/fittable_region.h>
+#include <core/fitting/data_model/data_model.h>
 #include <nlohmann/json.hpp>
 
 namespace DAQuiri

@@ -1,7 +1,7 @@
 #include <gui/analysis/form_analysis_1d.h>
 //#include "widget_detectors.h"
 #include "ui_form_analysis_1d.h"
-#include <core/fitting/fitter.h>
+#include <core/gamma/fitter.h>
 #include <QInputDialog>
 #include <QSettings>
 

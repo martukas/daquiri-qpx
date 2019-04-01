@@ -1,8 +1,8 @@
 #pragma once
 
 #include <core/calibration/coef_function.h>
+#include <core/fitting/data_model/value.h>
 #include <vector>
-#include <core/fitting/hypermet/Value.h>
 
 namespace DAQuiri
 {

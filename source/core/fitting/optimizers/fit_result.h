@@ -6,16 +6,19 @@
 namespace DAQuiri
 {
 
+using hessian_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+
 /// \struct FitResult fit_result.h <core/fitting/optimizers/fit_result.h>
 /// \brief provides all relevant information from the results of an optimization attempt.
 struct FitResult
 {
-  Eigen::VectorXd variables;               /// < variable values arrived at
-  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
-      inv_hessian; /// < inverse Hessian matrix of recent fit iterations
-  bool converged{false};                   /// < whether convergence was achieved
-  size_t iterations{0};                    /// < number of iterations used to reach result
-  double value;                            /// < most recent evaluation result
+  // \todo check to confirm all variables are finite
+
+  Eigen::VectorXd variables;       /// < variable values arrived at
+  hessian_t inv_hessian;           /// < inverse Hessian matrix of recent fit iterations
+  bool converged{false};           /// < whether convergence was achieved
+  size_t iterations{0};            /// < number of iterations used to reach result
+  double value;                    /// < most recent evaluation result
   bool used_finite_grads {false};
 
   std::string error_message;

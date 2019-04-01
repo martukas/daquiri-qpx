@@ -1,7 +1,7 @@
 #pragma once
 
 #include <gui/fitter/qp_range_selector.h>
-#include <core/fitting/fitter.h>
+#include <core/gamma/fitter.h>
 //#include "QPlot1D.h"
 
 class QpFitter : public QPlot::Multi1D

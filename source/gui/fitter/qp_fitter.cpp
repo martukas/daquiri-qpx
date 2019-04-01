@@ -1,5 +1,5 @@
 #include <gui/fitter/qp_fitter.h>
-#include <core/fitting/finders/finder_kon_naive.h>
+#include <core/gamma/finders/finder_kon_naive.h>
 
 QpFitter::QpFitter(QWidget *parent)
   : QPlot::Multi1D(parent)

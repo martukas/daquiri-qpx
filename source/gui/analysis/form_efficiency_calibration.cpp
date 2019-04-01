@@ -3,7 +3,7 @@
 
 #include <core/consumer_factory.h>
 //#include "widget_detectors.h"
-#include <core/fitting/fitter.h>
+#include <core/gamma/fitter.h>
 #include <QInputDialog>
 #include <gui/widgets/qt_util.h>
 #include <gui/widgets/QFileExtensions.h>

@@ -2,7 +2,7 @@
 
 #include <QWidget>
 #include <QItemSelection>
-#include <core/fitting/fitter.h>
+#include <core/gamma/fitter.h>
 
 #include <gui/widgets/SettingDelegate.h>
 #include <gui/analysis/widget_plot_calib.h>

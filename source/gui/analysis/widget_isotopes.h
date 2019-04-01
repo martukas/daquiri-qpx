@@ -4,7 +4,7 @@
 #include <QAbstractTableModel>
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
-#include <core/fitting/nuclides/nuclide.h>
+#include <core/gamma/nuclides/nuclide.h>
 
 #include <gui/widgets/SettingDelegate.h>
 

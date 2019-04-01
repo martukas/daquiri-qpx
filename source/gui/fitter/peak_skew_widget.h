@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/fitting/hypermet/Tail.h>
+#include <core/gamma/hypermet/skew.h>
 #include <QWidget>
 
 class QLabel;

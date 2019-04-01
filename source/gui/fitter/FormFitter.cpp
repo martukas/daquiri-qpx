@@ -3,7 +3,7 @@
 
 //#include "widget_detectors.h"
 
-#include <core/fitting/fitter.h>
+#include <core/gamma/fitter.h>
 #include <QPlot/QPlotButton.h>
 #include <gui/fitter/FormFitterSettings.h>
 #include <gui/fitter/FormPeakInfo.h>

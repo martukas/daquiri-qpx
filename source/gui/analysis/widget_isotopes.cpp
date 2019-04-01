@@ -5,7 +5,7 @@
 #include <gui/analysis/widget_isotopes.h>
 #include "ui_widget_isotopes.h"
 
-#include <core/fitting/nuclides/std_importer.h>
+#include <core/gamma/nuclides/std_importer.h>
 
 #include <core/util/custom_logger.h>
 #include <gui/widgets/QFileExtensions.h>

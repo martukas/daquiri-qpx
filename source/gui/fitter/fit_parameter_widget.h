@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/fitting/hypermet/Value.h>
+#include <core/fitting/data_model/value.h>
 
 #include <QWidget>
 

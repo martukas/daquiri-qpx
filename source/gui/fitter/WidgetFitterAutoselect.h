@@ -2,7 +2,7 @@
 
 #include <QWidget>
 #include <QSettings>
-#include <core/fitting/hypermet/Peak.h>
+#include <core/gamma/hypermet/peak.h>
 #include <set>
 
 namespace Ui {

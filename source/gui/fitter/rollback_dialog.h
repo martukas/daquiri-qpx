@@ -2,7 +2,7 @@
 
 #include <QDialog>
 #include <QRadioButton>
-#include <core/fitting/region_manager.h>
+#include <core/gamma/region_manager.h>
 
 class RollbackDialog : public QDialog {
   Q_OBJECT
