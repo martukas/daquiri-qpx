@@ -1,7 +1,7 @@
 #pragma once
 
 #include <core/calibration/coef_function.h>
-#include <core/fitting/data_model/value.h>
+#include <core/fitting/parameter/unbounded_param.h>
 #include <vector>
 
 namespace DAQuiri

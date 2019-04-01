@@ -5,6 +5,7 @@ set(SOURCES
   ${dir}/h5json.cpp
   ${dir}/timer.cpp
   ${dir}/time_extensions.cpp
+  ${dir}/clever_hist.cpp
   )
 
 set(HEADERS
@@ -25,6 +26,7 @@ set(HEADERS
   ${dir}/unique_mangle.h
   ${dir}/UTF_extensions.h
   ${dir}/visualize_vector.h
+  ${dir}/clever_hist.h
   )
 
 set(${this_target}_headers ${${this_target}_headers} ${HEADERS} PARENT_SCOPE)

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/fitting/data_model/value.h>
+#include <core/fitting/parameter/sine_bounded_param.h>
 #include <core/fitting/data_model/weighted_data.h>
 #include <core/gamma/sum4/background_sample.h>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/fitting/data_model/value.h>
+#include <core/fitting/parameter/sine_bounded_param.h>
 #include <core/gamma/hypermet/gaussian_precalc_values.h>
 
 namespace DAQuiri

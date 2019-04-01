@@ -2,14 +2,12 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(SOURCES
   ${dir}/data_model.cpp
-  ${dir}/value.cpp
   ${dir}/weighted_data.cpp
   ${dir}/weight_strategies.cpp
   )
 
 set(HEADERS
   ${dir}/data_model.h
-  ${dir}/value.h
   ${dir}/weighted_data.h
   ${dir}/weight_strategies.h
   )

@@ -2,6 +2,8 @@
 
 #include <core/gamma/hypermet/step.h>
 #include <core/gamma/hypermet/skew.h>
+#include <core/fitting/parameter/positive_param.h>
+
 //#include <core/fitting/hypermet/Calibration.h>
 #include <core/calibration/calibration.h>
 #include <core/gamma/sum4/peak.h>
