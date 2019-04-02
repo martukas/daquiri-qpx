@@ -1,6 +1,7 @@
 #pragma once
 
-#include <core/fitting/data_model/value.h>
+// \todo generalize for other implementations of param
+#include <core/fitting/parameter/sine_bounded_param.h>
 
 #include <QWidget>
 
