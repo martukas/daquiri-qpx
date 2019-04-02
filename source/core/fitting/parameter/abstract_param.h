@@ -7,6 +7,7 @@
 namespace DAQuiri
 {
 
+// \todo initial uncert should be nan or inf
 // \todo invalidate uncertainties automatically when changing value
 // \todo sanity checks for nan and inf
 

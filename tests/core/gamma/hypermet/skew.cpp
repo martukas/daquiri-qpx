@@ -1,10 +1,10 @@
-#include "../../fitting/data_model/function_test.h"
-
-#include <core/util/visualize_vector.h>
+#include "../../fitting/function_test.h"
 
 #include <core/gamma/hypermet/skew.h>
-#include <core/util/UTF_extensions.h>
+#include <core/fitting/parameter/positive_param.h>
+#include <core/fitting/parameter/sine_bounded_param.h>
 
+#include <core/util/UTF_extensions.h>
 
 class FittableTail : public DAQuiri::FittableRegion
 {

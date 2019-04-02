@@ -1,9 +1,7 @@
-#include "../../fitting/data_model/function_test.h"
-#include <core/util/visualize_vector.h>
-#include <random>
+#include "../../fitting/function_test.h"
 
 #include <core/gamma/hypermet/gamma_region.h>
-
+#include <core/util/UTF_extensions.h>
 
 class Region : public FunctionTest
 {
@@ -11,7 +9,6 @@ class Region : public FunctionTest
   DAQuiri::Region region;
   size_t region_size{100};
   size_t random_samples{100};
-
 
   void SetUp() override
   {

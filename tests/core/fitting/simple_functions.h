@@ -1,5 +1,5 @@
 #include <core/fitting/data_model/data_model.h>
-#include <core/fitting/data_model/value.h>
+#include <core/fitting/parameter/abstract_param.h>
 
 #include <core/util/UTF_extensions.h>
 

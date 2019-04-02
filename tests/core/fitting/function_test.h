@@ -1,10 +1,10 @@
 #pragma once
 
 #include "gtest_color_print.h"
-#include "clever_hist.h"
+#include <core/util/clever_hist.h>
 
 #include <core/fitting/data_model/data_model.h>
-#include <core/fitting/data_model/value.h>
+#include <core/fitting/parameter/abstract_param.h>
 
 #include <core/fitting/optimizers/optlib_adapter.h>
 

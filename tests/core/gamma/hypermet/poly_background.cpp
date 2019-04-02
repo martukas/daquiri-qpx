@@ -1,6 +1,4 @@
-#include "../../fitting/data_model/function_test.h"
-
-#include <core/util/visualize_vector.h>
+#include "../../fitting/function_test.h"
 
 #include <core/gamma/hypermet/poly_background.h>
 #include <core/util/UTF_extensions.h>
