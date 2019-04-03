@@ -4,14 +4,14 @@
 #include <core/fitting/parameter/abstract_param.h>
 
 
-class DummyParam : public DAQuiri::AbstractValue
+class DummyParam : public DAQuiri::AbstractParam
 {
  public:
   DummyParam() = default;
 
-  using DAQuiri::AbstractValue::x;
-  using DAQuiri::AbstractValue::val;
-  using DAQuiri::AbstractValue::grad;
+  using DAQuiri::AbstractParam::x;
+  using DAQuiri::AbstractParam::val;
+  using DAQuiri::AbstractParam::grad;
 
   void val(double new_val) override
   {

@@ -1,4 +1,4 @@
-#include <core/calibration/polynomial.h>
+#include <core/calibration/sqrt_poly.h>
 
 #include <core/util/UTF_extensions.h>
 #include <core/util/lexical_extensions.h>
@@ -7,40 +7,40 @@
 namespace DAQuiri
 {
 
-Polynomial::Polynomial(const std::vector<double>& coeffs)
+SqrtPoly::SqrtPoly(const std::vector<double>& coeffs)
 {
   coeffs_.resize(coeffs.size());
   for (size_t i = 0; i < coeffs.size(); ++i)
     coeffs_[i].val(coeffs[i]);
 }
 
-bool Polynomial::valid() const
+bool SqrtPoly::valid() const
 {
   return !coeffs_.empty();
 }
 
-bool Polynomial::is_equal(CalibFunction* other) const
+bool SqrtPoly::is_equal(CalibFunction* other) const
 {
   if (this->type() != other->type())
     return false;
-  auto* pother = dynamic_cast<Polynomial*>(other);
+  auto* pother = dynamic_cast<SqrtPoly*>(other);
   if (coeffs_.size() != pother->coeffs_.size())
     return false;
   for (size_t i = 0; i < coeffs_.size(); ++i)
     if (coeffs_[i].x() != pother->coeffs_[i].x())
       return false;
   return true;
-//  return (coeffs_ == dynamic_cast<Polynomial*>(other)->coeffs_);
+//  return (coeffs_ == dynamic_cast<SqrtPoly*>(other)->coeffs_);
 }
 
-void Polynomial::update_indices()
+void SqrtPoly::update_indices()
 {
   variable_count = 0;
   for (auto& c : coeffs_)
     c.update_index(variable_count);
 }
 
-Eigen::VectorXd Polynomial::variables() const
+Eigen::VectorXd SqrtPoly::variables() const
 {
   Eigen::VectorXd ret;
   ret.setConstant(variable_count, 0.0);
@@ -49,7 +49,7 @@ Eigen::VectorXd Polynomial::variables() const
   return ret;
 }
 
-double Polynomial::eval(double x) const
+double SqrtPoly::eval(double x) const
 {
   double result{0.};
   int i = 0;
@@ -58,25 +58,25 @@ double Polynomial::eval(double x) const
     result += c.val() * pow(x, i);
     i++;
   }
-  return result;
+  return std::sqrt(result);
 }
 
-double Polynomial::eval_grad_at(double chan, const Eigen::VectorXd& fit,
+double SqrtPoly::eval_grad_at(double x, const Eigen::VectorXd& fit,
                                 Eigen::VectorXd& grads) const
 {
   double result{0.};
   int i = 0;
   for (auto& c : coeffs_)
-  {
-    result += c.val_from(fit) * pow(chan, i);
-    grads[c.index()] += c.grad_from(fit) * std::pow(chan, i);
-    i++;
-  }
+    result += c.val_from(fit) * pow(x, i++);
+
+  i = 0;
+  for (auto& c : coeffs_)
+    grads[c.index()] += c.grad_from(fit) * std::pow(x, i++) / (2.0 * result);
+
   return result;
 }
 
-
-void Polynomial::save_fit(const DAQuiri::FitResult& result)
+void SqrtPoly::save_fit(const DAQuiri::FitResult& result)
 {
   for (auto& c : coeffs_)
     c.get(result.variables);
@@ -95,9 +95,9 @@ void Polynomial::save_fit(const DAQuiri::FitResult& result)
     c.get_uncert(diags, chisq_norm);
 }
 
-double Polynomial::d_dx(double x) const
+double SqrtPoly::d_dx(double x) const
 {
-  Polynomial new_poly;  // derivative not true if offset != 0
+  SqrtPoly new_poly;  // derivative not true if offset != 0
   if (coeffs_.size() > 1)
   {
     new_poly.coeffs_.resize(coeffs_.size() - 1);
@@ -111,19 +111,19 @@ double Polynomial::d_dx(double x) const
 
   }
 
-  return new_poly.eval(x);
+  return new_poly.eval(x) / (2.0 * eval(x));
 }
 
 
-std::string Polynomial::to_string(std::string prepend) const
+std::string SqrtPoly::to_string(std::string prepend) const
 {
-  std::string ret = type() + " = ";
+  std::string ret = type() + " = sqrt(";
   std::string vars;
   int i = 0;
   for (auto& c : coeffs_)
   {
     if (i > 0)
-      ret += " + ";
+      ret += "+";
     ret += "p" + std::to_string(i);
     if (i > 0)
       ret += "*x";
@@ -133,12 +133,12 @@ std::string Polynomial::to_string(std::string prepend) const
     vars += prepend + "  p" + std::to_string(i) + "=" + c.to_string() + "\n";
   }
 
-  return ret + "\n" + vars;
+  return ret + ")\n" + vars;
 }
 
-std::string Polynomial::to_UTF8(int precision) const
+std::string SqrtPoly::to_UTF8(int precision) const
 {
-  std::string ret;
+  std::string ret = "\u221A(";
   int i = 0;
   for (auto& c : coeffs_)
   {
@@ -151,13 +151,14 @@ std::string Polynomial::to_UTF8(int precision) const
       ret += UTF_superscript(i);
     i++;
   }
+  ret += ")";
 
   return ret;
 }
 
-std::string Polynomial::to_markup(int precision) const
+std::string SqrtPoly::to_markup(int precision) const
 {
-  std::string ret;
+  std::string ret = "&radic;<span style=\"text-decoration:overline;\">";
   int i = 0;
   for (auto& c : coeffs_)
   {
@@ -170,6 +171,7 @@ std::string Polynomial::to_markup(int precision) const
       ret += "<sup>" + std::to_string(i) + "</sup>";
     i++;
   }
+  ret += "</span>";
 
   return ret;
 }

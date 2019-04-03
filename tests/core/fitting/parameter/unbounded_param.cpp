@@ -33,7 +33,7 @@ class UnboundedParam : public FunctionTest
 
 TEST_F(UnboundedParam, UnboundedConst)
 {
-  ConstFunction<DAQuiri::UnboundedValue> fl;
+  ConstFunction<DAQuiri::UnboundedParam> fl;
   fl.val.val(1000);
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
@@ -63,7 +63,7 @@ TEST_F(UnboundedParam, UnboundedConst)
 
 TEST_F(UnboundedParam, UnboundedLinear)
 {
-  LinearFunction<DAQuiri::UnboundedValue> fl;
+  LinearFunction<DAQuiri::UnboundedParam> fl;
   fl.val.val(5);
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
@@ -94,7 +94,7 @@ TEST_F(UnboundedParam, UnboundedLinear)
 
 TEST_F(UnboundedParam, UnboundedQuadratic)
 {
-  QuadraticFunction<DAQuiri::UnboundedValue> fl;
+  QuadraticFunction<DAQuiri::UnboundedParam> fl;
   fl.val.val(5);
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();

@@ -13,11 +13,11 @@ struct PolyBackground
   PolyBackground(const WeightedData& data, const SUM4Edge& lb, const SUM4Edge& rb);
 
   double x_offset {0};
-  SineBoundedValue base;
+  SineBoundedParam base;
   bool slope_enabled{true};
-  SineBoundedValue slope;
+  SineBoundedParam slope;
   bool curve_enabled{true};
-  SineBoundedValue curve;
+  SineBoundedParam curve;
 
   bool sane() const;
 

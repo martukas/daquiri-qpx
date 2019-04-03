@@ -35,7 +35,7 @@ class AtanBoundedParam : public FunctionTest
 
 TEST_F(AtanBoundedParam, AtanBoundedConst)
 {
-  ConstFunction<DAQuiri::Value2> fl;
+  ConstFunction<DAQuiri::AtanBoundedParam> fl;
   fl.val.slope_ = 0.001;
   fl.val.bound(0, region_size);
   fl.val.val(10);
@@ -76,7 +76,7 @@ TEST_F(AtanBoundedParam, AtanBoundedConst)
 
 TEST_F(AtanBoundedParam, AtanBoundedLinear)
 {
-  LinearFunction<DAQuiri::Value2> fl;
+  LinearFunction<DAQuiri::AtanBoundedParam> fl;
   fl.val.slope_ = 0.001;
   fl.val.bound(0, region_size);
   fl.val.val(5);
@@ -117,7 +117,7 @@ TEST_F(AtanBoundedParam, AtanBoundedLinear)
 
 TEST_F(AtanBoundedParam, AtanBoundedQuadratic)
 {
-  QuadraticFunction<DAQuiri::Value2> fl;
+  QuadraticFunction<DAQuiri::AtanBoundedParam> fl;
   fl.val.slope_ = 0.001;
   fl.val.bound(0, region_size);
   fl.val.val(5);

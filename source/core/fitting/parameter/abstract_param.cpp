@@ -6,7 +6,7 @@
 namespace DAQuiri
 {
 
-void AbstractValue::update_index(int32_t& idx)
+void AbstractParam::update_index(int32_t& idx)
 {
   if (idx < 0)
     throw std::runtime_error("Value cannot save negative variable index");
@@ -17,42 +17,42 @@ void AbstractValue::update_index(int32_t& idx)
     reset_index();
 }
 
-void AbstractValue::reset_index()
+void AbstractParam::reset_index()
 {
   index_ = InvalidIndex;
 }
 
-int32_t AbstractValue::index() const
+int32_t AbstractParam::index() const
 {
   return index_;
 }
 
-bool AbstractValue::valid_index() const
+bool AbstractParam::valid_index() const
 {
   return index_ > InvalidIndex;
 }
 
-double AbstractValue::x() const
+double AbstractParam::x() const
 {
   return x_;
 }
 
-void AbstractValue::x(double new_x)
+void AbstractParam::x(double new_x)
 {
   x_ = new_x;
 }
 
-double AbstractValue::val() const
+double AbstractParam::val() const
 {
   return this->val_at(x_);
 }
 
-double AbstractValue::grad() const
+double AbstractParam::grad() const
 {
   return this->grad_at(x_);
 }
 
-double AbstractValue::val_from(const Eigen::VectorXd& fit) const
+double AbstractParam::val_from(const Eigen::VectorXd& fit) const
 {
   // \todo access without range checking once we have tests
   if (valid_index())
@@ -60,7 +60,7 @@ double AbstractValue::val_from(const Eigen::VectorXd& fit) const
   return val();
 }
 
-double AbstractValue::grad_from(const Eigen::VectorXd& fit) const
+double AbstractParam::grad_from(const Eigen::VectorXd& fit) const
 {
   // \todo access without range checking once we have tests
   if (valid_index())
@@ -68,35 +68,35 @@ double AbstractValue::grad_from(const Eigen::VectorXd& fit) const
   return grad();
 }
 
-double AbstractValue::uncert() const
+double AbstractParam::uncert() const
 {
   return val_uncert_;
 }
 
-void AbstractValue::uncert(double new_uncert)
+void AbstractParam::uncert(double new_uncert)
 {
   val_uncert_ = new_uncert;
 }
 
-void AbstractValue::put(Eigen::VectorXd& fit) const
+void AbstractParam::put(Eigen::VectorXd& fit) const
 {
   if (valid_index())
     fit[index_] = x();
 }
 
-void AbstractValue::get(const Eigen::VectorXd& fit)
+void AbstractParam::get(const Eigen::VectorXd& fit)
 {
   if (valid_index())
     x(fit[index_]);
 }
 
-void AbstractValue::get_uncert(const Eigen::VectorXd& diagonals, double chisq_norm)
+void AbstractParam::get_uncert(const Eigen::VectorXd& diagonals, double chisq_norm)
 {
   if (valid_index())
     uncert(std::sqrt(std::abs(diagonals[index_] * square(this->grad()) * chisq_norm)));
 }
 
-std::string AbstractValue::to_string() const
+std::string AbstractParam::to_string() const
 {
   auto val_part = fmt::format("{}\u00B1{}", val(), val_uncert_);
   auto x_part = fmt::format("(x={})", x_);
@@ -107,14 +107,14 @@ std::string AbstractValue::to_string() const
                      val_part, x_part, i_part);
 }
 
-void to_json(nlohmann::json& j, const AbstractValue& s)
+void to_json(nlohmann::json& j, const AbstractParam& s)
 {
   j["x"] = s.x_;
   j["to_fit"] = s.to_fit;
   j["uncert_value"] = s.val_uncert_;
 }
 
-void from_json(const nlohmann::json& j, AbstractValue& s)
+void from_json(const nlohmann::json& j, AbstractParam& s)
 {
   s.x_ = j["x"];
   s.to_fit = j["to_fit"];

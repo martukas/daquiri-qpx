@@ -7,19 +7,19 @@
 namespace DAQuiri
 {
 
-/// \class FittableRegion fittable_region.h <core/fitting/fittable_region.h>
+/// \class DataModel fittable_region.h <core/fitting/data_model/data_model.h>
 /// \brief Partially implements objective FittableFunction for a spectrum region, and provides
 ///         interface for supplying a model function to be compared against the data.
 ///         Five new virtual functions must be implemented as well as the variables() function
 ///         required by FittableFunction.
-class FittableRegion : public FittableFunction
+class DataModel : public FittableFunction
 {
  public:
   int32_t variable_count {0}; /// < counter for indexing/mapping of model variables to vectors
   WeightedData data;          /// < empirical data
 
-  FittableRegion() = default;
-  virtual ~FittableRegion() = default;
+  DataModel() = default;
+  virtual ~DataModel() = default;
 
   /// \brief updates variable indices for vector mapping, updates variable_count
   virtual void update_indices() = 0;

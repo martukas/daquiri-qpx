@@ -1,6 +1,6 @@
 #include "gtest_color_print.h"
 #include <core/calibration/calibration.h>
-#include <core/calibration/coef_function_factory.h>
+#include <core/calibration/calib_function_factory.h>
 #include <core/calibration/polynomial.h>
 
 class CalibID : public TestBase
@@ -69,36 +69,55 @@ TEST_F(CalibID, Json)
 
 
 
-class FakeFunction : public DAQuiri::CoefFunction
+class FakeFunction : public DAQuiri::CalibFunction
 {
  public:
   // Inherit constructors
-  using DAQuiri::CoefFunction::CoefFunction;
+  using DAQuiri::CalibFunction::CalibFunction;
+
+  bool valid() const override { return true; }
+
+  bool is_equal(CalibFunction* other) const override { return  true; }
 
   FakeFunction* clone() const override { return new FakeFunction(*this); }
   std::string type() const override { return "FakeFunction"; }
 
-  std::string debug() const override { return ""; }
-  std::string to_UTF8(int precision, bool with_rsq) const override
+  std::string to_string(std::string prepend) const override { return ""; }
+  std::string to_UTF8(int precision) const override
   {
     (void) precision;
-    (void) with_rsq;
     return "";
   }
-  std::string to_markup(int precision, bool with_rsq) const override
+  std::string to_markup(int precision) const override
   {
     (void) precision;
-    (void) with_rsq;
     return "";
   }
-  double operator() (double x) const override { return 1 + x; }
-  double derivative(double) const override { return 1; }
+  double eval(double x) const override { return 1 + x; }
+  double d_dx(double) const override { return 1; }
+
+  void update_indices() override {}
+
+  Eigen::VectorXd variables() const override
+  {
+    return {};
+  }
+
+  double eval_grad_at(double chan, const Eigen::VectorXd& fit,
+                      Eigen::VectorXd& grads) const override
+  {
+    return 1 + chan;
+  }
+
+  void save_fit(const DAQuiri::FitResult& result) override {}
+
+  void from_json(const nlohmann::json&) override {};
 };
 
 class Calibration : public TestBase
 {
   virtual void TearDown() {
-    DAQuiri::CoefFunctionFactory::singleton().clear();
+    DAQuiri::CalibFunctionFactory::singleton().clear();
   }
 };
 
@@ -135,30 +154,13 @@ TEST_F(Calibration, FunctionManually)
   DAQUIRI_REGISTER_COEF_FUNCTION(DAQuiri::Polynomial);
 
   DAQuiri::Calibration c;
-  auto pol = DAQuiri::CoefFunctionFactory::singleton().create_type("Polynomial");
+  auto pol = DAQuiri::CalibFunctionFactory::singleton().create_type("Polynomial");
   pol->set_coeff(0, {5.0});
   pol->set_coeff(1, {2.0});
   pol->set_coeff(2, {1.0});
   c.function(pol);
   EXPECT_EQ(c.function()->type(), "Polynomial");
   EXPECT_TRUE(c.valid());
-}
-
-TEST_F(Calibration, FunctionConvenient)
-{
-  DAQUIRI_REGISTER_COEF_FUNCTION(DAQuiri::Polynomial);
-
-  DAQuiri::Calibration c;
-  c.function("Polynomial" , {5.0, 2.0, 1.0});
-  EXPECT_TRUE(c.valid());
-
-  auto f = c.function();
-  EXPECT_EQ(f->type(), "Polynomial");
-  auto coefs = f->coeffs();
-  EXPECT_EQ(coefs.size(), 3u);
-  EXPECT_EQ(coefs[0].value(), 5.0);
-  EXPECT_EQ(coefs[1].value(), 2.0);
-  EXPECT_EQ(coefs[2].value(), 1.0);
 }
 
 TEST_F(Calibration, shallow_equals)

@@ -3,7 +3,7 @@
 #include <core/gamma/hypermet/peak.h>
 #include <core/util/UTF_extensions.h>
 
-class FittablePeak : public DAQuiri::FittableRegion
+class FittablePeak : public DAQuiri::DataModel
 {
   std::uniform_real_distribution<double> x_dist {-M_PI_2, M_PI_2};
 

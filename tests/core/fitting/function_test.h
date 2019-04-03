@@ -13,10 +13,10 @@
 struct ValueToVary
 {
   ValueToVary() = default;
-  ValueToVary(std::string var_name, DAQuiri::AbstractValue* var,
+  ValueToVary(std::string var_name, DAQuiri::AbstractParam* var,
               double minimum, double maximum, double eps);
 
-  DAQuiri::AbstractValue* variable;
+  DAQuiri::AbstractParam* variable;
   double min, max;
   double epsilon;
   std::uniform_real_distribution<double> distribution;
@@ -72,12 +72,12 @@ class FunctionTest : public TestBase
   size_t max_perturbations_to_converge{0};
 
   DAQuiri::WeightedData generate_data(
-      const DAQuiri::FittableRegion* fittable, size_t bins) const;
+      const DAQuiri::DataModel* fittable, size_t bins) const;
 
   void visualize_data(const DAQuiri::WeightedData& data) const;
 
-  void survey_grad(DAQuiri::FittableRegion* fittable,
-                   DAQuiri::AbstractValue* variable,
+  void survey_grad(DAQuiri::DataModel* fittable,
+                   DAQuiri::AbstractParam* variable,
                    double step_size = 0.1, double xmin = -M_PI_2, double xmax = M_PI_2);
 
   double check_chi_sq(bool print) const;
@@ -87,21 +87,21 @@ class FunctionTest : public TestBase
   double check_gradient_deltas(bool print) const;
 
   void deterministic_test(size_t attempts,
-                          DAQuiri::FittableRegion* fittable,
-                          DAQuiri::AbstractValue* variable,
+                          DAQuiri::DataModel* fittable,
+                          DAQuiri::AbstractParam* variable,
                           double wrong_value);
 
   void test_fit(size_t attempts,
-                DAQuiri::FittableRegion* fittable,
-                DAQuiri::AbstractValue* variable,
+                DAQuiri::DataModel* fittable,
+                DAQuiri::AbstractParam* variable,
                 double wrong_value,
                 double epsilon);
 
   void test_fit_random(size_t attempts,
-                       DAQuiri::FittableRegion* fittable,
+                       DAQuiri::DataModel* fittable,
                        ValueToVary var);
 
   void test_fit_random(size_t attempts,
-                       DAQuiri::FittableRegion* fittable,
+                       DAQuiri::DataModel* fittable,
                        std::vector<ValueToVary> vals);
 };

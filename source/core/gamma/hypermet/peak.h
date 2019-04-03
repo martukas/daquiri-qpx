@@ -75,12 +75,12 @@ class Peak
   std::string to_string(std::string prepend = "") const;
 
   // These are unique to peak
-  SineBoundedValue position;
-  PositiveValue amplitude; // was ValueGam
+  SineBoundedParam position;
+  PositiveParam amplitude; // was ValueGam
 
   // By default these are not unique to peak
   bool width_override{false};
-  SineBoundedValue width;
+  SineBoundedParam width;
 
   // \todo why skew naming different?
   // skews (part of peak)

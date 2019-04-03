@@ -1,7 +1,7 @@
 #include "../function_test.h"
 #include "../simple_functions.h"
 
-class FittableRegion : public FunctionTest
+class DataModel : public FunctionTest
 {
  protected:
   size_t region_size{40};

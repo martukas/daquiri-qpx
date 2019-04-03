@@ -5,14 +5,14 @@
 namespace DAQuiri
 {
 
-class BoundedValue : public AbstractValue
+class AbstractBoundedParam : public AbstractParam
 {
  public:
-  BoundedValue() = default;
+  AbstractBoundedParam() = default;
 
-  using AbstractValue::x;
-  using AbstractValue::val;
-  using AbstractValue::grad;
+  using AbstractParam::x;
+  using AbstractParam::val;
+  using AbstractParam::grad;
 
   /// \return lower bound of variable
   double max() const;
@@ -41,8 +41,8 @@ class BoundedValue : public AbstractValue
   bool at_extremum(double min_epsilon, double max_epsilon) const;
 
   std::string to_string() const override;
-  friend void to_json(nlohmann::json& j, const BoundedValue& s);
-  friend void from_json(const nlohmann::json& j, BoundedValue& s);
+  friend void to_json(nlohmann::json& j, const AbstractBoundedParam& s);
+  friend void from_json(const nlohmann::json& j, AbstractBoundedParam& s);
 
  private:
   double max_{1.0};

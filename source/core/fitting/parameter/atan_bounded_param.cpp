@@ -6,17 +6,17 @@
 namespace DAQuiri
 {
 
-double Value2::val_at(double at_x) const
+double AtanBoundedParam::val_at(double at_x) const
 {
   return (M_PI_2 + std::atan(slope_ * at_x)) * (max() - min()) * M_1_PI + min();
 }
 
-double Value2::grad_at(double at_x) const
+double AtanBoundedParam::grad_at(double at_x) const
 {
   return (1.0 / (1.0 + square(slope_ * at_x))) * slope_ * (max() - min()) * M_1_PI;
 }
 
-void Value2::val(double new_val)
+void AtanBoundedParam::val(double new_val)
 {
   if (new_val >= max())
     x(std::numeric_limits<double>::max());

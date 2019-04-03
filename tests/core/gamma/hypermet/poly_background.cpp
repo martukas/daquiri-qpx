@@ -4,7 +4,7 @@
 #include <core/util/UTF_extensions.h>
 #include <core/util/more_math.h>
 
-class FittableBackground : public DAQuiri::FittableRegion
+class FittableBackground : public DAQuiri::DataModel
 {
  public:
   DAQuiri::PolyBackground background;

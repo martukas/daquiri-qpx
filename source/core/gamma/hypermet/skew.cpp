@@ -66,11 +66,11 @@ double Tail::eval_grad(const PrecalcVals& pre, Eigen::VectorXd& grads) const
   double spread = flip(side, pre.spread);
   double t2 = (pre.ampl * ampl * std::exp(spread / slp) / std::sqrt(M_PI) *
       std::exp(-1.0 * square(1.0 / (2.0 * slp) + spread)) / pre.width);
-  if (pre.i_width > AbstractValue::InvalidIndex)
+  if (pre.i_width > AbstractParam::InvalidIndex)
     grads[pre.i_width] += pre.width_grad * spread * (t2  - ret / (pre.width * slp));
-  if (pre.i_pos > AbstractValue::InvalidIndex)
+  if (pre.i_pos > AbstractParam::InvalidIndex)
     grads[pre.i_pos] += pre.pos_grad * (-ret / (slp * pre.width) + t2);
-  if (pre.i_amp > AbstractValue::InvalidIndex)
+  if (pre.i_amp > AbstractParam::InvalidIndex)
     grads[pre.i_amp] += pre.amp_grad * ret / pre.ampl;
 
   if (amplitude.valid_index())
@@ -90,11 +90,11 @@ double Tail::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
   double spread = flip(side, pre.spread);
   double t2 = (pre.ampl * ampl * std::exp(spread / slp) / std::sqrt(M_PI) *
       std::exp(-1.0 * square(1.0 / (2.0 * slp) + spread)) / pre.width);
-  if (pre.i_width > AbstractValue::InvalidIndex)
+  if (pre.i_width > AbstractParam::InvalidIndex)
     grads[pre.i_width] += pre.width_grad * spread * (t2 - ret / (pre.width * slp));
-  if (pre.i_pos > AbstractValue::InvalidIndex)
+  if (pre.i_pos > AbstractParam::InvalidIndex)
     grads[pre.i_pos] += pre.pos_grad * (-ret / (slp * pre.width) + t2);
-  if (pre.i_amp > AbstractValue::InvalidIndex)
+  if (pre.i_amp > AbstractParam::InvalidIndex)
     grads[pre.i_amp] += pre.amp_grad * ret / pre.ampl;
 
   if (amplitude.valid_index())

@@ -7,7 +7,7 @@
 namespace DAQuiri
 {
 
-double FittableRegion::degrees_of_freedom() const
+double DataModel::degrees_of_freedom() const
 {
   double dof = static_cast<double>(data.chan.size()) - static_cast<double>(variable_count);
   if (dof < 0.)
@@ -15,7 +15,7 @@ double FittableRegion::degrees_of_freedom() const
   return dof;
 }
 
-double FittableRegion::chi_sq() const
+double DataModel::chi_sq() const
 {
   double chi_squared {0.};
   for (const auto& p : ranges::view::zip(data.chan, data.count, data.count_weight))
@@ -23,7 +23,7 @@ double FittableRegion::chi_sq() const
   return chi_squared;
 }
 
-double FittableRegion::chi_sq(const Eigen::VectorXd& fit) const
+double DataModel::chi_sq(const Eigen::VectorXd& fit) const
 {
   double chi_squared {0.};
   for (const auto& p : ranges::view::zip(data.chan, data.count, data.count_weight))
@@ -32,7 +32,7 @@ double FittableRegion::chi_sq(const Eigen::VectorXd& fit) const
   return chi_squared;
 }
 
-double FittableRegion::chi_sq_gradient(const Eigen::VectorXd& fit,
+double DataModel::chi_sq_gradient(const Eigen::VectorXd& fit,
                                        Eigen::VectorXd& gradients) const
 {
   gradients.setConstant(fit.size(), 0.);

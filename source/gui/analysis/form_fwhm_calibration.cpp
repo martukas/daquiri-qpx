@@ -1,9 +1,10 @@
 #include <gui/analysis/form_fwhm_calibration.h>
 //#include "widget_detectors.h"
 #include "ui_form_fwhm_calibration.h"
-#include <core/calibration/coef_function_factory.h>
+#include <core/calibration/calib_function_factory.h>
 #include <gui/widgets/qt_util.h>
-#include <core/calibration/polynomial.h>
+
+#include <core/calibration/sqrt_poly.h>
 
 #include <core/fitting/optimizers/optlib_adapter.h>
 
@@ -276,7 +277,7 @@ void FormFwhmCalibration::replot_calib()
         yy.push_back(y);
       }
 
-      ui->PlotCalib->setTitle("FWHM = " + QS(new_calibration_.function()->to_UTF8(5, true)));
+      ui->PlotCalib->setTitle("FWHM = " + QS(new_calibration_.function()->to_UTF8(5)));
       ui->PlotCalib->setFit(xx, yy, style_fit);
     }
   }
@@ -349,9 +350,21 @@ void FormFwhmCalibration::fit_calibration()
 {
   DAQuiri::OptlibOptimizer optimizer;
 
+  optimizer.maximum_iterations = 1000;
+  optimizer.gradient_selection =
+      DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
+//  optimizer.epsilon = 1e-10;
+//  optimizer.tolerance = 1e-4;
+  optimizer.use_epsilon_check = false;
+  optimizer.min_g_norm = 1e-7;
+
+  optimizer.perform_sanity_checks = false;
+  optimizer.maximum_perturbations = 0;
+
+
   auto calib = fit_data_.settings().calib;
 
-  std::vector<double> xx, yy, xx_sigma, yy_sigma;
+  DAQuiri::WeightedData data;
   for (auto& q : fit_data_.peaks())
   {
     auto energy = q.second.peak_energy(calib.cali_nrg_);
@@ -359,19 +372,9 @@ void FormFwhmCalibration::fit_calibration()
 
     if (width.error_percent() < ui->doubleMaxWidthErr->value())
     {
-
-//      DBG << "Adding point e=" << q.second.energy().to_string()
-//          << " w=" << q.second.fwhm().to_string();
-      xx.push_back(energy.value());
-//      if (std::isfinite(q.second.energy().uncertainty()))
-//        xx_sigma.push_back(q.second.energy().uncertainty());
-//      else
-      xx_sigma.push_back(0);
-      yy.push_back(std::pow(width.value(), 2));
-//      if (std::isfinite(q.second.fwhm().uncertainty()))
-//        yy_sigma.push_back(2*q.second.fwhm().uncertainty()*q.second.fwhm().value());
-//      else
-      yy_sigma.push_back(0);
+      data.chan.push_back(energy.value());
+      data.count.push_back(width.value());
+      data.count_weight.push_back(1.0 / width.sigma());
     }
   }
 
@@ -379,10 +382,15 @@ void FormFwhmCalibration::fit_calibration()
   for (int i = 0; i <= ui->spinTerms->value(); ++i)
     coefs.push_back(0);
 
-//  SqrtPoly p;
   auto p = std::make_shared<DAQuiri::Polynomial>(coefs);
+  p->data = data;
+  p->update_indices();
 
-  //optimizer->fit(p, xx, yy, xx_sigma, yy_sigma);
+  INFO("Calib before: {}", p->to_string());
+
+  optimizer.minimize(p.get());
+
+  INFO("Calib after: {}", p->to_string());
 
   if (p->valid())
   {

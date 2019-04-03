@@ -11,11 +11,11 @@ namespace DAQuiri
 // \todo invalidate uncertainties automatically when changing value
 // \todo sanity checks for nan and inf
 
-class AbstractValue
+class AbstractParam
 {
  public:
-  AbstractValue() = default;
-  virtual ~AbstractValue() = default;
+  AbstractParam() = default;
+  virtual ~AbstractParam() = default;
 
   bool to_fit{true}; ///< flags Value for fitting
 
@@ -89,8 +89,8 @@ class AbstractValue
   void get_uncert(const Eigen::VectorXd& diagonals, double chisq_norm);
 
   virtual std::string to_string() const;
-  friend void to_json(nlohmann::json& j, const AbstractValue& s);
-  friend void from_json(const nlohmann::json& j, AbstractValue& s);
+  friend void to_json(nlohmann::json& j, const AbstractParam& s);
+  friend void from_json(const nlohmann::json& j, AbstractParam& s);
 
  private:
   double x_{0.0};

@@ -5,17 +5,17 @@
 namespace DAQuiri
 {
 
-class SineBoundedValue : public BoundedValue
+class SineBoundedParam : public AbstractBoundedParam
 {
  public:
-  SineBoundedValue() = default;
+  SineBoundedParam() = default;
 
-  using AbstractValue::x;
-  using AbstractValue::val;
-  using AbstractValue::grad;
-  using BoundedValue::min;
-  using BoundedValue::max;
-  using BoundedValue::bound;
+  using AbstractParam::x;
+  using AbstractParam::val;
+  using AbstractParam::grad;
+  using AbstractBoundedParam::min;
+  using AbstractBoundedParam::max;
+  using AbstractBoundedParam::bound;
 
   /// \brief sets current proxy variable so that nominal value equals new_val
   /// \param new_val new nominal value to set

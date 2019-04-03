@@ -5,14 +5,14 @@
 namespace DAQuiri
 {
 
-class UnboundedValue : public AbstractValue
+class UnboundedParam : public AbstractParam
 {
  public:
-  UnboundedValue() = default;
+  UnboundedParam() = default;
 
-  using AbstractValue::x;
-  using AbstractValue::val;
-  using AbstractValue::grad;
+  using AbstractParam::x;
+  using AbstractParam::val;
+  using AbstractParam::grad;
 
   /// \brief sets current proxy variable so that nominal value equals new_val
   /// \param new_val new nominal value to set

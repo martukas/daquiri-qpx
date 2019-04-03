@@ -5,7 +5,7 @@
 #include <core/fitting/data_model/weight_strategies.h>
 #include <range/v3/all.hpp>
 
-ValueToVary::ValueToVary(std::string var_name, DAQuiri::AbstractValue* var,
+ValueToVary::ValueToVary(std::string var_name, DAQuiri::AbstractParam* var,
                          double minimum, double maximum, double eps)
 {
   name = var_name;
@@ -73,7 +73,7 @@ CleverHist ValueToVary::deltas_hist() const
 }
 
 DAQuiri::WeightedData FunctionTest::generate_data(
-    const DAQuiri::FittableRegion* fittable, size_t bins) const
+    const DAQuiri::DataModel* fittable, size_t bins) const
 {
   std::vector<double> channels;
   std::vector<double> y;
@@ -99,8 +99,8 @@ void FunctionTest::visualize_data(const DAQuiri::WeightedData& data) const
   MESSAGE() << "counts(channel):\n" << visualize(channels, counts, 100) << "\n";
 }
 
-void FunctionTest::survey_grad(DAQuiri::FittableRegion* fittable,
-                               DAQuiri::AbstractValue* variable,
+void FunctionTest::survey_grad(DAQuiri::DataModel* fittable,
+                               DAQuiri::AbstractParam* variable,
                                double step_size, double xmin, double xmax)
 {
   size_t chosen_var_idx = variable->index();
@@ -200,8 +200,8 @@ double FunctionTest::check_gradient_deltas(bool print) const
 }
 
 void FunctionTest::test_fit(size_t attempts,
-                            DAQuiri::FittableRegion* fittable,
-                            DAQuiri::AbstractValue* variable,
+                            DAQuiri::DataModel* fittable,
+                            DAQuiri::AbstractParam* variable,
                             double wrong_value,
                             double epsilon)
 {
@@ -229,8 +229,8 @@ void FunctionTest::test_fit(size_t attempts,
 }
 
 void FunctionTest::deterministic_test(size_t attempts,
-                                      DAQuiri::FittableRegion* fittable,
-                                      DAQuiri::AbstractValue* variable,
+                                      DAQuiri::DataModel* fittable,
+                                      DAQuiri::AbstractParam* variable,
                                       double wrong_value)
 {
   double goal_val = variable->val();
@@ -275,14 +275,14 @@ void FunctionTest::deterministic_test(size_t attempts,
 }
 
 void FunctionTest::test_fit_random(size_t attempts,
-                                   DAQuiri::FittableRegion* fittable,
+                                   DAQuiri::DataModel* fittable,
                                    ValueToVary var)
 {
   test_fit_random(attempts, fittable, std::vector<ValueToVary>{var});
 }
 
 void FunctionTest::test_fit_random(size_t attempts,
-                                   DAQuiri::FittableRegion* fittable,
+                                   DAQuiri::DataModel* fittable,
                                    std::vector<ValueToVary> vals)
 {
   std::mt19937 random_generator;

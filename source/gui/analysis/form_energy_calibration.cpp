@@ -9,7 +9,7 @@
 #include <QSettings>
 //#include "widget_detectors.h"
 
-#include <core/calibration/coef_function_factory.h>
+#include <core/calibration/calib_function_factory.h>
 #include <gui/widgets/qt_util.h>
 
 FormEnergyCalibration::FormEnergyCalibration(DAQuiri::Detector& dets, DAQuiri::Fitter& fit, QWidget* parent)
@@ -201,7 +201,7 @@ void FormEnergyCalibration::replot_calib()
         yy.push_back(new_calibration_.transform(i));
       }
       ui->PlotCalib->setFit(xx, yy, style_fit);
-      ui->PlotCalib->setTitle("E = " + QString::fromStdString(new_calibration_.function()->to_UTF8(6, true)));
+      ui->PlotCalib->setTitle("E = " + QString::fromStdString(new_calibration_.function()->to_UTF8(6)));
     }
   }
 

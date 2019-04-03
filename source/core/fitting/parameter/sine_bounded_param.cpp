@@ -8,7 +8,7 @@
 namespace DAQuiri
 {
 
-void SineBoundedValue::val(double new_val)
+void SineBoundedParam::val(double new_val)
 {
   double t = (min() + max() - 2.0 * new_val) / (min() - max());
   if (std::abs(t) <= 1)
@@ -19,7 +19,7 @@ void SineBoundedValue::val(double new_val)
     x(std::asin(1));
 }
 
-double SineBoundedValue::val_at(double at_x) const
+double SineBoundedParam::val_at(double at_x) const
 {
 //  mpfr::mpreal mx = at_x;
 //  mpfr::mpreal one = 1.0;
@@ -31,7 +31,7 @@ double SineBoundedValue::val_at(double at_x) const
   return (1.0 + std::sin(at_x)) * (max() - min()) / 2.0 + min();
 }
 
-double SineBoundedValue::grad_at(double at_x) const
+double SineBoundedParam::grad_at(double at_x) const
 {
 //  mpfr::mpreal mx = at_x;
 //  mpfr::mpreal two = 2.0;

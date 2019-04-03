@@ -3,7 +3,7 @@
 #include <core/consumer_factory.h>
 #include <consumers/histogram_1d.h>
 
-#include <core/calibration/coef_function_factory.h>
+#include <core/calibration/calib_function_factory.h>
 #include <core/calibration/polynomial.h>
 
 #include <importers/ImporterCNF.h>
@@ -15,14 +15,14 @@ class ImportCNF : public TestBase
   virtual void SetUp()
   {
     DAQuiri::ConsumerRegistrar<DAQuiri::Histogram1D> h1d;
-    DAQuiri::CoefFunctionRegistrar<DAQuiri::Polynomial> pol;
+    DAQuiri::CalibFunctionRegistrar<DAQuiri::Polynomial> pol;
     p = std::make_shared<DAQuiri::Project>();
   }
 
   virtual void TearDown()
   {
     DAQuiri::ImporterFactory::singleton().clear();
-    DAQuiri::CoefFunctionFactory::singleton().clear();
+    DAQuiri::CalibFunctionFactory::singleton().clear();
     DAQuiri::ConsumerFactory::singleton().clear();
   }
 

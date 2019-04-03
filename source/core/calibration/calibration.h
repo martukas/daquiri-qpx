@@ -1,7 +1,7 @@
 #pragma once
 
 #include <core/util/time_extensions.h>
-#include <core/calibration/coef_function.h>
+#include <core/calibration/calib_function.h>
 
 #include <type_traits>
 
@@ -36,7 +36,7 @@ class Calibration
  private:
   hr_time_t created_{std::chrono::system_clock::now()};
   CalibID from_, to_;
-  std::shared_ptr<CoefFunction> function_;
+  std::shared_ptr<CalibFunction> function_;
 
  public:
   Calibration() = default;
@@ -47,8 +47,8 @@ class Calibration
   CalibID to() const;
   hr_time_t created() const;
 
-  CoefFunctionPtr function() const;
-  void function(CoefFunctionPtr f);
+  CalibFunctionPtr function() const;
+  void function(CalibFunctionPtr f);
 //  void function(const std::string& type, const std::vector<double>& coefs);
 
   bool shallow_equals(const Calibration& other) const;

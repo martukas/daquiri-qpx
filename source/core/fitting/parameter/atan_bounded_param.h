@@ -5,19 +5,19 @@
 namespace DAQuiri
 {
 
-class Value2 : public BoundedValue
+class AtanBoundedParam : public AbstractBoundedParam
 {
  public:
   double slope_ {1.0};
 
-  Value2() = default;
+  AtanBoundedParam() = default;
 
-  using AbstractValue::x;
-  using AbstractValue::val;
-  using AbstractValue::grad;
-  using BoundedValue::min;
-  using BoundedValue::max;
-  using BoundedValue::bound;
+  using AbstractParam::x;
+  using AbstractParam::val;
+  using AbstractParam::grad;
+  using AbstractBoundedParam::min;
+  using AbstractBoundedParam::max;
+  using AbstractBoundedParam::bound;
 
   /// \brief sets current proxy variable so that nominal value equals new_val
   /// \param new_val new nominal value to set

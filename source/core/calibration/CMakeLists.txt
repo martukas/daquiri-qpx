@@ -1,16 +1,17 @@
 set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(SOURCES
-  ${dir}/coef_function.cpp
-  ${dir}/coef_function_factory.cpp
+  ${dir}/calib_function_factory.cpp
   ${dir}/polynomial.cpp
+  ${dir}/sqrt_poly.cpp
   ${dir}/calibration.cpp
   )
 
 set(HEADERS
-  ${dir}/coef_function.h
-  ${dir}/coef_function_factory.h
+  ${dir}/calib_function.h
+  ${dir}/calib_function_factory.h
   ${dir}/polynomial.h
+  ${dir}/sqrt_poly.h
   ${dir}/calibration.h
   )
 

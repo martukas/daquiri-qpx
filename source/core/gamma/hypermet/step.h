@@ -15,7 +15,7 @@ class Step
   bool override{false};
   bool enabled{true};
   Side side{Side::left};
-  SineBoundedValue amplitude;
+  SineBoundedParam amplitude;
 
   void reset_indices();
 

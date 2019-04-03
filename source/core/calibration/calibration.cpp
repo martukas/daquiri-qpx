@@ -1,5 +1,5 @@
 #include <core/calibration/calibration.h>
-#include <core/calibration/coef_function_factory.h>
+#include <core/calibration/calib_function_factory.h>
 #include <core/util/string_extensions.h>
 #include <core/util/time_extensions.h>
 #include <fmt/format.h>
@@ -106,7 +106,7 @@ hr_time_t Calibration::created() const
 //void Calibration::function(const std::string& type,
 //                           const std::vector<double>& coefs)
 //{
-//  function_ = CoefFunctionFactory::singleton().create_type(type);
+//  function_ = CalibFunctionFactory::singleton().create_type(type);
 //  if (function_)
 //  {
 //    for (size_t i = 0; i < coefs.size(); ++i)
@@ -114,12 +114,12 @@ hr_time_t Calibration::created() const
 //  }
 //}
 
-void Calibration::function(CoefFunctionPtr f)
+void Calibration::function(CalibFunctionPtr f)
 {
   function_ = f;
 }
 
-CoefFunctionPtr Calibration::function() const
+CalibFunctionPtr Calibration::function() const
 {
   return function_;
 }
@@ -154,9 +154,26 @@ double Calibration::transform(double chan) const
 
 double Calibration::inverse(double val, double e) const
 {
-  if (valid())
-    return function_->inverse(val, e);
-  return val;
+  if (!valid())
+    return val;
+
+  int i = 0;
+  double x0 = 0;
+  double x1 = x0 + (val - function_->eval(x0)) / (function_->d_dx(x0));
+  while (i <= 100 && std::abs(x1 - x0) > e)
+  {
+    x0 = x1;
+    x1 = x0 + (val - function_->eval(x0)) / (function_->d_dx(x0));
+    i++;
+  }
+
+  if (std::abs(x1 - x0) <= e)
+    return x1;
+  else
+  {
+//    WARN("<" << this->type() << "> Maximum iteration reached in CalibFunction inverse evaluation";
+    return nan("");
+  }
 }
 
 void Calibration::transform_by_ref(std::vector<double>& data) const
@@ -199,7 +216,7 @@ void to_json(nlohmann::json& j, const Calibration& s)
     j["to"] = s.to_;
 
   if (s.function_)
-    j["function"] = (*s.function_);
+    j["function"] = s.function_->to_json();
 }
 
 void from_json(const nlohmann::json& j, Calibration& s)
@@ -213,7 +230,7 @@ void from_json(const nlohmann::json& j, Calibration& s)
     s.to_ = j["to"];
 
   if (j.count("function"))
-    s.function_ = CoefFunctionFactory::singleton().create_from_json(j["function"]);
+    s.function_ = CalibFunctionFactory::singleton().create_from_json(j["function"]);
 }
 
 double shift_down(double v, uint16_t bits)

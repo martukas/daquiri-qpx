@@ -9,7 +9,7 @@
 #include <gui/widgets/QFileExtensions.h>
 #include <gui/daq/ConsumerDialog.h>
 
-#include <core/calibration/coef_function_factory.h>
+#include <core/calibration/calib_function_factory.h>
 
 using namespace DAQuiri;
 
@@ -426,7 +426,7 @@ void FormEfficiencyCalibration::replot_calib()
       auto eqn = new_calibration_.function();
       QString eqn_str;
       if (eqn)
-        eqn_str = QS(eqn->to_UTF8(3, true));
+        eqn_str = QS(eqn->to_UTF8(3));
       ui->PlotCalib->setTitle("\u03B5 = " + eqn_str);
     }
   }

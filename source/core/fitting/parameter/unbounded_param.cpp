@@ -6,17 +6,17 @@
 namespace DAQuiri
 {
 
-void UnboundedValue::val(double new_val)
+void UnboundedParam::val(double new_val)
 {
   x(new_val);
 }
 
-double UnboundedValue::val_at(double at_x) const
+double UnboundedParam::val_at(double at_x) const
 {
   return at_x;
 }
 
-double UnboundedValue::grad_at(double at_x) const
+double UnboundedParam::grad_at(double at_x) const
 {
   (void) at_x;
   return 1.0;

@@ -33,7 +33,7 @@ class SineBoundedParam : public FunctionTest
 
 TEST_F(SineBoundedParam, BoundedConst)
 {
-  ConstFunction<DAQuiri::SineBoundedValue> fl;
+  ConstFunction<DAQuiri::SineBoundedParam> fl;
   fl.val.bound(0, region_size);
   fl.val.val(10);
   fl.data = generate_data(&fl, region_size);
@@ -72,7 +72,7 @@ TEST_F(SineBoundedParam, BoundedConst)
 
 TEST_F(SineBoundedParam, BoundedLinear)
 {
-  LinearFunction<DAQuiri::SineBoundedValue> fl;
+  LinearFunction<DAQuiri::SineBoundedParam> fl;
   fl.val.bound(0, region_size);
   fl.val.val(5);
   fl.data = generate_data(&fl, region_size);
@@ -117,7 +117,7 @@ TEST_F(SineBoundedParam, BoundedLinear)
 
 TEST_F(SineBoundedParam, BoundedQuadratic)
 {
-  QuadraticFunction<DAQuiri::SineBoundedValue> fl;
+  QuadraticFunction<DAQuiri::SineBoundedParam> fl;
   fl.val.bound(0, region_size);
   fl.val.val(5);
   fl.data = generate_data(&fl, region_size);

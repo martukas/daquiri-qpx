@@ -6,14 +6,14 @@
 
 #include <core/util/UTF_extensions.h>
 
-class FittableStep : public DAQuiri::FittableRegion
+class FittableStep : public DAQuiri::DataModel
 {
   std::uniform_real_distribution<double> x_dist {-M_PI_2, M_PI_2};
 
  public:
-  DAQuiri::SineBoundedValue position;
-  DAQuiri::PositiveValue amplitude;
-  DAQuiri::SineBoundedValue width;
+  DAQuiri::SineBoundedParam position;
+  DAQuiri::PositiveParam amplitude;
+  DAQuiri::SineBoundedParam width;
 
   DAQuiri::Step step;
 

@@ -6,17 +6,17 @@
 namespace DAQuiri
 {
 
-void PositiveValue::val(double new_val)
+void PositiveParam::val(double new_val)
 {
   x(std::sqrt(new_val));
 }
 
-double PositiveValue::val_at(double at_x) const
+double PositiveParam::val_at(double at_x) const
 {
   return square(at_x);
 }
 
-double PositiveValue::grad_at(double at_x) const
+double PositiveParam::grad_at(double at_x) const
 {
   return 2.0 * at_x;
 }

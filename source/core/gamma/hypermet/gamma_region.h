@@ -22,7 +22,7 @@ namespace DAQuiri
 //Type region_type{Type::Normal};
 
 
-class Region : public FittableRegion
+class Region : public DataModel
 {
   std::uniform_real_distribution<double> x_dist {-M_PI_2, M_PI_2};
 

@@ -53,7 +53,7 @@ class FitSettings
   uint64_t small_max_amplitude{500};
 
   bool width_common{true};
-  SineBoundedValue width_common_bounds; //{1.0, 0.7, 1.3};
+  SineBoundedParam width_common_bounds; //{1.0, 0.7, 1.3};
   bool width_at_511_variable{true};
   double width_at_511_tolerance{5.0};
 

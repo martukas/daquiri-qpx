@@ -3,17 +3,17 @@
 
 #include <core/fitting/parameter/abstract_bounded_param.h>
 
-class DummyBounded : public DAQuiri::BoundedValue
+class DummyBounded : public DAQuiri::AbstractBoundedParam
 {
  public:
   DummyBounded() = default;
 
-  using AbstractValue::x;
-  using AbstractValue::val;
-  using AbstractValue::grad;
-  using BoundedValue::min;
-  using BoundedValue::max;
-  using BoundedValue::bound;
+  using AbstractParam::x;
+  using AbstractParam::val;
+  using AbstractParam::grad;
+  using AbstractBoundedParam::min;
+  using AbstractBoundedParam::max;
+  using AbstractBoundedParam::bound;
 
   void val(double new_val) override
   {

@@ -20,7 +20,7 @@ set(SOURCES
   )
 
 add_subdirectory(util)
-#add_subdirectory(calibration)
+add_subdirectory(calibration)
 #add_subdirectory(plugin)
 add_subdirectory(fitting)
 add_subdirectory(gamma)

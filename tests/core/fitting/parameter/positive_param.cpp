@@ -34,7 +34,7 @@ class PositiveParam : public FunctionTest
 
 TEST_F(PositiveParam, PositiveConst)
 {
-  ConstFunction<DAQuiri::PositiveValue> fl;
+  ConstFunction<DAQuiri::PositiveParam> fl;
   fl.val.val(10);
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
@@ -67,7 +67,7 @@ TEST_F(PositiveParam, PositiveConst)
 
 TEST_F(PositiveParam, PositiveLinear)
 {
-  LinearFunction<DAQuiri::PositiveValue> fl;
+  LinearFunction<DAQuiri::PositiveParam> fl;
   fl.val.val(5);
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();
@@ -100,7 +100,7 @@ TEST_F(PositiveParam, PositiveLinear)
 
 TEST_F(PositiveParam, PositiveQuadratic)
 {
-  QuadraticFunction<DAQuiri::PositiveValue> fl;
+  QuadraticFunction<DAQuiri::PositiveParam> fl;
   fl.val.val(5);
   fl.data = generate_data(&fl, region_size);
   fl.update_indices();

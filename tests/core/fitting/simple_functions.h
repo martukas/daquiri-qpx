@@ -4,7 +4,7 @@
 #include <core/util/UTF_extensions.h>
 
 template<typename T>
-class ConstFunction : public DAQuiri::FittableRegion
+class ConstFunction : public DAQuiri::DataModel
 {
  public:
   T val;
@@ -70,7 +70,7 @@ class ConstFunction : public DAQuiri::FittableRegion
 };
 
 template<typename T>
-class LinearFunction : public DAQuiri::FittableRegion
+class LinearFunction : public DAQuiri::DataModel
 {
  public:
   T val;
@@ -134,7 +134,7 @@ class LinearFunction : public DAQuiri::FittableRegion
 };
 
 template<typename T>
-class QuadraticFunction : public DAQuiri::FittableRegion
+class QuadraticFunction : public DAQuiri::DataModel
 {
  public:
   T val;
