@@ -1,6 +1,6 @@
 #include <core/gamma/finders/finder_kon_calibrated.h>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 namespace DAQuiri
 {

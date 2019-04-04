@@ -1,7 +1,7 @@
 ﻿#include <gui/fitter/WidgetFitterAutoselect.h>
 #include "ui_WidgetFitterAutoselect.h"
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 WidgetFitterAutoselect::WidgetFitterAutoselect(QWidget *parent)
   : QWidget(parent)

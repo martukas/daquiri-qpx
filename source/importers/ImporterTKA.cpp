@@ -3,7 +3,7 @@
 #include <importers/string_to_chans.h>
 #include <core/util/string_extensions.h>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 bool ImporterTKA::validate(const boost::filesystem::path& path) const
 {

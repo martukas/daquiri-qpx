@@ -3,7 +3,7 @@
 #include <QLabel>
 #include <QDialogButtonBox>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 RollbackDialog::RollbackDialog(DAQuiri::RegionManager roi, QWidget *parent) :
   QDialog(parent),

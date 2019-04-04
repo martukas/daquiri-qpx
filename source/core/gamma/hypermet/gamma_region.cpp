@@ -2,7 +2,7 @@
 #include <core/util/more_math.h>
 #include <range/v3/all.hpp>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 namespace DAQuiri
 {

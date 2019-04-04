@@ -7,7 +7,7 @@
 
 #include <gui/widgets/qt_util.h>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 FormPeakInfo::FormPeakInfo(DAQuiri::Peak& hm,
                            const DAQuiri::FCalibration& cal, QWidget* parent)

@@ -2,7 +2,7 @@
 #include <core/util/more_math.h>
 #include <core/gamma/finders/finder_kon_naive.h>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 namespace DAQuiri {
 

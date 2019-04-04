@@ -3,7 +3,7 @@
 #include <date/date.h>
 #include <iostream>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 struct __attribute__ ((packed)) Header
 {

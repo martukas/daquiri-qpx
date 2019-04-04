@@ -4,7 +4,7 @@
 #include <core/fitting/optimizers/cppoptlib/problem.h>
 #include <core/fitting/optimizers/cppoptlib/solver/bfgssolver.h>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 namespace DAQuiri
 {

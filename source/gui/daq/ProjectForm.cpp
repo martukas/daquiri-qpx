@@ -16,7 +16,7 @@
 #include <gui/analysis/form_analysis_1d.h>
 #include <gui/analysis/form_efficiency_calibration.h>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 using namespace DAQuiri;
 

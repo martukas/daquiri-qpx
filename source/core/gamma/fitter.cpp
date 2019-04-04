@@ -4,7 +4,7 @@
 #include <core/util/time_extensions.h>
 #include <algorithm>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 namespace DAQuiri
 {

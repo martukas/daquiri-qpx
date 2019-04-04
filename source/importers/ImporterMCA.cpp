@@ -5,7 +5,7 @@
 #include <core/util/string_extensions.h>
 #include <core/calibration/polynomial.h>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 struct __attribute__ ((packed)) Time
 {

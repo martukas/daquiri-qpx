@@ -6,7 +6,7 @@
 #include <core/util/string_extensions.h>
 #include <core/calibration/polynomial.h>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 bool ImporterAVA::validate(const boost::filesystem::path& path) const
 {

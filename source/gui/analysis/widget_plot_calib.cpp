@@ -1,7 +1,7 @@
 #include <gui/analysis/widget_plot_calib.h>
 #include <QFlag>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 WidgetPlotCalib::WidgetPlotCalib(QWidget *parent) :
   QPlot::Multi1D(parent)

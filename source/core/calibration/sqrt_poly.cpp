@@ -2,7 +2,7 @@
 
 #include <core/util/UTF_extensions.h>
 #include <core/util/lexical_extensions.h>
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 namespace DAQuiri
 {

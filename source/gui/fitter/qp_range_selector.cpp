@@ -1,6 +1,6 @@
 #include <gui/fitter/qp_range_selector.h>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 void RangeSelector::set_bounds(const double &left, const double &right)
 {

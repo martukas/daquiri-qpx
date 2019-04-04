@@ -1,6 +1,6 @@
 #include <gui/fitter/thread_fitter.h>
 #include <core/util/timer.h>
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 #include <core/fitting/optimizers/optlib_adapter.h>
 
