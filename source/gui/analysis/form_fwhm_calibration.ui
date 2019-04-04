@@ -29,44 +29,6 @@
         <number>3</number>
        </property>
        <item>
-        <widget class="QLabel" name="label_3">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Max fit %err</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QDoubleSpinBox" name="doubleMaxFitErr">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximum">
-          <double>50.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.100000000000000</double>
-         </property>
-         <property name="value">
-          <double>2.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QLabel" name="label_4">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
@@ -141,7 +103,7 @@
           <string>Fit</string>
          </property>
          <property name="icon">
-          <iconset resource="../resources/qpxres.qrc">
+          <iconset resource="../resources/daquiri.qrc">
            <normaloff>:/icons/oxy/16/preferences_web_browser_cache.png</normaloff>:/icons/oxy/16/preferences_web_browser_cache.png</iconset>
          </property>
          <property name="iconSize">
@@ -204,7 +166,7 @@
           <number>1</number>
          </property>
          <property name="maximum">
-          <number>2</number>
+          <number>6</number>
          </property>
          <property name="value">
           <number>1</number>
@@ -241,7 +203,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="../resources/qpxres.qrc">
+          <iconset resource="../resources/daquiri.qrc">
            <normaloff>:/icons/oxy/16/document_save.png</normaloff>:/icons/oxy/16/document_save.png</iconset>
          </property>
          <property name="iconSize">
@@ -282,7 +244,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="../resources/qpxres.qrc">
+          <iconset resource="../resources/daquiri.qrc">
            <normaloff>:/icons/oxy/16/revert.png</normaloff>:/icons/oxy/16/revert.png</iconset>
          </property>
          <property name="iconSize">
@@ -320,7 +282,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="../resources/qpxres.qrc">
+          <iconset resource="../resources/daquiri.qrc">
            <normaloff>:/icons/oxy/16/alacarte.png</normaloff>:/icons/oxy/16/alacarte.png</iconset>
          </property>
          <property name="iconSize">
@@ -366,7 +328,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../resources/qpxres.qrc"/>
+  <include location="../resources/daquiri.qrc"/>
  </resources>
  <connections/>
 </ui>

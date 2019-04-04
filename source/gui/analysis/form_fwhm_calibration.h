@@ -48,7 +48,6 @@ class FormFwhmCalibration : public QWidget
   void on_pushFromDB_clicked();
   void on_pushDetDB_clicked();
 
-  void on_doubleMaxFitErr_valueChanged(double arg1);
   void on_doubleMaxWidthErr_valueChanged(double arg1);
 
  private:

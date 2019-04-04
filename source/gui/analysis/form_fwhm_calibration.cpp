@@ -73,7 +73,6 @@ void FormFwhmCalibration::loadSettings()
 
   settings.beginGroup("FWHM_calibration");
   ui->spinTerms->setValue(settings.value("fit_function_terms", 2).toInt());
-  ui->doubleMaxFitErr->setValue(settings.value("max_fit_err", 1).toDouble());
   ui->doubleMaxWidthErr->setValue(settings.value("max_width_err", 5).toDouble());
 
   settings.endGroup();
@@ -84,7 +83,6 @@ void FormFwhmCalibration::saveSettings()
   QSettings settings;
   settings.beginGroup("FWHM_calibration");
   settings.setValue("fit_function_terms", ui->spinTerms->value());
-  settings.setValue("max_fit_err", ui->doubleMaxFitErr->value());
   settings.setValue("max_width_err", ui->doubleMaxWidthErr->value());
   settings.endGroup();
 }
@@ -219,7 +217,7 @@ void FormFwhmCalibration::replot_calib()
   ui->PlotCalib->clearAll();
   QVector<double> xx_relevant, yy_relevant,
       xx_relevant_sigma, yy_relevant_sigma;
-  QVector<double> xx, yy;
+  QVector<double> xx, yy, xx_sigma, yy_sigma;
 
   double xmin = std::numeric_limits<double>::max();
   double xmax = -std::numeric_limits<double>::max();
@@ -247,6 +245,8 @@ void FormFwhmCalibration::replot_calib()
     {
       xx.push_back(x);
       yy.push_back(y);
+      xx_sigma.push_back(x_sigma);
+      yy_sigma.push_back(y_sigma);
     }
 
     if (x < xmin)
@@ -259,10 +259,12 @@ void FormFwhmCalibration::replot_calib()
   xmax += x_margin;
   xmin -= x_margin;
 
-  if (xx.size() > 0)
+  if ((xx.size() > 0) || (xx_relevant.size() > 0))
   {
-    ui->PlotCalib->addPoints(style_pts, xx, yy, QVector<double>(), QVector<double>());
-    ui->PlotCalib->addPoints(style_relevant, xx_relevant, yy_relevant, xx_relevant_sigma, yy_relevant_sigma);
+    ui->PlotCalib->addPoints(style_pts,
+        xx, yy, xx_sigma, yy_sigma);
+    ui->PlotCalib->addPoints(style_relevant,
+        xx_relevant, yy_relevant, xx_relevant_sigma, yy_relevant_sigma);
     if (new_calibration_.valid())
     {
 
@@ -350,9 +352,9 @@ void FormFwhmCalibration::fit_calibration()
 {
   DAQuiri::OptlibOptimizer optimizer;
 
-  optimizer.maximum_iterations = 1000;
+  optimizer.maximum_iterations = 100;
   optimizer.gradient_selection =
-      DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
+      DAQuiri::OptlibOptimizer::GradientSelection::FiniteAlways;
 //  optimizer.epsilon = 1e-10;
 //  optimizer.tolerance = 1e-4;
   optimizer.use_epsilon_check = false;
@@ -360,6 +362,7 @@ void FormFwhmCalibration::fit_calibration()
 
   optimizer.perform_sanity_checks = false;
   optimizer.maximum_perturbations = 0;
+  optimizer.verbosity = 5;
 
 
   auto calib = fit_data_.settings().calib;
@@ -382,7 +385,7 @@ void FormFwhmCalibration::fit_calibration()
   for (int i = 0; i <= ui->spinTerms->value(); ++i)
     coefs.push_back(0);
 
-  auto p = std::make_shared<DAQuiri::Polynomial>(coefs);
+  auto p = std::make_shared<DAQuiri::SqrtPoly>(coefs);
   p->data = data;
   p->update_indices();
 
@@ -426,14 +429,9 @@ void FormFwhmCalibration::on_pushDetDB_clicked()
 //  det_widget->exec();
 }
 
-void FormFwhmCalibration::on_doubleMaxFitErr_valueChanged(double)
-{
-  replot_calib();
-  select_in_plot();
-}
-
 void FormFwhmCalibration::on_doubleMaxWidthErr_valueChanged(double)
 {
-  replot_calib();
-  select_in_plot();
+  update_data();
+//  replot_calib();
+//  select_in_plot();
 }
