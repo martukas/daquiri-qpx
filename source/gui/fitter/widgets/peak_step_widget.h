@@ -1,21 +1,21 @@
 #pragma once
 
-#include <core/gamma/hypermet/skew.h>
+#include <core/gamma/hypermet/step.h>
 #include <QWidget>
 
 class QLabel;
 class QCheckBox;
-class FitParameterWidget;
+class BoundedParameterWidget;
 
-class TailWidget : public QWidget
+class StepWidget : public QWidget
 {
  Q_OBJECT
 
  public:
-  explicit TailWidget(QString name, const DAQuiri::Tail& t,
+  explicit StepWidget(QString name, const DAQuiri::Step& s,
                       double spin_width, double label_width, QWidget* parent = 0);
   bool changed() const;
-  DAQuiri::Tail tail() const { return tail_; }
+  DAQuiri::Step step() const { return current_; }
 
  signals:
   void updated();
@@ -26,14 +26,13 @@ class TailWidget : public QWidget
   void param_changed();
 
  private:
-  DAQuiri::Tail original_;
-  DAQuiri::Tail tail_;
+  DAQuiri::Step original_;
+  DAQuiri::Step current_;
 
   QLabel* modified_ {nullptr};
   QCheckBox* enabled_{nullptr};
   QCheckBox* override_{nullptr};
-  FitParameterWidget* amplitude_ {nullptr};
-  FitParameterWidget* slope_ {nullptr};
+  BoundedParameterWidget* amplitude_ {nullptr};
 
-  void update();
+  void update_values();
 };

@@ -8,12 +8,12 @@ namespace DAQuiri
 
 double Peak::Components::peak_skews() const
 {
-  return gaussian + short_tail + right_tail;
+  return gaussian + left_skew + right_skew;
 }
 
 double Peak::Components::step_tail() const
 {
-  return long_tail + step;
+  return tail + step;
 }
 
 double Peak::Components::all() const
@@ -27,15 +27,15 @@ Peak::Peak()
 
   width.bound(0.8, 10.0);
 
-  short_tail.amplitude.bound(0.02, 1.5);
-  short_tail.slope.bound(0.2, 0.5);
+  left_skew.amplitude.bound(0.02, 1.5);
+  left_skew.slope.bound(0.2, 0.5);
 
-  right_tail.amplitude.bound(0.01, 0.9);
-  right_tail.slope.bound(0.1, 0.5);
+  right_skew.amplitude.bound(0.01, 0.9);
+  right_skew.slope.bound(0.1, 0.5);
 
-  long_tail.amplitude.bound(0.0001, 0.15);
-  long_tail.slope.bound(2.5, 50);
-  long_tail.slope.val(52.5  / 2.0);
+  tail.amplitude.bound(0.0001, 0.15);
+  tail.slope.bound(2.5, 50);
+  tail.slope.val(52.5  / 2.0);
   // \todo bound and set to midpoint
 
   step.amplitude.bound(0.000001, 0.05);
@@ -45,12 +45,12 @@ void Peak::apply_defaults(const Peak& other)
 {
   if (!width_override)
     width = other.width;
-  if (!short_tail.override)
-    short_tail = other.short_tail;
-  if (!right_tail.override)
-    right_tail = other.right_tail;
-  if (!long_tail.override)
-    long_tail = other.long_tail;
+  if (!left_skew.override)
+    left_skew = other.left_skew;
+  if (!right_skew.override)
+    right_skew = other.right_skew;
+  if (!tail.override)
+    tail = other.tail;
   if (!step.override)
     step = other.step;
 }
@@ -58,21 +58,21 @@ void Peak::apply_defaults(const Peak& other)
 void Peak::force_defaults(const Peak& other)
 {
   width = other.width;
-  short_tail = other.short_tail;
-  right_tail = other.right_tail;
-  long_tail = other.long_tail;
+  left_skew = other.left_skew;
+  right_skew = other.right_skew;
+  tail = other.tail;
   step = other.step;
 }
 
 Peak Peak::gaussian_only() const
 {
   Peak ret = *this;
-  ret.short_tail.override = true;
-  ret.short_tail.enabled = false;
-  ret.right_tail.override = true;
-  ret.right_tail.enabled = false;
-  ret.long_tail.override = true;
-  ret.long_tail.enabled = false;
+  ret.left_skew.override = true;
+  ret.left_skew.enabled = false;
+  ret.right_skew.override = true;
+  ret.right_skew.enabled = false;
+  ret.tail.override = true;
+  ret.tail.enabled = false;
   ret.step.override = true;
   ret.step.enabled = false;
   return ret;
@@ -80,7 +80,7 @@ Peak Peak::gaussian_only() const
 
 bool Peak::is_gaussian_only() const
 {
-  return (!short_tail.enabled && !right_tail.enabled && !long_tail.enabled && !step.enabled);
+  return (!left_skew.enabled && !right_skew.enabled && !tail.enabled && !step.enabled);
 }
 
 bool Peak::sanity_check(double min_x, double max_x) const
@@ -99,11 +99,11 @@ bool Peak::sane() const
     return false;
   if (position.to_fit && position.at_extremum(1e-2, 1e-2))
     return false;
-  if (!short_tail.sane(1e-5, 1e-4, 1e-3))
+  if (!left_skew.sane(1e-5, 1e-4, 1e-3))
     return false;
-  if (!right_tail.sane(1e-5, 1e-4, 1e-3))
+  if (!right_skew.sane(1e-5, 1e-4, 1e-3))
     return false;
-  if (!long_tail.sane(1e-4, 1e-7, 1e-7))
+  if (!tail.sane(1e-4, 1e-7, 1e-7))
     return false;
   if (!step.sane(0.0, 1e-4))
     return false;
@@ -161,13 +161,13 @@ UncertainDouble Peak::area() const
 {
   auto a = std::sqrt(M_PI);
 
-  if (short_tail.enabled)
-    a += short_tail.amplitude.val() * short_tail.slope.val() *
-        std::exp(-0.25 / square(short_tail.slope.val()));
+  if (left_skew.enabled)
+    a += left_skew.amplitude.val() * left_skew.slope.val() *
+        std::exp(-0.25 / square(left_skew.slope.val()));
 
-  if (right_tail.enabled)
-    a += right_tail.amplitude.val() * right_tail.slope.val() *
-        std::exp(-0.25 / square(right_tail.slope.val()));
+  if (right_skew.enabled)
+    a += right_skew.amplitude.val() * right_skew.slope.val() *
+        std::exp(-0.25 / square(right_skew.slope.val()));
 
   a *= amplitude.val() * width.val();
 
@@ -185,21 +185,21 @@ UncertainDouble Peak::area() const
 //  //(dGAM/dX*dArea/dGAM)*(dDEL/dY*dArea/dDEL)*Covar(X,Y)*Chisq
 //  t += square(amplitude.grad() * width_.val() * a) * cs;
 //  // * Hessinv.coeff(Peak(PeakIndex).GAM.index(), DEL.index())
-//  if (short_tail.amplitude.to_fit)
+//  if (left_skew.amplitude.to_fit)
 //  {
 //    //(dGAM/dX*dArea/dGAM)*(dAST/dY*dArea/dAST)*Covar(X,Y)*Chisq
 //    t += (amplitude.grad() * width_.val() * a) *
-//        (short_tail.amplitude.grad() * amplitude.val() * width_.val() *
-//            short_tail.slope.val() * std::exp(-0.25 / square(short_tail.slope.val()))) * cs;
+//        (left_skew.amplitude.grad() * amplitude.val() * width_.val() *
+//            left_skew.slope.val() * std::exp(-0.25 / square(left_skew.slope.val()))) * cs;
 //    // * Hessinv.coeff(Peak(PeakIndex).GAM.index(), AST.index())
 //  }
-//  if (short_tail.slope.to_fit)
+//  if (left_skew.slope.to_fit)
 //  {
 //    // (dGAM/dX*dArea/dGAM)*(dBST/dY*dArea/dBST)*Covar(X,Y)*Chisq
 //    t += (amplitude.grad() * width_.val() * a) *
-//        (short_tail.slope.grad() * amplitude.val() * width_.val()
-//            * short_tail.amplitude.val() * (1 + 0.5 / square(short_tail.slope.val()))
-//            * std::exp(-0.25 / square(short_tail.slope.val()))) * cs;
+//        (left_skew.slope.grad() * amplitude.val() * width_.val()
+//            * left_skew.amplitude.val() * (1 + 0.5 / square(left_skew.slope.val()))
+//            * std::exp(-0.25 / square(left_skew.slope.val()))) * cs;
 //    // * Hessinv.coeff(Peak(PeakIndex).GAM.index(), AST.index())
 //  }
 
@@ -271,9 +271,9 @@ void Peak::reset_indices()
   amplitude.reset_index();
   width.reset_index();
 
-  short_tail.reset_indices();
-  right_tail.reset_indices();
-  long_tail.reset_indices();
+  left_skew.reset_indices();
+  right_skew.reset_indices();
+  tail.reset_indices();
   step.reset_indices();
 }
 
@@ -285,14 +285,14 @@ void Peak::update_indices(int32_t& i)
   if (width_override)
     width.update_index(i);
 
-  if (short_tail.override)
-    short_tail.update_indices(i);
+  if (left_skew.override)
+    left_skew.update_indices(i);
 
-  if (right_tail.override)
-    right_tail.update_indices(i);
+  if (right_skew.override)
+    right_skew.update_indices(i);
 
-  if (long_tail.override)
-    long_tail.update_indices(i);
+  if (tail.override)
+    tail.update_indices(i);
 
   if (step.override)
     step.update_indices(i);
@@ -303,9 +303,9 @@ void Peak::put(Eigen::VectorXd& fit) const
   position.put(fit);
   amplitude.put(fit);
   width.put(fit);
-  short_tail.put(fit);
-  right_tail.put(fit);
-  long_tail.put(fit);
+  left_skew.put(fit);
+  right_skew.put(fit);
+  tail.put(fit);
   step.put(fit);
 }
 
@@ -314,9 +314,9 @@ void Peak::get(const Eigen::VectorXd& fit)
   position.get(fit);
   amplitude.get(fit);
   width.get(fit);
-  short_tail.get(fit);
-  right_tail.get(fit);
-  long_tail.get(fit);
+  left_skew.get(fit);
+  right_skew.get(fit);
+  tail.get(fit);
   step.get(fit);
 }
 
@@ -328,9 +328,9 @@ void Peak::get_uncerts(const Eigen::VectorXd& diagonals, double chisq_norm)
   position.get_uncert(diagonals, chisq_norm_physical);
   amplitude.get_uncert(diagonals, chisq_norm_physical);
   width.get_uncert(diagonals, chisq_norm_physical);
-  short_tail.get_uncerts(diagonals, chisq_norm_physical);
-  right_tail.get_uncerts(diagonals, chisq_norm_physical);
-  long_tail.get_uncerts(diagonals, chisq_norm_physical);
+  left_skew.get_uncerts(diagonals, chisq_norm_physical);
+  right_skew.get_uncerts(diagonals, chisq_norm_physical);
+  tail.get_uncerts(diagonals, chisq_norm_physical);
   step.get_uncerts(diagonals, chisq_norm_physical);
 }
 
@@ -378,12 +378,12 @@ Peak::Components Peak::eval(double chan) const
 
   ret.gaussian = amplitude.val() * std::exp(-square(pre.spread));
 
-  if (short_tail.enabled)
-    ret.short_tail = short_tail.eval(pre);
-  if (right_tail.enabled)
-    ret.right_tail = right_tail.eval(pre);
-  if (long_tail.enabled)
-    ret.long_tail = long_tail.eval(pre);
+  if (left_skew.enabled)
+    ret.left_skew = left_skew.eval(pre);
+  if (right_skew.enabled)
+    ret.right_skew = right_skew.eval(pre);
+  if (tail.enabled)
+    ret.tail = tail.eval(pre);
   if (step.enabled)
     ret.step = step.eval(pre);
   return ret;
@@ -397,12 +397,12 @@ Peak::Components Peak::eval_at(double chan, const Eigen::VectorXd& fit) const
 
   ret.gaussian = amplitude.val_from(fit) * std::exp(-square(pre.spread));
 
-  if (short_tail.enabled)
-    ret.short_tail = short_tail.eval_at(pre, fit);
-  if (right_tail.enabled)
-    ret.right_tail = right_tail.eval_at(pre, fit);
-  if (long_tail.enabled)
-    ret.long_tail = long_tail.eval_at(pre, fit);
+  if (left_skew.enabled)
+    ret.left_skew = left_skew.eval_at(pre, fit);
+  if (right_skew.enabled)
+    ret.right_skew = right_skew.eval_at(pre, fit);
+  if (tail.enabled)
+    ret.tail = right_skew.eval_at(pre, fit);
   if (step.enabled)
     ret.step = step.eval_at(pre, fit);
   return ret;
@@ -424,12 +424,12 @@ Peak::Components Peak::eval_grad(double chan, Eigen::VectorXd& grads) const
   if (amplitude.to_fit)
     grads[amplitude.index()] += pre.amp_grad * ret.gaussian / pre.ampl;
 
-  if (short_tail.enabled)
-    ret.short_tail = short_tail.eval_grad(pre, grads);
-  if (right_tail.enabled)
-    ret.right_tail = short_tail.eval_grad(pre, grads);
-  if (long_tail.enabled)
-    ret.long_tail = long_tail.eval_grad(pre, grads);
+  if (left_skew.enabled)
+    ret.left_skew = left_skew.eval_grad(pre, grads);
+  if (right_skew.enabled)
+    ret.right_skew = left_skew.eval_grad(pre, grads);
+  if (tail.enabled)
+    ret.tail = tail.eval_grad(pre, grads);
   if (step.enabled)
     ret.step = step.eval_grad(pre, grads);
 
@@ -453,12 +453,12 @@ Peak::Components Peak::eval_grad_at(double chan, const Eigen::VectorXd& fit,
   if (amplitude.to_fit)
     grads[amplitude.index()] += pre.amp_grad * ret.gaussian / pre.ampl;
 
-  if (short_tail.enabled)
-    ret.short_tail = short_tail.eval_grad_at(pre, fit, grads);
-  if (right_tail.enabled)
-    ret.right_tail = short_tail.eval_grad_at(pre, fit, grads);
-  if (long_tail.enabled)
-    ret.long_tail = long_tail.eval_grad_at(pre, fit, grads);
+  if (left_skew.enabled)
+    ret.left_skew = left_skew.eval_grad_at(pre, fit, grads);
+  if (right_skew.enabled)
+    ret.right_skew = left_skew.eval_grad_at(pre, fit, grads);
+  if (tail.enabled)
+    ret.tail = tail.eval_grad_at(pre, fit, grads);
   if (step.enabled)
     ret.step = step.eval_grad_at(pre, fit, grads);
 
@@ -480,9 +480,9 @@ std::string Peak::to_string(std::string prepend) const
      << (width_override ? "(OVERRIDEN) = "
                         : "            = ")
      << width.to_string() << "\n";
-  ss << prepend << "left_skew  = " << short_tail.to_string() << "\n";
-  ss << prepend << "right_skew = " << right_tail.to_string() << "\n";
-  ss << prepend << "long_tail  = " << long_tail.to_string() << "\n";
+  ss << prepend << "left_skew  = " << left_skew.to_string() << "\n";
+  ss << prepend << "right_skew = " << right_skew.to_string() << "\n";
+  ss << prepend << "tail  = " << tail.to_string() << "\n";
   ss << prepend << "step       = " << step.to_string() << "\n";
   return ss.str();
 }
@@ -493,9 +493,9 @@ void to_json(nlohmann::json& j, const Peak& s)
   j["amplitude"] = s.amplitude;
   j["width_override"] = s.width_override;
   j["width"] = s.width;
-  j["short_tail"] = s.short_tail;
-  j["right_tail"] = s.right_tail;
-  j["long_tail"] = s.long_tail;
+  j["left_skew"] = s.left_skew;
+  j["right_skew"] = s.right_skew;
+  j["tail"] = s.tail;
   j["step"] = s.step;
   j["sum4"] = s.sum4;
 
@@ -509,9 +509,9 @@ void from_json(const nlohmann::json& j, Peak& s)
   s.amplitude = j["amplitude"];
   s.width_override = j["width_override"];
   s.width = j["width"];
-  s.short_tail = j["short_tail"];
-  s.right_tail = j["right_tail"];
-  s.long_tail = j["long_tail"];
+  s.left_skew = j["left_skew"];
+  s.right_skew = j["right_skew"];
+  s.tail = j["tail"];
   s.step = j["step"];
   s.sum4 = j["sum4"];
 

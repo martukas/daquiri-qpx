@@ -188,7 +188,7 @@
 <parameter code="55" value="0" name="FWHM cal. Slope" input="-1"/>
 <parameter code="56" value="0" name="FWHM cal. Quadratic" input="-1"/>
 <parameter code="58" value="2.1053106784820557" name="Low tail cal. offset" input="-1"/>
-<parameter code="59" value="0.0002962014405056834" name="Low tail cal. slope" input="-1"/>
+<parameter code="59" value="0.0002962014405056834" name="Low skew cal. slope" input="-1"/>
 <parameter code="187" value="0.001" name="MCS Dwell Time (s)" input="2"/>
 <parameter code="63" value="1" name="Preset Sweeps" input="2"/>
 <parameter code="38" value="0" name="MCS Preset Options" input="2"/>

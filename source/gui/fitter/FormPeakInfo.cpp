@@ -1,8 +1,10 @@
 #include <gui/fitter/FormPeakInfo.h>
 #include "ui_FormPeakInfo.h"
-#include <gui/fitter/uncertain_double_widget.h>
-#include <gui/fitter/fit_parameter_widget.h>
-#include <gui/fitter/peak_skew_widget.h>
+#include <gui/fitter/widgets/uncertain_double_widget.h>
+#include <gui/fitter/widgets/positive_parameter_widget.h>
+#include <gui/fitter/widgets/bounded_parameter_widget.h>
+#include <gui/fitter/widgets/peak_skew_widget.h>
+#include <gui/fitter/widgets/peak_step_widget.h>
 #include <QCloseEvent>
 
 #include <gui/widgets/qt_util.h>
@@ -30,22 +32,22 @@ FormPeakInfo::FormPeakInfo(DAQuiri::Peak& hm,
   ui->EnergyLabel->setText("Energy (" + QS(calib_.cali_nrg_.to().units) + ") ");
   ui->FWEnergyLabel->setText("FWHM (" + QS(calib_.cali_nrg_.to().units) + ") ");
 
-  position_ = new FitParameterWidget(peak_.position, spin_width, unc_width);
+  position_ = new BoundedParameterWidget(peak_.position, spin_width, unc_width);
   ui->horizontalPosition->addWidget(position_);
   connect(position_, SIGNAL(updated()), this, SLOT(update()));
   energy_ = new UncertainDoubleWidget(unc_width);
   ui->energyLayout->addWidget(energy_);
 
-  UncertainDouble amp {peak_.amplitude.val(), peak_.amplitude.uncert()};
-  ui->labelAmplitude->setText(QString::number(amp.value()));
-  ui->labelAmplitudeUncert->setText("\u00B1" + QString::number(amp.sigma()));
-  ui->labelAmplitudePercent->setText(QS(amp.error_percent_fancy()));
-  ui->doubleAmplitude->setValue(peak_.amplitude.val());
+  amplitude_ = new PositiveParameterWidget(peak_.amplitude, spin_width, unc_width);
+  amplitude_->set_decimals(2);
+  amplitude_->set_step(10);
+  ui->horizontalAmplitude->addWidget(amplitude_);
+  connect(amplitude_, SIGNAL(updated()), this, SLOT(update()));
   area_ = new UncertainDoubleWidget(unc_width);
   ui->horizontalArea->addWidget(area_);
 
   ui->checkWidthOverride->setChecked(peak_.width_override);
-  width_ = new FitParameterWidget(peak_.width, spin_width, unc_width);
+  width_ = new BoundedParameterWidget(peak_.width, spin_width, unc_width);
   ui->horizontalWidth->addWidget(width_);
   connect(width_, SIGNAL(updated()), this, SLOT(update()));
   fwhm_ = new UncertainDoubleWidget(unc_width);
@@ -53,21 +55,19 @@ FormPeakInfo::FormPeakInfo(DAQuiri::Peak& hm,
   fwhm_energy_ = new UncertainDoubleWidget(unc_width);
   ui->horizontalFWEnergy->addWidget(fwhm_energy_);
 
-  ui->checkStepEnable->setChecked(peak_.step.enabled);
-  ui->checkStepOverride->setChecked(peak_.step.override);
-  step_amp_ = new FitParameterWidget(peak_.step.amplitude, spin_width, unc_width);
-  ui->horizontalStepAmp->addWidget(step_amp_);
-  connect(step_amp_, SIGNAL(updated()), this, SLOT(update()));
-
-  left_skew_ = new TailWidget("Left skew", peak_.short_tail, spin_width, unc_width);
+  left_skew_ = new SkewWidget("Left skew", peak_.left_skew, spin_width, unc_width);
   ui->horizontalLeftSkew->addWidget(left_skew_);
   connect(left_skew_, SIGNAL(updated()), this, SLOT(update()));
 
-  right_skew_ = new TailWidget("Right skew", peak_.right_tail, spin_width, unc_width);
+  right_skew_ = new SkewWidget("Right skew", peak_.right_skew, spin_width, unc_width);
   ui->horizontalRightSkew->addWidget(right_skew_);
   connect(right_skew_, SIGNAL(updated()), this, SLOT(update()));
 
-  tail_ = new TailWidget("Long tail", peak_.long_tail, spin_width, unc_width);
+  step_ = new StepWidget("Step", peak_.step, spin_width, unc_width);
+  ui->horizontalStep->addWidget(step_);
+  connect(step_, SIGNAL(updated()), this, SLOT(update()));
+
+  tail_ = new SkewWidget("Long skew", peak_.tail, spin_width, unc_width);
   ui->horizontalTail->addWidget(tail_);
   connect(tail_, SIGNAL(updated()), this, SLOT(update()));
 
@@ -79,25 +79,21 @@ void FormPeakInfo::update()
   peak_.position = position_->parameter();
   energy_->update(peak_.peak_energy(calib_.cali_nrg_));
 
-  peak_.amplitude.val(ui->doubleAmplitude->value());
+  peak_.amplitude = amplitude_->parameter();
   area_->update(peak_.area());
 
-  peak_.width_override = ui->checkWidthOverride->isChecked();
   peak_.width = width_->parameter();
   fwhm_->update(peak_.fwhm());
   fwhm_energy_->update(peak_.fwhm_energy(calib_.cali_nrg_));
   if (width_->changed())
     ui->checkWidthOverride->setChecked(true);
+  peak_.width_override = ui->checkWidthOverride->isChecked();
 
-  peak_.step.enabled = ui->checkStepEnable->isChecked();
-  peak_.step.override = ui->checkStepOverride->isChecked();
-  peak_.step.amplitude = step_amp_->parameter();
-  if (step_amp_->changed())
-    ui->checkStepOverride->setChecked(true);
+  peak_.left_skew = left_skew_->skew();
+  peak_.right_skew = right_skew_->skew();
 
-  peak_.short_tail = left_skew_->tail();
-  peak_.right_tail = right_skew_->tail();
-  peak_.long_tail = tail_->tail();
+  peak_.step = step_->step();
+  peak_.tail = tail_->skew();
 }
 
 

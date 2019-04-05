@@ -1,15 +1,15 @@
-#include <gui/fitter/peak_skew_widget.h>
+#include <gui/fitter/widgets/peak_skew_widget.h>
 
-#include <gui/fitter/fit_parameter_widget.h>
+#include <gui/fitter/widgets/bounded_parameter_widget.h>
 #include <QBoxLayout>
 #include <QLabel>
 #include <QCheckBox>
 
-TailWidget::TailWidget(QString name, const DAQuiri::Tail& t,
+SkewWidget::SkewWidget(QString name, const DAQuiri::Skew& t,
                        double spin_width, double label_width, QWidget* parent)
     : QWidget(parent)
       , original_(t)
-      , tail_(t)
+      , current_(t)
 {
   QVBoxLayout *vl = new QVBoxLayout();
 
@@ -42,7 +42,7 @@ TailWidget::TailWidget(QString name, const DAQuiri::Tail& t,
   auto amp_label = new QLabel();
   amp_label->setText("Amplitude (relative)");
   hl2->addWidget(amp_label);
-  amplitude_ = new FitParameterWidget(tail_.amplitude, spin_width, label_width);
+  amplitude_ = new BoundedParameterWidget(current_.amplitude, spin_width, label_width);
   hl2->addWidget(amplitude_);
   vl->addLayout(hl2);
 
@@ -51,14 +51,14 @@ TailWidget::TailWidget(QString name, const DAQuiri::Tail& t,
   auto slp_label = new QLabel();
   slp_label->setText("Slope");
   hl3->addWidget(slp_label);
-  slope_ = new FitParameterWidget(tail_.slope, spin_width, label_width);
+  slope_ = new BoundedParameterWidget(current_.slope, spin_width, label_width);
   hl3->addWidget(slope_);
   vl->addLayout(hl3);
 
   setLayout(vl);
   layout()->setContentsMargins(0, 0, 0, 0);
 
-  update();
+  update_values();
 
   connect(enabled_, SIGNAL(clicked()), this, SLOT(enabled_clicked()));
   connect(override_, SIGNAL(clicked()), this, SLOT(override_clicked()));
@@ -66,43 +66,43 @@ TailWidget::TailWidget(QString name, const DAQuiri::Tail& t,
   connect(slope_, SIGNAL(updated()), this, SLOT(param_changed()));
 }
 
-bool TailWidget::changed() const
+bool SkewWidget::changed() const
 {
   if (amplitude_->changed())
     return true;
   if (slope_->changed())
     return true;
-  if (tail_.enabled != original_.enabled)
+  if (current_.enabled != original_.enabled)
     return true;
-  return  (tail_.override != original_.override);
+  return  (current_.override != original_.override);
 }
 
-void TailWidget::enabled_clicked()
+void SkewWidget::enabled_clicked()
 {
-  tail_.enabled = enabled_->isChecked();
+  current_.enabled = enabled_->isChecked();
   if (changed())
-    tail_.override = true;
-  update();
+    current_.override = true;
+  update_values();
 }
 
-void TailWidget::override_clicked()
+void SkewWidget::override_clicked()
 {
-  update();
+  update_values();
 }
 
-void TailWidget::param_changed()
+void SkewWidget::param_changed()
 {
-  tail_.amplitude = amplitude_->parameter();
-  tail_.slope = slope_->parameter();
+  current_.amplitude = amplitude_->parameter();
+  current_.slope = slope_->parameter();
   if (changed())
-    tail_.override = true;
-  update();
+    current_.override = true;
+  update_values();
 }
 
-void TailWidget::update()
+void SkewWidget::update_values()
 {
   modified_->setText(changed() ? "*" : "");
-  enabled_->setChecked(tail_.enabled);
-  override_->setChecked(tail_.override);
+  enabled_->setChecked(current_.enabled);
+  override_->setChecked(current_.override);
   emit updated();
 }

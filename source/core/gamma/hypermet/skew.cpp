@@ -6,13 +6,13 @@
 namespace DAQuiri
 {
 
-void Tail::reset_indices()
+void Skew::reset_indices()
 {
   amplitude.reset_index();
   slope.reset_index();
 }
 
-void Tail::update_indices(int32_t& i)
+void Skew::update_indices(int32_t& i)
 {
   if (enabled)
   {
@@ -23,42 +23,42 @@ void Tail::update_indices(int32_t& i)
     reset_indices();
 }
 
-void Tail::put(Eigen::VectorXd& fit) const
+void Skew::put(Eigen::VectorXd& fit) const
 {
   amplitude.put(fit);
   slope.put(fit);
 }
 
-void Tail::get(const Eigen::VectorXd& fit)
+void Skew::get(const Eigen::VectorXd& fit)
 {
   amplitude.get(fit);
   slope.get(fit);
 }
 
-void Tail::get_uncerts(const Eigen::VectorXd& diagonals, double chisq_norm)
+void Skew::get_uncerts(const Eigen::VectorXd& diagonals, double chisq_norm)
 {
   amplitude.get_uncert(diagonals, chisq_norm);
   slope.get_uncert(diagonals, chisq_norm);
 }
 
-double Tail::eval_with(const PrecalcVals& pre, double ampl, double slp) const
+double Skew::eval_with(const PrecalcVals& pre, double ampl, double slp) const
 {
   // \todo make this param:
   double spread = flip(side, pre.spread);
   return pre.half_ampl * ampl * std::exp(spread / slp) * std::erfc(0.5 / slp + spread);
 }
 
-double Tail::eval(const PrecalcVals& pre) const
+double Skew::eval(const PrecalcVals& pre) const
 {
   return eval_with(pre, amplitude.val(), slope.val());
 }
 
-double Tail::eval_at(const PrecalcVals& pre, const Eigen::VectorXd& fit) const
+double Skew::eval_at(const PrecalcVals& pre, const Eigen::VectorXd& fit) const
 {
   return eval_with(pre, amplitude.val_from(fit), slope.val_from(fit));
 }
 
-double Tail::eval_grad(const PrecalcVals& pre, Eigen::VectorXd& grads) const
+double Skew::eval_grad(const PrecalcVals& pre, Eigen::VectorXd& grads) const
 {
   double ampl = amplitude.val();
   double slp = slope.val();
@@ -81,7 +81,7 @@ double Tail::eval_grad(const PrecalcVals& pre, Eigen::VectorXd& grads) const
   return ret;
 }
 
-double Tail::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
+double Skew::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
                           Eigen::VectorXd& grads) const
 {
   double ampl = amplitude.val_from(fit);
@@ -105,7 +105,7 @@ double Tail::eval_grad_at(const PrecalcVals& pre, const Eigen::VectorXd& fit,
   return ret;
 }
 
-bool Tail::sane(double amp_min_epsilon, double amp_max_epsilon, double slope_epsilon) const
+bool Skew::sane(double amp_min_epsilon, double amp_max_epsilon, double slope_epsilon) const
 {
   if (amplitude.to_fit && amplitude.at_extremum(amp_min_epsilon, amp_max_epsilon))
     return false;
@@ -114,7 +114,7 @@ bool Tail::sane(double amp_min_epsilon, double amp_max_epsilon, double slope_eps
   return true;
 }
 
-std::string Tail::to_string() const
+std::string Skew::to_string() const
 {
   return fmt::format("{}{:<9} {:<5}  amp={}  slope={}",
                      enabled ? "ON " : "OFF",
@@ -125,7 +125,7 @@ std::string Tail::to_string() const
 
 }
 
-void to_json(nlohmann::json& j, const Tail& s)
+void to_json(nlohmann::json& j, const Skew& s)
 {
   j["enabled"] = s.enabled;
   j["override"] = s.override;
@@ -134,7 +134,7 @@ void to_json(nlohmann::json& j, const Tail& s)
   j["slope"] = s.slope;
 }
 
-void from_json(const nlohmann::json& j, Tail& s)
+void from_json(const nlohmann::json& j, Skew& s)
 {
   s.enabled = j["enabled"];
   s.override = j["override"];

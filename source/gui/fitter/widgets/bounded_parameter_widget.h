@@ -10,15 +10,15 @@ class QCheckBox;
 class QDoubleSpinBox;
 class UncertainDoubleWidget;
 
-class FitParameterWidget : public QWidget
+class BoundedParameterWidget : public QWidget
 {
  Q_OBJECT
 
  public:
-  explicit FitParameterWidget(const DAQuiri::SineBoundedParam& val,
+  explicit BoundedParameterWidget(const DAQuiri::SineBoundedParam& val,
       double spin_width, double label_width, QWidget* parent = 0);
   bool changed() const;
-  DAQuiri::SineBoundedParam parameter() const { return parameter_; }
+  DAQuiri::SineBoundedParam parameter() const { return current_; }
 
  signals:
   void updated();
@@ -31,7 +31,7 @@ class FitParameterWidget : public QWidget
 
  private:
   DAQuiri::SineBoundedParam original_;
-  DAQuiri::SineBoundedParam parameter_;
+  DAQuiri::SineBoundedParam current_;
 
   QLabel* modified_ {nullptr};
   QCheckBox* to_fit_{nullptr};
@@ -40,5 +40,5 @@ class FitParameterWidget : public QWidget
   QDoubleSpinBox* max_{nullptr};
   UncertainDoubleWidget* unc_val_ {nullptr};
 
-  void update();
+  void update_values();
 };

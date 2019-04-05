@@ -6,11 +6,11 @@
 namespace DAQuiri
 {
 
-class Tail
+class Skew
 {
  public:
-  Tail() = default;
-  Tail(Side s) : side(s) {}
+  Skew() = default;
+  Skew(Side s) : side(s) {}
 
   bool override{false};
   bool enabled{true};
@@ -67,8 +67,8 @@ class Tail
 
 };
 
-void to_json(nlohmann::json& j, const Tail& s);
-void from_json(const nlohmann::json& j, Tail& s);
+void to_json(nlohmann::json& j, const Skew& s);
+void from_json(const nlohmann::json& j, Skew& s);
 
 
 }

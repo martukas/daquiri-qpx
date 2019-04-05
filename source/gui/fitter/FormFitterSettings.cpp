@@ -1,8 +1,9 @@
 #include <gui/fitter/FormFitterSettings.h>
 #include "ui_FormFitterSettings.h"
-#include <gui/fitter/uncertain_double_widget.h>
-#include <gui/fitter/fit_parameter_widget.h>
-#include <gui/fitter/peak_skew_widget.h>
+#include <gui/fitter/widgets/uncertain_double_widget.h>
+#include <gui/fitter/widgets/positive_parameter_widget.h>
+#include <gui/fitter/widgets/bounded_parameter_widget.h>
+#include <gui/fitter/widgets/peak_skew_widget.h>
 #include <QCloseEvent>
 
 #include <gui/widgets/qt_util.h>
@@ -58,7 +59,7 @@ FormFitterSettings::FormFitterSettings(DAQuiri::FitSettings& fs, QWidget* parent
 
   ui->FWEnergyLabel->setText("FWHM (" + QS(fit_settings_.calib.cali_nrg_.to().units) + ") ");
 
-  width_ = new FitParameterWidget(fit_settings_.default_peak.width, spin_width, unc_width);
+  width_ = new BoundedParameterWidget(fit_settings_.default_peak.width, spin_width, unc_width);
   ui->horizontalWidth->addWidget(width_);
   connect(width_, SIGNAL(updated()), this, SLOT(update()));
   fwhm_ = new UncertainDoubleWidget(unc_width);
@@ -67,19 +68,19 @@ FormFitterSettings::FormFitterSettings(DAQuiri::FitSettings& fs, QWidget* parent
   ui->horizontalFWEnergy->addWidget(fwhm_energy_);
 
   ui->checkStepEnable->setChecked(fit_settings_.default_peak.step.enabled);
-  step_amp_ = new FitParameterWidget(fit_settings_.default_peak.step.amplitude, spin_width, unc_width);
+  step_amp_ = new BoundedParameterWidget(fit_settings_.default_peak.step.amplitude, spin_width, unc_width);
   ui->horizontalStepAmp->addWidget(step_amp_);
   connect(step_amp_, SIGNAL(updated()), this, SLOT(update()));
 
-  left_skew_ = new TailWidget("Left skew", fit_settings_.default_peak.short_tail, spin_width, unc_width);
+  left_skew_ = new SkewWidget("Left skew", fit_settings_.default_peak.left_skew, spin_width, unc_width);
   ui->horizontalLeftSkew->addWidget(left_skew_);
   connect(left_skew_, SIGNAL(updated()), this, SLOT(update()));
 
-  right_skew_ = new TailWidget("Right skew", fit_settings_.default_peak.right_tail, spin_width, unc_width);
+  right_skew_ = new SkewWidget("Right skew", fit_settings_.default_peak.right_skew, spin_width, unc_width);
   ui->horizontalRightSkew->addWidget(right_skew_);
   connect(right_skew_, SIGNAL(updated()), this, SLOT(update()));
 
-  tail_ = new TailWidget("Long tail", fit_settings_.default_peak.long_tail, spin_width, unc_width);
+  tail_ = new SkewWidget("Long skew", fit_settings_.default_peak.tail, spin_width, unc_width);
   ui->horizontalTail->addWidget(tail_);
   connect(tail_, SIGNAL(updated()), this, SLOT(update()));
 
@@ -134,9 +135,9 @@ void FormFitterSettings::update()
   fit_settings_.default_peak.step.enabled = ui->checkStepEnable->isChecked();
   fit_settings_.default_peak.step.amplitude = step_amp_->parameter();
 
-  fit_settings_.default_peak.short_tail = left_skew_->tail();
-  fit_settings_.default_peak.right_tail = right_skew_->tail();
-  fit_settings_.default_peak.long_tail = tail_->tail();
+  fit_settings_.default_peak.left_skew = left_skew_->skew();
+  fit_settings_.default_peak.right_skew = right_skew_->skew();
+  fit_settings_.default_peak.tail = tail_->skew();
 }
 
 void FormFitterSettings::closeEvent(QCloseEvent* event)

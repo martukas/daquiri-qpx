@@ -5,8 +5,10 @@
 #include <core/gamma/fit_settings.h>
 
 class QCloseEvent;
-class FitParameterWidget;
-class TailWidget;
+class BoundedParameterWidget;
+class PositiveParameterWidget;
+class SkewWidget;
+class StepWidget;
 class UncertainDoubleWidget;
 
 namespace Ui
@@ -40,20 +42,19 @@ class FormPeakInfo : public QDialog
   DAQuiri::Peak& peak_;
   DAQuiri::Peak peak_backup_;
 
-  FitParameterWidget* position_;
+  BoundedParameterWidget* position_;
   UncertainDoubleWidget* energy_;
 
+  PositiveParameterWidget* amplitude_;
   UncertainDoubleWidget* area_;
 
-  FitParameterWidget* width_;
+  BoundedParameterWidget* width_;
   UncertainDoubleWidget* fwhm_;
   UncertainDoubleWidget* fwhm_energy_;
 
-  FitParameterWidget* step_amp_;
+  SkewWidget* left_skew_;
+  SkewWidget* right_skew_;
 
-  TailWidget* left_skew_;
-  TailWidget* right_skew_;
-
-  TailWidget* tail_;
-
+  StepWidget* step_;
+  SkewWidget* tail_;
 };

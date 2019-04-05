@@ -33,20 +33,20 @@ class FittablePeak : public DAQuiri::DataModel
     if (peak.amplitude.valid_index())
       peak.amplitude.x(peak.amplitude.x() + x_dist(rng));
 
-    if (peak.short_tail.amplitude.valid_index())
-      peak.short_tail.amplitude.x(x_dist(rng));
-    if (peak.short_tail.slope.valid_index())
-      peak.short_tail.slope.x(x_dist(rng));
+    if (peak.left_skew.amplitude.valid_index())
+      peak.left_skew.amplitude.x(x_dist(rng));
+    if (peak.left_skew.slope.valid_index())
+      peak.left_skew.slope.x(x_dist(rng));
 
-    if (peak.right_tail.amplitude.valid_index())
-      peak.right_tail.amplitude.x(x_dist(rng));
-    if (peak.right_tail.slope.valid_index())
-      peak.right_tail.slope.x(x_dist(rng));
+    if (peak.right_skew.amplitude.valid_index())
+      peak.right_skew.amplitude.x(x_dist(rng));
+    if (peak.right_skew.slope.valid_index())
+      peak.right_skew.slope.x(x_dist(rng));
 
-    if (peak.long_tail.amplitude.valid_index())
-      peak.long_tail.amplitude.x(x_dist(rng));
-    if (peak.long_tail.slope.valid_index())
-      peak.long_tail.slope.x(x_dist(rng));
+    if (peak.tail.amplitude.valid_index())
+      peak.tail.amplitude.x(x_dist(rng));
+    if (peak.tail.slope.valid_index())
+      peak.tail.slope.x(x_dist(rng));
 
     if (peak.step.amplitude.valid_index())
       peak.step.amplitude.x(x_dist(rng));
@@ -475,8 +475,8 @@ TEST_F(Peak, FitAllThree)
 
 TEST_F(Peak, FitWithSkews)
 {
-  fp.peak.short_tail.enabled = true;
-  fp.peak.right_tail.enabled = true;
+  fp.peak.left_skew.enabled = true;
+  fp.peak.right_skew.enabled = true;
   fp.data = generate_data(&fp, region_size);
   //visualize_data(fp.data);
 
@@ -496,18 +496,18 @@ TEST_F(Peak, FitWithSkews)
   vals.push_back({"amplitude", &fp.peak.amplitude,
 //                  fp.peak.amplitude.min(), fp.peak.amplitude.max(), 1e-4});
                   30000, 50000, 2e-4});
-  vals.push_back({"ls_amp", &fp.peak.short_tail.amplitude,
-                  fp.peak.short_tail.amplitude.min(),
-                  fp.peak.short_tail.amplitude.max(), 1e-7});
-  vals.push_back({"ls_slope", &fp.peak.short_tail.slope,
-                  fp.peak.short_tail.slope.min(),
-                  fp.peak.short_tail.slope.max(), 1e-6});
-  vals.push_back({"rs_amp", &fp.peak.right_tail.amplitude,
-                  fp.peak.right_tail.amplitude.min(),
-                  fp.peak.right_tail.amplitude.max(), 1e-9});
-  vals.push_back({"rs_slope", &fp.peak.right_tail.slope,
-                  fp.peak.right_tail.slope.min(),
-                  fp.peak.right_tail.slope.max(), 1e-6});
+  vals.push_back({"ls_amp", &fp.peak.left_skew.amplitude,
+                  fp.peak.left_skew.amplitude.min(),
+                  fp.peak.left_skew.amplitude.max(), 1e-7});
+  vals.push_back({"ls_slope", &fp.peak.left_skew.slope,
+                  fp.peak.left_skew.slope.min(),
+                  fp.peak.left_skew.slope.max(), 1e-6});
+  vals.push_back({"rs_amp", &fp.peak.right_skew.amplitude,
+                  fp.peak.right_skew.amplitude.min(),
+                  fp.peak.right_skew.amplitude.max(), 1e-9});
+  vals.push_back({"rs_slope", &fp.peak.right_skew.slope,
+                  fp.peak.right_skew.slope.min(),
+                  fp.peak.right_skew.slope.max(), 1e-6});
   test_fit_random(random_samples, &fp, vals);
 
   EXPECT_EQ(unconverged, 0u);
@@ -520,9 +520,9 @@ TEST_F(Peak, FitWithSkews)
 
 TEST_F(Peak, FitWithEverything)
 {
-  fp.peak.short_tail.enabled = true;
-  fp.peak.right_tail.enabled = true;
-  fp.peak.long_tail.enabled = true;
+  fp.peak.left_skew.enabled = true;
+  fp.peak.right_skew.enabled = true;
+  fp.peak.tail.enabled = true;
   fp.peak.step.enabled = true;
   fp.data = generate_data(&fp, region_size);
   //visualize_data(fp.data);
@@ -545,24 +545,24 @@ TEST_F(Peak, FitWithEverything)
   vals.push_back({"amplitude", &fp.peak.amplitude,
 //                  fp.peak.amplitude.min(), fp.peak.amplitude.max(), 1e-4});
                   30000, 50000, 1e-2});
-  vals.push_back({"ls_amp", &fp.peak.short_tail.amplitude,
-                  fp.peak.short_tail.amplitude.min(),
-                  fp.peak.short_tail.amplitude.max(), 1e-4});
-  vals.push_back({"ls_slope", &fp.peak.short_tail.slope,
-                  fp.peak.short_tail.slope.min(),
-                  fp.peak.short_tail.slope.max(), 1e-5});
-  vals.push_back({"rs_amp", &fp.peak.right_tail.amplitude,
-                  fp.peak.right_tail.amplitude.min(),
-                  fp.peak.right_tail.amplitude.max(), 1e-7});
-  vals.push_back({"rs_slope", &fp.peak.right_tail.slope,
-                  fp.peak.right_tail.slope.min(),
-                  fp.peak.right_tail.slope.max(), 1e-8});
-  vals.push_back({"lt_amp", &fp.peak.long_tail.amplitude,
-                  fp.peak.long_tail.amplitude.min(),
-                  fp.peak.long_tail.amplitude.max(), 1e-7});
-  vals.push_back({"lt_slope", &fp.peak.long_tail.slope,
-                  fp.peak.long_tail.slope.min(),
-                  fp.peak.long_tail.slope.max(), 1e-6});
+  vals.push_back({"ls_amp", &fp.peak.left_skew.amplitude,
+                  fp.peak.left_skew.amplitude.min(),
+                  fp.peak.left_skew.amplitude.max(), 1e-4});
+  vals.push_back({"ls_slope", &fp.peak.left_skew.slope,
+                  fp.peak.left_skew.slope.min(),
+                  fp.peak.left_skew.slope.max(), 1e-5});
+  vals.push_back({"rs_amp", &fp.peak.right_skew.amplitude,
+                  fp.peak.right_skew.amplitude.min(),
+                  fp.peak.right_skew.amplitude.max(), 1e-7});
+  vals.push_back({"rs_slope", &fp.peak.right_skew.slope,
+                  fp.peak.right_skew.slope.min(),
+                  fp.peak.right_skew.slope.max(), 1e-8});
+  vals.push_back({"lt_amp", &fp.peak.tail.amplitude,
+                  fp.peak.tail.amplitude.min(),
+                  fp.peak.tail.amplitude.max(), 1e-7});
+  vals.push_back({"lt_slope", &fp.peak.tail.slope,
+                  fp.peak.tail.slope.min(),
+                  fp.peak.tail.slope.max(), 1e-6});
   vals.push_back({"step_amp", &fp.peak.step.amplitude,
                   fp.peak.step.amplitude.min(),
                   fp.peak.step.amplitude.max(), 1e-8});

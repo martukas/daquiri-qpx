@@ -228,11 +228,11 @@ void Region::update_indices()
   {
     if (p.second.width_override)
       unique_widths++;
-    if (p.second.short_tail.override)
+    if (p.second.left_skew.override)
       unique_short_tails++;
-    if (p.second.right_tail.override)
+    if (p.second.right_skew.override)
       unique_right_tails++;
-    if (p.second.long_tail.override)
+    if (p.second.tail.override)
       unique_long_tails++;
     if (p.second.step.override)
       unique_steps++;
@@ -247,17 +247,17 @@ void Region::update_indices()
     if (unique_widths < peaks_.size())
       default_peak_.width.update_index(variable_count);
 
-    if (default_peak_.short_tail.enabled &&
+    if (default_peak_.left_skew.enabled &&
         (unique_short_tails < peaks_.size()))
-      default_peak_.short_tail.update_indices(variable_count);
+      default_peak_.left_skew.update_indices(variable_count);
 
-    if (default_peak_.right_tail.enabled &&
+    if (default_peak_.right_skew.enabled &&
         (unique_right_tails < peaks_.size()))
-      default_peak_.right_tail.update_indices(variable_count);
+      default_peak_.right_skew.update_indices(variable_count);
 
-    if (default_peak_.long_tail.enabled &&
+    if (default_peak_.tail.enabled &&
         (unique_long_tails < peaks_.size()))
-      default_peak_.long_tail.update_indices(variable_count);
+      default_peak_.tail.update_indices(variable_count);
 
     if (default_peak_.step.enabled &&
         (unique_steps < peaks_.size()))
@@ -368,20 +368,20 @@ bool Region::perturb(std::mt19937& rng)
     if (p.second.amplitude.valid_index())
       p.second.amplitude.x(p.second.amplitude.x() + x_dist(rng));
 
-    if (p.second.short_tail.amplitude.valid_index())
-      p.second.short_tail.amplitude.x(x_dist(rng));
-    if (p.second.short_tail.slope.valid_index())
-      p.second.short_tail.slope.x(x_dist(rng));
+    if (p.second.left_skew.amplitude.valid_index())
+      p.second.left_skew.amplitude.x(x_dist(rng));
+    if (p.second.left_skew.slope.valid_index())
+      p.second.left_skew.slope.x(x_dist(rng));
 
-    if (p.second.right_tail.amplitude.valid_index())
-      p.second.right_tail.amplitude.x(x_dist(rng));
-    if (p.second.right_tail.slope.valid_index())
-      p.second.right_tail.slope.x(x_dist(rng));
+    if (p.second.right_skew.amplitude.valid_index())
+      p.second.right_skew.amplitude.x(x_dist(rng));
+    if (p.second.right_skew.slope.valid_index())
+      p.second.right_skew.slope.x(x_dist(rng));
 
-    if (p.second.long_tail.amplitude.valid_index())
-      p.second.long_tail.amplitude.x(x_dist(rng));
-    if (p.second.long_tail.slope.valid_index())
-      p.second.long_tail.slope.x(x_dist(rng));
+    if (p.second.tail.amplitude.valid_index())
+      p.second.tail.amplitude.x(x_dist(rng));
+    if (p.second.tail.slope.valid_index())
+      p.second.tail.slope.x(x_dist(rng));
 
 //    if (p.second.step.amplitude.valid_index())
 //      p.second.step.amplitude.x(x_dist(rng));

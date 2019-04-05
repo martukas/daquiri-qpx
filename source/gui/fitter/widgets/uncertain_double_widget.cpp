@@ -1,4 +1,4 @@
-#include <gui/fitter/uncertain_double_widget.h>
+#include <gui/fitter/widgets/uncertain_double_widget.h>
 #include <QBoxLayout>
 #include <QLabel>
 

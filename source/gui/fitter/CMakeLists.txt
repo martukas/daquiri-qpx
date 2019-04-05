@@ -8,9 +8,6 @@ set(SOURCES
   ${dir}/qp_range_selector.cpp
   ${dir}/rollback_dialog.cpp
   ${dir}/thread_fitter.cpp
-  ${dir}/uncertain_double_widget.cpp
-  ${dir}/fit_parameter_widget.cpp
-  ${dir}/peak_skew_widget.cpp
   ${dir}/WidgetFitterAutoselect.cpp
   )
 
@@ -29,11 +26,10 @@ set(HEADERS
   ${dir}/qp_range_selector.h
   ${dir}/rollback_dialog.h
   ${dir}/thread_fitter.h
-  ${dir}/uncertain_double_widget.h
-  ${dir}/fit_parameter_widget.h
-  ${dir}/peak_skew_widget.h
   ${dir}/WidgetFitterAutoselect.h
   )
+
+add_subdirectory(widgets)
 
 set(${this_target}_headers ${${this_target}_headers} ${HEADERS} PARENT_SCOPE)
 set(${this_target}_sources ${${this_target}_sources} ${SOURCES} PARENT_SCOPE)

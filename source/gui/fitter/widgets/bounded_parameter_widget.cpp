@@ -1,17 +1,17 @@
-#include <gui/fitter/fit_parameter_widget.h>
+#include <gui/fitter/widgets/bounded_parameter_widget.h>
 
-#include <gui/fitter/uncertain_double_widget.h>
+#include <gui/fitter/widgets/uncertain_double_widget.h>
 
 #include <QBoxLayout>
 #include <QLabel>
 #include <QDoubleSpinBox>
 #include <QCheckBox>
 
-FitParameterWidget::FitParameterWidget(const DAQuiri::SineBoundedParam& val,
+BoundedParameterWidget::BoundedParameterWidget(const DAQuiri::SineBoundedParam& val,
                                        double spin_width, double label_width, QWidget* parent)
     : QWidget(parent)
       , original_(val)
-      , parameter_(val)
+      , current_(val)
 {
   QColor red;
   red.setNamedColor("#E46D59");
@@ -65,7 +65,7 @@ FitParameterWidget::FitParameterWidget(const DAQuiri::SineBoundedParam& val,
   setLayout(hl);
   layout()->setContentsMargins(0, 0, 0, 0);
 
-  update();
+  update_values();
 
   connect(to_fit_, SIGNAL(clicked()), this, SLOT(to_fit_clicked()));
   connect(val_, SIGNAL(valueChanged(double)), this, SLOT(valChanged(double)));
@@ -73,64 +73,64 @@ FitParameterWidget::FitParameterWidget(const DAQuiri::SineBoundedParam& val,
   connect(max_, SIGNAL(valueChanged(double)), this, SLOT(maxChanged(double)));
 }
 
-bool FitParameterWidget::changed() const
+bool BoundedParameterWidget::changed() const
 {
-  if (parameter_.to_fit != original_.to_fit)
+  if (current_.to_fit != original_.to_fit)
     return true;
-  if (parameter_.min() != original_.min())
+  if (current_.min() != original_.min())
     return true;
-  if (parameter_.max() != original_.max())
+  if (current_.max() != original_.max())
     return true;
-  return  (parameter_.val() != original_.val());
+  return  (current_.val() != original_.val());
 }
 
-void FitParameterWidget::update()
+void BoundedParameterWidget::update_values()
 {
   modified_->setText(changed() ? "*" : "");
 
-  to_fit_->setChecked(parameter_.to_fit);
+  to_fit_->setChecked(current_.to_fit);
 
-  val_->setMinimum(parameter_.min());
-  val_->setMaximum(parameter_.max());
-  val_->setValue(parameter_.val());
+  val_->setMinimum(current_.min());
+  val_->setMaximum(current_.max());
+  val_->setValue(current_.val());
 
-  min_->setMinimum(parameter_.min() - std::abs(parameter_.min()));
-  min_->setMaximum(parameter_.max());
-  min_->setValue(parameter_.min());
+  min_->setMinimum(current_.min() - std::abs(current_.min()));
+  min_->setMaximum(current_.max());
+  min_->setValue(current_.min());
 
-  max_->setMinimum(parameter_.min());
-  max_->setMaximum(parameter_.max() + std::abs(parameter_.max()));
-  max_->setValue(parameter_.max());
+  max_->setMinimum(current_.min());
+  max_->setMaximum(current_.max() + std::abs(current_.max()));
+  max_->setValue(current_.max());
 
-  unc_val_->update(UncertainDouble(parameter_.val(), parameter_.uncert()));
+  unc_val_->update(UncertainDouble(current_.val(), current_.uncert()));
 }
 
-void FitParameterWidget::to_fit_clicked()
+void BoundedParameterWidget::to_fit_clicked()
 {
-  parameter_.to_fit = to_fit_->isChecked();
-  update();
+  current_.to_fit = to_fit_->isChecked();
+  update_values();
   emit updated();
 }
 
-void FitParameterWidget::valChanged(double v)
+void BoundedParameterWidget::valChanged(double v)
 {
-  parameter_.val(val_->value());
-  update();
+  current_.val(val_->value());
+  update_values();
   emit updated();
 }
 
-void FitParameterWidget::minChanged(double v)
+void BoundedParameterWidget::minChanged(double v)
 {
-  parameter_.bound(v, max_->value());
-  parameter_.val(val_->value());
-  update();
+  current_.bound(v, max_->value());
+  current_.val(val_->value());
+  update_values();
   emit updated();
 }
 
-void FitParameterWidget::maxChanged(double v)
+void BoundedParameterWidget::maxChanged(double v)
 {
-  parameter_.bound(min_->value(), v);
-  parameter_.val(val_->value());
-  update();
+  current_.bound(min_->value(), v);
+  current_.val(val_->value());
+  update_values();
   emit updated();
 }

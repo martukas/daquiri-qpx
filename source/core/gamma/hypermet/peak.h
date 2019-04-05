@@ -17,9 +17,9 @@ class Peak
   struct Components
   {
     double gaussian{0};
-    double short_tail{0};
-    double right_tail{0};
-    double long_tail{0};
+    double left_skew{0};
+    double right_skew{0};
+    double tail{0};
     double step{0};
 
     double peak_skews() const;
@@ -84,11 +84,11 @@ class Peak
 
   // \todo why skew naming different?
   // skews (part of peak)
-  Tail short_tail {Side::left};
-  Tail right_tail {Side::right};
+  Skew left_skew {Side::left};
+  Skew right_skew {Side::right};
 
-  // step & tail (background)
-  Tail long_tail {Side::left};
+  // step & skew (background)
+  Skew tail {Side::left};
   Step step;
 
   double chi_sq_norm {0.0};

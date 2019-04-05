@@ -15,7 +15,7 @@ class FittableTail : public DAQuiri::DataModel
   DAQuiri::PositiveParam amplitude;
   DAQuiri::SineBoundedParam width;
 
-  DAQuiri::Tail tail;
+  DAQuiri::Skew tail;
 
   void update_indices() override
   {
@@ -145,7 +145,7 @@ class FittableTail : public DAQuiri::DataModel
     ss << "parent_pos = " << position.to_string() << "\n";
     ss << prepend << "parent_amp = " << amplitude.to_string() << "\n";
     ss << prepend << "parent_width = "  << width.to_string() << "\n";
-    ss << prepend << "tail = " << tail.to_string() << "\n";
+    ss << prepend << "skew = " << tail.to_string() << "\n";
     ss << prepend << "  chi" + UTF_superscript(2) + "=" + std::to_string(chi_sq());
     ss << "  grads=" << grads.transpose() << "\n";
     return ss.str();
@@ -196,7 +196,7 @@ TEST_F(Tail, CheckSetup)
   MESSAGE() << "Gaussian amp: " << ft.amplitude.to_string() << "\n";
   MESSAGE() << "Gaussian pos: " << ft.position.to_string() << "\n";
   MESSAGE() << "Gaussian width: " << ft.width.to_string() << "\n";
-  MESSAGE() << "Tail: " << ft.tail.to_string() << "\n";
+  MESSAGE() << "Skew: " << ft.tail.to_string() << "\n";
 }
 
 TEST_F(Tail, Visualize)

@@ -5,8 +5,9 @@
 #include <core/gamma/fit_settings.h>
 
 class QCloseEvent;
-class FitParameterWidget;
-class TailWidget;
+class BoundedParameterWidget;
+class PositiveParameterWidget;
+class SkewWidget;
 class UncertainDoubleWidget;
 
 namespace Ui {
@@ -40,14 +41,14 @@ private:
   DAQuiri::FitSettings &fit_settings_;
   DAQuiri::FitSettings backup_settings_;
 
-  FitParameterWidget* width_;
+  BoundedParameterWidget* width_;
   UncertainDoubleWidget* fwhm_;
   UncertainDoubleWidget* fwhm_energy_;
 
-  FitParameterWidget* step_amp_;
+  BoundedParameterWidget* step_amp_;
 
-  TailWidget* left_skew_;
-  TailWidget* right_skew_;
+  SkewWidget* left_skew_;
+  SkewWidget* right_skew_;
 
-  TailWidget* tail_;
+  SkewWidget* tail_;
 };
