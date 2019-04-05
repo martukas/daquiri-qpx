@@ -354,7 +354,8 @@ void FormFwhmCalibration::fit_calibration()
 
   optimizer.maximum_iterations = 100;
   optimizer.gradient_selection =
-      DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
+//      DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
+      DAQuiri::OptlibOptimizer::GradientSelection::FiniteAlways;
 //  optimizer.epsilon = 1e-10;
 //  optimizer.tolerance = 1e-4;
   optimizer.use_epsilon_check = false;
