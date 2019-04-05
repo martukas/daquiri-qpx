@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/calibration/calib_function.h>
+#include <core/calibration/function.h>
 #include <core/util/unique_mangle.h>
 
 namespace DAQuiri

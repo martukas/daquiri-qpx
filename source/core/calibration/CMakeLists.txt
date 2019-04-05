@@ -1,18 +1,22 @@
 set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(SOURCES
-  ${dir}/calib_function_factory.cpp
+  ${dir}/function_factory.cpp
+  ${dir}/calibration.cpp
+
+  ${dir}/abstract_poly.cpp
   ${dir}/polynomial.cpp
   ${dir}/sqrt_poly.cpp
-  ${dir}/calibration.cpp
   )
 
 set(HEADERS
-  ${dir}/calib_function.h
-  ${dir}/calib_function_factory.h
+  ${dir}/function.h
+  ${dir}/function_factory.h
+  ${dir}/calibration.h
+
+  ${dir}/abstract_poly.h
   ${dir}/polynomial.h
   ${dir}/sqrt_poly.h
-  ${dir}/calibration.h
   )
 
 set(${this_target}_headers ${${this_target}_headers} ${HEADERS} PARENT_SCOPE)

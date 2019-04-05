@@ -1,4 +1,4 @@
-#include <core/calibration/calib_function_factory.h>
+#include <core/calibration/function_factory.h>
 
 #include <core/util/logger.h>
 

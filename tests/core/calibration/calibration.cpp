@@ -1,6 +1,6 @@
 #include "gtest_color_print.h"
 #include <core/calibration/calibration.h>
-#include <core/calibration/calib_function_factory.h>
+#include <core/calibration/function_factory.h>
 #include <core/calibration/polynomial.h>
 
 class CalibID : public TestBase

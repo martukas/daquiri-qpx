@@ -9,7 +9,7 @@
 #include <gui/widgets/QFileExtensions.h>
 #include <gui/daq/ConsumerDialog.h>
 
-#include <core/calibration/calib_function_factory.h>
+#include <core/calibration/function_factory.h>
 
 using namespace DAQuiri;
 

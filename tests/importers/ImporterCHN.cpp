@@ -3,7 +3,7 @@
 #include <core/consumer_factory.h>
 #include <consumers/histogram_1d.h>
 
-#include <core/calibration/calib_function_factory.h>
+#include <core/calibration/function_factory.h>
 #include <core/calibration/polynomial.h>
 
 #include <importers/ImporterCHN.h>

@@ -25,7 +25,7 @@ Peak::Peak()
 {
   //amplitude.bound(0, 1000);
 
-  width.bound(0.8, 5.0);
+  width.bound(0.8, 10.0);
 
   short_tail.amplitude.bound(0.02, 1.5);
   short_tail.slope.bound(0.2, 0.5);

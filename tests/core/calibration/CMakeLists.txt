@@ -1,7 +1,7 @@
 set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(SOURCES
-  ${dir}/calib_function_factory.cpp
+  ${dir}/function_factory.cpp
   ${dir}/polynomial.cpp
   ${dir}/sqrt_poly.cpp
 #  ${dir}/calibration.cpp

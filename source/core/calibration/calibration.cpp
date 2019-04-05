@@ -1,5 +1,5 @@
 #include <core/calibration/calibration.h>
-#include <core/calibration/calib_function_factory.h>
+#include <core/calibration/function_factory.h>
 #include <core/util/string_extensions.h>
 #include <core/util/time_extensions.h>
 #include <fmt/format.h>

@@ -9,7 +9,7 @@
 #include <QSettings>
 //#include "widget_detectors.h"
 
-#include <core/calibration/calib_function_factory.h>
+#include <core/calibration/function_factory.h>
 #include <gui/widgets/qt_util.h>
 
 FormEnergyCalibration::FormEnergyCalibration(DAQuiri::Detector& dets, DAQuiri::Fitter& fit, QWidget* parent)

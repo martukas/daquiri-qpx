@@ -1,7 +1,7 @@
 #pragma once
 
 #include <core/util/time_extensions.h>
-#include <core/calibration/calib_function.h>
+#include <core/calibration/function.h>
 
 #include <type_traits>
 

@@ -1,7 +1,7 @@
 #include <gui/analysis/form_fwhm_calibration.h>
 //#include "widget_detectors.h"
 #include "ui_form_fwhm_calibration.h"
-#include <core/calibration/calib_function_factory.h>
+#include <core/calibration/function_factory.h>
 #include <gui/widgets/qt_util.h>
 
 #include <core/calibration/sqrt_poly.h>
@@ -354,7 +354,7 @@ void FormFwhmCalibration::fit_calibration()
 
   optimizer.maximum_iterations = 100;
   optimizer.gradient_selection =
-      DAQuiri::OptlibOptimizer::GradientSelection::FiniteAlways;
+      DAQuiri::OptlibOptimizer::GradientSelection::AnalyticalAlways;
 //  optimizer.epsilon = 1e-10;
 //  optimizer.tolerance = 1e-4;
   optimizer.use_epsilon_check = false;

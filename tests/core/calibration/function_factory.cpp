@@ -1,5 +1,5 @@
 #include "gtest_color_print.h"
-#include <core/calibration/calib_function_factory.h>
+#include <core/calibration/function_factory.h>
 
 class CalibFunctionFactory : public TestBase
 {

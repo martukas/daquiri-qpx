@@ -6,7 +6,7 @@
 #include <QCommandLineParser>
 #include "Profiles.h"
 
-#include <core/calibration/calib_function_factory.h>
+#include <core/calibration/function_factory.h>
 #include <core/calibration/polynomial.h>
 
 int main(int argc, char *argv[])
