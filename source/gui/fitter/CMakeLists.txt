@@ -3,7 +3,8 @@ set(dir ${CMAKE_CURRENT_SOURCE_DIR})
 set(SOURCES
   ${dir}/FormFitter.cpp
   ${dir}/FormFitterSettings.cpp
-  ${dir}/FormPeakInfo.cpp
+  ${dir}/peak_dialog.cpp
+  ${dir}/region_dialog.cpp
   ${dir}/qp_fitter.cpp
   ${dir}/qp_range_selector.cpp
   ${dir}/rollback_dialog.cpp
@@ -14,14 +15,16 @@ set(SOURCES
 set(UI
   ${dir}/FormFitter.ui
   ${dir}/FormFitterSettings.ui
-  ${dir}/FormPeakInfo.ui
+  ${dir}/peak_dialog.ui
+  ${dir}/region_dialog.ui
   ${dir}/WidgetFitterAutoselect.ui
   )
 
 set(HEADERS
   ${dir}/FormFitter.h
   ${dir}/FormFitterSettings.h
-  ${dir}/FormPeakInfo.h
+  ${dir}/peak_dialog.h
+  ${dir}/region_dialog.h
   ${dir}/qp_fitter.h
   ${dir}/qp_range_selector.h
   ${dir}/rollback_dialog.h

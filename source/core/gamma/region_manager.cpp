@@ -4,7 +4,8 @@
 
 #include <core/util/logger.h>
 
-namespace DAQuiri {
+namespace DAQuiri
+{
 
 Fit::Fit(const Region& r, std::string descr)
     : region(r)
@@ -14,18 +15,17 @@ Fit::Fit(const Region& r, std::string descr)
   if (!region.peaks_.empty())
   {
     description.chi_sq_norm = region.chi_sq() / region.degrees_of_freedom();
-    UncertainDouble tot_gross {0.0, 0.0};
-    UncertainDouble tot_back {0.0, 0.0};
-    for (const auto &p : region.peaks_)
+    UncertainDouble tot_gross{0.0, 0.0};
+    UncertainDouble tot_back{0.0, 0.0};
+    for (const auto& p : region.peaks_)
     {
       tot_gross += p.second.sum4.gross_area();
-      tot_back  += p.second.sum4.background_area();
+      tot_back += p.second.sum4.background_area();
     }
     UncertainDouble tot_net = tot_gross - tot_back;
     description.sum4aggregate = tot_net.error();
   }
 }
-
 
 void PeakRendering::clear()
 {
@@ -104,9 +104,8 @@ void RegionRendering::render(const Region& r,
   }
 }
 
-
 RegionManager::RegionManager(const FitSettings& fs,
-    const FitEvaluation &parentfinder, double min, double max)
+                             const FitEvaluation& parentfinder, double min, double max)
     : settings_(fs)
 {
   settings_ = fs;
@@ -149,7 +148,7 @@ double RegionManager::width() const
     return right_bin() - left_bin() + 1;
 }
 
-void RegionManager::set_data(const FitEvaluation &parentfinder, double l, double r)
+void RegionManager::set_data(const FitEvaluation& parentfinder, double l, double r)
 {
   fit_eval_.cloneRange(parentfinder, l, r);
   region_ = Region(fit_eval_.weighted_data, settings_.background_edge_samples);
@@ -168,8 +167,8 @@ bool RegionManager::find_and_fit(AbstractOptimizer* optimizer)
 {
   fit_eval_.reset();
   NaiveKON kon(fit_eval_.x_, fit_eval_.y_,
-      settings_.kon_settings.width,
-      settings_.kon_settings.sigma_spectrum);
+               settings_.kon_settings.width,
+               settings_.kon_settings.sigma_spectrum);
   region_ = Region(fit_eval_.weighted_data, settings_.background_edge_samples);
 
   if (kon.filtered.empty())
@@ -207,11 +206,12 @@ void RegionManager::iterative_fit(AbstractOptimizer* optimizer)
 
   //double prev_chi_sq = peaks_.begin()->second.hypermet().chi2();
 
-  for (int i=0; i < settings_.resid_max_iterations; ++i)
+  for (int i = 0; i < settings_.resid_max_iterations; ++i)
   {
     DBG("Attempting add from resid with {} peaks", region_.peaks_.size());
 
-    if (!add_from_resid(optimizer)) {
+    if (!add_from_resid(optimizer))
+    {
       //      DBG << "    failed add from resid";
       break;
     }
@@ -294,7 +294,7 @@ Peak RegionManager::peak(double peakID) const
     return Peak();
 }
 
-const std::map<double, Peak> &RegionManager::peaks() const
+const std::map<double, Peak>& RegionManager::peaks() const
 {
   return region_.peaks_;
 }
@@ -310,7 +310,7 @@ bool RegionManager::adjust_sum4(double peakID, double left, double right)
   return false;
 }
 
-bool RegionManager::replace_hypermet(double &peakID, Peak hyp)
+bool RegionManager::replace_hypermet(double& peakID, Peak hyp)
 {
   if (region_.replace_hypermet(peakID, hyp))
   {
@@ -322,22 +322,8 @@ bool RegionManager::replace_hypermet(double &peakID, Peak hyp)
   return false;
 }
 
-//bool ROI::override_energy(double peakID, double energy)
-//{
-//  if (!peaks_.count(peakID))
-//    return false;
-//
-//   peaks_[peakID].override_energy(energy);
-//
-//   render();
-//   save_current_fit("Peak energy override " + std::to_string(peaks_.at(peakID).center().value())
-//                    + "->" + std::to_string(peaks_.at(peakID).energy().value()));
-//   return true;
-//}
-
-bool RegionManager::add_peak(const FitEvaluation &parentfinder,
-                   double left, double right,
-                   AbstractOptimizer* optimizer)
+bool RegionManager::add_peak(const FitEvaluation& parentfinder,
+                             double left, double right)
 {
   bool added = false;
   if (overlaps(left) && overlaps(right))
@@ -350,14 +336,12 @@ bool RegionManager::add_peak(const FitEvaluation &parentfinder,
     {
       save_current_fit("Manually added peak");
       render();
-//      if (region_.dirty())
-//        rebuild(optimizer);
       return true;
     }
   }
   else if (width()) //changing region bounds
   {
-    double L  = std::min(left, left_bin());
+    double L = std::min(left, left_bin());
     double R = std::max(right, right_bin());
     fit_eval_.cloneRange(parentfinder, L, R);
     render();
@@ -385,44 +369,22 @@ bool RegionManager::add_peak(const FitEvaluation &parentfinder,
     {
       save_current_fit("Manually added peak");
       render();
-//      if (region_.dirty())
-//        rebuild(optimizer);
       return true;
     }
   }
 
-  return find_and_fit(optimizer);
+  return false;
 }
 
-bool RegionManager::remove_peaks(const std::set<double> &pks, AbstractOptimizer* optimizer)
+bool RegionManager::remove_peaks(const std::set<double>& pks)
 {
   bool found = region_.remove_peaks(pks);
 
   if (!found)
     return false;
 
-  // \todo save and refit if dirty
-  if (region_.peaks_.size() && !rebuild(optimizer))
-    return false;
-
-  render();
   save_current_fit("Peaks removed");
-  return true;
-}
-
-bool RegionManager::override_settings(const FitSettings &fs)
-{
-  settings_ = fs;
-  settings_.overriden = true; //do this in fitter if different?
-
-  for (auto& p : region_.peaks_)
-    p.second.force_defaults(settings_.default_peak);
-
-  save_current_fit("Region fit settings override");
-
-  //propagate to peaks
-
-  //render if calibs changed?
+  render();
   return true;
 }
 
@@ -446,7 +408,7 @@ bool RegionManager::rebuild(AbstractOptimizer* optimizer)
   auto vars = region_.variables();
   ss << vars.transpose();
   INFO("Initial vars: {}  chisq={}  chisq(at)={}", ss.str(),
-      region_.chi_sq(), region_.chi_sq(vars));
+       region_.chi_sq(), region_.chi_sq(vars));
 
   auto result = optimizer->minimize(&region_);
   //if (optimizer->verbose)
@@ -494,8 +456,7 @@ std::vector<double> RegionManager::remove_background()
   return y_nobkg;
 }
 
-bool RegionManager::adjust_LB(const FitEvaluation &parentfinder, double left, double right,
-                     AbstractOptimizer* optimizer)
+bool RegionManager::adjust_LB(const FitEvaluation& parentfinder, double left, double right)
 {
   SUM4Edge edge(parentfinder.weighted_data.subset(left, right));
   if (!edge.width() || (edge.right() >= region_.RB_.left()))
@@ -512,15 +473,12 @@ bool RegionManager::adjust_LB(const FitEvaluation &parentfinder, double left, do
 
   save_current_fit("Left baseline adjusted");
 
-//  if (region_.dirty())
-//    rebuild(optimizer);
-
   render();
   return true;
 }
 
-bool RegionManager::adjust_RB(const FitEvaluation &parentfinder, double left, double right,
-                    AbstractOptimizer* optimizer) {
+bool RegionManager::adjust_RB(const FitEvaluation& parentfinder, double left, double right)
+{
   SUM4Edge edge(parentfinder.weighted_data.subset(left, right));
   if (!edge.width() || (edge.left() <= region_.LB_.right()))
     return false;
@@ -536,9 +494,6 @@ bool RegionManager::adjust_RB(const FitEvaluation &parentfinder, double left, do
 
   save_current_fit("Right baseline adjusted");
 
-//  if (region_.dirty())
-//    rebuild(optimizer);
-
   render();
   return true;
 }
@@ -551,13 +506,24 @@ size_t RegionManager::current_fit() const
 std::vector<FitDescription> RegionManager::history() const
 {
   std::vector<FitDescription> ret;
-  for (auto &f : fits_)
+  for (auto& f : fits_)
     ret.push_back(f.description);
   return ret;
 }
 
+Region RegionManager::region() const
+{
+  return region_;
+}
 
-bool RegionManager::rollback(const FitEvaluation &/*parent_finder*/, size_t i)
+void RegionManager::modify_region(const Region& new_region)
+{
+  region_ = new_region;
+  save_current_fit("User modified region");
+  render();
+}
+
+bool RegionManager::rollback(size_t i)
 {
   if (i >= fits_.size())
     return false;
@@ -571,7 +537,7 @@ bool RegionManager::rollback(const FitEvaluation &/*parent_finder*/, size_t i)
   return true;
 }
 
-nlohmann::json RegionManager::to_json(const FitEvaluation &parent_finder) const
+nlohmann::json RegionManager::to_json(const FitEvaluation& parent_finder) const
 {
   nlohmann::json j;
 
@@ -582,12 +548,12 @@ nlohmann::json RegionManager::to_json(const FitEvaluation &parent_finder) const
 
   RegionManager temp(*this);
 
-  for (size_t i=0; i < temp.fits_.size(); ++i)
+  for (size_t i = 0; i < temp.fits_.size(); ++i)
   {
     nlohmann::json jj;
 
     jj["description"] = temp.fits_[i].description.description;
-    temp.rollback(parent_finder, i);
+    temp.rollback(i);
 
     if (settings_.overriden)
       jj["settings"] = settings_;
@@ -596,7 +562,7 @@ nlohmann::json RegionManager::to_json(const FitEvaluation &parent_finder) const
     jj["background_right"] = temp.RB();
     jj["background_poly"] = temp.region_.background;
 
-    for (auto &p : temp.region_.peaks_)
+    for (auto& p : temp.region_.peaks_)
       jj["peaks"].push_back(p.second);
 
     j["fits"].push_back(jj);
@@ -605,7 +571,7 @@ nlohmann::json RegionManager::to_json(const FitEvaluation &parent_finder) const
   return j;
 }
 
-RegionManager::RegionManager(const nlohmann::json& j, const FitEvaluation &finder, const FitSettings& fs)
+RegionManager::RegionManager(const nlohmann::json& j, const FitEvaluation& finder, const FitSettings& fs)
 {
   settings_ = fs;
   if (finder.x_.empty() || (finder.x_.size() != finder.y_.size()))
@@ -656,7 +622,7 @@ RegionManager::RegionManager(const nlohmann::json& j, const FitEvaluation &finde
     }
   }
 
-  rollback(finder, j["current_fit"]);
+  rollback(j["current_fit"]);
 }
 
 }

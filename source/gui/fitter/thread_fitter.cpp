@@ -67,22 +67,6 @@ void ThreadFitter::fit_peaks()
     start(HighPriority);
 }
 
-void ThreadFitter::add_peak(double L, double R)
-{
-  if (running_.load())
-  {
-    WARN("Fitter busy");
-    return;
-  }
-  QMutexLocker locker(&mutex_);
-  terminating_.store(false);
-  action_ = kAddPeak;
-  LL = L;
-  RR = R;
-  if (!isRunning())
-    start(HighPriority);
-}
-
 void ThreadFitter::refit(double target_ROI)
 {
   if (running_.load())
@@ -94,56 +78,6 @@ void ThreadFitter::refit(double target_ROI)
   terminating_.store(false);
   action_ = kRefit;
   target_ = target_ROI;
-  if (!isRunning())
-    start(HighPriority);
-}
-
-void ThreadFitter::override_ROI_settings(double regionID, DAQuiri::FitSettings fs)
-{
-  if (running_.load())
-  {
-    WARN("Fitter busy");
-    return;
-  }
-  QMutexLocker locker(&mutex_);
-  terminating_.store(false);
-  action_ = kOverrideSettingsROI;
-  target_ = regionID;
-  settings_ = fs;
-  if (!isRunning())
-    start(HighPriority);
-}
-
-void ThreadFitter::adjust_LB(double target_ROI, double L, double R)
-{
-  if (running_.load())
-  {
-    WARN("Fitter busy");
-    return;
-  }
-  QMutexLocker locker(&mutex_);
-  terminating_.store(false);
-  action_ = kAdjustLB;
-  target_ = target_ROI;
-  LL = L;
-  RR = R;
-  if (!isRunning())
-    start(HighPriority);
-}
-
-void ThreadFitter::adjust_RB(double target_ROI, double L, double R)
-{
-  if (running_.load())
-  {
-    WARN("Fitter busy");
-    return;
-  }
-  QMutexLocker locker(&mutex_);
-  terminating_.store(false);
-  action_ = kAdjustRB;
-  target_ = target_ROI;
-  LL = L;
-  RR = R;
   if (!isRunning())
     start(HighPriority);
 }
@@ -164,53 +98,11 @@ void ThreadFitter::merge_regions(double L, double R)
     start(HighPriority);
 }
 
-void ThreadFitter::remove_peaks(std::set<double> chosen_peaks)
-{
-  if (running_.load())
-  {
-    WARN("Fitter busy");
-    return;
-  }
-  QMutexLocker locker(&mutex_);
-  terminating_.store(false);
-  action_ = kRemovePeaks;
-  chosen_peaks_ = chosen_peaks;
-  if (!isRunning())
-    start(HighPriority);
-}
-
 void ThreadFitter::stop_work()
 {
   QMutexLocker locker(&mutex_);
   action_ = kStop; //not thread safe
   optimizer_->cancel.store(true);
-}
-
-void ThreadFitter::conditional_refit(double region_id)
-{
-  if (fitter_.region(region_id).dirty())
-  {
-    if (refit_policy_ == RefitPolicy::kAsk)
-    {
-      emit dirty(region_id);
-      action_ = kIdle;
-    }
-    else if (refit_policy_ == RefitPolicy::kAlways)
-    {
-      target_ = region_id;
-      action_ = kRefit;
-    }
-    else
-    {
-      emit fitting_done();
-      action_ = kIdle;
-    }
-  }
-  else
-  {
-    emit fitting_done();
-    action_ = kIdle;
-  }
 }
 
 void ThreadFitter::run()
@@ -256,64 +148,9 @@ void ThreadFitter::run()
       emit fitting_done();
       action_ = kIdle;
     }
-    else if (action_ == kAddPeak)
-    {
-      auto new_id = fitter_.add_peak(LL, RR, optimizer_.get());
-      if (new_id != -1)
-      {
-        emit fit_updated(fitter_);
-        conditional_refit(new_id);
-      }
-      else
-      {
-        emit fitting_done();
-        action_ = kIdle;
-      }
-    }
-    else if (action_ == kAdjustLB)
-    {
-      auto new_id = fitter_.adj_LB(target_, LL, RR, optimizer_.get());
-      if (new_id != -1)
-      {
-        emit fit_updated(fitter_);
-        conditional_refit(new_id);
-      }
-      else
-      {
-        emit fitting_done();
-        action_ = kIdle;
-      }
-    }
-    else if (action_ == kAdjustRB)
-    {
-      if (fitter_.adj_RB(target_, LL, RR, optimizer_.get()))
-      {
-        emit fit_updated(fitter_);
-        conditional_refit(target_);
-      }
-      else
-      {
-        emit fitting_done();
-        action_ = kIdle;
-      }
-    }
-    else if (action_ == kOverrideSettingsROI)
-    {
-      if (fitter_.override_ROI_settings(target_, settings_))
-          emit fit_updated(fitter_);
-      emit fitting_done();
-      action_ = kIdle;
-    }
     else if (action_ == kMergeRegions)
     {
       if (fitter_.merge_regions(LL, RR, optimizer_.get()))
-          emit fit_updated(fitter_);
-      emit fitting_done();
-      action_ = kIdle;
-    }
-    else if (action_ == kRemovePeaks)
-    {
-      if (fitter_.remove_peaks(chosen_peaks_, optimizer_.get()))
           emit fit_updated(fitter_);
       emit fitting_done();
       action_ = kIdle;

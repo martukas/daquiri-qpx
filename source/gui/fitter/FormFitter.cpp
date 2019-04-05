@@ -6,7 +6,8 @@
 #include <core/gamma/fitter.h>
 #include <QPlot/QPlotButton.h>
 #include <gui/fitter/FormFitterSettings.h>
-#include <gui/fitter/FormPeakInfo.h>
+#include <gui/fitter/peak_dialog.h>
+#include <gui/fitter/region_dialog.h>
 #include <gui/fitter/rollback_dialog.h>
 
 FormFitter::FormFitter(QWidget* parent) :
@@ -48,7 +49,6 @@ FormFitter::FormFitter(QWidget* parent) :
 
   connect(&thread_fitter_, SIGNAL(fit_updated(DAQuiri::Fitter)), this, SLOT(fit_updated(DAQuiri::Fitter)));
   connect(&thread_fitter_, SIGNAL(fitting_done()), this, SLOT(fitting_complete()));
-  connect(&thread_fitter_, SIGNAL(dirty(double)), this, SLOT(dirty(double)));
 
   QMovie* movie = new QMovie(":/icons/loader.gif");
   ui->labelMovie->setMovie(movie);
@@ -214,11 +214,14 @@ void FormFitter::add_peak(double l, double r)
 
   ui->plot->clear_range_selection();
 
-  toggle_push(true);
+  fit_data_->add_peak(fit_data_->settings().calib.nrg_to_bin(l),
+                      fit_data_->settings().calib.nrg_to_bin(r));
 
-  thread_fitter_.set_data(*fit_data_);
-  thread_fitter_.add_peak(fit_data_->settings().calib.nrg_to_bin(l),
-                          fit_data_->settings().calib.nrg_to_bin(r));
+  toggle_push(false);
+  updateData();
+
+  emit data_changed();
+  emit fitting_done();
 }
 
 void FormFitter::adjust_sum4(double peak_id, double l, double r)
@@ -277,10 +280,13 @@ void FormFitter::adjust_background_L(double ROI_id, double l, double r)
         fit_data_->settings().calib.nrg_to_bin(l),
         fit_data_->region(ROI_id).right_bin());
   else
-    thread_fitter_.adjust_LB(ROI_id,
-                             fit_data_->settings().calib.nrg_to_bin(l),
-                             fit_data_->settings().calib.nrg_to_bin(r));
+  {
+    fit_data_->adj_LB(ROI_id,
+        fit_data_->settings().calib.nrg_to_bin(l),
+        fit_data_->settings().calib.nrg_to_bin(r));
 
+    dirty(ROI_id);
+  }
 }
 
 void FormFitter::adjust_background_R(double ROI_id, double l, double r)
@@ -317,9 +323,13 @@ void FormFitter::adjust_background_R(double ROI_id, double l, double r)
     thread_fitter_.merge_regions(fit_data_->region(ROI_id).left_bin(),
                                  fit_data_->settings().calib.nrg_to_bin(r));
   else
-    thread_fitter_.adjust_RB(ROI_id,
-                             fit_data_->settings().calib.nrg_to_bin(l),
-                             fit_data_->settings().calib.nrg_to_bin(r));
+  {
+    fit_data_->adj_RB(ROI_id,
+                      fit_data_->settings().calib.nrg_to_bin(l),
+                      fit_data_->settings().calib.nrg_to_bin(r));
+
+    dirty(ROI_id);
+  }
 }
 
 void FormFitter::delete_selected_peaks()
@@ -333,10 +343,11 @@ void FormFitter::delete_selected_peaks()
 
   clearSelection();
 
-  toggle_push(true);
+  fit_data_->remove_peaks(chosen_peaks);
 
-  thread_fitter_.set_data(*fit_data_);
-  thread_fitter_.remove_peaks(chosen_peaks);
+  fitting_complete();
+
+  // \todo some regions dirty?
 }
 
 void FormFitter::fit_updated(DAQuiri::Fitter fitter)
@@ -384,7 +395,7 @@ void FormFitter::dirty(double region_id)
   fitting_complete();
 
   bool refit = (QMessageBox::question(this, "Refit?",
-      "Regions at bin=" + QString::number(region_id) + " modified. Refit?") == QMessageBox::Yes);
+      "Region at bin=" + QString::number(region_id) + " modified. Refit?") == QMessageBox::Yes);
 
   thread_fitter_.set_data(*fit_data_);
 
@@ -460,22 +471,23 @@ void FormFitter::roi_settings(double roi)
   if (!fit_data_ || !fit_data_->contains_region(roi))
     return;
 
-  DAQuiri::FitSettings fs = fit_data_->region(roi).fit_settings();
+  auto region = fit_data_->region(roi).region();
 
-  FormFitterSettings* FitterSettings = new FormFitterSettings(fs, this);
-  FitterSettings->setWindowTitle("Region settings");
-  int ret = FitterSettings->exec();
+  RegionDialog* regionDialog = new RegionDialog(region, fit_data_->settings().calib, this);
+  regionDialog->setWindowTitle("Region settings");
+  int ret = regionDialog->exec();
 
   if (ret == QDialog::Accepted)
   {
     ui->plot->clear_range_selection();
 
     toggle_push(true);
-    thread_fitter_.set_data(*fit_data_);
-    thread_fitter_.override_ROI_settings(roi, fs);
+    fit_data_->override_region(roi, region);
     emit peak_selection_changed(ui->plot->get_selected_peaks());
+    emit data_changed();
+    emit fitting_done();
+    dirty(roi);
   }
-
 }
 
 void FormFitter::peak_info(double bin)
@@ -488,7 +500,7 @@ void FormFitter::peak_info(double bin)
 
   DAQuiri::Peak hm = fit_data_->peaks().at(bin);
 
-  FormPeakInfo* peakInfo = new FormPeakInfo(hm, fit_data_->settings().calib, this);
+  PeakDialog* peakInfo = new PeakDialog(hm, fit_data_->settings().calib, this);
   auto nrg = fit_data_->peaks().at(bin).peak_energy(fit_data_->settings().calib.cali_nrg_);
   peakInfo->setWindowTitle("Parameters for peak at " + QString::number(nrg.value()));
   int ret = peakInfo->exec();

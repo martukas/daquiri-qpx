@@ -1,5 +1,5 @@
-#include <gui/fitter/FormPeakInfo.h>
-#include "ui_FormPeakInfo.h"
+#include <gui/fitter/peak_dialog.h>
+#include "ui_peak_dialog.h"
 #include <gui/fitter/widgets/uncertain_double_widget.h>
 #include <gui/fitter/widgets/positive_parameter_widget.h>
 #include <gui/fitter/widgets/bounded_parameter_widget.h>
@@ -11,12 +11,12 @@
 
 #include <core/util/logger.h>
 
-FormPeakInfo::FormPeakInfo(DAQuiri::Peak& hm,
-                           const DAQuiri::FCalibration& cal, QWidget* parent)
-  : QDialog(parent)
-  , ui(new Ui::FormPeakInfo)
-  , calib_(cal)
-  , peak_(hm)
+PeakDialog::PeakDialog(DAQuiri::Peak& peak,
+                       const DAQuiri::FCalibration& calibration, QWidget* parent)
+    : QDialog(parent)
+      , ui(new Ui::PeakDialog)
+      , calibration_(calibration)
+      , peak_(peak)
 {
   peak_backup_ = peak_;
 
@@ -26,11 +26,11 @@ FormPeakInfo::FormPeakInfo(DAQuiri::Peak& hm,
   ui->setupUi(this);
   this->setFixedSize(this->size());
 
-  ui->labelCaliEnergy->setText(QS(calib_.cali_nrg_.debug()));
-  ui->labelCaliFWHM->setText(QS(calib_.cali_fwhm_.debug()));
+  ui->labelCaliEnergy->setText(QS(calibration_.cali_nrg_.debug()));
+  ui->labelCaliFWHM->setText(QS(calibration_.cali_fwhm_.debug()));
 
-  ui->EnergyLabel->setText("Energy (" + QS(calib_.cali_nrg_.to().units) + ") ");
-  ui->FWEnergyLabel->setText("FWHM (" + QS(calib_.cali_nrg_.to().units) + ") ");
+  ui->EnergyLabel->setText("Energy (" + QS(calibration_.cali_nrg_.to().units) + ") ");
+  ui->FWEnergyLabel->setText("FWHM (" + QS(calibration_.cali_nrg_.to().units) + ") ");
 
   position_ = new BoundedParameterWidget(peak_.position, spin_width, unc_width);
   ui->horizontalPosition->addWidget(position_);
@@ -67,24 +67,24 @@ FormPeakInfo::FormPeakInfo(DAQuiri::Peak& hm,
   ui->horizontalStep->addWidget(step_);
   connect(step_, SIGNAL(updated()), this, SLOT(update()));
 
-  tail_ = new SkewWidget("Long skew", peak_.tail, spin_width, unc_width);
+  tail_ = new SkewWidget("Tail", peak_.tail, spin_width, unc_width);
   ui->horizontalTail->addWidget(tail_);
   connect(tail_, SIGNAL(updated()), this, SLOT(update()));
 
   update();
 }
 
-void FormPeakInfo::update()
+void PeakDialog::update()
 {
   peak_.position = position_->parameter();
-  energy_->update(peak_.peak_energy(calib_.cali_nrg_));
+  energy_->update(peak_.peak_energy(calibration_.cali_nrg_));
 
   peak_.amplitude = amplitude_->parameter();
   area_->update(peak_.area());
 
   peak_.width = width_->parameter();
   fwhm_->update(peak_.fwhm());
-  fwhm_energy_->update(peak_.fwhm_energy(calib_.cali_nrg_));
+  fwhm_energy_->update(peak_.fwhm_energy(calibration_.cali_nrg_));
   if (width_->changed())
     ui->checkWidthOverride->setChecked(true);
   peak_.width_override = ui->checkWidthOverride->isChecked();
@@ -96,23 +96,22 @@ void FormPeakInfo::update()
   peak_.tail = tail_->skew();
 }
 
-
-void FormPeakInfo::on_buttonBox_accepted()
+void PeakDialog::on_buttonBox_accepted()
 {
   accept();
 }
 
-FormPeakInfo::~FormPeakInfo()
+PeakDialog::~PeakDialog()
 {
   delete ui;
 }
 
-void FormPeakInfo::closeEvent(QCloseEvent* event)
+void PeakDialog::closeEvent(QCloseEvent* event)
 {
   event->accept();
 }
 
-void FormPeakInfo::on_buttonBox_rejected()
+void PeakDialog::on_buttonBox_rejected()
 {
   peak_ = peak_backup_;
   reject();

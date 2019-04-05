@@ -291,14 +291,13 @@ bool Fitter::refit_region(double regionID, AbstractOptimizer* optimizer)
   return true;
 }
 
-double Fitter::adj_LB(double regionID, double left, double right,
-                    AbstractOptimizer* optimizer)
+double Fitter::adj_LB(double regionID, double left, double right)
 {
   if (!contains_region(regionID))
     return -1;
 
   RegionManager newROI = regions_[regionID];
-  if (!newROI.adjust_LB(fit_eval_, left, right, optimizer))
+  if (!newROI.adjust_LB(fit_eval_, left, right))
     return -1;
   regions_.erase(regionID);
   regions_[newROI.id()] = newROI;
@@ -306,14 +305,13 @@ double Fitter::adj_LB(double regionID, double left, double right,
   return newROI.id();
 }
 
-bool Fitter::adj_RB(double regionID, double left, double right,
-                    AbstractOptimizer* optimizer)
+bool Fitter::adj_RB(double regionID, double left, double right)
 {
   if (!contains_region(regionID))
     return false;
 
   RegionManager newROI = regions_[regionID];
-  if (!newROI.adjust_RB(fit_eval_, left, right, optimizer))
+  if (!newROI.adjust_RB(fit_eval_, left, right))
     return false;
   regions_.erase(regionID);
   regions_[newROI.id()] = newROI;
@@ -321,18 +319,17 @@ bool Fitter::adj_RB(double regionID, double left, double right,
   return true;
 }
 
-bool Fitter::override_ROI_settings(double regionID, const FitSettings& fs)
+bool Fitter::override_region(double regionID, const Region& new_region)
 {
   if (!contains_region(regionID))
     return false;
 
-  if (!regions_[regionID].override_settings(fs))
-    return false;
-  //refit?
+  regions_[regionID].modify_region(new_region);
+
+  // \todo reindex regions
 
   render_all();
   return true;
-
 }
 
 bool Fitter::merge_regions(double left, double right,
@@ -353,7 +350,7 @@ bool Fitter::merge_regions(double left, double right,
 
   RegionManager newROI(settings_, fit_eval_, min, max);
 
-  //add old peaks?
+  // \todo add old peaks?
   newROI.find_and_fit(optimizer);
   if (!newROI.width())
     return false;
@@ -389,14 +386,14 @@ bool Fitter::rollback_ROI(double regionID, size_t point)
   if (!contains_region(regionID))
     return false;
 
-  if (!regions_[regionID].rollback(fit_eval_, point))
+  if (!regions_[regionID].rollback(point))
     return false;
 
   render_all();
   return true;
 }
 
-double Fitter::add_peak(double left, double right, AbstractOptimizer* optimizer)
+double Fitter::add_peak(double left, double right)
 {
   if (fit_eval_.x_.empty())
     return -1;
@@ -414,7 +411,7 @@ double Fitter::add_peak(double left, double right, AbstractOptimizer* optimizer)
   if (id != -1)
   {
     RegionManager newROI = regions_[id];
-    if (newROI.add_peak(fit_eval_, left, right, optimizer))
+    if (newROI.add_peak(fit_eval_, left, right))
     {
       regions_.erase(id);
       regions_[newROI.id()] = newROI;
@@ -425,22 +422,19 @@ double Fitter::add_peak(double left, double right, AbstractOptimizer* optimizer)
       return -1;
   }
 
-//  DBG << "<Fitter> making new ROI to add peak manually " << left << " " << right;
-  RegionManager newROI(settings_, fit_eval_, left, right);
-//  newROI.add_peak(left, right);
-  newROI.refit(optimizer);
-
-  regions_[newROI.id()] = newROI;
-  render_all();
-  return newROI.id();
+  // \todo PRIORITY
+//  RegionManager newROI(settings_, fit_eval_, left, right);
+//  newROI.refit(optimizer);
+//  regions_[newROI.id()] = newROI;
+//  render_all();
+//  return newROI.id();
 }
 
-bool Fitter::remove_peaks(std::set<double> bins,
-                          AbstractOptimizer* optimizer)
+bool Fitter::remove_peaks(std::set<double> bins)
 {
   bool changed = false;
   for (auto& m : regions_)
-    if (m.second.remove_peaks(bins, optimizer))
+    if (m.second.remove_peaks(bins))
       changed = true;
   if (changed)
     render_all();

@@ -13,18 +13,18 @@ class UncertainDoubleWidget;
 
 namespace Ui
 {
-class FormPeakInfo;
+class PeakDialog;
 }
 
-class FormPeakInfo : public QDialog
+class PeakDialog : public QDialog
 {
  Q_OBJECT
 
  public:
-  explicit FormPeakInfo(DAQuiri::Peak& hm,
-                        const DAQuiri::FCalibration& cal,
-                        QWidget* parent = 0);
-  ~FormPeakInfo();
+  explicit PeakDialog(DAQuiri::Peak& peak,
+                      const DAQuiri::FCalibration& calibration,
+                      QWidget* parent = 0);
+  ~PeakDialog();
 
  protected:
   void closeEvent(QCloseEvent*);
@@ -35,9 +35,9 @@ class FormPeakInfo : public QDialog
   void on_buttonBox_rejected();
 
  private:
-  Ui::FormPeakInfo* ui;
+  Ui::PeakDialog* ui;
 
-  DAQuiri::FCalibration calib_;
+  DAQuiri::FCalibration calibration_;
 
   DAQuiri::Peak& peak_;
   DAQuiri::Peak peak_backup_;
