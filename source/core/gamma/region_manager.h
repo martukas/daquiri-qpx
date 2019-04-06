@@ -66,10 +66,9 @@ class RegionManager {
   double left_bin() const;
   double right_bin() const;
   double width() const;
-  bool dirty() const;
 
-  Region region() const;
-  void modify_region(const Region& new_region);
+  const Region& region() const;
+  void modify_region(const Region& new_region, std::string message = "");
 
   bool overlaps(double bin) const;
   bool overlaps(double Lbin, double Rbin) const;
@@ -79,11 +78,8 @@ class RegionManager {
   size_t peak_count() const;
   bool contains(double peakID) const;
   Peak peak(double peakID) const;
-  const std::map<double, Peak> &peaks() const;
 
   //access other
-  SUM4Edge LB() const {return region_.LB_;}
-  SUM4Edge RB() const {return region_.RB_;}
   FitSettings fit_settings() const { return settings_; }
   const FitEvaluation &finder() const { return fit_eval_; }
   const RegionRendering &rendering() const { return rendering_; }
@@ -91,20 +87,19 @@ class RegionManager {
   //access history
   size_t current_fit() const;
   std::vector<FitDescription> history() const;
+  bool rollback(size_t i);
 
   //manipulation, no optimizer
-  bool rollback(size_t i);
   bool adjust_sum4(double peakID, double left, double right);
   bool replace_hypermet(double &peakID, Peak hyp);
-  //bool override_energy(double peakID, double energy);
-
-  //manupulation, may invoke optimizer
-  bool find_and_fit(AbstractOptimizer* optimizer);
-  bool refit(AbstractOptimizer* optimizer);
   bool adjust_LB(const FitEvaluation &parentfinder, double left, double right);
   bool adjust_RB(const FitEvaluation &parentfinder, double left, double right);
   bool add_peak(const FitEvaluation &parentfinder, double left, double right);
   bool remove_peaks(const std::set<double> &pks);
+
+  //manupulation, may invoke optimizer
+  bool find_and_fit(AbstractOptimizer* optimizer);
+  bool refit(AbstractOptimizer* optimizer);
 
   nlohmann::json to_json(const FitEvaluation &parent_finder) const;
 

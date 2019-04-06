@@ -11,7 +11,7 @@
 #include <gui/fitter/rollback_dialog.h>
 
 FormFitter::FormFitter(QWidget* parent) :
-    QWidget(parent), fit_data_(nullptr), ui(new Ui::FormFitter)
+    QWidget(parent), fit_(nullptr), ui(new Ui::FormFitter)
 {
   ui->setupUi(this);
 //  player = new QMediaPlayer(this);
@@ -69,7 +69,7 @@ FormFitter::~FormFitter()
 
 void FormFitter::setFit(DAQuiri::Fitter* fit)
 {
-  fit_data_ = fit;
+  fit_ = fit;
   ui->plot->setFit(fit);
   update_spectrum();
   updateData();
@@ -91,7 +91,7 @@ void FormFitter::saveSettings(QSettings& settings_)
 
 void FormFitter::clear()
 {
-  if (!fit_data_ || busy_)
+  if (!fit_ || busy_)
     return;
 
   //DBG << "FormFitter::clear()";
@@ -111,27 +111,27 @@ void FormFitter::update_spectrum()
 
 void FormFitter::refit_ROI(double ROI_bin)
 {
-  if (!fit_data_ || busy_)
+  if (!fit_ || busy_)
     return;
 
   toggle_push(true);
 
-  thread_fitter_.set_data(*fit_data_);
+  thread_fitter_.set_data(*fit_);
   thread_fitter_.refit(ROI_bin);
 }
 
 void FormFitter::rollback_ROI(double ROI_bin)
 {
-  if (!fit_data_ || busy_)
+  if (!fit_ || busy_)
     return;
 
-  if (fit_data_->contains_region(ROI_bin))
+  if (fit_->contains_region(ROI_bin))
   {
-    RollbackDialog* editor = new RollbackDialog(fit_data_->region(ROI_bin), qobject_cast<QWidget*>(parent()));
+    RollbackDialog* editor = new RollbackDialog(fit_->region(ROI_bin), qobject_cast<QWidget*>(parent()));
     int ret = editor->exec();
     if (ret == QDialog::Accepted)
     {
-      fit_data_->rollback_ROI(ROI_bin, editor->get_choice());
+      fit_->rollback_ROI(ROI_bin, editor->get_choice());
       toggle_push(false);
       updateData();
 
@@ -143,10 +143,10 @@ void FormFitter::rollback_ROI(double ROI_bin)
 
 void FormFitter::delete_ROI(double ROI_bin)
 {
-  if (!fit_data_ || busy_)
+  if (!fit_ || busy_)
     return;
 
-  fit_data_->delete_ROI(ROI_bin);
+  fit_->delete_ROI(ROI_bin);
   toggle_push(false);
   updateData();
 
@@ -156,10 +156,10 @@ void FormFitter::delete_ROI(double ROI_bin)
 
 void FormFitter::on_pushClearAll_clicked()
 {
-  if (!fit_data_ || busy_)
+  if (!fit_ || busy_)
     return;
 
-  fit_data_->clear_all_ROIs();
+  fit_->clear_all_ROIs();
   toggle_push(false);
   updateData();
 
@@ -169,7 +169,7 @@ void FormFitter::on_pushClearAll_clicked()
 
 void FormFitter::make_range(double energy)
 {
-  if (!fit_data_ || busy_)
+  if (!fit_ || busy_)
     return;
 
   ui->plot->make_range_selection(energy);
@@ -194,44 +194,62 @@ void FormFitter::on_pushFindPeaks_clicked()
 
 void FormFitter::perform_fit()
 {
-  if (!fit_data_ || busy_)
+  if (!fit_ || busy_)
     return;
 
-  fit_data_->find_regions();
+  fit_->find_regions();
   //  DBG << "number of peaks found " << fit_data_->peaks_.size();
 
   toggle_push(true);
 
-  thread_fitter_.set_data(*fit_data_);
+  thread_fitter_.set_data(*fit_);
   thread_fitter_.fit_peaks();
 
 }
 
 void FormFitter::add_peak(double l, double r)
 {
-  if (!fit_data_ || busy_)
+  if (!fit_ || busy_)
     return;
 
   ui->plot->clear_range_selection();
 
-  fit_data_->add_peak(fit_data_->settings().calib.nrg_to_bin(l),
-                      fit_data_->settings().calib.nrg_to_bin(r));
+  double l_bin = fit_->settings().calib.nrg_to_bin(l);
+  double r_bin = fit_->settings().calib.nrg_to_bin(r);
 
-  toggle_push(false);
-  updateData();
+  auto relevant_regions = fit_->relevant_regions(l_bin, r_bin);
 
-  emit data_changed();
-  emit fitting_done();
+  if (relevant_regions.size() > 1)
+  {
+    // ambiguous which region
+    merge_regions(relevant_regions);
+    // \todo and also add to merged region
+    return;
+  }
+  else if (relevant_regions.size() == 1)
+  {
+    // Add peak to one region
+    auto id = fit_->add_peak(*relevant_regions.begin(), l_bin, r_bin);
+    dirty(id);
+    return;
+  }
+  else
+  {
+    // Create new region
+    auto id = fit_->create_region(l_bin, r_bin);
+    dirty(id);
+    return;
+  }
 }
 
 void FormFitter::adjust_sum4(double peak_id, double l, double r)
 {
-  if (!fit_data_ || busy_)
+  if (!fit_ || busy_)
     return;
 
-  if (fit_data_->adjust_sum4(peak_id,
-                             fit_data_->settings().calib.nrg_to_bin(l),
-                             fit_data_->settings().calib.nrg_to_bin(r)))
+  if (fit_->adjust_sum4(peak_id,
+                             fit_->settings().calib.nrg_to_bin(l),
+                             fit_->settings().calib.nrg_to_bin(r)))
   {
     updateData();
     std::set<double> selected_peaks;
@@ -247,20 +265,20 @@ void FormFitter::adjust_sum4(double peak_id, double l, double r)
 
 void FormFitter::adjust_background_L(double ROI_id, double l, double r)
 {
-  if (!fit_data_ || busy_)
+  if (!fit_ || busy_)
     return;
 
   ui->plot->clear_range_selection();
 
-  if (!fit_data_->contains_region(ROI_id))
+  if (!fit_->contains_region(ROI_id))
   {
     WARN("No such region: id={}", ROI_id);
     return;
   }
 
-  std::set<double> rois = fit_data_->relevant_regions(
-      fit_data_->settings().calib.nrg_to_bin(l),
-      fit_data_->region(ROI_id).right_bin());
+  std::set<double> rois = fit_->relevant_regions(
+      fit_->settings().calib.nrg_to_bin(l),
+      fit_->region(ROI_id).right_bin());
 
   if (!rois.count(ROI_id))
   {
@@ -271,19 +289,17 @@ void FormFitter::adjust_background_L(double ROI_id, double l, double r)
   bool merge = ((rois.size() > 1) &&
       (QMessageBox::question(this, "Merge?", "Regions overlap. Merge them?") == QMessageBox::Yes));
 
-  thread_fitter_.set_data(*fit_data_);
+  thread_fitter_.set_data(*fit_);
 
   toggle_push(true);
 
   if (merge)
-    thread_fitter_.merge_regions(
-        fit_data_->settings().calib.nrg_to_bin(l),
-        fit_data_->region(ROI_id).right_bin());
+    merge_regions(rois);
   else
   {
-    fit_data_->adj_LB(ROI_id,
-        fit_data_->settings().calib.nrg_to_bin(l),
-        fit_data_->settings().calib.nrg_to_bin(r));
+    fit_->adj_LB(ROI_id,
+                      fit_->settings().calib.nrg_to_bin(l),
+                      fit_->settings().calib.nrg_to_bin(r));
 
     dirty(ROI_id);
   }
@@ -291,20 +307,20 @@ void FormFitter::adjust_background_L(double ROI_id, double l, double r)
 
 void FormFitter::adjust_background_R(double ROI_id, double l, double r)
 {
-  if (!fit_data_ || busy_)
+  if (!fit_ || busy_)
     return;
 
   ui->plot->clear_range_selection();
 
-  if (!fit_data_->contains_region(ROI_id))
+  if (!fit_->contains_region(ROI_id))
   {
     WARN("No such region: id={}", ROI_id);
     return;
   }
 
-  std::set<double> rois = fit_data_->relevant_regions(
-      fit_data_->region(ROI_id).left_bin(),
-      fit_data_->settings().calib.nrg_to_bin(r));
+  std::set<double> rois = fit_->relevant_regions(
+      fit_->region(ROI_id).left_bin(),
+      fit_->settings().calib.nrg_to_bin(r));
 
   if (!rois.count(ROI_id))
   {
@@ -315,26 +331,68 @@ void FormFitter::adjust_background_R(double ROI_id, double l, double r)
   bool merge = ((rois.size() > 1) &&
       (QMessageBox::question(this, "Merge?", "Regions overlap. Merge them?") == QMessageBox::Yes));
 
-  thread_fitter_.set_data(*fit_data_);
+  thread_fitter_.set_data(*fit_);
 
   toggle_push(true);
 
   if (merge)
-    thread_fitter_.merge_regions(fit_data_->region(ROI_id).left_bin(),
-                                 fit_data_->settings().calib.nrg_to_bin(r));
+    merge_regions(rois);
   else
   {
-    fit_data_->adj_RB(ROI_id,
-                      fit_data_->settings().calib.nrg_to_bin(l),
-                      fit_data_->settings().calib.nrg_to_bin(r));
+    fit_->adj_RB(ROI_id,
+                      fit_->settings().calib.nrg_to_bin(l),
+                      fit_->settings().calib.nrg_to_bin(r));
 
     dirty(ROI_id);
   }
 }
 
+void FormFitter::merge_regions(std::set<double> rois)
+{
+  while (rois.size() > 1)
+  {
+    auto id1 = *rois.begin();
+    rois.erase(id1);
+    auto id2 = *rois.begin();
+
+    auto region1 = fit_->region(id1);
+    auto region2 = fit_->region(id2);
+
+    std::string r1str =
+        fmt::format("[{}, {}]",
+                    fit_->settings().calib.nrg_to_bin(region1.left_bin()),
+                    fit_->settings().calib.nrg_to_bin(region1.right_bin()));
+
+    std::string r2str =
+        fmt::format("[{}, {}]",
+                    fit_->settings().calib.nrg_to_bin(region2.left_bin()),
+                    fit_->settings().calib.nrg_to_bin(region2.right_bin()));
+
+    std::string message = fmt::format("Merge regions {} and {} ?", r1str, r2str);
+
+    bool merge = QMessageBox::question(this, "Merge?",
+        QString::fromStdString(message)) == QMessageBox::Yes;
+
+    if (!merge)
+      break;
+
+    auto newr = fit_->merge_regions(id1, id2);
+    if (newr == -1)
+    {
+      WARN("Merge failed");
+      break;
+    }
+
+    rois.erase(id2);
+    rois.insert(newr);
+  }
+
+  // \todo refit merged regions?
+}
+
 void FormFitter::delete_selected_peaks()
 {
-  if (!fit_data_ || busy_)
+  if (!fit_ || busy_)
     return;
 
   std::set<double> chosen_peaks = this->get_selected_peaks();
@@ -343,11 +401,12 @@ void FormFitter::delete_selected_peaks()
 
   clearSelection();
 
-  fit_data_->remove_peaks(chosen_peaks);
+  fit_->remove_peaks(chosen_peaks);
 
   fitting_complete();
 
-  // \todo some regions dirty?
+  // \todo refirt if some regions dirty
+  // \todo delete some empty regions
 }
 
 void FormFitter::fit_updated(DAQuiri::Fitter fitter)
@@ -363,7 +422,7 @@ void FormFitter::fit_updated(DAQuiri::Fitter fitter)
   ////    while (player->state() == QMediaPlayer::PlayingState) {}
   //  }
 
-  *fit_data_ = fitter;
+  *fit_ = fitter;
   toggle_push(busy_);
   updateData();;
   emit data_changed();
@@ -392,17 +451,19 @@ void FormFitter::fitting_complete()
 
 void FormFitter::dirty(double region_id)
 {
+  updateData();
   fitting_complete();
 
   bool refit = (QMessageBox::question(this, "Refit?",
-      "Region at bin=" + QString::number(region_id) + " modified. Refit?") == QMessageBox::Yes);
+                                      "Region at bin=" + QString::number(region_id) + " modified. Refit?")
+      == QMessageBox::Yes);
 
-  thread_fitter_.set_data(*fit_data_);
+  thread_fitter_.set_data(*fit_);
 
   if (refit)
   {
     toggle_push(true);
-    thread_fitter_.set_data(*fit_data_);
+    thread_fitter_.set_data(*fit_);
     thread_fitter_.refit(region_id);
   }
 }
@@ -410,7 +471,7 @@ void FormFitter::dirty(double region_id)
 void FormFitter::toggle_push(bool busy)
 {
   busy_ = busy;
-  bool hasdata = (fit_data_ && fit_data_->region_count());
+  bool hasdata = (fit_ && fit_->region_count());
 
   ui->pushStopFitter->setEnabled(busy_);
   ui->pushFindPeaks->setEnabled(!busy_);
@@ -451,29 +512,29 @@ void FormFitter::updateData()
 
 void FormFitter::on_pushSettings_clicked()
 {
-  if (!fit_data_)
+  if (!fit_)
     return;
 
-  DAQuiri::FitSettings fs = fit_data_->settings();
+  DAQuiri::FitSettings fs = fit_->settings();
   FormFitterSettings* FitterSettings = new FormFitterSettings(fs, this);
   FitterSettings->setWindowTitle("Fitter settings");
   int ret = FitterSettings->exec();
 
   if (ret == QDialog::Accepted)
   {
-    fit_data_->apply_settings(fs);
+    fit_->apply_settings(fs);
     updateData();
   }
 }
 
 void FormFitter::roi_settings(double roi)
 {
-  if (!fit_data_ || !fit_data_->contains_region(roi))
+  if (!fit_ || !fit_->contains_region(roi))
     return;
 
-  auto region = fit_data_->region(roi).region();
+  auto region = fit_->region(roi).region();
 
-  RegionDialog* regionDialog = new RegionDialog(region, fit_data_->settings().calib, this);
+  RegionDialog* regionDialog = new RegionDialog(region, fit_->settings().calib, this);
   regionDialog->setWindowTitle("Region settings");
   int ret = regionDialog->exec();
 
@@ -482,7 +543,7 @@ void FormFitter::roi_settings(double roi)
     ui->plot->clear_range_selection();
 
     toggle_push(true);
-    fit_data_->override_region(roi, region);
+    fit_->override_region(roi, region);
     emit peak_selection_changed(ui->plot->get_selected_peaks());
     emit data_changed();
     emit fitting_done();
@@ -492,20 +553,17 @@ void FormFitter::roi_settings(double roi)
 
 void FormFitter::peak_info(double bin)
 {
-  if (!fit_data_)
+  if (!fit_ || !fit_->contains_peak(bin))
     return;
 
-  if (!fit_data_->contains_peak(bin))
-    return;
+  DAQuiri::Peak hm = fit_->peaks().at(bin);
 
-  DAQuiri::Peak hm = fit_data_->peaks().at(bin);
-
-  PeakDialog* peakInfo = new PeakDialog(hm, fit_data_->settings().calib, this);
-  auto nrg = fit_data_->peaks().at(bin).peak_energy(fit_data_->settings().calib.cali_nrg_);
+  PeakDialog* peakInfo = new PeakDialog(hm, fit_->settings().calib, this);
+  auto nrg = fit_->peaks().at(bin).peak_energy(fit_->settings().calib.cali_nrg_);
   peakInfo->setWindowTitle("Parameters for peak at " + QString::number(nrg.value()));
   int ret = peakInfo->exec();
 
-  if ((ret == QDialog::Accepted) && fit_data_->replace_hypermet(bin, hm))
+  if ((ret == QDialog::Accepted) && fit_->replace_hypermet(bin, hm))
   {
     updateData();
     std::set<double> selected_peaks;

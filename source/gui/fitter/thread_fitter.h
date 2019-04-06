@@ -4,17 +4,15 @@
 #include <QMutex>
 #include <core/gamma/fitter.h>
 
-enum FitterAction {kFit, kStop, kIdle, kRefit,
-                  kMergeRegions};
-
-
-enum class RefitPolicy { kAlways, kAsk, kNever };
+enum FitterAction {kFit, kStop, kIdle, kRefit};
 
 class ThreadFitter : public QThread
 {
   Q_OBJECT
 public:
   explicit ThreadFitter(QObject *parent = 0);
+
+  // \todo rename this
   void terminate();
 
   void begin();
@@ -23,14 +21,13 @@ public:
   void fit_peaks();
   void stop_work();
   void refit(double target_ROI);
-  void merge_regions(double L, double R);
 
 signals:
   void fit_updated(DAQuiri::Fitter data);
   void fitting_done();
 
 protected:
-  void run();
+  void run() Q_DECL_OVERRIDE;
 
 private:
   DAQuiri::Fitter fitter_;
@@ -40,10 +37,8 @@ private:
   QMutex mutex_;
   FitterAction action_;
 
-  double LL, RR;
   double target_;
   DAQuiri::FitSettings settings_;
-  std::set<double> chosen_peaks_;
 
   std::atomic<bool> running_;
   std::atomic<bool> terminating_;

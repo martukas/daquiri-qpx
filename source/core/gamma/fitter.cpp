@@ -177,7 +177,7 @@ Peak Fitter::peak(double peakID) const
 {
   for (auto& r : regions_)
     if (r.second.contains(peakID))
-      return r.second.peaks().at(peakID);
+      return r.second.region().peaks_.at(peakID);
   return Peak();
 }
 
@@ -210,7 +210,7 @@ std::map<double, Peak> Fitter::peaks() const
   for (auto& q : regions_)
     if (q.second.peak_count())
     {
-      std::map<double, Peak> roipeaks(q.second.peaks());
+      std::map<double, Peak> roipeaks(q.second.region().peaks_);
       peaks.insert(roipeaks.begin(), roipeaks.end());
     }
   return peaks;
@@ -332,32 +332,33 @@ bool Fitter::override_region(double regionID, const Region& new_region)
   return true;
 }
 
-bool Fitter::merge_regions(double left, double right,
-                           AbstractOptimizer* optimizer)
+double Fitter::merge_regions(double region1_id, double region2_id)
 {
-  std::set<double> rois = relevant_regions(left, right);
-  double min = std::min(left, right);
-  double max = std::max(left, right);
+  if (!regions_.count(region1_id) || !regions_.count(region2_id))
+    return -1;
 
-  for (auto& r : rois)
-  {
-    if (regions_.count(r) && (regions_.at(r).left_bin() < min))
-      min = regions_.at(r).left_bin();
-    if (regions_.count(r) && (regions_.at(r).right_bin() > max))
-      max = regions_.at(r).right_bin();
-    regions_.erase(r);
-  }
+  auto region1 = regions_[region1_id];
+  auto region2 = regions_[region2_id];
 
-  RegionManager newROI(settings_, fit_eval_, min, max);
+  RegionManager new_region(settings_, fit_eval_,
+      std::min(region1.left_bin(), region2.left_bin()),
+      std::max(region1.right_bin(), region2.right_bin()));
 
-  // \todo add old peaks?
-  newROI.find_and_fit(optimizer);
-  if (!newROI.width())
-    return false;
+  auto rr = new_region.region();
+  for (const auto& p : region1.region().peaks_)
+    rr.peaks_[p.first] = p.second;
+  for (const auto& p : region2.region().peaks_)
+    rr.peaks_[p.first] = p.second;
 
-  regions_[newROI.id()] = newROI;
+  new_region.modify_region(rr,
+      fmt::format("Merged regions id1={} and id2={}", region1_id, region2_id));
+
+  regions_.erase(region1_id);
+  regions_.erase(region2_id);
+
+  regions_[new_region.id()] = new_region;
   render_all();
-  return true;
+  return new_region.id();
 }
 
 bool Fitter::adjust_sum4(double& peak_center, double left, double right)
@@ -393,41 +394,32 @@ bool Fitter::rollback_ROI(double regionID, size_t point)
   return true;
 }
 
-double Fitter::add_peak(double left, double right)
+double Fitter::create_region(double left, double right)
 {
   if (fit_eval_.x_.empty())
     return -1;
 
-  double id = -1;
-  for (auto& q : regions_)
-  {
-    if (q.second.overlaps(left, right))
-    {
-      id = q.first;
-      break;
-    }
-  }
+  RegionManager newROI(settings_, fit_eval_, left, right);
+  regions_[newROI.id()] = newROI;
+  render_all();
+  return newROI.id();
+}
 
-  if (id != -1)
-  {
-    RegionManager newROI = regions_[id];
-    if (newROI.add_peak(fit_eval_, left, right))
-    {
-      regions_.erase(id);
-      regions_[newROI.id()] = newROI;
-      render_all();
-      return newROI.id();
-    }
-    else
-      return -1;
-  }
+double Fitter::add_peak(double regionID, double left, double right)
+{
+  if (fit_eval_.x_.empty() || !regions_.count(regionID))
+    return -1;
 
-  // \todo PRIORITY
-//  RegionManager newROI(settings_, fit_eval_, left, right);
-//  newROI.refit(optimizer);
-//  regions_[newROI.id()] = newROI;
-//  render_all();
-//  return newROI.id();
+  RegionManager newROI = regions_[regionID];
+  if (newROI.add_peak(fit_eval_, left, right))
+  {
+    regions_.erase(id);
+    regions_[newROI.id()] = newROI;
+    render_all();
+    return newROI.id();
+  }
+  else
+    return -1;
 }
 
 bool Fitter::remove_peaks(std::set<double> bins)
@@ -450,15 +442,6 @@ void Fitter::apply_settings(FitSettings settings)
 //    finder_.find_peaks();
 }
 
-//bool Fitter::override_energy(double peakID, double energy)
-//{
-//  ROI *parent = parent_of(peakID);
-//  if (!parent)
-//    return false;
-//
-//  return parent->override_energy(peakID, energy);
-//}
-
 //void Fitter::apply_energy_calibration(Calibration cal) {
 //  settings_.cali_nrg_ = cal;
 //  apply_settings(settings_);
@@ -469,25 +452,14 @@ void Fitter::apply_settings(FitSettings settings)
 //  apply_settings(settings_);
 //}
 
-std::set<double> Fitter::get_selected_peaks() const
-{
-  return selected_peaks_;
-}
-
-void Fitter::set_selected_peaks(std::set<double> selected_peaks)
-{
-  selected_peaks_ = selected_peaks;
-  filter_selection();
-}
-
-void Fitter::filter_selection()
-{
-  std::set<double> sel;
-  for (auto& p : selected_peaks_)
-    if (contains_peak(p))
-      sel.insert(p);
-  selected_peaks_ = sel;
-}
+//void Fitter::filter_selection()
+//{
+//  std::set<double> sel;
+//  for (auto& p : selected_peaks_)
+//    if (contains_peak(p))
+//      sel.insert(p);
+//  selected_peaks_ = sel;
+//}
 
 void Fitter::save_report(std::string filename)
 {
@@ -591,8 +563,6 @@ void Fitter::save_report(std::string filename)
 void to_json(json& j, const Fitter& s)
 {
   j["settings"] = s.settings_;
-  if (!s.selected_peaks_.empty())
-    j["selected_peaks"] = s.selected_peaks_;
   for (auto& r : s.regions_)
     j["regions"].push_back(r.second.to_json(s.fit_eval_));
 }
@@ -601,13 +571,6 @@ Fitter::Fitter(const json& j, ConsumerPtr spectrum)
 {
   if (!spectrum)
     return;
-
-  if (j.count("selected_peaks"))
-  {
-    auto o = j["selected_peaks"];
-    for (json::iterator it = o.begin(); it != o.end(); ++it)
-      selected_peaks_.insert(it.value().get<double>());
-  }
 
   settings_ = j["settings"];
 

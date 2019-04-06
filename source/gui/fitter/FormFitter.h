@@ -17,7 +17,9 @@ class FormFitter : public QWidget
 {
   Q_OBJECT
 
-public:
+  enum class RefitPolicy { kAlways, kAsk, kNever };
+
+ public:
   explicit FormFitter(QWidget *parent = 0);
   ~FormFitter();
 
@@ -83,11 +85,13 @@ private slots:
 private:
   Ui::FormFitter *ui;
 
-  DAQuiri::Fitter *fit_data_;
+  DAQuiri::Fitter *fit_;
 
   bool busy_ {false};
 
   ThreadFitter thread_fitter_;
 //  QMediaPlayer *player;
+
+  void merge_regions(std::set<double> rois);
 
 };

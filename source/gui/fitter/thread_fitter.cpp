@@ -82,22 +82,6 @@ void ThreadFitter::refit(double target_ROI)
     start(HighPriority);
 }
 
-void ThreadFitter::merge_regions(double L, double R)
-{
-  if (running_.load())
-  {
-    WARN("Fitter busy");
-    return;
-  }
-  QMutexLocker locker(&mutex_);
-  terminating_.store(false);
-  action_ = kMergeRegions;
-  LL = L;
-  RR = R;
-  if (!isRunning())
-    start(HighPriority);
-}
-
 void ThreadFitter::stop_work()
 {
   QMutexLocker locker(&mutex_);
@@ -143,15 +127,17 @@ void ThreadFitter::run()
     }
     else if (action_ == kRefit)
     {
-      if (fitter_.refit_region(target_, optimizer_.get()))
-          emit fit_updated(fitter_);
-      emit fitting_done();
-      action_ = kIdle;
-    }
-    else if (action_ == kMergeRegions)
-    {
-      if (fitter_.merge_regions(LL, RR, optimizer_.get()))
-          emit fit_updated(fitter_);
+      auto r = fitter_.region(target_);
+      if (r.region().peaks_.empty())
+      {
+        if (fitter_.find_and_fit(target_, optimizer_.get()))
+            emit fit_updated(fitter_);
+      }
+      else
+      {
+        if (fitter_.refit_region(target_, optimizer_.get()))
+            emit fit_updated(fitter_);
+      }
       emit fitting_done();
       action_ = kIdle;
     }

@@ -119,11 +119,6 @@ double RegionManager::id() const
   return left_bin();
 }
 
-bool RegionManager::dirty() const
-{
-  return region_.dirty();
-}
-
 double RegionManager::left_bin() const
 {
   if (fit_eval_.x_.empty())
@@ -245,14 +240,6 @@ bool RegionManager::add_from_resid(AbstractOptimizer* optimizer)
   return true;
 }
 
-//Peak ROI::peak(double peakID) const
-//{
-//  if (contains(peakID))
-//    return peaks_.at(peakID);
-//  else
-//    return Peak();
-//}
-
 bool RegionManager::overlaps(double bin) const
 {
   if (!width())
@@ -292,11 +279,6 @@ Peak RegionManager::peak(double peakID) const
     return region_.peaks_.at(peakID);
   else
     return Peak();
-}
-
-const std::map<double, Peak>& RegionManager::peaks() const
-{
-  return region_.peaks_;
 }
 
 bool RegionManager::adjust_sum4(double peakID, double left, double right)
@@ -354,13 +336,13 @@ bool RegionManager::add_peak(const FitEvaluation& parentfinder,
     if (L < region_.left())
     {
       SUM4Edge edge(fit_eval_.weighted_data.left(settings_.background_edge_samples));
-      region_.replace_data(fit_eval_.weighted_data.subset(L, region_.right()), edge, RB());
+      region_.replace_data(fit_eval_.weighted_data.subset(L, region_.right()), edge, region_.RB_);
     }
 
     if (R > region_.right())
     {
       SUM4Edge edge(fit_eval_.weighted_data.right(settings_.background_edge_samples));
-      region_.replace_data(fit_eval_.weighted_data.subset(region_.left(), R), LB(), edge);
+      region_.replace_data(fit_eval_.weighted_data.subset(region_.left(), R), region_.LB_, edge);
     }
 
     if (region_.add_peak(std::max(left, region_.left()),
@@ -468,7 +450,7 @@ bool RegionManager::adjust_LB(const FitEvaluation& parentfinder, double left, do
   {
     fit_eval_.cloneRange(parentfinder, left, right_bin());
     region_.replace_data(parentfinder.weighted_data.subset(left, right_bin()),
-                         edge, RB());
+                         edge, region_.RB_);
   }
 
   save_current_fit("Left baseline adjusted");
@@ -489,7 +471,7 @@ bool RegionManager::adjust_RB(const FitEvaluation& parentfinder, double left, do
   {
     fit_eval_.cloneRange(parentfinder, left_bin(), right);
     region_.replace_data(parentfinder.weighted_data.subset(left_bin(), right),
-                         LB(), edge);
+                         region_.LB_, edge);
   }
 
   save_current_fit("Right baseline adjusted");
@@ -511,15 +493,17 @@ std::vector<FitDescription> RegionManager::history() const
   return ret;
 }
 
-Region RegionManager::region() const
+const Region& RegionManager::region() const
 {
   return region_;
 }
 
-void RegionManager::modify_region(const Region& new_region)
+void RegionManager::modify_region(const Region& new_region, std::string message)
 {
+  if (message.empty())
+    message = "User modified region";
   region_ = new_region;
-  save_current_fit("User modified region");
+  save_current_fit(message);
   render();
 }
 
@@ -558,8 +542,8 @@ nlohmann::json RegionManager::to_json(const FitEvaluation& parent_finder) const
     if (settings_.overriden)
       jj["settings"] = settings_;
 
-    jj["background_left"] = temp.LB();
-    jj["background_right"] = temp.RB();
+    jj["background_left"] = temp.region_.LB_;
+    jj["background_right"] = temp.region_.RB_;
     jj["background_poly"] = temp.region_.background;
 
     for (auto& p : temp.region_.peaks_)

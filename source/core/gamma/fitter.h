@@ -42,22 +42,21 @@ class Fitter
 
   //manupulation, may invoke optimizer
   bool find_and_fit(double regionID, AbstractOptimizer* optimizer);
-  double add_peak(double left, double right);
-  double adj_LB(double regionID, double left, double right);
-  bool adj_RB(double regionID, double left, double right);
-  bool merge_regions(double left, double right, AbstractOptimizer* optimizer);
   bool refit_region(double regionID, AbstractOptimizer* optimizer);
+
+  //manipulation, no optimizer
+  double create_region(double left, double right);
+  double add_peak(double regionID, double left, double right);
+  double adj_LB(double regionID, double left, double right);
+  double merge_regions(double region1_id, double region2_id);
+  bool adj_RB(double regionID, double left, double right);
   bool override_region(double regionID, const Region& new_region);
   bool remove_peaks(std::set<double> peakIDs);
-  //manipulation, no optimizer
   bool adjust_sum4(double& peakID, double left, double right);
   bool replace_hypermet(double& peakID, Peak hyp);
   bool rollback_ROI(double regionID, size_t point);
   bool delete_ROI(double regionID);
   void clear_all_ROIs();
-
-  std::set<double> get_selected_peaks() const;
-  void set_selected_peaks(std::set<double> selected_peaks);
 
   //export results
   void save_report(std::string filename);
@@ -72,18 +71,13 @@ class Fitter
   ConsumerMetadata metadata_;
   Detector detector_; //need this? metadata?
 
-
  private:
   std::map<double, RegionManager> regions_;
-  std::set<double> selected_peaks_;
   FitEvaluation fit_eval_;
   FitSettings settings_;
 
   void render_all();
   RegionManager* parent_of(double peakID);
-
-  void filter_selection();
-
 };
 
 using FitterPtr = std::shared_ptr<Fitter>;

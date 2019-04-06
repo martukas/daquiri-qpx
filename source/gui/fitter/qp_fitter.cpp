@@ -437,14 +437,14 @@ void QpFitter::make_background_range(double roi, bool left)
 
   if (left)
   {
-    range_->set_bounds(fit_data_->settings().calib.bin_to_nrg(parent_region.LB().left()),
-                      fit_data_->settings().calib.bin_to_nrg(parent_region.LB().right()));
+    range_->set_bounds(fit_data_->settings().calib.bin_to_nrg(parent_region.region().LB_.left()),
+                      fit_data_->settings().calib.bin_to_nrg(parent_region.region().LB_.right()));
     range_->purpose_ = "background L commit";
   }
   else
   {
-    range_->set_bounds(fit_data_->settings().calib.bin_to_nrg(parent_region.RB().left()),
-                      fit_data_->settings().calib.bin_to_nrg(parent_region.RB().right()));
+    range_->set_bounds(fit_data_->settings().calib.bin_to_nrg(parent_region.region().RB_.left()),
+                      fit_data_->settings().calib.bin_to_nrg(parent_region.region().RB_.right()));
     range_->purpose_ = "background R commit";
   }
 
@@ -578,8 +578,8 @@ void QpFitter::plotRegion(double region_id, const DAQuiri::RegionManager &region
   addGraph(xs, region_rend.full_fit, pen_full_fit, true, "Region fit", region_id);
 
   if (region.width()) {
-    plotBackgroundEdge(region.LB(), region.finder().x_, region_id, "background L begin");
-    plotBackgroundEdge(region.RB(), region.finder().x_, region_id, "background R begin");
+    plotBackgroundEdge(region.region().LB_, region.finder().x_, region_id, "background L begin");
+    plotBackgroundEdge(region.region().RB_, region.finder().x_, region_id, "background R begin");
 
     auto yb = region_rend.sum4_background;
     addGraph(xs, yb, pen_back_sum4, true, "Background sum4", region_id);
@@ -602,7 +602,7 @@ void QpFitter::plotRegion(double region_id, const DAQuiri::RegionManager &region
     newButton->setProperty("region", QVariant::fromValue(region_id));
   }
 
-  for (auto & p : region.peaks())
+  for (auto & p : region.region().peaks_)
   {
     auto rend = region.rendering().peaks.at(p.first);
     QCPGraph* peak_graph = nullptr;
@@ -642,7 +642,7 @@ void QpFitter::plotPeak(double region_id, double peak_id, const DAQuiri::Peak &p
     double x2 = fit_data_->settings().calib.bin_to_nrg(peak.sum4.right() + 0.5);
 
     auto region = fit_data_->region(region_id);
-    auto s4b = DAQuiri::SUM4Edge::sum4_background(region.LB(), region.RB());
+    auto s4b = DAQuiri::SUM4Edge::sum4_background(region.region().LB_, region.region().RB_);
     double y1 = s4b(peak.sum4.left());
     double y2 = s4b(peak.sum4.right());
 
@@ -757,7 +757,7 @@ void QpFitter::what_is_in_range(std::set<double>& good_peak,
     if (((q.second.rendering().energy.back() - q.second.rendering().energy.front()) / (xmax - xmin)) > 0.3)
       prime_roi.insert(q.first);
 
-    for (auto &p : q.second.peaks())
+    for (auto &p : q.second.region().peaks_)
     {
       double nrg = p.second.peak_energy(fit_data_->settings().calib.cali_nrg_).value();
       if ((nrg >= xmin) && (nrg <= xmax))
@@ -897,7 +897,7 @@ bool QpFitter::only_one_region_selected()
 
   double selected_region = -1;
   for (auto r : fit_data_->regions())
-    for (auto p : r.second.peaks())
+    for (auto p : r.second.region().peaks_)
       if (selected_peaks_.count(p.first))
       {
         if (selected_region == -1)
