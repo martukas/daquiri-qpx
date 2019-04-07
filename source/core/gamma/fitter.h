@@ -39,21 +39,23 @@ class Fitter
   const std::map<double, RegionManager>& regions() const;
   RegionManager parent_region(double peakID) const;
   std::set<double> relevant_regions(double left, double right);
+  void reindex_regions();
 
   //manupulation, may invoke optimizer
   bool find_and_fit(double regionID, AbstractOptimizer* optimizer);
   bool refit_region(double regionID, AbstractOptimizer* optimizer);
 
   //manipulation, no optimizer
-  double create_region(double left, double right);
-  double add_peak(double regionID, double left, double right);
-  double adj_LB(double regionID, double left, double right);
-  double merge_regions(double region1_id, double region2_id);
-  bool adj_RB(double regionID, double left, double right);
-  bool override_region(double regionID, const Region& new_region);
-  bool remove_peaks(std::set<double> peakIDs);
   bool adjust_sum4(double& peakID, double left, double right);
   bool replace_hypermet(double& peakID, Peak hyp);
+  bool remove_peaks(std::set<double> peakIDs);
+  double adj_LB(double regionID, double left, double right);
+  bool adj_RB(double regionID, double left, double right);
+
+  double create_region(double left, double right);
+  double add_peak(double regionID, double left, double right);
+  double merge_regions(double region1_id, double region2_id);
+  bool override_region(double regionID, const Region& new_region);
   bool rollback_ROI(double regionID, size_t point);
   bool delete_ROI(double regionID);
   void clear_all_ROIs();
@@ -78,6 +80,7 @@ class Fitter
 
   void render_all();
   RegionManager* parent_of(double peakID);
+  void guess_peaks(RegionManager& r);
 };
 
 using FitterPtr = std::shared_ptr<Fitter>;

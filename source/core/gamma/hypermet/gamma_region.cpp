@@ -41,7 +41,7 @@ void Region::replace_data(const WeightedData& new_data, const SUM4Edge& lb, cons
   if (!new_data.valid())
     throw std::runtime_error("Attempting to construct Region from invalid sample");
 
-  if ((lb.left() < new_data.chan.front()) || (new_data.chan.back() < rb.right()))
+  if ((lb.left() != new_data.chan.front()) || (new_data.chan.back() != rb.right()))
     throw std::runtime_error("Sum4 edges outside of region");
 
   // \todo only if edge values changed
@@ -51,26 +51,6 @@ void Region::replace_data(const WeightedData& new_data, const SUM4Edge& lb, cons
 
   init_background();
   cull_peaks();
-}
-
-void Region::adjust_LB(const SUM4Edge& lb)
-{
-  if ((lb.left() < left()) || (lb.right() > right()))
-    return;
-
-  // \todo only if edge values changed
-  LB_ = lb;
-  init_background();
-}
-
-void Region::adjust_RB(const SUM4Edge& rb)
-{
-  if ((rb.left() < left()) || (rb.right() > right()))
-    return;
-
-  // \todo only if edge values changed
-  RB_ = rb;
-  init_background();
 }
 
 double Region::left() const
@@ -85,6 +65,35 @@ double Region::right() const
   if (data.valid())
     return data.chan.back();
   return std::numeric_limits<double>::quiet_NaN();
+}
+
+double Region::width() const
+{
+  if (data.valid())
+    return right() - left() + 1;
+  return 0.;
+}
+
+bool Region::overlaps(double bin) const
+{
+  if (!data.valid())
+    return false;
+  return ((left() <= bin) && (bin <= right()));
+}
+
+bool Region::overlaps(double Lbin, double Rbin) const
+{
+  if (!data.valid())
+    return false;
+  if (overlaps(Lbin) || overlaps(Rbin))
+    return true;
+  return ((Lbin <= left()) && (right() <= Rbin));
+}
+
+bool Region::overlaps(const Region& other) const
+{
+  return (other.data.valid() &&
+      overlaps(other.left(), other.right()));
 }
 
 bool Region::empty() const
@@ -147,7 +156,7 @@ void Region::auto_sum4()
       continue;
     // \todo use const from settings?
     // \todo do we really need to multiply with sqrt(log(2))?
-    double edge = p.second.fwhm().value() * sqrt(log(2)) * 3;
+    double edge = p.second.fwhm().value() * 2.5;
     double left = p.second.peak_position().value() - edge;
     double right = p.second.peak_position().value() + edge;
     adjust_sum4(p.second.id(), left, right);

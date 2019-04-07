@@ -143,7 +143,7 @@ void ThreadFitter::run()
     }
     else
     {
-      QThread::sleep(2);
+      QThread::msleep(100);
     }
     running_.store(false);
   }

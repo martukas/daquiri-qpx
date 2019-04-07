@@ -577,7 +577,7 @@ void QpFitter::plotRegion(double region_id, const DAQuiri::RegionManager &region
   //    trim_log_lower(yy);
   addGraph(xs, region_rend.full_fit, pen_full_fit, true, "Region fit", region_id);
 
-  if (region.width()) {
+  if (region.region().width()) {
     plotBackgroundEdge(region.region().LB_, region.finder().x_, region_id, "background L begin");
     plotBackgroundEdge(region.region().RB_, region.finder().x_, region_id, "background R begin");
 

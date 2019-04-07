@@ -150,11 +150,15 @@ void Fitter::find_regions()
   for (const auto& r : new_regions)
   {
     RegionManager newROI(settings_, fit_eval_, r.left, r.right);
-    if (newROI.width())
+    if (newROI.region().width())
+    {
+      guess_peaks(newROI);
       regions_[newROI.id()] = newROI;
+    }
   }
 //  DBG << "<Fitter> Created " << regions_.size() << " regions";
 
+  render_all();
 }
 
 size_t Fitter::peak_count() const
@@ -222,9 +226,17 @@ std::set<double> Fitter::relevant_regions(double left, double right)
   auto R = std::max(left, right);
   std::set<double> ret;
   for (auto& r : regions_)
-    if (r.second.overlaps (L, R))
+    if (r.second.region().overlaps (L, R))
       ret.insert(r.second.id());
   return ret;
+}
+
+void Fitter::reindex_regions()
+{
+  std::map<double, RegionManager> new_map;
+  for (auto& p : regions_)
+    new_map[p.second.id()] = p.second;
+  regions_ = new_map;
 }
 
 bool Fitter::delete_ROI(double regionID)
@@ -276,7 +288,7 @@ bool Fitter::find_and_fit(double regionID, AbstractOptimizer* optimizer)
   if (!regions_.count(regionID))
     return false;
 
-  regions_[regionID].find_and_fit(optimizer);
+  regions_[regionID].refit(optimizer);
   render_all();
   return true;
 }
@@ -287,34 +299,6 @@ bool Fitter::refit_region(double regionID, AbstractOptimizer* optimizer)
     return false;
 
   regions_[regionID].refit(optimizer);
-  render_all();
-  return true;
-}
-
-double Fitter::adj_LB(double regionID, double left, double right)
-{
-  if (!contains_region(regionID))
-    return -1;
-
-  RegionManager newROI = regions_[regionID];
-  if (!newROI.adjust_LB(fit_eval_, left, right))
-    return -1;
-  regions_.erase(regionID);
-  regions_[newROI.id()] = newROI;
-  render_all();
-  return newROI.id();
-}
-
-bool Fitter::adj_RB(double regionID, double left, double right)
-{
-  if (!contains_region(regionID))
-    return false;
-
-  RegionManager newROI = regions_[regionID];
-  if (!newROI.adjust_RB(fit_eval_, left, right))
-    return false;
-  regions_.erase(regionID);
-  regions_[newROI.id()] = newROI;
   render_all();
   return true;
 }
@@ -341,8 +325,8 @@ double Fitter::merge_regions(double region1_id, double region2_id)
   auto region2 = regions_[region2_id];
 
   RegionManager new_region(settings_, fit_eval_,
-      std::min(region1.left_bin(), region2.left_bin()),
-      std::max(region1.right_bin(), region2.right_bin()));
+      std::min(region1.region().left(), region2.region().left()),
+      std::max(region1.region().right(), region2.region().right()));
 
   auto rr = new_region.region();
   for (const auto& p : region1.region().peaks_)
@@ -367,7 +351,12 @@ bool Fitter::adjust_sum4(double& peak_center, double left, double right)
   if (!parent)
     return false;
 
-  return parent->adjust_sum4(peak_center, left, right);
+  auto r = parent->region();
+  if (!r.adjust_sum4(peak_center, left, right))
+    return false;
+
+  parent->modify_region(r, "SUM4 adjusted on " + std::to_string(peak_center));
+  return true;
 }
 
 bool Fitter::replace_hypermet(double& peak_center, Peak hyp)
@@ -376,8 +365,66 @@ bool Fitter::replace_hypermet(double& peak_center, Peak hyp)
   if (!parent)
     return false;
 
-  if (!parent->replace_hypermet(peak_center, hyp))
+  auto r = parent->region();
+  if (!r.replace_hypermet(peak_center, hyp))
     return false;
+
+  parent->modify_region(r, "Hypermet adjusted on " + std::to_string(peak_center));
+  render_all();
+  return true;
+}
+
+bool Fitter::remove_peaks(std::set<double> bins)
+{
+  bool changed = false;
+  for (auto& m : regions_)
+  {
+    auto r = m.second.region();
+    if (!r.remove_peaks(bins))
+      continue;
+    m.second.modify_region(r, "Peaks removed");
+    changed = true;
+  }
+  if (changed)
+    render_all();
+
+  // \todo return affected regions
+
+  return changed;
+}
+
+double Fitter::adj_LB(double regionID, double left, double right)
+{
+  if (!contains_region(regionID))
+    return -1;
+
+  RegionManager& r = regions_[regionID];
+  Region rr = r.region();
+
+  SUM4Edge LB(fit_eval_.weighted_data.subset(left, right));
+
+  rr.replace_data(fit_eval_.weighted_data.subset(left, rr.right()), LB, rr.RB_);
+
+  r.modify_region(rr, "Left baseline adjusted");
+  reindex_regions();
+  render_all();
+  return r.id();
+}
+
+bool Fitter::adj_RB(double regionID, double left, double right)
+{
+  if (!contains_region(regionID))
+    return false;
+
+  RegionManager& r = regions_[regionID];
+  Region rr = r.region();
+
+  SUM4Edge RB(fit_eval_.weighted_data.subset(left, right));
+
+  rr.replace_data(fit_eval_.weighted_data.subset(rr.left(), right), rr.LB_, RB);
+
+  r.modify_region(rr, "Right baseline adjusted");
+  reindex_regions();
   render_all();
   return true;
 }
@@ -400,6 +447,7 @@ double Fitter::create_region(double left, double right)
     return -1;
 
   RegionManager newROI(settings_, fit_eval_, left, right);
+  guess_peaks(newROI);
   regions_[newROI.id()] = newROI;
   render_all();
   return newROI.id();
@@ -410,27 +458,59 @@ double Fitter::add_peak(double regionID, double left, double right)
   if (fit_eval_.x_.empty() || !regions_.count(regionID))
     return -1;
 
-  RegionManager newROI = regions_[regionID];
-  if (newROI.add_peak(fit_eval_, left, right))
+  RegionManager& r = regions_[regionID];
+  Region rr = r.region();
+
+  if ((left < rr.left()) || (rr.right() < right))
   {
-    regions_.erase(id);
-    regions_[newROI.id()] = newROI;
+    double L = std::min(left, rr.left());
+    double R = std::max(right, rr.right());
+    auto sub_data = fit_eval_.weighted_data.subset(L, R);
+    auto LB = rr.LB_;
+    if (L < LB.left())
+      LB = SUM4Edge(sub_data.left(LB.width()));
+    auto RB = rr.RB_;
+    if (R > rr.right())
+      RB = SUM4Edge(sub_data.right(RB.width()));
+    rr.replace_data(sub_data, LB, RB);
+    r.modify_region(rr, "Implicitly expanded region for adding peak");
+    reindex_regions();
     render_all();
-    return newROI.id();
   }
-  else
-    return -1;
+
+  NaiveKON kon(r.finder().x_, r.finder().y_resid_,
+               settings_.kon_settings.width,
+               settings_.kon_settings.sigma_resid);
+  if (rr.add_peak(left, right, kon.highest_residual(left, right)))
+  {
+    r.modify_region(rr, "Added peak");
+    reindex_regions();
+    render_all();
+  }
+
+  return r.id();
 }
 
-bool Fitter::remove_peaks(std::set<double> bins)
+void Fitter::guess_peaks(RegionManager& r)
 {
-  bool changed = false;
-  for (auto& m : regions_)
-    if (m.second.remove_peaks(bins))
-      changed = true;
-  if (changed)
-    render_all();
-  return changed;
+  Region rr = r.region();
+
+  auto f = r.finder();
+  f.reset();
+  NaiveKON kon(f.x_, f.y_,
+               settings_.kon_settings.width,
+               settings_.kon_settings.sigma_spectrum);
+
+  if (!kon.filtered.empty())
+  {
+    for (const auto& p : kon.filtered)
+    {
+      double height = kon.highest_residual(p.left, p.right);
+      height -= rr.background.eval(0.5 * (p.left + p.right));
+      rr.add_peak(p.left, p.right, height);
+    }
+    r.modify_region(rr, "Initial guess");
+  }
 }
 
 void Fitter::apply_settings(FitSettings settings)
@@ -582,7 +662,7 @@ Fitter::Fitter(const json& j, ConsumerPtr spectrum)
     for (json::iterator it = o.begin(); it != o.end(); ++it)
     {
       RegionManager region(it.value(), fit_eval_, settings_);
-      if (region.width())
+      if (region.region().width())
         regions_[region.id()] = region;
     }
   }

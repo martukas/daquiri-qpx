@@ -114,35 +114,6 @@ RegionManager::RegionManager(const FitSettings& fs,
   save_current_fit("Region created");
 }
 
-double RegionManager::id() const
-{
-  return left_bin();
-}
-
-double RegionManager::left_bin() const
-{
-  if (fit_eval_.x_.empty())
-    return -1;
-  else
-    return fit_eval_.x_.front();
-}
-
-double RegionManager::right_bin() const
-{
-  if (fit_eval_.x_.empty())
-    return -1;
-  else
-    return fit_eval_.x_.back();
-}
-
-double RegionManager::width() const
-{
-  if (fit_eval_.x_.empty())
-    return 0;
-  else
-    return right_bin() - left_bin() + 1;
-}
-
 void RegionManager::set_data(const FitEvaluation& parentfinder, double l, double r)
 {
   fit_eval_.cloneRange(parentfinder, l, r);
@@ -150,117 +121,9 @@ void RegionManager::set_data(const FitEvaluation& parentfinder, double l, double
   render();
 }
 
-bool RegionManager::refit(AbstractOptimizer* optimizer)
+double RegionManager::id() const
 {
-  if (region_.peaks_.empty())
-    return find_and_fit(optimizer);
-  else
-    return rebuild(optimizer);
-}
-
-bool RegionManager::find_and_fit(AbstractOptimizer* optimizer)
-{
-  fit_eval_.reset();
-  NaiveKON kon(fit_eval_.x_, fit_eval_.y_,
-               settings_.kon_settings.width,
-               settings_.kon_settings.sigma_spectrum);
-  region_ = Region(fit_eval_.weighted_data, settings_.background_edge_samples);
-
-  if (kon.filtered.empty())
-  {
-    render();
-    return false;
-  }
-
-  //std::vector<double> y_nobkg = remove_background();
-
-  for (const auto& p : kon.filtered)
-  {
-    double height = kon.highest_residual(p.left, p.right);
-    height -= region_.background.eval(0.5 * (p.left + p.right));
-    region_.add_peak(p.left, p.right, height);
-  }
-  save_current_fit("Autofind");
-
-  if (!rebuild(optimizer))
-  {
-    render();
-    return false;
-  }
-
-  if (settings_.resid_auto)
-    iterative_fit(optimizer);
-
-  return true;
-}
-
-void RegionManager::iterative_fit(AbstractOptimizer* optimizer)
-{
-  if (!settings_.calib.cali_fwhm_.valid() || region_.peaks_.empty())
-    return;
-
-  //double prev_chi_sq = peaks_.begin()->second.hypermet().chi2();
-
-  for (int i = 0; i < settings_.resid_max_iterations; ++i)
-  {
-    DBG("Attempting add from resid with {} peaks", region_.peaks_.size());
-
-    if (!add_from_resid(optimizer))
-    {
-      //      DBG << "    failed add from resid";
-      break;
-    }
-
-//    if (optimizer.cancel.load())
-//      break;
-  }
-}
-
-bool RegionManager::add_from_resid(AbstractOptimizer* optimizer)
-{
-  if (fit_eval_.empty())
-    return false;
-
-  NaiveKON kon(fit_eval_.x_, fit_eval_.y_resid_,
-               settings_.kon_settings.width,
-               settings_.kon_settings.sigma_resid);
-
-  DetectedPeak target_peak = kon.tallest_detected();
-
-  if (target_peak.highest_y == 0.0)
-    return false;
-
-  if (!region_.add_peak(target_peak.left, target_peak.right, target_peak.highest_y))
-    return false;
-
-  save_current_fit("Added peak from residuals");
-
-  if (region_.dirty())
-    rebuild(optimizer);
-  return true;
-}
-
-bool RegionManager::overlaps(double bin) const
-{
-  if (!width())
-    return false;
-  return ((left_bin() <= bin) && (bin <= right_bin()));
-}
-
-bool RegionManager::overlaps(double Lbin, double Rbin) const
-{
-  if (fit_eval_.x_.empty())
-    return false;
-  if (overlaps(Lbin) || overlaps(Rbin))
-    return true;
-  return ((Lbin <= left_bin()) && (right_bin() <= Rbin));
-}
-
-bool RegionManager::overlaps(const RegionManager& other) const
-{
-  if (other.width() <= 0)
-    return false;
-  return overlaps(other.left_bin(), other.right_bin());
+  return region_.left();
 }
 
 size_t RegionManager::peak_count() const
@@ -281,94 +144,48 @@ Peak RegionManager::peak(double peakID) const
     return Peak();
 }
 
-bool RegionManager::adjust_sum4(double peakID, double left, double right)
+
+const Region& RegionManager::region() const
 {
-  if (region_.adjust_sum4(peakID, left, right))
-  {
-    render();
-    save_current_fit("SUM4 adjusted on " + std::to_string(peakID));
-    return true;
-  }
-  return false;
+  return region_;
 }
 
-bool RegionManager::replace_hypermet(double& peakID, Peak hyp)
+void RegionManager::modify_region(const Region& new_region, std::string message)
 {
-  if (region_.replace_hypermet(peakID, hyp))
-  {
-    peakID = hyp.id();
-    render();
-    save_current_fit("Hypermet adjusted on " + std::to_string(hyp.id()));
-    return true;
-  }
-  return false;
+  if (message.empty())
+    message = "User modified region";
+  region_ = new_region;
+  render();
+  save_current_fit(message);
 }
 
-bool RegionManager::add_peak(const FitEvaluation& parentfinder,
-                             double left, double right)
+size_t RegionManager::current_fit() const
 {
-  bool added = false;
-  if (overlaps(left) && overlaps(right))
-  {
-    NaiveKON kon(fit_eval_.x_, fit_eval_.y_resid_,
-                 settings_.kon_settings.width,
-                 settings_.kon_settings.sigma_resid);
-
-    if (region_.add_peak(left, right, kon.highest_residual(left, right)))
-    {
-      save_current_fit("Manually added peak");
-      render();
-      return true;
-    }
-  }
-  else if (width()) //changing region bounds
-  {
-    double L = std::min(left, left_bin());
-    double R = std::max(right, right_bin());
-    fit_eval_.cloneRange(parentfinder, L, R);
-    render();
-    save_current_fit("Implicitly expanded region");
-
-    NaiveKON kon(fit_eval_.x_, fit_eval_.y_resid_,
-                 settings_.kon_settings.width,
-                 settings_.kon_settings.sigma_resid);
-
-    if (L < region_.left())
-    {
-      SUM4Edge edge(fit_eval_.weighted_data.left(settings_.background_edge_samples));
-      region_.replace_data(fit_eval_.weighted_data.subset(L, region_.right()), edge, region_.RB_);
-    }
-
-    if (R > region_.right())
-    {
-      SUM4Edge edge(fit_eval_.weighted_data.right(settings_.background_edge_samples));
-      region_.replace_data(fit_eval_.weighted_data.subset(region_.left(), R), region_.LB_, edge);
-    }
-
-    if (region_.add_peak(std::max(left, region_.left()),
-                         std::min(right, region_.right()),
-                         kon.highest_residual(left, right)))
-    {
-      save_current_fit("Manually added peak");
-      render();
-      return true;
-    }
-  }
-
-  return false;
+  return current_fit_;
 }
 
-bool RegionManager::remove_peaks(const std::set<double>& pks)
+std::vector<FitDescription> RegionManager::history() const
 {
-  bool found = region_.remove_peaks(pks);
+  std::vector<FitDescription> ret;
+  for (auto& f : fits_)
+    ret.push_back(f.description);
+  return ret;
+}
 
-  if (!found)
+bool RegionManager::rollback(size_t i)
+{
+  if (i >= fits_.size())
     return false;
 
-  save_current_fit("Peaks removed");
+  //settings_ = fits_[i].settings_;
+  current_fit_ = i;
+  region_ = fits_[current_fit_].region;
+  // \todo reapply spectrum data
   render();
+
   return true;
 }
+
 
 void RegionManager::save_current_fit(std::string description)
 {
@@ -377,7 +194,7 @@ void RegionManager::save_current_fit(std::string description)
   current_fit_ = fits_.size() - 1;
 }
 
-bool RegionManager::rebuild(AbstractOptimizer* optimizer)
+bool RegionManager::refit(AbstractOptimizer* optimizer)
 {
   // \todo check for convergence before saving?
   if (region_.peaks_.empty())
@@ -414,13 +231,13 @@ void RegionManager::render()
   rendering_.render(region_, settings_.calib.cali_nrg_);
 
   std::vector<double> lowres_backsteps, lowres_fullfit;
-  region_.background.eval_add(fit_eval_.x_, lowres_backsteps);
-  region_.background.eval_add(fit_eval_.x_, lowres_fullfit);
+  region_.background.eval_add(region_.data.chan, lowres_backsteps);
+  region_.background.eval_add(region_.data.chan, lowres_fullfit);
   for (auto& p : region_.peaks_)
   {
-    for (size_t i = 0; i < fit_eval_.x_.size(); ++i)
+    for (size_t i = 0; i < region_.data.chan.size(); ++i)
     {
-      auto vals = p.second.eval(fit_eval_.x_[i]);
+      auto vals = p.second.eval(region_.data.chan[i]);
       lowres_backsteps[i] += vals.step_tail();
       lowres_fullfit[i] += vals.all();
     }
@@ -429,97 +246,53 @@ void RegionManager::render()
   fit_eval_.update_fit(lowres_fullfit, lowres_backsteps);
 }
 
-// \todo belongs in another class?
-std::vector<double> RegionManager::remove_background()
-{
-  std::vector<double> y_nobkg(fit_eval_.x_.size());
-  for (size_t i = 0; i < fit_eval_.y_.size(); ++i)
-    y_nobkg[i] = fit_eval_.y_[i] - region_.background.eval(fit_eval_.x_[i]);
-  return y_nobkg;
-}
 
-bool RegionManager::adjust_LB(const FitEvaluation& parentfinder, double left, double right)
-{
-  SUM4Edge edge(parentfinder.weighted_data.subset(left, right));
-  if (!edge.width() || (edge.right() >= region_.RB_.left()))
-    return false;
-
-  if (edge.left() == left_bin())
-    region_.adjust_LB(edge);
-  else
-  {
-    fit_eval_.cloneRange(parentfinder, left, right_bin());
-    region_.replace_data(parentfinder.weighted_data.subset(left, right_bin()),
-                         edge, region_.RB_);
-  }
-
-  save_current_fit("Left baseline adjusted");
-
-  render();
-  return true;
-}
-
-bool RegionManager::adjust_RB(const FitEvaluation& parentfinder, double left, double right)
-{
-  SUM4Edge edge(parentfinder.weighted_data.subset(left, right));
-  if (!edge.width() || (edge.left() <= region_.LB_.right()))
-    return false;
-
-  if (edge.right() == right_bin())
-    region_.adjust_RB(edge);
-  else
-  {
-    fit_eval_.cloneRange(parentfinder, left_bin(), right);
-    region_.replace_data(parentfinder.weighted_data.subset(left_bin(), right),
-                         region_.LB_, edge);
-  }
-
-  save_current_fit("Right baseline adjusted");
-
-  render();
-  return true;
-}
-
-size_t RegionManager::current_fit() const
-{
-  return current_fit_;
-}
-
-std::vector<FitDescription> RegionManager::history() const
-{
-  std::vector<FitDescription> ret;
-  for (auto& f : fits_)
-    ret.push_back(f.description);
-  return ret;
-}
-
-const Region& RegionManager::region() const
-{
-  return region_;
-}
-
-void RegionManager::modify_region(const Region& new_region, std::string message)
-{
-  if (message.empty())
-    message = "User modified region";
-  region_ = new_region;
-  save_current_fit(message);
-  render();
-}
-
-bool RegionManager::rollback(size_t i)
-{
-  if (i >= fits_.size())
-    return false;
-
-  //settings_ = fits_[i].settings_;
-  current_fit_ = i;
-  region_ = fits_[current_fit_].region;
-  // \todo reapply spectrum data
-  render();
-
-  return true;
-}
+//bool RegionManager::add_from_resid(AbstractOptimizer* optimizer)
+//{
+//  if (fit_eval_.empty())
+//    return false;
+//
+//  NaiveKON kon(fit_eval_.x_, fit_eval_.y_resid_,
+//               settings_.kon_settings.width,
+//               settings_.kon_settings.sigma_resid);
+//
+//  DetectedPeak target_peak = kon.tallest_detected();
+//
+//  if (target_peak.highest_y == 0.0)
+//    return false;
+//
+//  if (!region_.add_peak(target_peak.left, target_peak.right, target_peak.highest_y))
+//    return false;
+//
+//  save_current_fit("Added peak from residuals");
+//
+//  if (region_.dirty())
+//    rebuild(optimizer);
+//  return true;
+//}
+//
+//
+//void RegionManager::iterative_fit(AbstractOptimizer* optimizer)
+//{
+//  if (!settings_.calib.cali_fwhm_.valid() || region_.peaks_.empty())
+//    return;
+//
+//  //double prev_chi_sq = peaks_.begin()->second.hypermet().chi2();
+//
+//  for (int i = 0; i < settings_.resid_max_iterations; ++i)
+//  {
+//    DBG("Attempting add from resid with {} peaks", region_.peaks_.size());
+//
+//    if (!add_from_resid(optimizer))
+//    {
+//      //      DBG << "    failed add from resid";
+//      break;
+//    }
+//
+//    if (optimizer.cancel.load())
+//      break;
+//  }
+//}
 
 nlohmann::json RegionManager::to_json(const FitEvaluation& parent_finder) const
 {

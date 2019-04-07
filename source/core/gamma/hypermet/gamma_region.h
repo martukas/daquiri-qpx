@@ -38,11 +38,15 @@ class Region : public DataModel
   void replace_data(const WeightedData& data, const SUM4Edge& lb, const SUM4Edge& rb);
   void replace_data(const WeightedData& data, uint16_t left_samples, uint16_t right_samples);
   void replace_data(const WeightedData& data);
-  void adjust_LB(const SUM4Edge& lb);
-  void adjust_RB(const SUM4Edge& rb);
 
+  // bounds
   double left() const;
   double right() const;
+  double width() const;
+  bool overlaps(double bin) const;
+  bool overlaps(double Lbin, double Rbin) const;
+  bool overlaps(const Region& other) const;
+
   bool empty() const;
   bool dirty() const;
 

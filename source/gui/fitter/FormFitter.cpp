@@ -278,7 +278,7 @@ void FormFitter::adjust_background_L(double ROI_id, double l, double r)
 
   std::set<double> rois = fit_->relevant_regions(
       fit_->settings().calib.nrg_to_bin(l),
-      fit_->region(ROI_id).right_bin());
+      fit_->region(ROI_id).region().right());
 
   if (!rois.count(ROI_id))
   {
@@ -319,7 +319,7 @@ void FormFitter::adjust_background_R(double ROI_id, double l, double r)
   }
 
   std::set<double> rois = fit_->relevant_regions(
-      fit_->region(ROI_id).left_bin(),
+      fit_->region(ROI_id).region().left(),
       fit_->settings().calib.nrg_to_bin(r));
 
   if (!rois.count(ROI_id))
@@ -360,13 +360,13 @@ void FormFitter::merge_regions(std::set<double> rois)
 
     std::string r1str =
         fmt::format("[{}, {}]",
-                    fit_->settings().calib.nrg_to_bin(region1.left_bin()),
-                    fit_->settings().calib.nrg_to_bin(region1.right_bin()));
+                    fit_->settings().calib.nrg_to_bin(region1.region().left()),
+                    fit_->settings().calib.nrg_to_bin(region1.region().right()));
 
     std::string r2str =
         fmt::format("[{}, {}]",
-                    fit_->settings().calib.nrg_to_bin(region2.left_bin()),
-                    fit_->settings().calib.nrg_to_bin(region2.right_bin()));
+                    fit_->settings().calib.nrg_to_bin(region2.region().left()),
+                    fit_->settings().calib.nrg_to_bin(region2.region().right()));
 
     std::string message = fmt::format("Merge regions {} and {} ?", r1str, r2str);
 

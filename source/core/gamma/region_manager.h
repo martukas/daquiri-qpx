@@ -61,44 +61,27 @@ class RegionManager {
   RegionManager(const nlohmann::json& j, const FitEvaluation &finder, const FitSettings& fs);
   RegionManager(const FitSettings& fs, const FitEvaluation &parentfinder, double min, double max);
 
-  //bounds
   double id() const;
-  double left_bin() const;
-  double right_bin() const;
-  double width() const;
-
-  const Region& region() const;
-  void modify_region(const Region& new_region, std::string message = "");
-
-  bool overlaps(double bin) const;
-  bool overlaps(double Lbin, double Rbin) const;
-  bool overlaps(const RegionManager& other) const;
 
   //access peaks
   size_t peak_count() const;
   bool contains(double peakID) const;
   Peak peak(double peakID) const;
 
-  //access other
-  FitSettings fit_settings() const { return settings_; }
-  const FitEvaluation &finder() const { return fit_eval_; }
-  const RegionRendering &rendering() const { return rendering_; }
-
+  // current state
+  const Region& region() const;
+  void modify_region(const Region& new_region, std::string message = "");
   //access history
   size_t current_fit() const;
   std::vector<FitDescription> history() const;
   bool rollback(size_t i);
 
-  //manipulation, no optimizer
-  bool adjust_sum4(double peakID, double left, double right);
-  bool replace_hypermet(double &peakID, Peak hyp);
-  bool adjust_LB(const FitEvaluation &parentfinder, double left, double right);
-  bool adjust_RB(const FitEvaluation &parentfinder, double left, double right);
-  bool add_peak(const FitEvaluation &parentfinder, double left, double right);
-  bool remove_peaks(const std::set<double> &pks);
+  //access other
+  FitSettings fit_settings() const { return settings_; }
+  const FitEvaluation &finder() const { return fit_eval_; }
+  const RegionRendering &rendering() const { return rendering_; }
 
   //manupulation, may invoke optimizer
-  bool find_and_fit(AbstractOptimizer* optimizer);
   bool refit(AbstractOptimizer* optimizer);
 
   nlohmann::json to_json(const FitEvaluation &parent_finder) const;
@@ -117,11 +100,8 @@ private:
 
   void set_data(const FitEvaluation &parentfinder, double min, double max);
 
-  std::vector<double> remove_background();
-
-  bool add_from_resid(AbstractOptimizer* optimizer);
-  bool rebuild(AbstractOptimizer* optimizer);
-  void iterative_fit(AbstractOptimizer* optimizer);
+//  bool add_from_resid(AbstractOptimizer* optimizer);
+//  void iterative_fit(AbstractOptimizer* optimizer);
 
   void render();
   void save_current_fit(std::string description);

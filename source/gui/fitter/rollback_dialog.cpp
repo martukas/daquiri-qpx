@@ -72,7 +72,8 @@ RollbackDialog::RollbackDialog(DAQuiri::RegionManager roi, QWidget *parent) :
 
   label = new QLabel();
   label->setText(
-      QString::fromStdString("<b>History for region at chan=" + std::to_string(roi_.left_bin()) + "</b>"));
+      QString::fromStdString("<b>History for region at chan=" +
+      std::to_string(roi_.region().left()) + "</b>"));
 
   line = new QFrame();
   line->setFrameShape(QFrame::HLine);
