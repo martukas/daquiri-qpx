@@ -27,98 +27,9 @@ Fit::Fit(const Region& r, std::string descr)
   }
 }
 
-void PeakRendering::clear()
+RegionManager::RegionManager(const Region& initial_region)
 {
-  peak.clear();
-  full_fit.clear();
-}
-
-void PeakRendering::render(const Peak& /*h*/)
-{
-
-}
-
-void RegionRendering::reserve(size_t count)
-{
-  channel.assign(count, 0.0);
-  energy.assign(count, 0.0);
-  background.assign(count, 0.0);
-  back_steps.assign(count, 0.0);
-  full_fit.assign(count, 0.0);
-  sum4_background.assign(count, 0.0);
-}
-
-void RegionRendering::clear()
-{
-  channel.clear();
-  energy.clear();
-  background.clear();
-  back_steps.clear();
-  full_fit.clear();
-  sum4_background.clear();
-  peaks.clear();
-}
-
-void RegionRendering::render(const Region& r,
-                             const Calibration& energy_calib)
-{
-  auto sum4back = SUM4Edge::sum4_background(r.LB_, r.RB_);
-
-  clear();
-
-  double start = r.left();
-  double end = r.right();
-
-  auto count = static_cast<size_t>(std::ceil((end - start) * subdivisions));
-  double step = 1.0 / static_cast<double>(subdivisions);
-
-  reserve(count);
-
-  for (size_t i = 0; i < count; ++i)
-  {
-    double x = start + static_cast<double>(i) * step;
-    channel[i] = x;
-    energy[i] = energy_calib.transform(x);
-    full_fit[i] = back_steps[i] = background[i] = r.background.eval(x);
-    for (auto& p : r.peaks_)
-    {
-      auto vals = p.second.eval(x);
-      back_steps[i] += vals.step_tail();
-      full_fit[i] += vals.all();
-    }
-    sum4_background[i] = sum4back(x);
-  }
-
-  for (auto& p : r.peaks_)
-  {
-    auto& peak = peaks[p.first];
-    const auto& hyp = p.second;
-    peak.full_fit = back_steps;
-    peak.peak.assign(count, 0.0);
-    for (size_t i = 0; i < channel.size(); ++i)
-    {
-      auto vals = hyp.eval(channel[i]);
-      peak.peak[i] += vals.peak_skews();
-      peak.full_fit[i] += vals.peak_skews();
-    }
-  }
-}
-
-RegionManager::RegionManager(const FitSettings& fs,
-                             const FitEvaluation& parentfinder, double min, double max)
-    : settings_(fs)
-{
-  settings_ = fs;
-  region_.default_peak_ = settings_.default_peak;
-  set_data(parentfinder, min, max);
-  save_current_fit("Region created");
-}
-
-void RegionManager::set_data(const FitEvaluation& parentfinder, double l, double r)
-{
-  fit_eval_.cloneRange(parentfinder, l, r);
-  region_ = Region(fit_eval_.weighted_data, settings_.background_edge_samples);
-  render();
+  modify_region(initial_region, "Region created");
 }
 
 double RegionManager::id() const
@@ -155,7 +66,6 @@ void RegionManager::modify_region(const Region& new_region, std::string message)
   if (message.empty())
     message = "User modified region";
   region_ = new_region;
-  render();
   save_current_fit(message);
 }
 
@@ -177,12 +87,9 @@ bool RegionManager::rollback(size_t i)
   if (i >= fits_.size())
     return false;
 
-  //settings_ = fits_[i].settings_;
   current_fit_ = i;
   region_ = fits_[current_fit_].region;
   // \todo reapply spectrum data
-  render();
-
   return true;
 }
 
@@ -222,13 +129,12 @@ bool RegionManager::refit(AbstractOptimizer* optimizer)
   save_current_fit("Refit");
   INFO("Rebuilt as\n{}", region_.to_string(" "));
 
-  render();
   return true;
 }
 
-void RegionManager::render()
+FitEvaluation RegionManager::eval() const
 {
-  rendering_.render(region_, settings_.calib.cali_nrg_);
+  FitEvaluation ret(region_.data);
 
   std::vector<double> lowres_backsteps, lowres_fullfit;
   region_.background.eval_add(region_.data.chan, lowres_backsteps);
@@ -243,7 +149,8 @@ void RegionManager::render()
     }
   }
 
-  fit_eval_.update_fit(lowres_fullfit, lowres_backsteps);
+  ret.update_fit(lowres_fullfit, lowres_backsteps);
+  return ret;
 }
 
 
@@ -312,9 +219,6 @@ nlohmann::json RegionManager::to_json(const FitEvaluation& parent_finder) const
     jj["description"] = temp.fits_[i].description.description;
     temp.rollback(i);
 
-    if (settings_.overriden)
-      jj["settings"] = settings_;
-
     jj["background_left"] = temp.region_.LB_;
     jj["background_right"] = temp.region_.RB_;
     jj["background_poly"] = temp.region_.background;
@@ -328,10 +232,9 @@ nlohmann::json RegionManager::to_json(const FitEvaluation& parent_finder) const
   return j;
 }
 
-RegionManager::RegionManager(const nlohmann::json& j, const FitEvaluation& finder, const FitSettings& fs)
+RegionManager::RegionManager(const nlohmann::json& j, const WeightedData& super_region)
 {
-  settings_ = fs;
-  if (finder.x_.empty() || (finder.x_.size() != finder.y_.size()))
+  if (!super_region.valid())
     return;
 
   if (j.count("fits"))
@@ -342,20 +245,14 @@ RegionManager::RegionManager(const nlohmann::json& j, const FitEvaluation& finde
       SUM4Edge LB = it.value()["background_left"];
       SUM4Edge RB = it.value()["background_right"];
 
-      LB = SUM4Edge(finder.weighted_data.subset(LB.left(), LB.right()));
-      RB = SUM4Edge(finder.weighted_data.subset(RB.left(), RB.right()));
+      LB = SUM4Edge(super_region.subset(LB.left(), LB.right()));
+      RB = SUM4Edge(super_region.subset(RB.left(), RB.right()));
 
       if (!LB.width() || !RB.width())
         return;
 
-      if (it.value().count("settings"))
-        settings_ = it.value()["settings"];
-//      else
-//        settings_ = finder.settings_;
-
       //validate background and edges?
-      set_data(finder, LB.left(), RB.left());
-
+      region_ = Region(super_region.subset(LB.left(), RB.left()), 1);
       region_.LB_ = LB;
       region_.RB_ = RB;
 
@@ -366,14 +263,13 @@ RegionManager::RegionManager(const nlohmann::json& j, const FitEvaluation& finde
         {
           Peak newpeak = it2.value();
           newpeak.sum4 = SUM4(
-              finder.weighted_data.subset(newpeak.sum4.left(), newpeak.sum4.right()),
+              super_region.subset(newpeak.sum4.left(), newpeak.sum4.right()),
               region_.LB_, region_.RB_);
           region_.peaks_[newpeak.id()] = newpeak;
         }
       }
 
       region_.background = it.value()["background_poly"];
-      render();
       save_current_fit(it.value()["description"]);
       region_.peaks_.clear();
     }

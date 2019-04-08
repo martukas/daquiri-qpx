@@ -5,6 +5,7 @@ set(SOURCES
   ${dir}/fit_settings.cpp
   ${dir}/region_manager.cpp
   ${dir}/fitter.cpp
+  ${dir}/rendering.cpp
   )
 
 set(HEADERS
@@ -12,6 +13,7 @@ set(HEADERS
   ${dir}/fit_settings.h
   ${dir}/region_manager.h
   ${dir}/fitter.h
+  ${dir}/rendering.h
   )
 
 add_subdirectory(finders)

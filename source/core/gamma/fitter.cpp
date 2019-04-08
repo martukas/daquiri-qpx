@@ -149,7 +149,11 @@ void Fitter::find_regions()
 
   for (const auto& r : new_regions)
   {
-    RegionManager newROI(settings_, fit_eval_, r.left, r.right);
+    Region rr;
+    rr = Region(fit_eval_.weighted_data.subset(r.left, r.right),
+        settings_.background_edge_samples);
+    rr.default_peak_ = settings_.default_peak;
+    RegionManager newROI(rr);
     if (newROI.region().width())
     {
       guess_peaks(newROI);
@@ -200,7 +204,7 @@ RegionManager Fitter::region(double bin) const
   if (contains_region(bin))
     return regions_.at(bin);
   else
-    return RegionManager();
+    return {};
 }
 
 const std::map<double, RegionManager>& Fitter::regions() const
@@ -261,7 +265,7 @@ RegionManager Fitter::parent_region(double peakID) const
   for (auto& m : regions_)
     if (m.second.contains(peakID))
       return m.second;
-  return RegionManager();
+  return {};
 }
 
 RegionManager* Fitter::parent_of(double peakID)
@@ -280,7 +284,7 @@ void Fitter::render_all()
 {
   fit_eval_.reset();
   for (auto &r : regions_)
-    fit_eval_.merge_fit(r.second.finder());
+    fit_eval_.merge_fit(r.second.eval());
 }
 
 bool Fitter::find_and_fit(double regionID, AbstractOptimizer* optimizer)
@@ -303,15 +307,14 @@ bool Fitter::refit_region(double regionID, AbstractOptimizer* optimizer)
   return true;
 }
 
-bool Fitter::override_region(double regionID, const Region& new_region)
+bool Fitter::override_region(double regionID, const Region& new_region, std::string message)
 {
   if (!contains_region(regionID))
     return false;
 
-  regions_[regionID].modify_region(new_region);
+  regions_[regionID].modify_region(new_region, message);
 
-  // \todo reindex regions
-
+  reindex_regions();
   render_all();
   return true;
 }
@@ -324,9 +327,14 @@ double Fitter::merge_regions(double region1_id, double region2_id)
   auto region1 = regions_[region1_id];
   auto region2 = regions_[region2_id];
 
-  RegionManager new_region(settings_, fit_eval_,
-      std::min(region1.region().left(), region2.region().left()),
-      std::max(region1.region().right(), region2.region().right()));
+  double L = std::min(region1.region().left(), region2.region().left());
+  double R = std::max(region1.region().right(), region2.region().right());
+
+  Region ri;
+  ri = Region(fit_eval_.weighted_data.subset(L, R),
+              settings_.background_edge_samples);
+  ri.default_peak_ = settings_.default_peak;
+  RegionManager new_region(ri);
 
   auto rr = new_region.region();
   for (const auto& p : region1.region().peaks_)
@@ -446,7 +454,12 @@ double Fitter::create_region(double left, double right)
   if (fit_eval_.x_.empty())
     return -1;
 
-  RegionManager newROI(settings_, fit_eval_, left, right);
+  Region ri;
+  ri = Region(fit_eval_.weighted_data.subset(left, right),
+              settings_.background_edge_samples);
+  ri.default_peak_ = settings_.default_peak;
+
+  RegionManager newROI(ri);
   guess_peaks(newROI);
   regions_[newROI.id()] = newROI;
   render_all();
@@ -478,7 +491,7 @@ double Fitter::add_peak(double regionID, double left, double right)
     render_all();
   }
 
-  NaiveKON kon(r.finder().x_, r.finder().y_resid_,
+  NaiveKON kon(r.eval().x_, r.eval().y_resid_,
                settings_.kon_settings.width,
                settings_.kon_settings.sigma_resid);
   if (rr.add_peak(left, right, kon.highest_residual(left, right)))
@@ -495,7 +508,7 @@ void Fitter::guess_peaks(RegionManager& r)
 {
   Region rr = r.region();
 
-  auto f = r.finder();
+  auto f = r.eval();
   f.reset();
   NaiveKON kon(f.x_, f.y_,
                settings_.kon_settings.width,
@@ -661,7 +674,7 @@ Fitter::Fitter(const json& j, ConsumerPtr spectrum)
     auto o = j["regions"];
     for (json::iterator it = o.begin(); it != o.end(); ++it)
     {
-      RegionManager region(it.value(), fit_eval_, settings_);
+      RegionManager region(it.value(), fit_eval_.weighted_data);
       if (region.region().width())
         regions_[region.id()] = region;
     }

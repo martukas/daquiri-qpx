@@ -92,6 +92,8 @@ private:
   ThreadFitter thread_fitter_;
 //  QMediaPlayer *player;
 
+  std::mt19937 random_generator_;
+
   void merge_regions(std::set<double> rois);
 
 };

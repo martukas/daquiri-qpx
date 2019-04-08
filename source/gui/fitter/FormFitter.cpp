@@ -56,6 +56,8 @@ FormFitter::FormFitter(QWidget* parent) :
   movie->start();
   ui->labelMovie->setVisible(false);
 
+  random_generator_.seed(std::random_device()());
+
   thread_fitter_.start();
 }
 
@@ -116,6 +118,9 @@ void FormFitter::refit_ROI(double ROI_bin)
 
   toggle_push(true);
 
+  auto rr = fit_->region(ROI_bin).region();
+  rr.perturb(random_generator_);
+  fit_->override_region(ROI_bin, rr, "Perturbed variables");
   thread_fitter_.set_data(*fit_);
   thread_fitter_.refit(ROI_bin);
 }

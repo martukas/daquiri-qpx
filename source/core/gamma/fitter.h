@@ -55,7 +55,7 @@ class Fitter
   double create_region(double left, double right);
   double add_peak(double regionID, double left, double right);
   double merge_regions(double region1_id, double region2_id);
-  bool override_region(double regionID, const Region& new_region);
+  bool override_region(double regionID, const Region& new_region, std::string message = "");
   bool rollback_ROI(double regionID, size_t point);
   bool delete_ROI(double regionID);
   void clear_all_ROIs();

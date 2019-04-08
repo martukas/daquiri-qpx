@@ -85,7 +85,6 @@ protected:
                      QString name = QString(), double region = -1, double peak = -1);
 
   void plotBackgroundEdge(DAQuiri::SUM4Edge edge,
-                          const std::vector<double> &x,
                           double region,
                           QString button_name);
 
