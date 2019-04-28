@@ -1,5 +1,4 @@
 #include <core/importer_factory.h>
-#include <core/project.h>
 
 class ImporterSPC : public DAQuiri::Importer
 {

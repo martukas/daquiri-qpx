@@ -1,20 +1,22 @@
 #pragma once
 
 #include <producers/ESSStream/fb_parser.h>
-#include "f142_logdata_generated.h"
 #include <map>
 
 using namespace DAQuiri;
 
-class ChopperTDC : public fb_parser
+class SampleEnvironmentData;
+
+class SenvParserWrong : public fb_parser
 {
  public:
-  ChopperTDC();
+  SenvParserWrong();
 
-  ~ChopperTDC() = default;
+  ~SenvParserWrong()
+  {}
 
   std::string plugin_name() const override
-  { return "ChopperTDC"; }
+  { return "SenvParserWrong"; }
 
   std::string schema_id() const override;
   std::string get_source_name(void* msg) const override;
@@ -30,15 +32,18 @@ class ChopperTDC : public fb_parser
  private:
   // cached params
 
-  std::string stream_id_{"ChopperTDC"};
-
-  bool filter_source_name_{false};
-  std::string source_name_;
+  std::string stream_id_base_{"Senv"};
 
   EventModel event_model_;
 
   bool started_{false};
 
-  static std::string debug(const LogData& TDCTimeStamp);
+  bool filter_source_name_{false};
+  std::string source_name_;
+
+  static std::string debug(const SampleEnvironmentData* TDCTimeStamp);
+
+  uint64_t start(SpillQueue spill_queue);
+
 };
 

@@ -27,7 +27,7 @@ TEST_F(ImportTKA, ImportPrompt1)
   importer.import(std::string(TEST_DATA_PATH) + "/prompt1.tka", p);
 
   auto cs = p->get_consumers();
-  EXPECT_EQ(cs.size(), 1);
+  EXPECT_EQ(cs.size(), 1u);
 
   auto c = cs.get(0);
   EXPECT_EQ(c->type(), "Histogram 1D");
@@ -44,21 +44,21 @@ TEST_F(ImportTKA, ImportPrompt1)
 
   auto data = c->data();
   auto list = data->all_data();
-  EXPECT_EQ(list->size(), 16331);
+  EXPECT_EQ(list->size(), 16331u);
 
   auto p10 = list->at(10);
-  EXPECT_EQ(p10.first[0], 10);
+  EXPECT_EQ(p10.first[0], 10u);
   EXPECT_EQ(p10.second, 0);
 
   auto p100 = list->at(100);
-  EXPECT_EQ(p100.first[0], 100);
+  EXPECT_EQ(p100.first[0], 100u);
   EXPECT_EQ(p100.second, 4144);
 
   auto p1000 = list->at(1000);
-  EXPECT_EQ(p1000.first[0], 1000);
+  EXPECT_EQ(p1000.first[0], 1000u);
   EXPECT_EQ(p1000.second, 437);
 
   auto p10000 = list->at(10000);
-  EXPECT_EQ(p10000.first[0], 10000);
+  EXPECT_EQ(p10000.first[0], 10000u);
   EXPECT_EQ(p10000.second, 5);
 }

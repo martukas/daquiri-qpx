@@ -335,7 +335,7 @@ void ProjectForm::import(QStringList fileNames)
 
   //toggle_push(false, false);
 
-  int valid_imports = 0;
+  //int valid_imports = 0;
 
   for (int i = 0; i < fileNames.size(); i++)
   {
