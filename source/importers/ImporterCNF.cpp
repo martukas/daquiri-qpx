@@ -1,10 +1,10 @@
 #include "ImporterCNF.h"
-#include <boost/algorithm/string.hpp>
 #include <core/consumer_factory.h>
 #include "xylib/xylib.h"
 #include <date/date.h>
+#include <core/util/string_extensions.h>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 bool ImporterCNF::validate(const boost::filesystem::path& path) const
 {
@@ -37,7 +37,7 @@ void ImporterCNF::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
       if (key.substr(0, 12) == "energy calib")
       {
 //        DBG("calib = {}", value);
-        calibration.push_back(boost::lexical_cast<double>(value));
+        calibration.push_back(std::stod(value));
       }
       else if (key == "description")
       {
@@ -54,12 +54,12 @@ void ImporterCNF::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
       }
       else if (key == "real time (s)")
       {
-        rt_ms = static_cast<int64_t>(std::stod(boost::algorithm::trim_copy(value)) * 1000.0);
+        rt_ms = static_cast<int64_t>(std::stod(trim_copy(value)) * 1000.0);
 //        DBG("parsing real time = '{}' -> {}", value, rt_ms);
       }
       else if (key == "live time (s)")
       {
-        lt_ms = static_cast<int64_t>(std::stod(boost::algorithm::trim_copy(value)) * 1000.0);
+        lt_ms = static_cast<int64_t>(std::stod(trim_copy(value)) * 1000.0);
 //        DBG("parsing live time = '{}' -> {}", value, lt_ms);
       }
     }

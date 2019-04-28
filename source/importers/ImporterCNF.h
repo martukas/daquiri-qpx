@@ -1,6 +1,4 @@
 #include <core/importer_factory.h>
-#include <boost/lexical_cast.hpp>
-#include <core/project.h>
 
 class ImporterCNF : public DAQuiri::Importer
 {

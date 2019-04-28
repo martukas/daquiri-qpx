@@ -1,9 +1,9 @@
 #include "ImporterTKA.h"
-#include <boost/algorithm/string.hpp>
+#include <core/util/string_extensions.h>
 #include <core/consumer_factory.h>
 #include <importers/string_to_chans.h>
 
-#include <core/util/custom_logger.h>
+#include <core/util/logger.h>
 
 bool ImporterTKA::validate(const boost::filesystem::path& path) const
 {
@@ -18,7 +18,6 @@ void ImporterTKA::import(const boost::filesystem::path& path, DAQuiri::ProjectPt
   if (!hist)
     throw std::runtime_error("ImporterTKA could not get a valid Histogram 1D from factory");
 
-  using namespace boost::algorithm;
   std::string data;
 
   // \todo extract ms part separately
